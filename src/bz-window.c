@@ -95,6 +95,7 @@ BZ_DEFINE_DATA (
       BzEntryGroup *group;
       gboolean      remove;
       GtkWidget    *source;
+      gboolean      dialog;
     },
     BZ_RELEASE_DATA (group, g_object_unref);
     BZ_RELEASE_DATA (source, g_object_unref))
@@ -120,7 +121,8 @@ try_transact (BzWindow     *self,
               BzEntry      *entry,
               BzEntryGroup *group,
               gboolean      remove,
-              GtkWidget    *source);
+              GtkWidget    *source,
+              gboolean      dialog);
 
 static DexFuture *
 ready_to_transact (DexFuture    *future,
@@ -257,7 +259,7 @@ search_widget_select_cb (BzWindow       *self,
       NULL);
 
   remove = installable == 0 && removable > 0;
-  try_transact (self, NULL, group, remove, NULL);
+  try_transact (self, NULL, group, remove, NULL, TRUE);
 }
 
 static void
@@ -265,7 +267,7 @@ full_view_install_cb (BzWindow   *self,
                       GtkWidget  *source,
                       BzFullView *view)
 {
-  try_transact (self, NULL, bz_full_view_get_entry_group (view), FALSE, source);
+  try_transact (self, NULL, bz_full_view_get_entry_group (view), FALSE, source, FALSE);
 }
 
 static void
@@ -273,7 +275,7 @@ full_view_remove_cb (BzWindow   *self,
                      GtkWidget  *source,
                      BzFullView *view)
 {
-  try_transact (self, NULL, bz_full_view_get_entry_group (view), TRUE, source);
+  try_transact (self, NULL, bz_full_view_get_entry_group (view), TRUE, source, FALSE);
 }
 
 static void
@@ -281,7 +283,7 @@ installed_page_install_cb (BzWindow   *self,
                            BzEntry    *entry,
                            BzFullView *view)
 {
-  try_transact (self, entry, NULL, FALSE, NULL);
+  try_transact (self, entry, NULL, FALSE, NULL, FALSE);
 }
 
 static void
@@ -289,7 +291,7 @@ installed_page_remove_cb (BzWindow   *self,
                           BzEntry    *entry,
                           BzFullView *view)
 {
-  try_transact (self, entry, NULL, TRUE, NULL);
+  try_transact (self, entry, NULL, TRUE, NULL, FALSE);
 }
 
 static void
@@ -836,7 +838,8 @@ try_transact (BzWindow     *self,
               BzEntry      *entry,
               BzEntryGroup *group,
               gboolean      remove,
-              GtkWidget    *source)
+              GtkWidget    *source,
+              gboolean      dialog)
 {
   g_autoptr (DexFuture) base_future = NULL;
   g_autoptr (TransactData) data     = NULL;
@@ -861,6 +864,7 @@ try_transact (BzWindow     *self,
   data->group  = group != NULL ? g_object_ref (group) : NULL;
   data->remove = remove;
   data->source = source != NULL ? g_object_ref (source) : NULL;
+  data->dialog = dialog;
 
   dex_clear (&self->transact_future);
   self->transact_future = dex_future_finally (
@@ -876,6 +880,7 @@ ready_to_transact (DexFuture    *future,
   BzWindow     *self             = data->self;
   BzEntryGroup *group            = data->group;
   gboolean      remove           = data->remove;
+  gboolean      dialog           = data->dialog;
   GtkWidget    *source           = data->source;
   g_autoptr (GError) local_error = NULL;
   const GValue *value            = NULL;
@@ -883,14 +888,41 @@ ready_to_transact (DexFuture    *future,
   value = dex_future_get_value (future, &local_error);
   if (value != NULL)
     {
-      g_autoptr (GListModel) model = NULL;
+      g_autoptr(GListModel) model = g_value_dup_object(value);
+      guint n_entries = g_list_model_get_n_items(model);
+
+      if (!dialog && n_entries <= 2)
+      {
+          if (G_VALUE_HOLDS(value, G_TYPE_LIST_MODEL))
+          {
+              for (guint i = 0; i < n_entries; i++)
+              {
+                  g_autoptr(BzEntry) entry = g_list_model_get_item(model, i);
+                  if (!bz_entry_is_holding(entry) && 
+                      ((remove && bz_entry_is_installed(entry)) || (!remove && !bz_entry_is_installed(entry))))
+                  {
+                      transact(self, entry, remove, source);
+                      break;
+                  }
+              }
+          }
+          else
+          {
+              g_autoptr(BzEntry) entry = g_value_dup_object(value);
+              transact(self, entry, remove, source);
+          }
+          dex_clear(&self->transact_future);
+          return NULL;
+      }
+
+      g_autoptr (GListModel) dialog_model = NULL;
       g_autoptr (BzEntry) entry    = NULL;
       AdwDialog  *alert            = NULL;
       const char *title            = NULL;
       const char *id               = NULL;
 
       if (G_VALUE_HOLDS (value, G_TYPE_LIST_MODEL))
-        model = g_value_dup_object (value);
+        dialog_model = g_value_dup_object (value);
       else
         entry = g_value_dup_object (value);
 
@@ -904,7 +936,7 @@ ready_to_transact (DexFuture    *future,
       adw_alert_dialog_set_heading (
           ADW_ALERT_DIALOG (alert), _ ("Confirm Action"));
 
-      if (model != NULL)
+      if (dialog_model != NULL)
         {
           g_object_set_data_full (
               G_OBJECT (alert),
@@ -912,7 +944,7 @@ ready_to_transact (DexFuture    *future,
               g_object_unref);
           g_object_set_data_full (
               G_OBJECT (alert),
-              "model", g_object_ref (model),
+              "model", g_object_ref (dialog_model),
               g_object_unref);
           title = bz_entry_group_get_title (group);
           id    = bz_entry_group_get_id (group);
@@ -968,9 +1000,6 @@ ready_to_transact (DexFuture    *future,
 
       if (group != NULL)
         {
-          guint n_entries = 0;
-
-          n_entries = g_list_model_get_n_items (model);
           if (n_entries > 0)
             {
               GtkWidget      *box               = NULL;
