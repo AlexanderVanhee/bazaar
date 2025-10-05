@@ -438,6 +438,32 @@ template $BzFullView: Adw.Bin {
                       selection-mode: none;
                     }
                   }
+                  Box {
+                    orientation: vertical;
+
+                    Label {
+                      styles [
+                        "heading", "h4"
+                      ]
+
+                      label: _("Other apps by the developer");
+                      xalign: 0;
+                      margin-bottom: 12;
+                    }
+
+                   $BzDynamicListView {
+                       hexpand: true;
+                       scroll: false;
+                       noscroll-kind: flow-box;
+                       child-type: "BzAppTile";
+                       child-prop: "group";
+                       model: SliceListModel {
+                         offset: 0;
+                         size: 12;
+                         model: bind template.developer-apps-model;
+                       };
+                     }
+                   }
                 };
               }
 

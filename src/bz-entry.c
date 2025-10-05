@@ -29,6 +29,7 @@
 #include "bz-country-data-point.h"
 #include "bz-data-point.h"
 #include "bz-entry.h"
+#include "bz-entry-group.h"
 #include "bz-env.h"
 #include "bz-global-state.h"
 #include "bz-io.h"
@@ -72,6 +73,7 @@ typedef struct
   char         *project_group;
   char         *developer;
   char         *developer_id;
+  GListModel   *developer_apps;
   GListModel   *screenshot_paintables;
   GListModel   *share_urls;
   char         *donation_url;
@@ -124,6 +126,7 @@ enum
   PROP_PROJECT_GROUP,
   PROP_DEVELOPER,
   PROP_DEVELOPER_ID,
+  PROP_DEVELOPER_APPS,
   PROP_SCREENSHOT_PAINTABLES,
   PROP_SHARE_URLS,
   PROP_DONATION_URL,
@@ -303,6 +306,10 @@ bz_entry_get_property (GObject    *object,
     case PROP_DEVELOPER_ID:
       g_value_set_string (value, priv->developer_id);
       break;
+    case PROP_DEVELOPER_APPS:
+      query_flathub (self, PROP_DEVELOPER_APPS);
+      g_value_set_object (value, priv->developer_apps);
+      break;
     case PROP_SCREENSHOT_PAINTABLES:
       g_value_set_object (value, priv->screenshot_paintables);
       break;
@@ -457,6 +464,9 @@ bz_entry_set_property (GObject      *object,
     case PROP_DEVELOPER_ID:
       g_clear_pointer (&priv->developer_id, g_free);
       priv->developer_id = g_value_dup_string (value);
+      break;
+    case PROP_DEVELOPER_APPS:
+      g_set_object (&priv->developer_apps, g_value_get_object (value));
       break;
     case PROP_SCREENSHOT_PAINTABLES:
       g_clear_object (&priv->screenshot_paintables);
@@ -708,6 +718,12 @@ bz_entry_class_init (BzEntryClass *klass)
           "developer-id",
           NULL, NULL, NULL,
           G_PARAM_READWRITE);
+
+  props[PROP_DEVELOPER_APPS] =
+      g_param_spec_object ("developer-apps",
+             NULL, NULL,
+             G_TYPE_LIST_MODEL,
+             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
 
   props[PROP_SCREENSHOT_PAINTABLES] =
       g_param_spec_object (
@@ -1800,6 +1816,8 @@ query_flathub_fiber (QueryFlathubData *data)
   g_autofree char *request       = NULL;
   g_autoptr (JsonNode) node      = NULL;
 
+  g_print ("query_flathub_fiber: prop=%d, id=%s\n", prop, id);
+
   switch (prop)
     {
     case PROP_VERIFIED:
@@ -1808,6 +1826,9 @@ query_flathub_fiber (QueryFlathubData *data)
     case PROP_DOWNLOAD_STATS:
     case PROP_DOWNLOAD_STATS_PER_COUNTRY:
       request = g_strdup_printf ("/stats/%s?all=false&days=175", id);
+      break;
+    case PROP_DEVELOPER_APPS:
+      request = g_strdup_printf ("/collection/developer/%s", id);
       break;
     default:
       g_assert_not_reached ();
@@ -1870,6 +1891,42 @@ query_flathub_fiber (QueryFlathubData *data)
       }
       break;
 
+    case PROP_DEVELOPER_APPS:
+      {
+        JsonObject *response_obj = NULL;
+        JsonArray *apps_array    = NULL;
+        GList *app_ids           = NULL;
+
+        response_obj = json_node_get_object (node);
+
+        if (json_object_has_member (response_obj, "hits"))
+          apps_array = json_object_get_array_member (response_obj, "hits");
+
+        if (apps_array == NULL)
+          {
+            g_critical ("Could not find hits array in developer API response");
+            return dex_future_new_for_error (
+                g_error_new_literal (G_IO_ERROR, G_IO_ERROR_FAILED,
+                                    "Invalid API response structure"));
+          }
+
+        for (guint i = 0; i < json_array_get_length (apps_array); i++)
+          {
+            JsonObject *app_obj = json_array_get_object_element (apps_array, i);
+            const char *app_id  = json_object_get_string_member (app_obj, "id");
+            char *normalized_id = g_strdelimit (g_strdup (app_id), "_", '.');
+
+            app_ids = g_list_prepend (app_ids, normalized_id);
+          }
+
+        app_ids = g_list_reverse (app_ids);
+
+        g_print ("Total developer apps processed: %u\n", g_list_length (app_ids));
+
+        return dex_future_new_for_pointer (app_ids);
+      }
+      break;
+
     default:
       g_assert_not_reached ();
       return NULL;
@@ -1885,7 +1942,19 @@ query_flathub_then (DexFuture        *future,
   const GValue *value = NULL;
 
   value = dex_future_get_value (future, NULL);
-  g_object_set_property (G_OBJECT (self), props[prop]->name, value);
+
+  if (prop == PROP_DEVELOPER_APPS)
+    {
+      GList *app_ids = g_value_get_pointer (value);
+
+      g_print ("Setting developer-apps with %u items\n", g_list_length (app_ids));
+      g_object_set (G_OBJECT (self), "developer-apps", app_ids, NULL);
+    }
+  else
+    {
+      g_object_set_property (G_OBJECT (self), props[prop]->name, value);
+    }
+
   return NULL;
 }
 
