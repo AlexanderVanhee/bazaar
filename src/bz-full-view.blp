@@ -11,10 +11,18 @@ template $BzFullView: Adw.Bin {
       name: "empty";
       title: _("Empty");
 
-      child: Adw.StatusPage {
-        icon-name: "sad-computer-symbolic";
-        title: _("No Results");
-        description: _("Try a different search query");
+      child: Box {
+        orientation: vertical;
+        valign: center;
+
+        Image {
+          pixel-size: 400;
+          paintable: $BzTruckPaintable {};
+        }
+        Adw.StatusPage {
+          title: _("No Results");
+          description: _("Try a different search query");
+        }
       };
     }
 

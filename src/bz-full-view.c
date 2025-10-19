@@ -42,6 +42,7 @@
 #include "bz-spdx.h"
 #include "bz-state-info.h"
 #include "bz-stats-dialog.h"
+#include "bz-truck-paintable.h"
 
 struct _BzFullView
 {
@@ -915,6 +916,7 @@ bz_full_view_class_init (BzFullViewClass *klass)
   g_type_ensure (BZ_TYPE_LAZY_ASYNC_TEXTURE_MODEL);
   g_type_ensure (BZ_TYPE_SCREENSHOT);
   g_type_ensure (BZ_TYPE_SECTION_VIEW);
+  g_type_ensure (BZ_TYPE_TRUCK_PAINTABLE);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-full-view.ui");
   gtk_widget_class_bind_template_child (widget_class, BzFullView, stack);

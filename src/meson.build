@@ -15,6 +15,7 @@ libsoup_dep          = dependency('libsoup-3.0', version: '>= 3.6.0')
 json_glib_dep        = dependency('json-glib-1.0', version: '>= 1.10.0')
 glycin_dep           = dependency('glycin-2', version: '>= 2.0')
 glycin_gtk4_dep      = dependency('glycin-gtk4-2', version: '>= 2.0')
+librsvg_dep          = dependency('librsvg-2.0', version: '>= 2.46')
 
 
 dl_worker_sources = [
@@ -123,6 +124,7 @@ bz_sources = [
   'bz-transaction-task.c',
   'bz-transaction-view.c',
   'bz-transaction.c',
+  'bz-truck-paintable.c',
   'bz-update-dialog.c',
   'bz-url.c',
   'bz-window.c',
@@ -147,6 +149,7 @@ bz_deps = [
   libdex_dep,
   glycin_dep,
   glycin_gtk4_dep,
+  librsvg_dep
 ]
 
 blueprints = custom_target('blueprints',

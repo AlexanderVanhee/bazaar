@@ -97,6 +97,8 @@
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Science.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.System.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Utilities.svg</file>
+    <file preprocess="xml-stripblanks">assets/io.github.kolumni.Bazaar.Truck.svg</file>
+
 
   </gresource>
 </gresources>
