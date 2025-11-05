@@ -65,6 +65,7 @@ bz_sources = [
   'bz-backend-transaction-op-progress-payload.c',
   'bz-backend.c',
   'bz-browse-widget.c',
+  'bz-carousel.c',
   'bz-category-tile.c',
   'bz-comet-overlay.c',
   'bz-comet.c',
