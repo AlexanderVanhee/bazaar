@@ -4,9 +4,10 @@ template $BzDecoratedScreenshot: Button {
   styles [
     "flat", "decorated-screenshot"
   ]
-
+  halign: center;
   child: Gtk.Picture {
     paintable: bind template.async-texture;
     content-fit: contain;
+    halign: center;
   };
 }

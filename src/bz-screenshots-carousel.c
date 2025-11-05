@@ -29,13 +29,14 @@
 #include "bz-screenshots-carousel.h"
 #include "bz-decorated-screenshot.h"
 #include "bz-screenshot-dialog.h"
+#include "bz-carousel.h"
 #include <adwaita.h>
 
 struct _BzScreenshotsCarousel
 {
   GtkWidget parent_instance;
 
-  AdwCarousel *carousel;
+  BzCarousel *carousel;
   GtkWidget   *carousel_indicator;
   GtkButton   *prev_button;
   GtkWidget   *prev_button_revealer;
@@ -66,8 +67,8 @@ update_button_visibility (BzScreenshotsCarousel *self)
   if (!self->carousel)
     return;
 
-  position = adw_carousel_get_position (self->carousel);
-  n_pages  = adw_carousel_get_n_pages (self->carousel);
+  position = bz_carousel_get_position (self->carousel);
+  n_pages  = bz_carousel_get_n_pages (self->carousel);
 
   gtk_widget_set_opacity (self->carousel_indicator, n_pages > 1);
   gtk_revealer_set_reveal_child (GTK_REVEALER (self->prev_button_revealer), position >= 0.5);
@@ -75,7 +76,7 @@ update_button_visibility (BzScreenshotsCarousel *self)
 }
 
 static void
-carousel_navigate (AdwCarousel *carousel, AdwNavigationDirection direction)
+carousel_navigate (BzCarousel *carousel, AdwNavigationDirection direction)
 {
   g_autoptr (GList) children = NULL;
   GtkWidget *child;
@@ -92,7 +93,7 @@ carousel_navigate (AdwCarousel *carousel, AdwNavigationDirection direction)
     }
   children = g_list_reverse (children);
 
-  position = adw_carousel_get_position (carousel);
+  position = bz_carousel_get_position (carousel);
   position += (direction == ADW_NAVIGATION_DIRECTION_BACK) ? -1 : 1;
   position = round (position);
   position = MIN (position, n_children - 1);
@@ -100,7 +101,7 @@ carousel_navigate (AdwCarousel *carousel, AdwNavigationDirection direction)
 
   child = g_list_nth_data (children, position);
   if (child)
-    adw_carousel_scroll_to (carousel, child, TRUE);
+    bz_carousel_scroll_to (carousel, child, TRUE);
 }
 
 static void
@@ -190,11 +191,11 @@ on_expand_clicked (BzScreenshotsCarousel *self)
   if (!self->carousel || !self->model)
     return;
 
-  n_pages = adw_carousel_get_n_pages (self->carousel);
+  n_pages = bz_carousel_get_n_pages (self->carousel);
   if (n_pages == 0)
     return;
 
-  position = adw_carousel_get_position (self->carousel);
+  position = bz_carousel_get_position (self->carousel);
   index    = (guint) round (position);
   index    = MIN (index, n_pages - 1);
 
@@ -210,7 +211,7 @@ clear_carousel (BzScreenshotsCarousel *self)
     return;
 
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (self->carousel))) != NULL)
-    adw_carousel_remove (self->carousel, child);
+    bz_carousel_remove (self->carousel, child);
 }
 
 static void
@@ -240,7 +241,7 @@ populate_carousel (BzScreenshotsCarousel *self)
       g_signal_connect (screenshot, "clicked",
                         G_CALLBACK (on_screenshot_clicked), self);
 
-      adw_carousel_append (self->carousel, screenshot);
+      bz_carousel_append (self->carousel, screenshot);
       gtk_widget_set_visible (screenshot, TRUE);
     }
 
@@ -334,6 +335,7 @@ bz_screenshots_carousel_class_init (BzScreenshotsCarouselClass *klass)
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
 
+  g_type_ensure (BZ_TYPE_CAROUSEL);
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-screenshots-carousel.ui");
   gtk_widget_class_bind_template_child (widget_class, BzScreenshotsCarousel, carousel);
   gtk_widget_class_bind_template_child (widget_class, BzScreenshotsCarousel, carousel_indicator);
@@ -357,7 +359,7 @@ bz_screenshots_carousel_init (BzScreenshotsCarousel *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   if (self->carousel)
-    adw_carousel_set_allow_scroll_wheel (self->carousel, FALSE);
+    bz_carousel_set_allow_scroll_wheel (self->carousel, FALSE);
 }
 
 GtkWidget *

@@ -48,6 +48,7 @@ struct _BzCarousel
   double distance;
   double position;
   guint spacing;
+  gboolean uniform_spacing;
   GtkOrientation orientation;
   guint reveal_duration;
 
@@ -81,6 +82,7 @@ enum {
   PROP_POSITION,
   PROP_INTERACTIVE,
   PROP_SPACING,
+  PROP_UNIFORM_SPACING,
   PROP_SCROLL_PARAMS,
   PROP_ALLOW_MOUSE_DRAG,
   PROP_ALLOW_SCROLL_WHEEL,
@@ -708,7 +710,6 @@ bz_carousel_size_allocate (GtkWidget *widget,
                             int        baseline)
 {
   BzCarousel *self = BZ_CAROUSEL (widget);
-  int size, child_width, child_height;
   GList *children;
   double x, y, offset;
   gboolean is_rtl;
@@ -720,7 +721,7 @@ bz_carousel_size_allocate (GtkWidget *widget,
     self->position_shift = 0;
   }
 
-  size = 0;
+  int max_size = 0;
   for (children = self->children; children; children = children->next) {
     ChildInfo *child_info = children->data;
     GtkWidget *child = child_info->widget;
@@ -746,27 +747,31 @@ bz_carousel_size_allocate (GtkWidget *widget,
         child_size = CLAMP (nat, min, height);
     }
 
-    size = MAX (size, child_size);
+    child_info->size = self->uniform_spacing ? 1.0 : ((double)child_size / width);
+
+    max_size = MAX (max_size, child_size);
   }
 
-  self->distance = size + self->spacing;
-
-  if (self->orientation == GTK_ORIENTATION_HORIZONTAL) {
-    child_width = size;
-    child_height = height;
+  if (self->uniform_spacing) {
+    self->distance = max_size + self->spacing;
   } else {
-    child_width = width;
-    child_height = size;
+    self->distance = max_size;
   }
 
   snap_point = 0;
-
   for (children = self->children; children; children = children->next) {
     ChildInfo *child_info = children->data;
 
+    if (child_info->removing)
+      continue;
+
     child_info->snap_point = snap_point + child_info->size - 1;
 
-    snap_point += child_info->size;
+    if (self->uniform_spacing) {
+      snap_point += child_info->size;
+    } else {
+      snap_point += child_info->size;
+    }
 
     if (child_info == self->animation_target_child)
       adw_spring_animation_set_value_to (ADW_SPRING_ANIMATION (self->animation),
@@ -778,12 +783,42 @@ bz_carousel_size_allocate (GtkWidget *widget,
 
   is_rtl = (gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL);
 
-  if (self->orientation == GTK_ORIENTATION_VERTICAL)
-    offset = (self->distance * self->position) - (height - child_height) / 2.0;
-  else if (is_rtl)
-    offset = -(self->distance * self->position) - (width - child_width) / 2.0;
-  else
-    offset = (self->distance * self->position) - (width - child_width) / 2.0;
+  if (self->uniform_spacing) {
+    if (self->orientation == GTK_ORIENTATION_VERTICAL)
+      offset = (self->distance * self->position) - (height - max_size) / 2.0;
+    else if (is_rtl)
+      offset = -(self->distance * self->position) - (width - max_size) / 2.0;
+    else
+      offset = (self->distance * self->position) - (width - max_size) / 2.0;
+  } else {
+    double accumulated_distance = 0;
+    int target_index = (int)round(self->position);
+    int current_index = 0;
+
+    for (children = self->children; children; children = children->next) {
+      ChildInfo *child_info = children->data;
+
+      if (child_info->removing)
+        continue;
+
+      if (current_index < target_index) {
+        accumulated_distance += self->distance * child_info->size + self->spacing;
+      } else if (current_index == target_index) {
+        double frac = self->position - target_index;
+        accumulated_distance += (self->distance * child_info->size + self->spacing) * frac;
+        break;
+      }
+
+      current_index++;
+    }
+
+    if (self->orientation == GTK_ORIENTATION_VERTICAL)
+      offset = accumulated_distance - (height - max_size) / 2.0;
+    else if (is_rtl)
+      offset = -accumulated_distance - (width - max_size) / 2.0;
+    else
+      offset = accumulated_distance - (width - max_size) / 2.0;
+  }
 
   if (self->orientation == GTK_ORIENTATION_VERTICAL)
     y -= offset;
@@ -793,34 +828,84 @@ bz_carousel_size_allocate (GtkWidget *widget,
   for (children = self->children; children; children = children->next) {
     ChildInfo *child_info = children->data;
     GskTransform *transform = gsk_transform_new ();
+    int child_width, child_height;
 
-    if (!child_info->removing) {
-      if (!gtk_widget_get_visible (child_info->widget))
-        continue;
+    if (child_info->removing)
+      continue;
 
-      if (self->orientation == GTK_ORIENTATION_VERTICAL) {
-        child_info->position = y;
-        child_info->visible = child_info->position < height &&
-                              child_info->position + child_height > 0;
+    if (!gtk_widget_get_visible (child_info->widget))
+      continue;
 
-        transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (0, child_info->position));
-      } else {
-        child_info->position = x;
-        child_info->visible = child_info->position < width &&
-                              child_info->position + child_width > 0;
+    int min, nat;
+    int this_child_size;
 
-        transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (child_info->position, 0));
-      }
-
-      gtk_widget_allocate (child_info->widget, child_width, child_height, baseline, transform);
+    if (self->orientation == GTK_ORIENTATION_HORIZONTAL) {
+      gtk_widget_measure (child_info->widget, self->orientation,
+                          height, &min, &nat, NULL, NULL);
+      if (gtk_widget_get_hexpand (child_info->widget))
+        this_child_size = width;
+      else
+        this_child_size = CLAMP (nat, min, width);
+    } else {
+      gtk_widget_measure (child_info->widget, self->orientation,
+                          width, &min, &nat, NULL, NULL);
+      if (gtk_widget_get_vexpand (child_info->widget))
+        this_child_size = height;
+      else
+        this_child_size = CLAMP (nat, min, height);
     }
 
-    if (self->orientation == GTK_ORIENTATION_VERTICAL)
-      y += self->distance * child_info->size;
-    else if (is_rtl)
-      x -= self->distance * child_info->size;
-    else
-      x += self->distance * child_info->size;
+    if (self->uniform_spacing) {
+      if (self->orientation == GTK_ORIENTATION_HORIZONTAL) {
+        child_width = max_size;
+        child_height = height;
+      } else {
+        child_width = width;
+        child_height = max_size;
+      }
+    } else {
+      if (self->orientation == GTK_ORIENTATION_HORIZONTAL) {
+        child_width = this_child_size;
+        child_height = height;
+      } else {
+        child_width = width;
+        child_height = this_child_size;
+      }
+    }
+
+    if (self->orientation == GTK_ORIENTATION_VERTICAL) {
+      child_info->position = y;
+      child_info->visible = child_info->position < height &&
+                            child_info->position + child_height > 0;
+
+      transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (0, child_info->position));
+    } else {
+      child_info->position = x;
+      child_info->visible = child_info->position < width &&
+                            child_info->position + child_width > 0;
+
+      transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (child_info->position, 0));
+    }
+
+    gtk_widget_allocate (child_info->widget, child_width, child_height, baseline, transform);
+
+    if (self->uniform_spacing) {
+      if (self->orientation == GTK_ORIENTATION_VERTICAL) {
+        y += self->distance * child_info->size;
+      } else if (is_rtl) {
+        x -= self->distance * child_info->size;
+      } else {
+        x += self->distance * child_info->size;
+      }
+    } else {
+      if (self->orientation == GTK_ORIENTATION_VERTICAL) {
+        y += this_child_size + self->spacing;
+      } else if (is_rtl) {
+        x -= this_child_size + self->spacing;
+      } else {
+        x += this_child_size + self->spacing;
+      }
+    }
   }
 
   self->is_being_allocated = FALSE;
@@ -898,6 +983,10 @@ bz_carousel_get_property (GObject    *object,
     g_value_set_uint (value, bz_carousel_get_spacing (self));
     break;
 
+  case PROP_UNIFORM_SPACING:
+    g_value_set_boolean (value, bz_carousel_get_uniform_spacing (self));
+    break;
+
   case PROP_ALLOW_MOUSE_DRAG:
     g_value_set_boolean (value, bz_carousel_get_allow_mouse_drag (self));
     break;
@@ -942,6 +1031,10 @@ bz_carousel_set_property (GObject      *object,
 
   case PROP_SPACING:
     bz_carousel_set_spacing (self, g_value_get_uint (value));
+    break;
+
+  case PROP_UNIFORM_SPACING:
+    bz_carousel_set_uniform_spacing (self, g_value_get_boolean (value));
     break;
 
   case PROP_SCROLL_PARAMS:
@@ -1023,6 +1116,11 @@ bz_carousel_class_init (BzCarouselClass *klass)
                        0,
                        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_UNIFORM_SPACING] =
+  g_param_spec_boolean ("uniform-spacing", NULL, NULL,
+                        TRUE,
+                        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
   props[PROP_SCROLL_PARAMS] =
     g_param_spec_boxed ("scroll-params", NULL, NULL,
                         ADW_TYPE_SPRING_PARAMS,
@@ -1102,6 +1200,7 @@ bz_carousel_init (BzCarousel *self)
   AdwAnimationTarget *target;
 
   self->allow_scroll_wheel = TRUE;
+  self->uniform_spacing    = TRUE;
 
   gtk_widget_set_overflow (GTK_WIDGET (self), GTK_OVERFLOW_HIDDEN);
 
@@ -1522,6 +1621,31 @@ bz_carousel_set_spacing (BzCarousel *self,
   gtk_widget_queue_resize (GTK_WIDGET (self));
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_SPACING]);
+}
+
+gboolean
+bz_carousel_get_uniform_spacing (BzCarousel *self)
+{
+  g_return_val_if_fail (BZ_IS_CAROUSEL (self), FALSE);
+
+  return self->uniform_spacing;
+}
+
+void
+bz_carousel_set_uniform_spacing (BzCarousel *self,
+                                  gboolean    uniform_spacing)
+{
+  g_return_if_fail (BZ_IS_CAROUSEL (self));
+
+  uniform_spacing = !!uniform_spacing;
+
+  if (self->uniform_spacing == uniform_spacing)
+    return;
+
+  self->uniform_spacing = uniform_spacing;
+  gtk_widget_queue_resize (GTK_WIDGET (self));
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_UNIFORM_SPACING]);
 }
 
 AdwSpringParams *

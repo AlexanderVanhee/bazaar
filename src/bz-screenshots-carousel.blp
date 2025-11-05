@@ -27,7 +27,7 @@ template $BzScreenshotsCarousel: Gtk.Widget {
         "carousel-box",
       ]
 
-      Adw.Carousel carousel {
+      $BzCarousel carousel {
         vexpand: true;
         hexpand: true;
         valign: center;
@@ -35,6 +35,7 @@ template $BzScreenshotsCarousel: Gtk.Widget {
         allow-mouse-drag: true;
         allow-scroll-wheel: false;
         allow-long-swipes: true;
+        uniform-spacing: false;
         notify::position => $on_notify_position() swapped;
         notify::n-pages => $on_notify_n_pages() swapped;
       }

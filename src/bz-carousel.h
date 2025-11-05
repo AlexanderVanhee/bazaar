@@ -69,6 +69,11 @@ guint bz_carousel_get_spacing (BzCarousel *self);
 void bz_carousel_set_spacing (BzCarousel *self,
                                guint       spacing);
 
+gboolean bz_carousel_get_uniform_spacing (BzCarousel *self);
+
+void bz_carousel_set_uniform_spacing (BzCarousel *self,
+                                      gboolean    uniform_spacing);
+
 AdwSpringParams *bz_carousel_get_scroll_params (BzCarousel *self);
 
 void bz_carousel_set_scroll_params (BzCarousel     *self,
