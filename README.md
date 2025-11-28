@@ -55,7 +55,7 @@ such an awesome desktop environment!
 
 > [!NOTE]
 > If you are a distributor/packager who would like to learn how to
-customize Bazaar, take a look at the [docs](/docs/overview.org).
+customize Bazaar, take a look at the [docs](/docs/overview.md).
 
 If you would like to try this project on your local machine, clone it
 on the cli and type these commands inside the project root:
