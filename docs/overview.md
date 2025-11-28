@@ -26,9 +26,6 @@ basics of managing software through the GUI:
 - Filter through applications very quickly using a very forgiving search
   routine
 
-  - For instance, if a user quickly types `ikscep`{.verbatim} into the
-    search field, Inkscape will still appear as the top result.
-
 - Run in the background and respond to desktop search queries with
   application info, using the same search routine as in-application
 
@@ -51,13 +48,13 @@ basics of managing software through the GUI:
 You can start the bazaar daemon like this:
 
 ``` example
-bazaar [ARGS] [PACKAGE PATH/URI]
+flatpak run io.github.kolunmi.Bazaar [ARGS] [PACKAGE PATH/URI]
 ```
 
 To avoid spawning a window, use:
 
 ``` example
-bazaar --no-window [ARGS] [PACKAGE PATH/URI]
+flatpak run io.github.kolunmi.Bazaar --no-window [ARGS] [PACKAGE PATH/URI]
 ```
 
 `[PACKAGE PATH/URI]`{.verbatim} could be a `.flatpakref`{.verbatim}
