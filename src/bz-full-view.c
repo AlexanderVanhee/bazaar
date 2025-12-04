@@ -124,8 +124,6 @@ addon_transact_cb (BzFullView     *self,
                    BzEntry        *entry,
                    BzAddonsDialog *dialog);
 
-static void
-grab_first_button (BzFullView *self);
 
 static void
 bz_full_view_dispose (GObject *object)
@@ -1250,8 +1248,6 @@ bz_full_view_set_entry_group (BzFullView   *self,
   else
     adw_view_stack_set_visible_child_name (self->stack, "empty");
 
-  grab_first_button (self);
-
   gtk_adjustment_set_value (gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (self->main_scroll)), 0.0);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ENTRY_GROUP]);
@@ -1382,17 +1378,3 @@ done:
   return NULL;
 }
 
-static void
-grab_first_button (BzFullView *self)
-{
-  g_return_if_fail (BZ_IS_FULL_VIEW (self));
-
-  if (gtk_widget_get_visible (self->wide_open_button))
-    gtk_widget_grab_focus (self->wide_open_button);
-  else if (gtk_widget_get_visible (self->wide_install_button))
-    gtk_widget_grab_focus (self->wide_install_button);
-  else if (gtk_widget_get_visible (self->narrow_install_button))
-    gtk_widget_grab_focus (self->narrow_install_button);
-  else if (gtk_widget_get_visible (self->narrow_open_button))
-    gtk_widget_grab_focus (self->narrow_open_button);
-}
