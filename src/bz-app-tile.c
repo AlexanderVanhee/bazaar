@@ -106,6 +106,22 @@ is_zero (gpointer object,
   return value == 0;
 }
 
+static gboolean
+description_line_amount(gpointer object,
+                        bool     value)
+{
+  return value ? 2 : 1;
+}
+
+static void
+run_cb (BzAppTile *self,
+        GtkButton  *button)
+{
+
+
+}
+
+
 static void
 bz_app_tile_class_init (BzAppTileClass *klass)
 {
@@ -129,6 +145,8 @@ bz_app_tile_class_init (BzAppTileClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
   gtk_widget_class_bind_template_callback (widget_class, is_null);
   gtk_widget_class_bind_template_callback (widget_class, is_zero);
+  gtk_widget_class_bind_template_callback (widget_class, description_line_amount);
+  gtk_widget_class_bind_template_callback (widget_class, run_cb);
 }
 
 static void
