@@ -21,25 +21,26 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
 
     Adw.PreferencesGroup {
       title: _("Content Filters");
+      description: _("Control which apps appear when browsing or searching");
 
       Adw.SwitchRow only_foss_switch {
         title: _("Free Software Only");
-        subtitle: _("Hide proprietary applications when browsing and searching");
+        subtitle: _("Show only apps with a free software license");
       }
 
       Adw.SwitchRow only_flathub_switch {
-        title: _("Flathub Results Only");
-        subtitle: _("Limit search and browse results to applications only available on Flathub");
+        title: _("Flathub Only");
+        subtitle: _("Show only apps available on Flathub");
       }
 
       Adw.SwitchRow only_verified_switch {
-        title: _("Verified Results Only");
-        subtitle: _("Hide results that are not verified on Flathub");
+        title: _("Verified Only");
+        subtitle: _("Show only apps verified on Flathub");
       }
 
       Adw.SwitchRow hide_eol_switch {
-        title: _("Hide EOL Apps");
-        subtitle: _("Hide apps which are no longer supported by their developers");
+        title: _("Hide End-of-Life Apps");
+        subtitle: _("Hide apps no longer supported by their developers");
       }
     }
 
