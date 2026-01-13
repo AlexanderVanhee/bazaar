@@ -64,26 +64,17 @@ ui_entry_resolved_finally (DexFuture *future,
   const GValue *value            = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
-
   value = dex_future_get_value (future, NULL);
   if (value != NULL)
     {
       BzEntry *ui_entry = g_value_get_object (value);
-
-      if (self->ui_entry != ui_entry)
-        {
-          g_set_object (&self->ui_entry, ui_entry);
-          g_object_notify_by_pspec (G_OBJECT (self), props[PROP_UI_ENTRY]);
-        }
+      g_set_object (&self->ui_entry, ui_entry);
     }
   else
     {
-      if (self->ui_entry != NULL)
-        {
-          g_clear_object (&self->ui_entry);
-          g_object_notify_by_pspec (G_OBJECT (self), props[PROP_UI_ENTRY]);
-        }
+      g_clear_object (&self->ui_entry);
     }
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_UI_ENTRY]);
 
   return NULL;
 }
@@ -100,9 +91,6 @@ update_ui_entry (BzRichAppTile *self)
       g_clear_object (&self->ui_entry);
       g_object_notify_by_pspec (G_OBJECT (self), props[PROP_UI_ENTRY]);
     }
-
-  if (self->group == NULL)
-    return;
 
   ui_entry_result        = bz_entry_group_dup_ui_entry (self->group);
   self->ui_entry_resolve = dex_future_finally (
