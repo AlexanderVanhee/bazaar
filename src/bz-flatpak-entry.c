@@ -350,6 +350,43 @@ calculate_is_mobile_friendly (guint required_controls,
   return (supported_controls & BZ_CONTROL_TOUCH) != 0;
 }
 
+static char *
+proxy_screenshot_url (const char *url)
+{
+  g_autofree char *src = NULL;
+  g_autofree char *encoded_url = NULL;
+
+  if (!g_str_has_prefix (url, "http"))
+    return g_strdup (url);
+
+  if (g_str_has_prefix (url, "https://dl.flathub.org/repo/screenshots/")) // Workaround that Flathub also uses https://github.com/flathub-infra/website/commit/af734fbadd7eaf0f95c631fa9ab909b35af19466
+    {
+      const char *suffix = url + strlen ("https://dl.flathub.org/repo/screenshots/");
+      src = g_strdup_printf ("https://dl.flathub.org/media/%s", suffix);
+    }
+  else if (g_str_has_prefix (url, "https://dl.flathub.org/"))
+    {
+      src = g_strdup (url);
+    }
+  else
+    {
+      return g_strdup (url);
+    }
+
+  encoded_url = g_base64_encode ((const guchar *) src, strlen (src));
+  g_strdelimit (encoded_url, "=", '\0');
+
+  for (char *p = encoded_url; *p; p++)
+    {
+      if (*p == '+') *p = '-';
+      if (*p == '/') *p = '_';
+    }
+
+  return g_strdup_printf (
+      "https://imgproxy.flathub.org/insecure/f:jxl/q:85/%s",
+      encoded_url);
+}
+
 static GdkPaintable *
 find_screenshot (GPtrArray  *images,
                  const char *caption,
@@ -407,9 +444,10 @@ find_screenshot (GPtrArray  *images,
     {
       g_autoptr (GFile) screenshot_file = NULL;
       g_autoptr (GFile) cache_file      = NULL;
+      g_autofree char  *proxied_url     = NULL;
       BzAsyncTexture *texture           = NULL;
-
-      screenshot_file = g_file_new_for_uri (best_url);
+      proxied_url = proxy_screenshot_url (best_url);
+      screenshot_file = g_file_new_for_uri (proxied_url);
       cache_file      = g_file_new_build_filename (
           module_dir, unique_id_checksum, cache_filename, NULL);
 
