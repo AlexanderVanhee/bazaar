@@ -383,7 +383,7 @@ proxy_screenshot_url (const char *url)
     }
 
   return g_strdup_printf (
-      "https://imgproxy.flathub.org/insecure/f:jxl/q:85/%s",
+      "https://imgproxy.flathub.org/insecure/dpr:1/f:avif/rs:fill-down/%s",
       encoded_url);
 }
 
