@@ -22,7 +22,11 @@
 
 #include <glib/gi18n.h>
 
+#include "bz-application.h"
 #include "bz-error.h"
+#include "bz-entry-selection-row.h"
+#include "bz-flatpak-entry.h"
+#include "bz-state-info.h"
 #include "bz-safety-calculator.h"
 #include "bz-transaction-dialog.h"
 #include "bz-transaction-list-dialog.h"
@@ -62,24 +66,25 @@ static GtkWidget *
 create_entry_radio_button (BzEntry    *entry,
                            GtkWidget **out_radio)
 {
-  GtkWidget       *row;
-  GtkWidget       *radio;
-  g_autofree char *label;
+  BzStateInfo              *state_info = NULL;
+  GListModel               *repositories = NULL;
+  g_autoptr (BzRepository)  repo = NULL;
+  BzEntrySelectionRow      *row = NULL;
+  GtkCheckButton           *radio = NULL;
 
-  label = g_strdup (bz_entry_get_unique_id (entry));
+  state_info = bz_state_info_get_default ();
+  repositories = bz_state_info_get_repositories (state_info);
 
-  row = adw_action_row_new ();
-  adw_preferences_row_set_title (ADW_PREFERENCES_ROW (row), label);
+  if (repositories != NULL)
+    repo = bz_entry_get_repository (entry, repositories);
 
-  radio = gtk_check_button_new ();
-  gtk_widget_set_valign (radio, GTK_ALIGN_CENTER);
-  adw_action_row_add_prefix (ADW_ACTION_ROW (row), radio);
-  adw_action_row_set_activatable_widget (ADW_ACTION_ROW (row), radio);
+  row = bz_entry_selection_row_new (BZ_FLATPAK_ENTRY (entry), repo);
+  radio = bz_entry_selection_row_get_radio (row);
 
   if (out_radio != NULL)
-    *out_radio = radio;
+    *out_radio = GTK_WIDGET (radio);
 
-  return row;
+  return GTK_WIDGET (row);
 }
 
 static GPtrArray *

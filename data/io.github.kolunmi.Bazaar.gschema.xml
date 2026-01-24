@@ -59,6 +59,16 @@
       <default>false</default>
       <summary>Rotate selected flag by 90 degrees</summary>
     </key>
+    <key name="scope" type="s">
+      <choices>
+        <choice value="user"/>
+        <choice value="system"/>
+        <choice value="both"/>
+      </choices>
+      <default>'user'</default>
+      <summary>Install Mode</summary>
+      <description>Determines what scopes to show</description>
+    </key>
     <key name="window-dimensions" type="(ii)">
       <default>(1220, 900)</default>
       <summary>Saved Window Dimensions</summary>
