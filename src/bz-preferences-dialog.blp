@@ -28,6 +28,16 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
     };
 
     Adw.PreferencesGroup {
+      title: _("Scope");
+      visible: bind template.scope-dropdown-visible as <bool>;
+
+      Adw.ComboRow scope_dropdown {
+        title: _("Installation Scope");
+        subtitle: _("Choose whether to prefer apps for your user account or system-wide");
+      }
+    }
+
+    Adw.PreferencesGroup {
       title: _("Content Filters");
 
       Adw.SwitchRow only_foss_switch {

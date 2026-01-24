@@ -65,7 +65,7 @@
         <choice value="system"/>
         <choice value="both"/>
       </choices>
-      <default>'user'</default>
+      <default>'system'</default>
       <summary>Install Mode</summary>
       <description>Determines what scopes to show</description>
     </key>
