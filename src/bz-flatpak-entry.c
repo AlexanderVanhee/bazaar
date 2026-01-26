@@ -351,11 +351,11 @@ calculate_is_mobile_friendly (guint required_controls,
 }
 
 static char *
-proxy_screenshot_url (const char *url)
+proxy_screenshot_url (const char *url, gboolean high_quality)
 {
   g_autofree char *src = NULL;
   g_autofree char *encoded_url = NULL;
-
+  g_autofree char *proxy_options = NULL;
   if (!g_str_has_prefix (url, "http"))
     return g_strdup (url);
 
@@ -381,9 +381,17 @@ proxy_screenshot_url (const char *url)
       if (*p == '+') *p = '-';
       if (*p == '/') *p = '_';
     }
-
+  if (high_quality)
+    {
+      proxy_options = g_strdup ("q:90/f:avif");
+    }
+  else
+    {
+      proxy_options = g_strdup ("dpr:1/f:avif/rs:fill-down");
+    }
   return g_strdup_printf (
-      "https://imgproxy.flathub.org/insecure/dpr:1/f:avif/rs:fill-down/%s",
+      "https://imgproxy.flathub.org/insecure/%s/%s",
+      proxy_options,
       encoded_url);
 }
 
@@ -446,7 +454,7 @@ find_screenshot (GPtrArray  *images,
       g_autoptr (GFile) cache_file      = NULL;
       g_autofree char  *proxied_url     = NULL;
       BzAsyncTexture *texture           = NULL;
-      proxied_url = proxy_screenshot_url (best_url);
+      proxied_url = proxy_screenshot_url (best_url, match_highest);
       screenshot_file = g_file_new_for_uri (proxied_url);
       cache_file      = g_file_new_build_filename (
           module_dir, unique_id_checksum, cache_filename, NULL);
