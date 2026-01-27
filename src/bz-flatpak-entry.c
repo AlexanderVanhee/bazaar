@@ -631,6 +631,64 @@ bz_flatpak_entry_get_addon_extension_of_ref (BzFlatpakEntry *self)
   return self->addon_extension_of_ref;
 }
 
+BzRepository *
+bz_flatpak_entry_get_repository (BzFlatpakEntry *self,
+                                  GListModel     *repos)
+{
+  guint n_repos = 0;
+  g_auto(GStrv) parts = NULL;
+  const char *scope = NULL;
+  const char *repo_name = NULL;
+  const char *unique_id = NULL;
+  gboolean is_user = FALSE;
+
+  g_return_val_if_fail (BZ_IS_FLATPAK_ENTRY (self), NULL);
+
+  if (self->is_bundle)
+    {
+      BzRepository *bundle_repo = NULL;
+      FlatpakRef *ref = NULL;
+      const char *origin = NULL;
+
+      ref = bz_flatpak_entry_get_ref (BZ_FLATPAK_ENTRY (self));
+      origin = flatpak_bundle_ref_get_origin (FLATPAK_BUNDLE_REF (ref));
+
+      bundle_repo = g_object_new (BZ_TYPE_REPOSITORY,
+                                  "name", origin ? origin : "bundle",
+                                  "title", _("Local Bundle"),
+                                  "is-user", self->user,
+                                  NULL);
+
+      return bundle_repo;
+    }
+
+  unique_id = bz_entry_get_unique_id (BZ_ENTRY (self));
+  if (unique_id == NULL)
+    return NULL;
+
+  parts = g_strsplit (unique_id, "::", -1);
+  if (g_strv_length (parts) < 3)
+    return NULL;
+
+  scope = parts[0];
+  repo_name = parts[1];
+  is_user = g_strcmp0 (scope, "FLATPAK-USER") == 0;
+
+  n_repos = g_list_model_get_n_items (repos);
+  for (guint i = 0; i < n_repos; i++)
+    {
+      g_autoptr (BzRepository) repo = g_list_model_get_item (repos, i);
+      const char *name = bz_repository_get_name (repo);
+      gboolean repo_is_user = bz_repository_get_is_user (repo);
+
+      if (repo_is_user == is_user &&
+          g_strcmp0 (name, repo_name) == 0)
+        return g_object_ref (repo);
+    }
+
+  return NULL;
+}
+
 gboolean
 bz_flatpak_entry_launch (BzFlatpakEntry    *self,
                          BzFlatpakInstance *flatpak,

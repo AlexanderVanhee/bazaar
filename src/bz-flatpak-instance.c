@@ -1655,13 +1655,15 @@ transaction_fiber (TransactionData *data)
           BzFlatpakEntry  *entry                     = NULL;
           FlatpakRef      *ref                       = NULL;
           gboolean         is_user                   = FALSE;
+          gboolean         is_bundle                 = FALSE;
           g_autofree char *ref_fmt                   = NULL;
           g_autoptr (FlatpakTransaction) transaction = NULL;
 
-          entry   = g_ptr_array_index (installations, i);
-          ref     = bz_flatpak_entry_get_ref (entry);
-          is_user = bz_flatpak_entry_is_user (BZ_FLATPAK_ENTRY (entry));
-          ref_fmt = flatpak_ref_format_ref (ref);
+          entry     = g_ptr_array_index (installations, i);
+          ref       = bz_flatpak_entry_get_ref (entry);
+          is_user   = bz_flatpak_entry_is_user (BZ_FLATPAK_ENTRY (entry));
+          is_bundle = FLATPAK_IS_BUNDLE_REF (ref);
+          ref_fmt   = flatpak_ref_format_ref (ref);
 
           if ((is_user && self->user == NULL) ||
               (!is_user && self->system == NULL))
@@ -1670,7 +1672,7 @@ transaction_fiber (TransactionData *data)
               return dex_future_new_reject (
                   BZ_FLATPAK_ERROR,
                   BZ_FLATPAK_ERROR_TRANSACTION_FAILURE,
-                  "Failed to append the update of %s to transaction "
+                  "Failed to append the installation of %s to transaction "
                   "because its installation couldn't be found",
                   ref_fmt);
             }
@@ -1690,12 +1692,29 @@ transaction_fiber (TransactionData *data)
                   local_error->message);
             }
 
-          result = flatpak_transaction_add_install (
-              transaction,
-              bz_entry_get_remote_repo_name (BZ_ENTRY (entry)),
-              ref_fmt,
-              NULL,
-              &local_error);
+          // Handle bundle installations differently
+          if (is_bundle)
+            {
+              GFile *bundle_file = NULL;
+
+              bundle_file = flatpak_bundle_ref_get_file (FLATPAK_BUNDLE_REF (ref));
+
+              result = flatpak_transaction_add_install_bundle (
+                  transaction,
+                  bundle_file,
+                  NULL, // gpg_data
+                  &local_error);
+            }
+          else
+            {
+              result = flatpak_transaction_add_install (
+                  transaction,
+                  bz_entry_get_remote_repo_name (BZ_ENTRY (entry)),
+                  ref_fmt,
+                  NULL,
+                  &local_error);
+            }
+
           if (!result)
             {
               dex_channel_close_send (channel);

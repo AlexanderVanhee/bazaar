@@ -22,6 +22,7 @@
 
 #include "bz-entry.h"
 #include "bz-flatpak-instance.h"
+#include "bz-repository.h"
 
 G_BEGIN_DECLS
 
@@ -52,6 +53,10 @@ bz_flatpak_entry_get_application_runtime (BzFlatpakEntry *self);
 
 const char *
 bz_flatpak_entry_get_runtime_name (BzFlatpakEntry *self);
+
+BzRepository *
+bz_flatpak_entry_get_repository (BzFlatpakEntry *self,
+                                 GListModel     *repos);
 
 const char *
 bz_flatpak_entry_get_addon_extension_of_ref (BzFlatpakEntry *self);

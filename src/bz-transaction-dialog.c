@@ -76,7 +76,7 @@ create_entry_radio_button (BzEntry    *entry,
   repositories = bz_state_info_get_repositories (state_info);
 
   if (repositories != NULL)
-    repo = bz_entry_get_repository (entry, repositories);
+    repo = bz_flatpak_entry_get_repository (BZ_FLATPAK_ENTRY(entry), repositories);
 
   row   = bz_entry_selection_row_new (BZ_FLATPAK_ENTRY (entry), repo);
   radio = bz_entry_selection_row_get_radio (row);
