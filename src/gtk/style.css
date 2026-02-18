@@ -79,7 +79,25 @@
 	padding: 0;
 	margin: 6px 6px;
 	border-radius: 12px;
-	transition: background-color 200ms;
+  transition: filter 0.2s ease;
+}
+
+.search-grid > child:hover {
+  filter: brightness(1.15);
+  background-color: transparent;
+}
+.search-grid > child:active {
+  filter: brightness(1.30);
+  background-color: transparent;
+}
+
+@media (prefers-color-scheme: light) {
+  .search-grid > child:hover {
+    filter: brightness(1.15);
+  }
+  .search-grid > child:active {
+    filter: brightness(1.30);
+  }
 }
 
 .narrow .search-grid > child {
