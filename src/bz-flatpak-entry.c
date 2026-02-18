@@ -565,37 +565,44 @@ bz_flatpak_entry_new_for_ref (FlatpakRef    *ref,
         }
       else if (FLATPAK_IS_INSTALLED_REF (ref))
         {
-          const char *icon_name = flatpak_ref_get_name (ref);
-          const int   sizes[]   = { 512, 256, 128, 64, 48 };
+          const char      *icon_name = NULL;
+          const char      *base_dirs[2];
+          const int        raster_sizes[]   = { 512, 256, 128, 64, 48 };
+          int              n_base_dirs      = 0;
+          gboolean         found            = FALSE;
+          g_autofree char *user_hicolor_dir = NULL;
 
-          for (int i = 0; i < G_N_ELEMENTS (sizes); i++)
+          icon_name = flatpak_ref_get_name (ref);
+
+          if (user)
             {
-              g_autofree char *size      = NULL;
-              g_autofree char *basename  = NULL;
-              g_autofree char *icon_path = NULL;
+              user_hicolor_dir = g_build_filename (
+                  g_get_home_dir (),
+                  ".local/share/flatpak/exports/share/icons/hicolor",
+                  NULL);
+              base_dirs[n_base_dirs++] = user_hicolor_dir;
+            }
+          else
+            {
+              base_dirs[n_base_dirs++] = "/var/lib/flatpak/exports/share/icons/hicolor";
+            }
 
-              size     = g_strdup_printf ("%dx%d", sizes[i], sizes[i]);
-              basename = g_strdup_printf ("%s.png", icon_name);
-              if (user)
-                icon_path = g_build_filename (
-                    g_get_home_dir (),
-                    ".local/share/flatpak/exports/share/icons/hicolor",
-                    size,
-                    "apps",
-                    basename,
-                    NULL);
-              else
-                icon_path = g_build_filename (
-                    "/var/lib/flatpak/exports/share/icons/hicolor",
-                    size,
-                    "apps",
-                    basename,
-                    NULL);
-
-              if (g_file_test (icon_path, G_FILE_TEST_EXISTS))
+          for (int b = 0; b < n_base_dirs && !found; b++)
+            {
+              for (int i = 0; i < G_N_ELEMENTS (raster_sizes) && !found; i++)
                 {
+                  g_autofree char *size       = NULL;
+                  g_autofree char *basename   = NULL;
+                  g_autofree char *icon_path  = NULL;
                   g_autoptr (GFile) icon_file = NULL;
                   GdkTexture *texture         = NULL;
+
+                  size      = g_strdup_printf ("%dx%d", raster_sizes[i], raster_sizes[i]);
+                  basename  = g_strdup_printf ("%s.png", icon_name);
+                  icon_path = g_build_filename (base_dirs[b], size, "apps", basename, NULL);
+
+                  if (!g_file_test (icon_path, G_FILE_TEST_EXISTS))
+                    continue;
 
                   icon_file = g_file_new_for_path (icon_path);
                   texture   = gdk_texture_new_from_file (icon_file, NULL);
@@ -603,7 +610,30 @@ bz_flatpak_entry_new_for_ref (FlatpakRef    *ref,
                   if (texture != NULL)
                     {
                       icon_paintable = (GdkPaintable *) g_steal_pointer (&texture);
-                      break;
+                      found          = TRUE;
+                    }
+                }
+
+              if (!found)
+                {
+                  g_autofree char *svg_basename = NULL;
+                  g_autofree char *svg_path     = NULL;
+                  g_autoptr (GFile) icon_file   = NULL;
+                  GtkIconPaintable *paintable   = NULL;
+
+                  svg_basename = g_strdup_printf ("%s.svg", icon_name);
+                  svg_path     = g_build_filename (base_dirs[b], "scalable", "apps", svg_basename, NULL);
+
+                  if (!g_file_test (svg_path, G_FILE_TEST_EXISTS))
+                    continue;
+
+                  icon_file = g_file_new_for_path (svg_path);
+                  paintable = gtk_icon_paintable_new_for_file (icon_file, 128, 1);
+
+                  if (paintable != NULL)
+                    {
+                      icon_paintable = (GdkPaintable *) g_steal_pointer (&paintable);
+                      found          = TRUE;
                     }
                 }
             }
