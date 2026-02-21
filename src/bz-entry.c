@@ -2399,6 +2399,17 @@ bz_entry_get_categories (BzEntry *self)
   return priv->categories;
 }
 
+GdkPaintable *
+bz_entry_get_thumbnail_paintable (BzEntry *self)
+{
+  BzEntryPrivate *priv = NULL;
+
+  g_return_val_if_fail (BZ_IS_ENTRY (self), NULL);
+  priv = bz_entry_get_instance_private (self);
+
+  return priv->thumbnail_paintable;
+}
+
 gboolean
 bz_entry_get_is_flathub (BzEntry *self)
 {

@@ -54,6 +54,7 @@ struct _BzEntryGroup
   int            n_addons;
   char          *donation_url;
   GListModel    *categories;
+  GdkPaintable  *thumbnail_paintable;
 
   int max_usefulness;
 
@@ -103,6 +104,7 @@ enum
   PROP_N_ADDONS,
   PROP_DONATION_URL,
   PROP_CATEGORIES,
+  PROP_THUMBNAIL_PAINTABLE,
   PROP_INSTALLABLE,
   PROP_UPDATABLE,
   PROP_REMOVABLE,
@@ -158,6 +160,7 @@ bz_entry_group_dispose (GObject *object)
   g_clear_pointer (&self->eol, g_free);
   g_clear_pointer (&self->donation_url, g_free);
   g_clear_object (&self->categories);
+  g_clear_object (&self->thumbnail_paintable);
 
   g_weak_ref_clear (&self->ui_entry);
   g_clear_object (&self->standalone_ui_entry);
@@ -232,6 +235,9 @@ bz_entry_group_get_property (GObject    *object,
       break;
     case PROP_CATEGORIES:
       g_value_set_object (value, bz_entry_group_get_categories (self));
+      break;
+    case PROP_THUMBNAIL_PAINTABLE:
+      g_value_set_object (value, bz_entry_group_get_thumbnail_paintable (self));
       break;
     case PROP_UI_ENTRY:
       g_value_take_object (value, bz_entry_group_dup_ui_entry (self));
@@ -433,6 +439,13 @@ bz_entry_group_class_init (BzEntryGroupClass *klass)
           NULL, NULL,
           G_TYPE_LIST_MODEL,
           G_PARAM_READABLE);
+
+  props[PROP_THUMBNAIL_PAINTABLE] =
+    g_param_spec_object (
+        "thumbnail-paintable",
+        NULL, NULL,
+        GDK_TYPE_PAINTABLE,
+        G_PARAM_READABLE);
 
   props[PROP_UI_ENTRY] =
       g_param_spec_object (
@@ -747,6 +760,13 @@ bz_entry_group_get_categories (BzEntryGroup *self)
   return self->categories;
 }
 
+GdkPaintable *
+bz_entry_group_get_thumbnail_paintable (BzEntryGroup *self)
+{
+  g_return_val_if_fail (BZ_IS_ENTRY_GROUP (self), NULL);
+  return self->thumbnail_paintable;
+}
+
 guint64
 bz_entry_group_get_user_data_size (BzEntryGroup *self)
 {
@@ -882,6 +902,7 @@ bz_entry_group_add (BzEntryGroup *self,
   int           n_addons           = 0;
   const char   *donation_url       = NULL;
   GListModel   *entry_categories   = NULL;
+  GdkPaintable *thumbnail_paintable = NULL;
   guint         existing           = 0;
   gboolean      is_searchable      = FALSE;
 
@@ -929,6 +950,7 @@ bz_entry_group_add (BzEntryGroup *self,
   installed_size     = bz_entry_get_installed_size (entry);
   donation_url       = bz_entry_get_donation_url (entry);
   entry_categories   = bz_entry_get_categories (entry);
+  thumbnail_paintable = bz_entry_get_thumbnail_paintable (entry);
 
   addons        = bz_entry_get_addons (entry);
   is_searchable = bz_entry_is_searchable (entry);
@@ -1040,6 +1062,12 @@ bz_entry_group_add (BzEntryGroup *self,
           self->categories = g_object_ref (entry_categories);
           g_object_notify_by_pspec (G_OBJECT (self), props[PROP_CATEGORIES]);
         }
+      if (thumbnail_paintable != NULL)
+        {
+          g_clear_object (&self->thumbnail_paintable);
+          self->thumbnail_paintable = g_object_ref (thumbnail_paintable);
+          g_object_notify_by_pspec (G_OBJECT (self), props[PROP_THUMBNAIL_PAINTABLE]);
+        }
 
       self->max_usefulness = usefulness;
     }
@@ -1100,6 +1128,11 @@ bz_entry_group_add (BzEntryGroup *self,
         {
           self->donation_url = g_strdup (donation_url);
           g_object_notify_by_pspec (G_OBJECT (self), props[PROP_DONATION_URL]);
+        }
+      if (thumbnail_paintable != NULL && self->thumbnail_paintable == NULL)
+        {
+          self->thumbnail_paintable = g_object_ref (thumbnail_paintable);
+          g_object_notify_by_pspec (G_OBJECT (self), props[PROP_THUMBNAIL_PAINTABLE]);
         }
     }
 

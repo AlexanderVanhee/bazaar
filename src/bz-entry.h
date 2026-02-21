@@ -225,6 +225,9 @@ bz_entry_get_content_rating (BzEntry *self);
 GListModel *
 bz_entry_get_categories (BzEntry *self);
 
+GdkPaintable *
+bz_entry_get_thumbnail_paintable (BzEntry *self);
+
 DexFuture *
 bz_entry_load_mini_icon (BzEntry *self);
 
