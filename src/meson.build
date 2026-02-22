@@ -320,7 +320,7 @@ release_notes = custom_target('release-notes.xml',
   input: meson.project_source_root() / 'data' / 'io.github.kolunmi.Bazaar.metainfo.xml.in',
   command: [
     'sh', '-c',
-    xmllint.full_path() + ' --xpath "//releases/release[1]" "$1" > "$2"',
+    xmllint.full_path() + ' --xpath "//releases/release[@version=\'' + release_notes_version + '\']" "$1" > "$2"',
     '--',
     '@INPUT@',
     '@OUTPUT@',

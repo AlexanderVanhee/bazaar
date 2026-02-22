@@ -8,6 +8,8 @@ project('bazaar', 'c',
   ],
 )
 
+release_notes_version = '0.7.9'
+
 i18n = import('i18n')
 if get_option('im_a_translator')
   subdir('po')
