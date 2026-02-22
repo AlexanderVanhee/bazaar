@@ -72,6 +72,14 @@
   </screenshots>
 
   <releases>
+    <release version="0.7.10" date="2026-02-22">
+      <url type="details">https://github.com/kolunmi/bazaar/releases/tag/v0.7.10</url>
+      <description translate="no">
+        Along with the ability to to cancel transactions in the library view and
+        a brand new screenshots carousel from 0.7.9, this release greatly
+        improves search functionality.
+      </description>
+    </release>
     <release version="0.7.9" date="2026-02-21">
       <url type="details">https://github.com/kolunmi/bazaar/releases/tag/v0.7.9</url>
       <description translate="no">
