@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-22 19:06+0100\n"
-"PO-Revision-Date: 2026-02-22 19:07+0100\n"
+"POT-Creation-Date: 2026-02-22 19:42+0100\n"
+"PO-Revision-Date: 2026-02-22 20:09+0100\n"
 "Last-Translator: Mimolet <theMimolet@proton.me>\n"
 "Language-Team: French <>\n"
 "Language: fr\n"
@@ -754,11 +754,30 @@ msgstr "Déconnexion réussie !"
 msgid "Performing setup..."
 msgstr "Configuration en cours…"
 
-#: src/bz-application.c:969 src/bz-application.c:978
-msgid "Set Up Flathub"
-msgstr "Configurer Flathub"
+#: src/bz-application.c:970
+msgid "Set Up System Flathub?"
+msgstr "Configurer Flathub sur le système ? "
 
-#: src/bz-application.c:972
+#: src/bz-application.c:973
+msgid ""
+"The system Flathub remote is not set up. Bazaar requires Flathub to be "
+"configured on the system Flatpak installation to browse and install "
+"applications.\n"
+"\n"
+"You can still use Bazaar to browse and remove already installed apps."
+msgstr ""
+"Le dépôt d'applications Flathub n’a pas été configuré sur ce système. Bazaar "
+"a besoin que Flathub soit configuré pour parcourir et installer des "
+"applications.\n"
+"\n"
+"Vous pouvez toujours utiliser Bazaar pour parcourir et désinstaller des "
+"applis déjà installées."
+
+#: src/bz-application.c:980
+msgid "Set Up Flathub?"
+msgstr "Configurer Flathub ?"
+
+#: src/bz-application.c:983
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -771,44 +790,48 @@ msgstr ""
 "Vous pouvez toujours utiliser Bazaar pour parcourir et désinstaller des "
 "applis déjà installées."
 
-#: src/bz-application.c:977
+#: src/bz-application.c:989
 msgid "Later"
 msgstr "Plus tard"
 
-#: src/bz-application.c:1261
+#: src/bz-application.c:990
+msgid "Set Up Flathub"
+msgstr "Configurer Flathub"
+
+#: src/bz-application.c:1273
 msgid "A backend error occurred"
 msgstr "Une erreur de backend est survenue"
 
-#: src/bz-application.c:1387 src/bz-application.c:3120 src/bz-window.blp:135
+#: src/bz-application.c:1399 src/bz-application.c:3132 src/bz-window.blp:135
 msgid "Refreshing…"
 msgstr "Actualisation…"
 
-#: src/bz-application.c:1534 src/bz-application.c:3116
+#: src/bz-application.c:1546 src/bz-application.c:3128
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Chargement de %d applis…"
 
-#: src/bz-application.c:1539
+#: src/bz-application.c:1551
 msgid "Checking for updates…"
 msgstr "Recherche de mises à jour…"
 
-#: src/bz-application.c:1595
+#: src/bz-application.c:1607
 msgid "Failed to open .flatpakref"
 msgstr "Échec de l’ouverture du .flatpakref"
 
-#: src/bz-application.c:1649
+#: src/bz-application.c:1661
 msgid "An initialization error occurred"
 msgstr "Une erreur d'initialisation s'est produite"
 
-#: src/bz-application.c:1987
+#: src/bz-application.c:1999
 msgid "Failed to check for updates"
 msgstr "Échec de la vérification des mises à jour"
 
-#: src/bz-application.c:2899
+#: src/bz-application.c:2911
 msgid "Could not find app"
 msgstr "Impossible de trouver l'application"
 
-#: src/bz-application.c:3122
+#: src/bz-application.c:3134
 msgid "Writing to cache…"
 msgstr "Écriture dans le cache…"
 
