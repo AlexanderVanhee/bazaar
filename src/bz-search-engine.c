@@ -439,24 +439,14 @@ test_strings (const char *query,
               const char *against,
               gssize      accept_min_size)
 {
-  double score                    = 0.0;
-  gsize  full_query_utf8_length   = 0;
-  gsize  full_against_utf8_length = 0;
-  gsize  query_tok_utf8_len       = 0;
-  gsize  against_tok_utf8_len     = 0;
-
-  full_query_utf8_length   = g_utf8_strlen (query, -1);
-  full_against_utf8_length = g_utf8_strlen (against, -1);
-  if (accept_min_size > 0 &&
-      full_against_utf8_length < accept_min_size)
-    return 0.0;
-
-  if (full_query_utf8_length <= full_against_utf8_length &&
-      strcasestr (against, query) != NULL)
-    return (double) full_query_utf8_length;
+  double score                = 0.0;
+  gsize  query_tok_utf8_len   = 0;
+  gsize  against_tok_utf8_len = 0;
 
   UTF8_FOREACH_TOKEN_FORWARDS (query_tok_start, query_tok_end, query, &query_tok_utf8_len)
   {
+    gboolean query_token_has_match = FALSE;
+
     UTF8_FOREACH_TOKEN_FORWARDS (against_tok_start, against_tok_end, against, &against_tok_utf8_len)
     {
       gboolean match    = FALSE;
@@ -468,14 +458,16 @@ test_strings (const char *query,
 
       UTF8_FOREACH_FORWARD_WITH_END (against_ptr, against_tok_start, against_tok_end)
       {
-        gunichar against_ch = 0;
+        const char *against_check_ptr = NULL;
+        gunichar    against_ch        = 0;
 
         if (query_tok_utf8_len > against_tok_utf8_len - consumed)
           break;
 
         match = TRUE;
 
-        against_ch = g_unichar_tolower (g_utf8_get_char (against_ptr));
+        against_check_ptr = against_ptr;
+        against_ch        = g_unichar_tolower (g_utf8_get_char (against_ptr));
         UTF8_FOREACH_FORWARD_WITH_END (query_ptr, query_tok_start, query_tok_end)
         {
           gunichar query_ch = 0;
@@ -486,16 +478,29 @@ test_strings (const char *query,
               match = FALSE;
               break;
             }
+
+          against_check_ptr = g_utf8_next_char (against_check_ptr);
+          against_ch        = g_unichar_tolower (g_utf8_get_char (against_check_ptr));
         }
 
-        consumed++;
         if (match)
           break;
+        else
+          consumed++;
       }
 
       if (match)
-        score += (double) (query_tok_utf8_len * query_tok_utf8_len) / (double) against_tok_utf8_len;
+        {
+          score += (double) (query_tok_utf8_len * query_tok_utf8_len) / (double) against_tok_utf8_len;
+          query_token_has_match = TRUE;
+        }
     }
+
+    if (!query_token_has_match)
+      {
+        score = 0.0;
+        break;
+      }
   }
 
   return score;
