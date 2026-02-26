@@ -1,4 +1,22 @@
-/* bz-appstream-parser.c */
+/* bz-appstream-parser.c
+ *
+ * Copyright 2025 Adam Masciola
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
 #define G_LOG_DOMAIN  "BAZAAR::APPSTREAM-PARSER"
 #define BAZAAR_MODULE "appstream-parser"
@@ -40,13 +58,102 @@ parse_control_value (const char *value)
     return 0;
 }
 
+#define MOBILE_MIN_SIZE 360
+#define MOBILE_MAX_SIZE 768
+
 static gboolean
-calculate_is_mobile_friendly (guint required_controls,
-                              guint supported_controls,
-                              gint  min_display_length,
-                              gint  max_display_length)
+display_length_supports_mobile (GPtrArray *relations)
 {
-  return (supported_controls & BZ_CONTROL_TOUCH) != 0;
+  if (relations == NULL)
+    return FALSE;
+
+  for (guint i = 0; i < relations->len; i++)
+    {
+      AsRelation        *relation  = NULL;
+      AsRelationItemKind item_kind = AS_RELATION_ITEM_KIND_UNKNOWN;
+      AsRelationCompare  compare   = AS_RELATION_COMPARE_UNKNOWN;
+      AsDisplaySideKind  side_kind = AS_DISPLAY_SIDE_KIND_UNKNOWN;
+      gint               value     = 0;
+
+      relation  = g_ptr_array_index (relations, i);
+      item_kind = as_relation_get_item_kind (relation);
+      if (item_kind != AS_RELATION_ITEM_KIND_DISPLAY_LENGTH)
+        continue;
+
+      side_kind = as_relation_get_display_side_kind (relation);
+      if (side_kind == AS_DISPLAY_SIDE_KIND_LONGEST)
+        continue;
+
+      compare = as_relation_get_compare (relation);
+      value   = as_relation_get_value_int (relation);
+
+      if (value <= 0)
+        continue;
+
+      switch (compare)
+        {
+        case AS_RELATION_COMPARE_GE:
+          if (value <= MOBILE_MIN_SIZE)
+            return TRUE;
+          break;
+        case AS_RELATION_COMPARE_GT:
+          if (value <= (MOBILE_MIN_SIZE - 1))
+            return TRUE;
+          break;
+        case AS_RELATION_COMPARE_LE:
+          if (MOBILE_MAX_SIZE <= value)
+            return TRUE;
+          break;
+        case AS_RELATION_COMPARE_LT:
+          if ((MOBILE_MAX_SIZE + 1) <= value)
+            return TRUE;
+          break;
+        case AS_RELATION_COMPARE_EQ:
+        case AS_RELATION_COMPARE_NE:
+        case AS_RELATION_COMPARE_LAST:
+        case AS_RELATION_COMPARE_UNKNOWN:
+        default:
+          break;
+        }
+    }
+
+  return FALSE;
+}
+
+static gboolean
+has_touch_control (GPtrArray *relations)
+{
+  if (relations == NULL)
+    return FALSE;
+
+  for (guint i = 0; i < relations->len; i++)
+    {
+      AsRelation *relation = NULL;
+      relation             = g_ptr_array_index (relations, i);
+
+      if (as_relation_get_item_kind (relation) == AS_RELATION_ITEM_KIND_CONTROL &&
+          as_relation_get_value_control_kind (relation) == AS_CONTROL_KIND_TOUCH)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
+static gboolean
+calculate_is_mobile_friendly (GPtrArray *requires_relations,
+                              GPtrArray *recommends_relations,
+                              GPtrArray *supports_relations)
+{
+  gboolean has_touch         = FALSE;
+  gboolean is_mobile_display = FALSE;
+
+  has_touch = has_touch_control (supports_relations) ||
+              has_touch_control (recommends_relations);
+
+  is_mobile_display = display_length_supports_mobile (requires_relations) ||
+                      display_length_supports_mobile (recommends_relations);
+
+  return has_touch && is_mobile_display;
 }
 
 static char *
@@ -75,8 +182,10 @@ proxy_screenshot_url (const char *url, gboolean high_quality)
 
   for (char *p = encoded_url; *p; p++)
     {
-      if (*p == '+') *p = '-';
-      if (*p == '/') *p = '_';
+      if (*p == '+')
+        *p = '-';
+      if (*p == '/')
+        *p = '_';
     }
 
   return g_strdup_printf (
@@ -142,8 +251,8 @@ find_screenshot (GPtrArray  *images,
     {
       g_autoptr (GFile) screenshot_file = NULL;
       g_autoptr (GFile) cache_file      = NULL;
-      g_autofree char  *proxied_url     = NULL;
-      BzAsyncTexture *texture           = NULL;
+      g_autofree char *proxied_url      = NULL;
+      BzAsyncTexture  *texture          = NULL;
 
       proxied_url     = proxy_screenshot_url (best_url, match_highest);
       screenshot_file = g_file_new_for_uri (proxied_url);
@@ -587,10 +696,9 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
         }
     }
 
-  is_mobile_friendly = calculate_is_mobile_friendly (required_controls,
-                                                     supported_controls,
-                                                     min_display_length,
-                                                     max_display_length);
+  is_mobile_friendly = calculate_is_mobile_friendly (requires_relations,
+                                                     recommends_relations,
+                                                     supports_relations);
 
   if (as_search_tokens != NULL)
     {
