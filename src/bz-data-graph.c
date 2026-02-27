@@ -219,6 +219,35 @@ on_style_changed (BzDataGraph     *self,
   gtk_widget_queue_draw (GTK_WIDGET (self));
 }
 
+static GskPath *
+build_fill_path (GskPath *curve_path, double graph_height)
+{
+  GskPathBuilder  *builder   = NULL;
+  GskPath         *fill_path = NULL;
+  GskPathPoint     start_pt  = { 0 };
+  GskPathPoint     end_pt    = { 0 };
+  graphene_point_t start_pos = { 0 };
+  graphene_point_t end_pos   = { 0 };
+
+  gsk_path_get_start_point (curve_path, &start_pt);
+  gsk_path_get_end_point (curve_path, &end_pt);
+
+  gsk_path_point_get_position (&start_pt, curve_path, &start_pos);
+  gsk_path_point_get_position (&end_pt, curve_path, &end_pos);
+
+  builder = gsk_path_builder_new ();
+  gsk_path_builder_move_to (builder, start_pos.x, start_pos.y);
+  gsk_path_builder_add_path (builder, curve_path);
+  gsk_path_builder_move_to (builder, end_pos.x, end_pos.y);
+  gsk_path_builder_line_to (builder, end_pos.x, graph_height);
+  gsk_path_builder_line_to (builder, start_pos.x, graph_height);
+  gsk_path_builder_line_to (builder, start_pos.x, start_pos.y);
+  gsk_path_builder_close (builder);
+
+  fill_path = gsk_path_builder_to_path (builder);
+  return fill_path;
+}
+
 static void
 bz_data_graph_snapshot (GtkWidget   *widget,
                         GtkSnapshot *snapshot)
@@ -226,17 +255,20 @@ bz_data_graph_snapshot (GtkWidget   *widget,
   BzDataGraph     *self             = BZ_DATA_GRAPH (widget);
   double           widget_width     = 0.0;
   double           widget_height    = 0.0;
+  double           graph_height     = 0.0;
   AdwStyleManager *style_manager    = NULL;
   g_autoptr (GdkRGBA) accent_color  = NULL;
   GdkRGBA widget_color              = { 0 };
   g_autoptr (GskPath) transitioning = NULL;
   g_autoptr (GskStroke) stroke      = NULL;
+  GskPath *active_curve              = NULL;
 
   if (self->path == NULL)
     return;
 
   widget_width  = gtk_widget_get_width (widget);
   widget_height = gtk_widget_get_height (widget);
+  graph_height  = widget_height - LABEL_MARGIN;
 
   style_manager = adw_style_manager_get_default ();
   accent_color  = adw_style_manager_get_accent_color_rgba (style_manager);
@@ -258,6 +290,8 @@ bz_data_graph_snapshot (GtkWidget   *widget,
       transitioning = gsk_path_builder_to_path (builder);
     }
 
+  active_curve = transitioning != NULL ? transitioning : self->path;
+
   stroke = gsk_stroke_new (3.0);
   gsk_stroke_set_line_cap (stroke, GSK_LINE_CAP_ROUND);
 
@@ -278,13 +312,36 @@ bz_data_graph_snapshot (GtkWidget   *widget,
     }
 
   if (self->transition_progress > 0.0)
-    gtk_snapshot_append_stroke (
-        snapshot,
-        transitioning != NULL
-            ? transitioning
-            : self->path,
-        stroke,
-        accent_color);
+    {
+      g_autoptr (GskPath) fill_region = NULL;
+      GdkRGBA grad_top                = *accent_color;
+      GdkRGBA grad_bottom             = *accent_color;
+      GskFillRule fill_rule            = GSK_FILL_RULE_WINDING;
+
+      grad_top.alpha    = 0.25;
+      grad_bottom.alpha = 0.0;
+
+      fill_region = build_fill_path (active_curve, graph_height);
+
+      gtk_snapshot_push_fill (snapshot, fill_region, fill_rule);
+      gtk_snapshot_append_linear_gradient (
+          snapshot,
+          &GRAPHENE_RECT_INIT (0, 0, widget_width, graph_height),
+          &GRAPHENE_POINT_INIT (0, 0),
+          &GRAPHENE_POINT_INIT (0, graph_height),
+          (GskColorStop[2]) {
+            { 0.0, grad_top },
+            { 1.0, grad_bottom },
+          },
+          2);
+      gtk_snapshot_pop (snapshot);
+
+      gtk_snapshot_append_stroke (
+          snapshot,
+          active_curve,
+          stroke,
+          accent_color);
+    }
   gtk_snapshot_restore (snapshot);
 
   if (self->motion_x >= LABEL_MARGIN &&
@@ -296,7 +353,6 @@ bz_data_graph_snapshot (GtkWidget   *widget,
       guint hovered_idx                      = 0;
       g_autoptr (BzDataPoint) point          = NULL;
       g_autoptr (GskStroke) crosshair_stroke = NULL;
-      double           graph_height          = 0.0;
       double           graph_width           = 0.0;
       double           fraction              = 0.0;
       double           point_x               = 0.0;
@@ -335,8 +391,6 @@ bz_data_graph_snapshot (GtkWidget   *widget,
             }
           rounded_axis_max = calculate_axis_tick_value (max_dependent, TRUE);
         }
-
-      graph_height = widget_height - LABEL_MARGIN;
 
       point_x = ((double) hovered_idx / (double) (n_items - 1)) * graph_width + LABEL_MARGIN;
       point_y = (1.0 - bz_data_point_get_dependent (point) / rounded_axis_max) * graph_height;
