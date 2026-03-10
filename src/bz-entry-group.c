@@ -33,6 +33,7 @@ struct _BzEntryGroup
 
   BzApplicationMapFactory *factory;
 
+<<<<<<< Updated upstream
   GtkStringList  *unique_ids;
   GtkStringList  *installed_versions;
   char           *id;
@@ -52,6 +53,28 @@ struct _BzEntryGroup
   char           *donation_url;
   BzCategoryFlags categories;
   int             content_age_rating;
+=======
+  GtkStringList *unique_ids;
+  GArray        *content_hashes;
+  GtkStringList *installed_versions;
+  char          *id;
+  char          *title;
+  char          *developer;
+  char          *description;
+  GIcon         *mini_icon;
+  gboolean       is_floss;
+  char          *light_accent_color;
+  char          *dark_accent_color;
+  gboolean       is_flathub;
+  gboolean       is_verified;
+  char          *search_tokens;
+  char          *eol;
+  guint64        installed_size;
+  int            n_addons;
+  char          *donation_url;
+  GListModel    *categories;
+  int            content_age_rating;
+>>>>>>> Stashed changes
 
   int max_usefulness;
 
@@ -140,6 +163,7 @@ bz_entry_group_dispose (GObject *object)
   dex_clear (&self->reap_user_data_future);
   g_clear_object (&self->factory);
   g_clear_object (&self->unique_ids);
+  g_clear_pointer (&self->content_hashes, g_array_unref);
   g_clear_object (&self->installed_versions);
   g_clear_pointer (&self->id, g_free);
   g_clear_pointer (&self->title, g_free);
@@ -476,6 +500,7 @@ static void
 bz_entry_group_init (BzEntryGroup *self)
 {
   self->unique_ids         = gtk_string_list_new (NULL);
+  self->content_hashes     = g_array_new (FALSE, TRUE, sizeof (guint));
   self->installed_versions = gtk_string_list_new (NULL);
   self->max_usefulness     = -1;
   g_weak_ref_init (&self->ui_entry, NULL);
@@ -854,12 +879,19 @@ bz_entry_group_add (BzEntryGroup *self,
   guint            existing           = 0;
   gboolean         is_searchable      = FALSE;
   AsContentRating *content_rating     = NULL;
+  guint            content_hash       = 0;
+  guint            existing_hash      = 0;
 
   g_return_if_fail (BZ_IS_ENTRY_GROUP (self));
   g_return_if_fail (BZ_IS_ENTRY (entry));
   g_return_if_fail (runtime == NULL || BZ_IS_ENTRY (runtime));
 
   locker = g_mutex_locker_new (&self->mutex);
+
+  if (g_list_model_get_n_items (G_LIST_MODEL (self->unique_ids)) > 0)
+    return;
+
+  //g_print ("Adding first entry for group: %s\n", bz_entry_get_unique_id (entry));
 
   if (self->id == NULL)
     {
@@ -908,15 +940,30 @@ bz_entry_group_add (BzEntryGroup *self,
   usefulness = bz_entry_calc_usefulness (entry);
   existing   = gtk_string_list_find (self->unique_ids, unique_id);
 
+  content_hash = bz_entry_get_content_hash (entry);
+  if (existing != G_MAXUINT)
+    existing_hash = g_array_index (self->content_hashes, guint, existing);
+
+  if (content_hash != 0 && existing_hash == content_hash)
+      {
+        g_print ("Skipping entry update for %s: content hash unchanged (0x%08x)", unique_id, content_hash);
+        return;
+      }
+
+  if (existing != G_MAXUINT)
+    g_array_index (self->content_hashes, guint, existing) = content_hash;
+
   if (usefulness >= self->max_usefulness)
     {
       if (existing != G_MAXUINT)
         {
           gtk_string_list_remove (self->unique_ids, existing);
           gtk_string_list_remove (self->installed_versions, existing);
+          g_array_remove_index (self->content_hashes, existing);
         }
       gtk_string_list_splice (self->unique_ids, 0, 0, (const char *const[]) { unique_id, NULL });
       gtk_string_list_splice (self->installed_versions, 0, 0, (const char *const[]) { installed_version != NULL ? installed_version : "", NULL });
+      g_array_prepend_val (self->content_hashes, content_hash);
 
       if (title != NULL)
         {
@@ -1007,6 +1054,7 @@ bz_entry_group_add (BzEntryGroup *self,
         {
           gtk_string_list_append (self->unique_ids, unique_id);
           gtk_string_list_append (self->installed_versions, installed_version != NULL ? installed_version : "");
+          g_array_append_val (self->content_hashes, content_hash);
         }
 
       if (title != NULL && self->title == NULL)

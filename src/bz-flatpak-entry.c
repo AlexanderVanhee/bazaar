@@ -393,6 +393,8 @@ bz_flatpak_entry_new_for_ref (FlatpakRef    *ref,
   g_autoptr (GdkPaintable) icon_paintable  = NULL;
   g_autoptr (BzAppPermissions) permissions = NULL;
   gboolean searchable                      = FALSE;
+  guint            content_hash            = 0;
+  const char       *commit                 = NULL;
 
   g_return_val_if_fail (FLATPAK_IS_REF (ref), NULL);
   g_return_val_if_fail (FLATPAK_IS_REMOTE_REF (ref) || FLATPAK_IS_BUNDLE_REF (ref) || FLATPAK_IS_INSTALLED_REF (ref), NULL);
@@ -403,6 +405,9 @@ bz_flatpak_entry_new_for_ref (FlatpakRef    *ref,
   self->is_bundle        = FLATPAK_IS_BUNDLE_REF (ref);
   self->is_installed_ref = FLATPAK_IS_INSTALLED_REF (ref);
   self->ref              = g_object_ref (ref);
+
+  commit = flatpak_ref_get_commit (ref);
+  content_hash = commit != NULL ? g_str_hash (commit) : 0;
 
   key_file = g_key_file_new ();
   if (FLATPAK_IS_REMOTE_REF (ref))
@@ -639,6 +644,7 @@ bz_flatpak_entry_new_for_ref (FlatpakRef    *ref,
       "icon-paintable", icon_paintable,
       "permissions", permissions,
       "searchable", searchable,
+      "content-hash", content_hash,
       NULL);
 
   return g_steal_pointer (&self);

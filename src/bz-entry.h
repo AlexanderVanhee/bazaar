@@ -120,6 +120,9 @@ bz_entry_get_unique_id (BzEntry *self);
 const char *
 bz_entry_get_unique_id_checksum (BzEntry *self);
 
+guint
+bz_entry_get_content_hash (BzEntry *self);
+
 const char *
 bz_entry_get_title (BzEntry *self);
 

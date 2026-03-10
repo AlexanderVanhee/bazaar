@@ -81,6 +81,7 @@ typedef struct
   char             *id;
   char             *unique_id;
   char             *unique_id_checksum;
+  guint             content_hash;
   char             *title;
   char             *eol;
   char             *description;
@@ -148,6 +149,7 @@ enum
   PROP_ID,
   PROP_UNIQUE_ID,
   PROP_UNIQUE_ID_CHECKSUM,
+  PROP_CONTENT_HASH,
   PROP_TITLE,
   PROP_EOL,
   PROP_DESCRIPTION,
@@ -295,6 +297,9 @@ bz_entry_get_property (GObject    *object,
       break;
     case PROP_UNIQUE_ID_CHECKSUM:
       g_value_set_string (value, priv->unique_id_checksum);
+      break;
+    case PROP_CONTENT_HASH:
+      g_value_set_uint (value, priv->content_hash);
       break;
     case PROP_TITLE:
       g_value_set_string (value, priv->title);
@@ -485,6 +490,9 @@ bz_entry_set_property (GObject      *object,
     case PROP_UNIQUE_ID_CHECKSUM:
       g_clear_pointer (&priv->unique_id_checksum, g_free);
       priv->unique_id_checksum = g_value_dup_string (value);
+      break;
+    case PROP_CONTENT_HASH:
+      priv->content_hash = g_value_get_uint (value);
       break;
     case PROP_TITLE:
       g_clear_pointer (&priv->title, g_free);
@@ -757,6 +765,13 @@ bz_entry_class_init (BzEntryClass *klass)
       g_param_spec_string (
           "unique-id-checksum",
           NULL, NULL, NULL,
+          G_PARAM_READWRITE);
+
+  props[PROP_CONTENT_HASH] =
+      g_param_spec_uint (
+          "content-hash",
+          NULL, NULL,
+          0, G_MAXUINT, 0,
           G_PARAM_READWRITE);
 
   props[PROP_TITLE] =
@@ -1093,6 +1108,7 @@ bz_entry_real_serialize (BzSerializable  *serializable,
     g_variant_builder_add (builder, "{sv}", "installed-version", g_variant_new_string (priv->installed_version));
   g_variant_builder_add (builder, "{sv}", "kinds", g_variant_new_uint32 (priv->kinds));
   g_variant_builder_add (builder, "{sv}", "searchable", g_variant_new_boolean (priv->searchable));
+  g_variant_builder_add (builder, "{sv}", "content-hash", g_variant_new_uint32 (priv->content_hash));
   if (priv->addons != NULL)
     {
       guint n_items = 0;
@@ -1468,6 +1484,8 @@ bz_entry_real_deserialize (BzSerializable *serializable,
         priv->unique_id = g_variant_dup_string (value, NULL);
       else if (g_strcmp0 (key, "unique-id-checksum") == 0)
         priv->unique_id_checksum = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "content-hash") == 0)
+        priv->content_hash = g_variant_get_uint32 (value);
       else if (g_strcmp0 (key, "title") == 0)
         priv->title = g_variant_dup_string (value, NULL);
       else if (g_strcmp0 (key, "eol") == 0)
@@ -1910,6 +1928,17 @@ bz_entry_get_unique_id_checksum (BzEntry *self)
   priv = bz_entry_get_instance_private (self);
 
   return priv->unique_id_checksum;
+}
+
+guint
+bz_entry_get_content_hash (BzEntry *self)
+{
+  BzEntryPrivate *priv = NULL;
+
+  g_return_val_if_fail (BZ_IS_ENTRY (self), 0);
+  priv = bz_entry_get_instance_private (self);
+
+  return priv->content_hash;
 }
 
 const char *

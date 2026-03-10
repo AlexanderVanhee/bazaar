@@ -281,9 +281,17 @@ bz_app_tile_set_group (BzAppTile    *self,
 {
   g_return_if_fail (BZ_IS_APP_TILE (self));
 
+  if (self->group == group)
+    return;
+
   g_clear_object (&self->group);
+
   if (group != NULL)
+  {
     self->group = g_object_ref (group);
+    if (g_strcmp0 (bz_entry_group_get_id (group), "io.github.tuner_labs.tuner") == 0)
+      g_print ("App tile set for gradia group \n");
+  }
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_GROUP]);
 }
