@@ -906,3 +906,10 @@ curated-list-view,
 curated-list-view list {
   background: var(--bg-color);
 }
+
+.portal-flow-box > * {
+    padding: 0;
+    transition: background-color 200ms;
+    min-height: 0;
+    border-radius: 12px;
+}
