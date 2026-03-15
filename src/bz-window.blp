@@ -29,12 +29,6 @@ template $BzWindow: Adw.ApplicationWindow {
       trigger: "<ctrl>g";
       action: "action(escape)";
     }
-
-    Shortcut {
-      trigger: "<ctrl>p";
-      action: "action(window.permissions)";
-      arguments: "'be.alexandervanhee.gradia'";
-    }
   }
 
   content: Adw.ToolbarView {

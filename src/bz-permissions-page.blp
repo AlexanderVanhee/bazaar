@@ -67,6 +67,7 @@ template $BzPermissionsPage: Adw.NavigationPage {
               label: _("Reset Changes");
               clicked => $reset_button_clicked_cb();
               margin-top: 18;
+              halign: center;
 
               styles [
                 "pill"
@@ -102,16 +103,16 @@ template $BzPermissionsPage: Adw.NavigationPage {
             }
 
             $BzPermissionToggleRow {
-              title: _("Printing");
-              subtitle: _("Talk to the CUPS printing system");
-              key: "sockets=cups";
+              title: _("Bluetooth");
+              subtitle: _("Manage both Bluetooth settings and devices");
+              key: "features=bluetooth";
               group: "Context";
             }
 
             $BzPermissionToggleRow {
-              title: _("GPG Agent");
-              subtitle: _("Access GPG agent directories things like encryption and git commit signing");
-              key: "sockets=gpg-agent";
+              title: _("Printing");
+              subtitle: _("Talk to the CUPS printing system");
+              key: "sockets=cups";
               group: "Context";
             }
           }
@@ -123,28 +124,30 @@ template $BzPermissionsPage: Adw.NavigationPage {
             margin-end: 6;
 
             $BzPermissionToggleRow {
+              title: _("Smart Cards");
+              subtitle: _("Access smart card readers via PC/SC");
+              key: "sockets=pcsc";
+              group: "Context";
+            }
+
+            $BzPermissionToggleRow all_devices {
+              title: _("All Devices");
+              subtitle: _("Access all devices such as webcam, GPU, etc.");
+              key: "devices=all";
+              group: "Context";
+            }
+
+            $BzPermissionToggleRow {
               title: _("GPU Acceleration");
+              sensitive: bind all_devices.active inverted;
               subtitle: _("Access GPU rendering");
               key: "devices=dri";
               group: "Context";
             }
 
             $BzPermissionToggleRow {
-              title: _("All Devices");
-              subtitle: _("Access all devices such as webcam, etc.");
-              key: "devices=all";
-              group: "Context";
-            }
-
-            $BzPermissionToggleRow {
-              title: _("Bluetooth");
-              subtitle: _("Manage both Bluetooth settings and devices");
-              key: "features=bluetooth";
-              group: "Context";
-            }
-
-            $BzPermissionToggleRow {
               title: _("USB Devices");
+              sensitive: bind all_devices.active inverted;
               subtitle: _("Manage USB devices directly");
               key: "devices=usb";
               group: "Context";
@@ -152,15 +155,25 @@ template $BzPermissionsPage: Adw.NavigationPage {
 
             $BzPermissionToggleRow {
               title: _("Input Devices");
+              sensitive: bind all_devices.active inverted;
               subtitle: _("Access Input devices");
               key: "devices=input";
               group: "Context";
             }
 
             $BzPermissionToggleRow {
-              title: _("Smart Cards");
-              subtitle: _("Access smart card readers via PC/SC");
-              key: "sockets=pcsc";
+              title: _("KVM Virtualization");
+              sensitive: bind all_devices.active inverted;
+              subtitle: _("Access KVM for virtual machines");
+              key: "devices=kvm";
+              group: "Context";
+            }
+
+            $BzPermissionToggleRow {
+              title: _("Shared Memory");
+              sensitive: bind all_devices.active inverted;
+              subtitle: _("Create shared memory objects");
+              key: "devices=shm";
               group: "Context";
             }
           }
@@ -171,14 +184,7 @@ template $BzPermissionsPage: Adw.NavigationPage {
             margin-start: 6;
             margin-end: 6;
 
-            $BzPermissionToggleRow {
-              title: _("Home Folder");
-              subtitle: _("Full access to your home directory");
-              key: "filesystems=home";
-              group: "Context";
-            }
-
-            $BzPermissionToggleRow {
+            $BzPermissionToggleRow host_filesystem {
               title: _("Host Filesystem");
               subtitle: _("Full access to entire filesystem");
               key: "filesystems=host";
@@ -186,7 +192,16 @@ template $BzPermissionsPage: Adw.NavigationPage {
             }
 
             $BzPermissionToggleRow {
+              title: _("Home Folder");
+              sensitive: bind host_filesystem.active inverted;
+              subtitle: _("Full access to your home directory");
+              key: "filesystems=home";
+              group: "Context";
+            }
+
+            $BzPermissionToggleRow {
               title: _("Downloads");
+              sensitive: bind host_filesystem.active inverted;
               subtitle: _("Access the Downloads folder");
               key: "filesystems=xdg-download";
               group: "Context";
@@ -194,6 +209,7 @@ template $BzPermissionsPage: Adw.NavigationPage {
 
             $BzPermissionEntryRow other_files {
               title: _("Other Paths");
+              sensitive: bind host_filesystem.active inverted;
               subtitle: _("Grant access to additional files and folders");
             }
           }
@@ -227,16 +243,9 @@ template $BzPermissionsPage: Adw.NavigationPage {
                 }
 
                 $BzPermissionToggleRow {
-                  title: _("KVM Virtualization");
-                  subtitle: _("Access KVM for virtual machines");
-                  key: "devices=kvm";
-                  group: "Context";
-                }
-
-                $BzPermissionToggleRow {
-                  title: _("Shared Memory");
-                  subtitle: _("Create shared memory objects");
-                  key: "devices=shm";
+                  title: _("GPG Agent");
+                  subtitle: _("Access GPG agent directories things like encryption and git commit signing");
+                  key: "sockets=gpg-agent";
                   group: "Context";
                 }
               }
@@ -285,7 +294,7 @@ template $BzPermissionsPage: Adw.NavigationPage {
               }
 
               Adw.PreferencesGroup {
-                title: _("Developer");
+                title: _("Developer Options");
                 margin-top: 12;
                 margin-bottom: 6;
 

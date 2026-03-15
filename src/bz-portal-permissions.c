@@ -297,8 +297,13 @@ create_tile (BzPortalPermissions *self,
   gtk_widget_add_css_class (tile->title_label, "heading");
   gtk_widget_add_css_class (tile->title_label, "dim-label");
   gtk_label_set_justify (GTK_LABEL (tile->title_label), GTK_JUSTIFY_CENTER);
+  gtk_label_set_wrap (GTK_LABEL (tile->title_label), TRUE);
+  gtk_label_set_wrap_mode (GTK_LABEL (tile->title_label), PANGO_WRAP_WORD_CHAR);
   gtk_widget_set_margin_bottom (tile->title_label, 12);
+  gtk_widget_set_margin_start (tile->title_label, 8);
+  gtk_widget_set_margin_end (tile->title_label, 8);
   gtk_box_append (GTK_BOX (tile->card), tile->title_label);
+  gtk_widget_set_size_request (tile->card, 140, -1);
 
   return tile->card;
 }

@@ -90,7 +90,7 @@ add_entry (BzPermissionEntryRow *self,
   if (text != NULL)
     gtk_editable_set_text (GTK_EDITABLE (row), text);
 
-  button = GTK_BUTTON (gtk_button_new_from_icon_name ("user-trash-symbolic"));
+  button = GTK_BUTTON (gtk_button_new_from_icon_name ("cross-small-circle-outline-symbolic"));
   gtk_widget_add_css_class (GTK_WIDGET (button), "error");
   gtk_widget_set_valign (GTK_WIDGET (button), GTK_ALIGN_CENTER);
   gtk_widget_add_css_class (GTK_WIDGET (button), "flat");
