@@ -1069,7 +1069,10 @@ texture_cache_acquire (const char *uri)
 
   data = g_hash_table_lookup (texture_cache, uri);
   if (data != NULL)
-    return g_object_ref (data->texture);
+    {
+      dex_clear (&data->linger_timeout);
+      return g_object_ref (data->texture);
+    }
   else
     return NULL;
 }
