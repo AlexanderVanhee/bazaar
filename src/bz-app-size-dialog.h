@@ -27,12 +27,9 @@ G_BEGIN_DECLS
 
 #define BZ_TYPE_APP_SIZE_DIALOG (bz_app_size_dialog_get_type ())
 
-G_DECLARE_FINAL_TYPE (BzAppSizeDialog, bz_app_size_dialog, BZ, APP_SIZE_DIALOG, AdwBin)
+G_DECLARE_FINAL_TYPE (BzAppSizeDialog, bz_app_size_dialog, BZ, APP_SIZE_DIALOG, AdwDialog)
 
 AdwDialog *
 bz_app_size_dialog_new (BzEntryGroup *group);
-
-AdwNavigationPage *
-bz_app_size_page_new (BzEntryGroup *group);
 
 G_END_DECLS

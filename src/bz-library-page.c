@@ -609,9 +609,6 @@ filter (BzEntryGroup  *group,
   const char *title = NULL;
   const char *text  = NULL;
 
-  if (bz_entry_group_is_addon (group))
-    return FALSE;
-
   id    = bz_entry_group_get_id (group);
   title = bz_entry_group_get_title (group);
 

@@ -22,7 +22,7 @@
 
 #include <adwaita.h>
 
-#include "bz-entry-group.h"
+#include "bz-entry.h"
 
 G_BEGIN_DECLS
 
@@ -30,6 +30,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (BzAddonsDialog, bz_addons_dialog, BZ, ADDONS_DIALOG, AdwDialog)
 
 AdwDialog *
-bz_addons_dialog_new (BzEntryGroup *group);
+bz_addons_dialog_new (BzEntry    *entry,
+                      GListModel *model);
 
 G_END_DECLS

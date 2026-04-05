@@ -24,11 +24,10 @@
 #include "bz-data-graph.h"
 #include "bz-stats-dialog.h"
 #include "bz-world-map.h"
-#include "bz-template-callbacks.h"
 
 struct _BzStatsDialog
 {
-  AdwBreakpointBin     parent_instance;
+  AdwDialog parent_instance;
 
   GListModel *model;
   GListModel *country_model;
@@ -39,7 +38,7 @@ struct _BzStatsDialog
   BzWorldMap  *world_map;
 };
 
-G_DEFINE_FINAL_TYPE (BzStatsDialog, bz_stats_dialog, ADW_TYPE_BREAKPOINT_BIN)
+G_DEFINE_FINAL_TYPE (BzStatsDialog, bz_stats_dialog, ADW_TYPE_DIALOG)
 
 enum
 {
@@ -167,9 +166,6 @@ bz_stats_dialog_class_init (BzStatsDialogClass *klass)
   g_type_ensure (BZ_TYPE_WORLD_MAP);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-stats-dialog.ui");
-
-  bz_widget_class_bind_all_util_callbacks (widget_class);
-
   gtk_widget_class_bind_template_callback (widget_class, format_total_downloads);
   gtk_widget_class_bind_template_child (widget_class, BzStatsDialog, graph);
   gtk_widget_class_bind_template_child (widget_class, BzStatsDialog, world_map);
@@ -181,7 +177,7 @@ bz_stats_dialog_init (BzStatsDialog *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 }
 
-AdwBreakpointBin *
+AdwDialog *
 bz_stats_dialog_new (GListModel *model,
                      GListModel *country_model,
                      int         total_downloads)
@@ -195,7 +191,7 @@ bz_stats_dialog_new (GListModel *model,
       "total-downloads", total_downloads,
       NULL);
 
-  return ADW_BREAKPOINT_BIN (stats_dialog);
+  return ADW_DIALOG (stats_dialog);
 }
 
 void

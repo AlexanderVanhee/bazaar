@@ -25,9 +25,9 @@
 G_BEGIN_DECLS
 
 #define BZ_TYPE_STATS_DIALOG (bz_stats_dialog_get_type ())
-G_DECLARE_FINAL_TYPE (BzStatsDialog, bz_stats_dialog, BZ, STATS_DIALOG, AdwBreakpointBin)
+G_DECLARE_FINAL_TYPE (BzStatsDialog, bz_stats_dialog, BZ, STATS_DIALOG, AdwDialog)
 
-AdwBreakpointBin *
+AdwDialog *
 bz_stats_dialog_new (GListModel *model,
                      GListModel *country_model,
                      int         total_downloads);

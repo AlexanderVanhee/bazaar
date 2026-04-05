@@ -2029,55 +2029,11 @@ fiber_replace_entry (BzApplication *self,
 
       extension_of_what = bz_flatpak_entry_get_addon_extension_of_ref (
           BZ_FLATPAK_ENTRY (entry));
-
-      if (extension_of_what != NULL &&
-          g_str_has_prefix (extension_of_what, "app/"))
-        {
-          BzEntryGroup *group = NULL;
-
-          group = g_hash_table_lookup (self->ids_to_groups, id);
-          if (group != NULL)
-            {
-              bz_entry_group_add (group, entry, NULL, FALSE);
-              if (installed && !g_list_store_find (self->installed_apps, group, NULL))
-                g_list_store_insert_sorted (
-                    self->installed_apps, group,
-                    (GCompareDataFunc) cmp_group, NULL);
-            }
-          else
-            {
-              g_autoptr (BzEntryGroup) new_group = NULL;
-
-              new_group = bz_entry_group_new (self->entry_factory);
-              bz_entry_group_add (new_group, entry, NULL, FALSE);
-
-              g_list_store_append (self->groups, new_group);
-              g_hash_table_replace (self->ids_to_groups, g_strdup (id), g_object_ref (new_group));
-
-              if (installed)
-                g_list_store_insert_sorted (
-                    self->installed_apps, new_group,
-                    (GCompareDataFunc) cmp_group, NULL);
-            }
-
-          {
-            g_auto (GStrv) parts     = NULL;
-            BzEntryGroup  *app_group = NULL;
-
-            parts = g_strsplit (extension_of_what, "/", -1);
-            if (parts != NULL && parts[1] != NULL)
-              {
-                app_group = g_hash_table_lookup (self->ids_to_groups, parts[1]);
-                if (app_group != NULL)
-                  bz_entry_group_append_addon_group_id (app_group, id);
-              }
-          }
-        }
-
       if (extension_of_what != NULL)
         {
           GPtrArray *addons = NULL;
 
+          /* BzFlatpakInstance ensures addons come before applications */
           addons = g_hash_table_lookup (
               user
                   ? self->usr_name_to_addons

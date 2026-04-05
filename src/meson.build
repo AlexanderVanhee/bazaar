@@ -52,7 +52,6 @@ gdbus_src = gnome.gdbus_codegen(
 )
 
 bz_sources = files(
-  'bz-addon-tile.c',
   'bz-addons-dialog.c',
   'bz-age-rating-dialog.c',
   'bz-all-apps-page.c',
@@ -73,7 +72,6 @@ bz_sources = files(
   'bz-content-provider.c',
   'bz-context-row.c',
   'bz-context-tile.c',
-  'bz-context-tile-callbacks.c',
   'bz-curated-app-tile.c',
   'bz-curated-view.c',
   'bz-data-graph.c',
@@ -261,7 +259,6 @@ bz_deps += [ generated_gobjects ]
 
 blueprints = custom_target('blueprints',
   input: files(
-    'bz-addon-tile.blp',
     'bz-addons-dialog.blp',
     'bz-donations-dialog.blp',
     'bz-age-rating-dialog.blp',

@@ -28,12 +28,12 @@
 
 struct _BzAppSizeDialog
 {
-  AdwBin parent_instance;
+  AdwDialog parent_instance;
 
   BzEntryGroup *group;
 };
 
-G_DEFINE_FINAL_TYPE (BzAppSizeDialog, bz_app_size_dialog, ADW_TYPE_BIN)
+G_DEFINE_FINAL_TYPE (BzAppSizeDialog, bz_app_size_dialog, ADW_TYPE_DIALOG)
 
 enum
 {
@@ -100,8 +100,7 @@ get_runtime_size_title (gpointer object,
 }
 
 static char *
-format_size (gpointer object,
-             guint64  value)
+format_size (gpointer object, guint64 value)
 {
   g_autofree char *size_str = g_format_size (value);
   char            *space    = g_strrstr (size_str, "\xC2\xA0");
@@ -181,28 +180,12 @@ bz_app_size_dialog_init (BzAppSizeDialog *self)
 AdwDialog *
 bz_app_size_dialog_new (BzEntryGroup *group)
 {
-  BzAppSizeDialog *widget = NULL;
-  AdwDialog       *dialog = NULL;
+  BzAppSizeDialog *app_size_dialog = NULL;
 
-  widget = g_object_new (BZ_TYPE_APP_SIZE_DIALOG, "group", group, NULL);
+  app_size_dialog = g_object_new (
+      BZ_TYPE_APP_SIZE_DIALOG,
+      "group", group,
+      NULL);
 
-  dialog = adw_dialog_new ();
-  adw_dialog_set_content_height (dialog, 500);
-  adw_dialog_set_content_width (dialog, 600);
-  adw_dialog_set_child (dialog, GTK_WIDGET (widget));
-
-  return dialog;
-}
-
-AdwNavigationPage *
-bz_app_size_page_new (BzEntryGroup *group)
-{
-  BzAppSizeDialog   *widget = NULL;
-  AdwNavigationPage *page   = NULL;
-
-  widget = g_object_new (BZ_TYPE_APP_SIZE_DIALOG, "group", group, NULL);
-  page   = adw_navigation_page_new (GTK_WIDGET (widget), _ ("App Size"));
-  adw_navigation_page_set_tag (page, "app-size");
-
-  return page;
+  return ADW_DIALOG (app_size_dialog);
 }
