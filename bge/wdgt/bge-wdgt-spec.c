@@ -30,6 +30,14 @@
 #define ARGBUF_SIZE 128
 
 static void
+_marshal_DIRECT__ARGS_DIRECT (GClosure                *closure,
+                              GValue                  *return_value,
+                              guint                    n_param_values,
+                              const GValue            *param_values,
+                              gpointer invocation_hint G_GNUC_UNUSED,
+                              gpointer                 marshal_data);
+
+static void
 _marshal_BOXED__ARGS_DIRECT (GClosure                *closure,
                              GValue                  *return_value,
                              guint                    n_param_values,
@@ -44,6 +52,7 @@ typedef enum
   VALUE_COMPONENT,
   VALUE_TRANSFORM,
   VALUE_CLOSURE,
+  VALUE_COERCION,
   VALUE_SPECIAL,
   VALUE_VARIABLE,
   VALUE_PROPERTY,
@@ -116,6 +125,10 @@ BGE_DEFINE_DATA (
         BgeWdgtSpecialValue special;
         struct
         {
+          ValueData *value;
+        } coercion;
+        struct
+        {
           ValueData  *object;
           char       *prop_name;
           GParamFlags pspec_flags;
@@ -124,6 +137,7 @@ BGE_DEFINE_DATA (
         {
           ValueData *parent_widget;
           char      *builder_type;
+          GPtrArray *css_classes;
         } child;
         struct
         {
@@ -158,6 +172,9 @@ deinit_value (gpointer ptr)
       if (value->closure.destroy_user_data != NULL)
         g_clear_pointer (&value->closure.user_data, value->closure.destroy_user_data);
       break;
+    case VALUE_COERCION:
+      g_clear_pointer (&value->coercion.value, value_data_unref);
+      break;
     case VALUE_SPECIAL:
       break;
     case VALUE_VARIABLE:
@@ -169,6 +186,7 @@ deinit_value (gpointer ptr)
     case VALUE_CHILD:
       g_clear_pointer (&value->child.parent_widget, value_data_unref);
       g_clear_pointer (&value->child.builder_type, g_free);
+      g_clear_pointer (&value->child.css_classes, g_ptr_array_unref);
       break;
     case VALUE_ALLOCATION_WIDTH:
     case VALUE_ALLOCATION_HEIGHT:
@@ -270,6 +288,7 @@ struct _BgeWdgtSpec
   gboolean ready;
 
   GHashTable *values;
+  GPtrArray  *anon_values;
   GHashTable *states;
   GPtrArray  *children;
   GPtrArray  *nonchildren;
@@ -296,6 +315,20 @@ enum
 static GParamSpec *props[LAST_PROP] = { 0 };
 
 static gboolean
+check_can_coerce_type (GType dest,
+                       GType src);
+
+static void
+coerce_value (const GValue *in,
+              GType         dest_type,
+              GValue       *out);
+
+static ValueData *
+wrap_coerce_value (BgeWdgtSpec *self,
+                   ValueData   *value,
+                   GType        dest_type);
+
+static gboolean
 lookup_transform_instr (const char     *lookup_name,
                         TransformInstr *out);
 
@@ -320,6 +353,7 @@ bge_wdgt_spec_dispose (GObject *object)
   g_clear_pointer (&self->name, g_free);
 
   g_clear_pointer (&self->values, g_hash_table_unref);
+  g_clear_pointer (&self->anon_values, g_ptr_array_unref);
   g_clear_pointer (&self->states, g_hash_table_unref);
   g_clear_pointer (&self->children, g_ptr_array_unref);
   g_clear_pointer (&self->nonchildren, g_ptr_array_unref);
@@ -840,6 +874,7 @@ static void
 bge_wdgt_spec_init (BgeWdgtSpec *self)
 {
   self->values      = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, value_data_unref);
+  self->anon_values = g_ptr_array_new_with_free_func (value_data_unref);
   self->states      = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, state_data_unref);
   self->children    = g_ptr_array_new_with_free_func (value_data_unref);
   self->nonchildren = g_ptr_array_new_with_free_func (value_data_unref);
@@ -1157,16 +1192,22 @@ bge_wdgt_spec_add_transform_source_value (BgeWdgtSpec       *self,
 
       if (!g_type_is_a (value_data->type, match.args[i]))
         {
-          g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
-                       "argument %u for snapshot instruction %s "
-                       "must be of type %s, got %s",
-                       i, match.name,
-                       g_type_name (match.args[i]),
-                       g_type_name (value_data->type));
-          return FALSE;
+          if (check_can_coerce_type (match.args[i], value_data->type))
+            g_ptr_array_add (value->transform.args,
+                             wrap_coerce_value (self, value_data, match.args[i]));
+          else
+            {
+              g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
+                           "argument %u for snapshot instruction %s "
+                           "must be of type %s, got %s",
+                           i, match.name,
+                           g_type_name (match.args[i]),
+                           g_type_name (value_data->type));
+              return FALSE;
+            }
         }
-
-      g_ptr_array_add (value->transform.args, value_data_ref (value_data));
+      else
+        g_ptr_array_add (value->transform.args, value_data_ref (value_data));
     }
 
   g_hash_table_replace (self->values, g_strdup (name), value_data_ref (value));
@@ -1197,7 +1238,8 @@ bge_wdgt_spec_add_instance_source_value (BgeWdgtSpec *self,
                    g_type_name (type));
       return FALSE;
     }
-  if (!G_TYPE_IS_INSTANTIATABLE (type))
+  if (!G_TYPE_IS_INSTANTIATABLE (type) ||
+      G_TYPE_IS_ABSTRACT (type))
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
                    "type '%s' is not instantiable",
@@ -1216,12 +1258,14 @@ bge_wdgt_spec_add_instance_source_value (BgeWdgtSpec *self,
 }
 
 gboolean
-bge_wdgt_spec_add_child_source_value (BgeWdgtSpec *self,
-                                      const char  *name,
-                                      GType        type,
-                                      const char  *parent,
-                                      const char  *builder_type,
-                                      GError     **error)
+bge_wdgt_spec_add_child_source_value (BgeWdgtSpec       *self,
+                                      const char        *name,
+                                      GType              type,
+                                      const char        *parent,
+                                      const char        *builder_type,
+                                      const char *const *css_classes,
+                                      guint              n_css_classes,
+                                      GError           **error)
 {
   g_autoptr (ValueData) value = NULL;
 
@@ -1241,7 +1285,8 @@ bge_wdgt_spec_add_child_source_value (BgeWdgtSpec *self,
                    g_type_name (type));
       return FALSE;
     }
-  if (!G_TYPE_IS_INSTANTIATABLE (type))
+  if (!G_TYPE_IS_INSTANTIATABLE (type) ||
+      G_TYPE_IS_ABSTRACT (type))
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
                    "type '%s' is not instantiable",
@@ -1255,6 +1300,18 @@ bge_wdgt_spec_add_child_source_value (BgeWdgtSpec *self,
   value->name               = g_strdup (name);
   value->child.builder_type = builder_type != NULL ? g_strdup (builder_type) : NULL;
 
+  if (n_css_classes > 0 &&
+      css_classes != NULL)
+    {
+      value->child.css_classes = g_ptr_array_new_with_free_func (g_free);
+      g_ptr_array_set_size (value->child.css_classes, n_css_classes);
+
+      for (guint i = 0; i < n_css_classes; i++)
+        {
+          g_ptr_array_index (value->child.css_classes, i) = g_strdup (css_classes[i]);
+        }
+    }
+
   if (parent != NULL)
     {
       ValueData *parent_data = NULL;
@@ -1264,12 +1321,6 @@ bge_wdgt_spec_add_child_source_value (BgeWdgtSpec *self,
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
                        "value '%s' is undefined", parent);
-          return FALSE;
-        }
-      if (parent_data->kind != VALUE_CHILD)
-        {
-          g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
-                       "value '%s' is not a child widget", parent);
           return FALSE;
         }
       if (!g_type_is_a (parent_data->type, GTK_TYPE_BUILDABLE))
@@ -1328,13 +1379,14 @@ bge_wdgt_spec_add_cclosure_source_value (BgeWdgtSpec       *self,
       return FALSE;
     }
 
-  value                            = value_data_new ();
-  value->kind                      = VALUE_CLOSURE;
-  value->name                      = g_strdup (name);
-  value->type                      = type;
-  value->closure.marshal           = marshal;
-  value->closure.func              = func;
-  value->closure.args              = g_ptr_array_new_with_free_func (value_data_unref);
+  value                  = value_data_new ();
+  value->kind            = VALUE_CLOSURE;
+  value->name            = g_strdup (name);
+  value->type            = type;
+  value->closure.marshal = marshal;
+  value->closure.func    = func;
+  value->closure.args    = g_ptr_array_new_with_free_func (value_data_unref);
+
   value->closure.user_data         = user_data;
   value->closure.destroy_user_data = destroy_user_data;
 
@@ -1349,19 +1401,26 @@ bge_wdgt_spec_add_cclosure_source_value (BgeWdgtSpec       *self,
                        "value '%s' is undefined", args[i]);
           return FALSE;
         }
+
       if (arg_types != NULL &&
           !g_type_is_a (value_data->type, arg_types[i]))
         {
-          g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
-                       "component %u for type %s "
-                       "must be of type %s, got %s",
-                       i, g_type_name (type),
-                       g_type_name (arg_types[i]),
-                       g_type_name (value_data->type));
-          return FALSE;
+          if (check_can_coerce_type (arg_types[i], value_data->type))
+            g_ptr_array_add (value->closure.args,
+                             wrap_coerce_value (self, value_data, arg_types[i]));
+          else
+            {
+              g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
+                           "component %u for type %s "
+                           "must be of type %s, got %s",
+                           i, g_type_name (type),
+                           g_type_name (arg_types[i]),
+                           g_type_name (value_data->type));
+              return FALSE;
+            }
         }
-
-      g_ptr_array_add (value->closure.args, value_data_ref (value_data));
+      else
+        g_ptr_array_add (value->closure.args, value_data_ref (value_data));
     }
 
   g_hash_table_replace (self->values, g_strdup (name), value_data_ref (value));
@@ -1464,6 +1523,7 @@ bge_wdgt_spec_add_property_value (BgeWdgtSpec *self,
                                   const char  *name,
                                   const char  *object,
                                   const char  *property,
+                                  GType       *type_out,
                                   GError     **error)
 {
   ValueData *object_value           = NULL;
@@ -1525,6 +1585,9 @@ bge_wdgt_spec_add_property_value (BgeWdgtSpec *self,
   value->property.pspec_flags = pspec->flags;
 
   g_hash_table_replace (self->values, g_strdup (name), value_data_ref (value));
+
+  if (type_out != NULL)
+    *type_out = pspec->value_type;
   return TRUE;
 }
 
@@ -1707,9 +1770,10 @@ bge_wdgt_spec_set_value (BgeWdgtSpec *self,
                          const char  *src_value,
                          GError     **error)
 {
-  StateData *state_data = NULL;
-  ValueData *dest_data  = NULL;
-  ValueData *src_data   = NULL;
+  StateData *state_data                  = NULL;
+  ValueData *dest_data                   = NULL;
+  ValueData *src_data                    = NULL;
+  g_autoptr (ValueData) coerced_src_data = NULL;
 
   g_return_val_if_fail (BGE_IS_WDGT_SPEC (self), FALSE);
   g_return_val_if_fail (dest_value != NULL, FALSE);
@@ -1749,10 +1813,15 @@ bge_wdgt_spec_set_value (BgeWdgtSpec *self,
     }
   if (!g_type_is_a (src_data->type, dest_data->type))
     {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
-                   "source type %s cannot be assigned to destination type %s",
-                   g_type_name (src_data->type), g_type_name (dest_data->type));
-      return FALSE;
+      if (check_can_coerce_type (dest_data->type, src_data->type))
+        coerced_src_data = wrap_coerce_value (self, src_data, dest_data->type);
+      else
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
+                       "source type %s cannot be assigned to destination type %s",
+                       g_type_name (src_data->type), g_type_name (dest_data->type));
+          return FALSE;
+        }
     }
   if (dest_data->kind == VALUE_CONSTANT)
     {
@@ -1788,7 +1857,9 @@ bge_wdgt_spec_set_value (BgeWdgtSpec *self,
   g_hash_table_replace (
       state_data->setters,
       value_data_ref (dest_data),
-      value_data_ref (src_data));
+      coerced_src_data != NULL
+          ? value_data_ref (coerced_src_data)
+          : value_data_ref (src_data));
   return TRUE;
 }
 
@@ -2130,6 +2201,189 @@ bge_wdgt_spec_mark_ready (BgeWdgtSpec *self)
 {
   g_return_if_fail (BGE_IS_WDGT_SPEC (self));
   self->ready = TRUE;
+}
+
+static gboolean
+check_can_coerce_type (GType dest,
+                       GType src)
+{
+  const struct
+  {
+    GType dest;
+    GType src;
+  } valid_pairings[] = {
+    {    G_TYPE_INT,   G_TYPE_UINT },
+    {    G_TYPE_INT,  G_TYPE_FLOAT },
+    {    G_TYPE_INT, G_TYPE_DOUBLE },
+
+    {   G_TYPE_UINT,    G_TYPE_INT },
+    {   G_TYPE_UINT,  G_TYPE_FLOAT },
+    {   G_TYPE_UINT, G_TYPE_DOUBLE },
+
+    {  G_TYPE_INT64,    G_TYPE_INT },
+    {  G_TYPE_INT64,   G_TYPE_UINT },
+    {  G_TYPE_INT64,  G_TYPE_FLOAT },
+    {  G_TYPE_INT64, G_TYPE_DOUBLE },
+
+    { G_TYPE_UINT64,    G_TYPE_INT },
+    { G_TYPE_UINT64,   G_TYPE_UINT },
+    { G_TYPE_UINT64,  G_TYPE_INT64 },
+    { G_TYPE_UINT64,  G_TYPE_FLOAT },
+    { G_TYPE_UINT64, G_TYPE_DOUBLE },
+
+    {  G_TYPE_FLOAT,    G_TYPE_INT },
+    {  G_TYPE_FLOAT,   G_TYPE_UINT },
+    {  G_TYPE_FLOAT, G_TYPE_DOUBLE },
+
+    { G_TYPE_DOUBLE,    G_TYPE_INT },
+    { G_TYPE_DOUBLE,   G_TYPE_UINT },
+    { G_TYPE_DOUBLE,  G_TYPE_FLOAT },
+
+    { G_TYPE_STRING,    G_TYPE_INT },
+    { G_TYPE_STRING,   G_TYPE_UINT },
+    { G_TYPE_STRING,  G_TYPE_INT64 },
+    { G_TYPE_STRING, G_TYPE_UINT64 },
+    { G_TYPE_STRING,  G_TYPE_FLOAT },
+    { G_TYPE_STRING, G_TYPE_DOUBLE },
+  };
+
+  for (guint i = 0; i < G_N_ELEMENTS (valid_pairings); i++)
+    {
+      if (dest == valid_pairings[i].dest &&
+          src == valid_pairings[i].src)
+        return TRUE;
+    }
+  return FALSE;
+}
+
+static void
+coerce_value (const GValue *in,
+              GType         dest_type,
+              GValue       *out)
+{
+  /* Not a switch for style, though not the case here GType macros can sometimes
+     be non-compile-time constants */
+  if (dest_type == G_TYPE_INT)
+    {
+      int val = 0;
+
+      if (in->g_type == G_TYPE_UINT)
+        val = g_value_get_uint (in);
+      else if (in->g_type == G_TYPE_FLOAT)
+        val = round (g_value_get_float (in));
+      else if (in->g_type == G_TYPE_DOUBLE)
+        val = round (g_value_get_double (in));
+
+      g_value_set_int (out, val);
+    }
+  else if (dest_type == G_TYPE_UINT)
+    {
+      guint val = 0;
+
+      if (in->g_type == G_TYPE_INT)
+        val = g_value_get_int (in);
+      else if (in->g_type == G_TYPE_FLOAT)
+        val = round (g_value_get_float (in));
+      else if (in->g_type == G_TYPE_DOUBLE)
+        val = round (g_value_get_double (in));
+
+      g_value_set_uint (out, val);
+    }
+  else if (dest_type == G_TYPE_INT64)
+    {
+      gint64 val = 0;
+
+      if (in->g_type == G_TYPE_INT)
+        val = g_value_get_int (in);
+      else if (in->g_type == G_TYPE_UINT)
+        val = g_value_get_uint (in);
+      else if (in->g_type == G_TYPE_FLOAT)
+        val = round (g_value_get_float (in));
+      else if (in->g_type == G_TYPE_DOUBLE)
+        val = round (g_value_get_double (in));
+
+      g_value_set_int64 (out, val);
+    }
+  else if (dest_type == G_TYPE_UINT64)
+    {
+      guint64 val = 0;
+
+      if (in->g_type == G_TYPE_INT)
+        val = g_value_get_int (in);
+      else if (in->g_type == G_TYPE_UINT)
+        val = g_value_get_uint (in);
+      else if (in->g_type == G_TYPE_INT64)
+        val = g_value_get_int64 (in);
+      else if (in->g_type == G_TYPE_UINT64)
+        val = round (g_value_get_float (in));
+      else if (in->g_type == G_TYPE_DOUBLE)
+        val = round (g_value_get_double (in));
+
+      g_value_set_uint64 (out, val);
+    }
+  else if (dest_type == G_TYPE_FLOAT)
+    {
+      float val = 0;
+
+      if (in->g_type == G_TYPE_INT)
+        val = g_value_get_int (in);
+      else if (in->g_type == G_TYPE_UINT)
+        val = g_value_get_uint (in);
+      else if (in->g_type == G_TYPE_DOUBLE)
+        val = round (g_value_get_double (in));
+
+      g_value_set_float (out, val);
+    }
+  else if (dest_type == G_TYPE_DOUBLE)
+    {
+      double val = 0;
+
+      if (in->g_type == G_TYPE_INT)
+        val = g_value_get_int (in);
+      else if (in->g_type == G_TYPE_UINT)
+        val = g_value_get_uint (in);
+      else if (in->g_type == G_TYPE_FLOAT)
+        val = round (g_value_get_float (in));
+
+      g_value_set_double (out, val);
+    }
+  else if (dest_type == G_TYPE_STRING)
+    {
+      g_autofree char *val = NULL;
+
+      if (in->g_type == G_TYPE_INT)
+        val = g_strdup_printf ("%d", g_value_get_int (in));
+      else if (in->g_type == G_TYPE_UINT)
+        val = g_strdup_printf ("%u", g_value_get_uint (in));
+      else if (in->g_type == G_TYPE_INT64)
+        val = g_strdup_printf ("%zd", g_value_get_int64 (in));
+      else if (in->g_type == G_TYPE_UINT64)
+        val = g_strdup_printf ("%zu", g_value_get_uint64 (in));
+      else if (in->g_type == G_TYPE_FLOAT)
+        val = g_strdup_printf ("%f", g_value_get_float (in));
+      else if (in->g_type == G_TYPE_DOUBLE)
+        val = g_strdup_printf ("%f", g_value_get_double (in));
+
+      g_value_take_string (out, g_steal_pointer (&val));
+    }
+}
+
+static ValueData *
+wrap_coerce_value (BgeWdgtSpec *self,
+                   ValueData   *value,
+                   GType        dest_type)
+{
+  g_autoptr (ValueData) coerced = NULL;
+
+  g_assert (!g_type_is_a (value->type, dest_type));
+
+  coerced                 = value_data_new ();
+  coerced->type           = dest_type;
+  coerced->kind           = VALUE_COERCION;
+  coerced->coercion.value = value_data_ref (value);
+
+  g_ptr_array_add (self->anon_values, value_data_ref (coerced));
+  return g_steal_pointer (&coerced);
 }
 
 static GskTransform *
@@ -4359,6 +4613,24 @@ regenerate (BgeWdgtRenderer *self)
   if (self->spec == NULL)
     return;
 
+  for (guint i = 0; i < spec->nonchildren->len; i++)
+    {
+      ValueData *value           = NULL;
+      g_autoptr (GObject) object = NULL;
+
+      value = g_ptr_array_index (spec->nonchildren, i);
+      g_assert (value->kind == VALUE_OBJECT);
+
+      object = g_object_new (value->type, NULL);
+      if (g_type_is_a (value->type, G_TYPE_INITIALLY_UNOWNED))
+        g_object_ref_sink (object);
+
+      g_hash_table_replace (self->objects,
+                            value_data_ref (value),
+                            g_object_ref (object));
+      g_ptr_array_add (self->nonchildren, g_object_ref (object));
+    }
+
   dummy_builder = gtk_builder_new ();
   for (guint i = 0; i < spec->children->len; i++)
     {
@@ -4373,6 +4645,16 @@ regenerate (BgeWdgtRenderer *self)
           value->type,
           "name", value->name,
           NULL);
+      if (value->child.css_classes != NULL)
+        {
+          for (guint j = 0; j < value->child.css_classes->len; j++)
+            {
+              const char *class = NULL;
+
+              class = g_ptr_array_index (value->child.css_classes, j);
+              gtk_widget_add_css_class (widget, class);
+            }
+        }
 
       if (value->child.parent_widget != NULL)
         {
@@ -4404,21 +4686,6 @@ regenerate (BgeWdgtRenderer *self)
       g_hash_table_replace (self->allocations,
                             g_object_ref (widget),
                             allocation_data_ref (allocation));
-    }
-
-  for (guint i = 0; i < spec->nonchildren->len; i++)
-    {
-      ValueData *value           = NULL;
-      g_autoptr (GObject) object = NULL;
-
-      value = g_ptr_array_index (spec->nonchildren, i);
-      g_assert (value->kind == VALUE_OBJECT);
-
-      object = g_object_new (value->type, NULL);
-      g_hash_table_replace (self->objects,
-                            value_data_ref (value),
-                            g_object_ref_sink (object));
-      g_ptr_array_add (self->nonchildren, g_object_ref (object));
     }
 
   g_hash_table_iter_init (&state_iter, spec->states);
@@ -4484,6 +4751,15 @@ regenerate (BgeWdgtRenderer *self)
                   (gpointer *) &value))
             break;
 
+          expression = ensure_expressions (self, value, state, instance);
+        }
+
+      for (guint i = 0; i < spec->anon_values->len; i++)
+        {
+          ValueData *value                     = NULL;
+          g_autoptr (GtkExpression) expression = NULL;
+
+          value      = g_ptr_array_index (spec->anon_values, i);
           expression = ensure_expressions (self, value, state, instance);
         }
     }
@@ -4653,6 +4929,27 @@ apply_state (BgeWdgtRenderer *self)
         transition_instance->spring.est_duration = -1.0;
     }
 
+  g_hash_table_iter_init (&iter, spec->init_state->setters);
+  for (;;)
+    {
+      ValueData *dest = NULL;
+      ValueData *src  = NULL;
+
+      if (!g_hash_table_iter_next (
+              &iter,
+              (gpointer *) &dest,
+              (gpointer *) &src))
+        break;
+
+      set_value (
+          self,
+          state,
+          instance,
+          dest,
+          src,
+          self->watches);
+    }
+
   for (guint i = 0; i < instance->snapshot_deps->len; i++)
     {
       GtkExpression      *expression = NULL;
@@ -4666,6 +4963,9 @@ apply_state (BgeWdgtRenderer *self)
           self, NULL);
       g_ptr_array_add (self->watches, watch);
     }
+
+  gtk_widget_queue_allocate (GTK_WIDGET (self));
+  gtk_widget_queue_draw (GTK_WIDGET (self));
 }
 
 static graphene_point_t *
@@ -4732,6 +5032,17 @@ expression_create_rect (gpointer object,
   rect->size.height = height;
 
   return rect;
+}
+
+static void
+expression_coerce_type (gpointer      this,
+                        GValue       *return_value,
+                        guint         n_param_values,
+                        const GValue *param_values,
+                        gpointer      dest_type_ptr)
+{
+  GType dest_type = GPOINTER_TO_SIZE (dest_type_ptr);
+  coerce_value (&param_values[0], dest_type, return_value);
 }
 
 static double
@@ -4949,6 +5260,19 @@ ensure_expressions (BgeWdgtRenderer   *self,
           }
       }
       break;
+    case VALUE_COERCION:
+      {
+        expression = ensure_expressions (
+            self, value->coercion.value, state, instance);
+        expression = gtk_cclosure_expression_new (
+            value->type,
+            _marshal_DIRECT__ARGS_DIRECT,
+            1, (GtkExpression *[]){ expression },
+            G_CALLBACK (expression_coerce_type),
+            GSIZE_TO_POINTER (value->type),
+            NULL);
+      }
+      break;
     case VALUE_COMPONENT:
       {
         g_autoptr (GPtrArray) params = NULL;
@@ -5038,12 +5362,12 @@ ensure_expressions (BgeWdgtRenderer   *self,
 
         for (guint i = 0; i < value->closure.args->len; i++)
           {
-            ValueData *member                     = NULL;
-            g_autoptr (GtkExpression) member_expr = NULL;
+            ValueData *arg                     = NULL;
+            g_autoptr (GtkExpression) arg_expr = NULL;
 
-            member      = g_ptr_array_index (value->closure.args, i);
-            member_expr = ensure_expressions (self, member, state, instance);
-            g_ptr_array_add (params, g_steal_pointer (&member_expr));
+            arg      = g_ptr_array_index (value->closure.args, i);
+            arg_expr = ensure_expressions (self, arg, state, instance);
+            g_ptr_array_add (params, g_steal_pointer (&arg_expr));
           }
 
         expression = gtk_cclosure_expression_new (
@@ -5236,6 +5560,7 @@ set_value (BgeWdgtRenderer   *self,
                   case VALUE_VARIABLE:
                   case VALUE_CHILD:
                   case VALUE_COMPONENT:
+                  case VALUE_COERCION:
                   case VALUE_TRANSFORM:
                   case VALUE_CLOSURE:
                   case VALUE_CONSTANT:
@@ -5244,6 +5569,8 @@ set_value (BgeWdgtRenderer   *self,
                   default:
                     g_assert_not_reached ();
                   }
+
+                g_value_unset (&src_resolved);
 
                 gtk_widget_queue_allocate (GTK_WIDGET (self));
               }
@@ -5257,6 +5584,8 @@ set_value (BgeWdgtRenderer   *self,
     case VALUE_CHILD:
       break;
     case VALUE_COMPONENT:
+      break;
+    case VALUE_COERCION:
       break;
     case VALUE_TRANSFORM:
       break;
@@ -5361,6 +5690,45 @@ reset_setter (WatchSetterData *data)
       data->dest,
       data->src,
       NULL);
+}
+
+static void
+_marshal_DIRECT__ARGS_DIRECT (GClosure                *closure,
+                              GValue                  *return_value,
+                              guint                    n_param_values,
+                              const GValue            *param_values,
+                              gpointer invocation_hint G_GNUC_UNUSED,
+                              gpointer                 marshal_data)
+{
+  typedef void (*GMarshalFunc_DIRECT__ARGS_DIRECT) (gpointer      data1,
+                                                    GValue       *return_value,
+                                                    guint         n_param_values,
+                                                    const GValue *param_values,
+                                                    gpointer      data2);
+  GCClosure                       *cc = (GCClosure *) closure;
+  gpointer                         data1, data2;
+  GMarshalFunc_DIRECT__ARGS_DIRECT callback;
+
+  g_return_if_fail (return_value != NULL);
+  g_return_if_fail (n_param_values >= 1);
+
+  if (G_CCLOSURE_SWAP_DATA (closure))
+    {
+      data1 = closure->data;
+      data2 = g_value_peek_pointer (param_values + 0);
+    }
+  else
+    {
+      data1 = g_value_peek_pointer (param_values + 0);
+      data2 = closure->data;
+    }
+  callback = (GMarshalFunc_DIRECT__ARGS_DIRECT) (marshal_data ? marshal_data : cc->callback);
+
+  callback (data1,
+            return_value,
+            n_param_values - 1,
+            param_values + 1,
+            data2);
 }
 
 static void

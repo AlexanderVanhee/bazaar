@@ -29,12 +29,14 @@
 #define SINGLE_CHAR_TOKENS      "{}()=:;,"
 #define EVAL_SINGLE_CHAR_TOKENS "#(),+-*/^%"
 
-#define STR_DEFWIDGET         "defwidget"
-#define STR_CHILD             "child"
+#define STR_DEFARRAY  "defarray"
+#define STR_DEFWIDGET "defwidget"
+#define STR_FOREACH   "%FOREACH"
+
 #define STR_VARIABLE          "var"
 #define STR_INIT              "init"
 #define STR_STATE             "state"
-#define STR_DEFAULT_STATE     "state@default"
+#define STR_DEFAULT_STATE     "state-default"
 #define STR_SET               "set"
 #define STR_TRANSITION        "transition"
 #define STR_TRANSITION_SPRING "transition-spring"
@@ -92,30 +94,49 @@ BGE_DEFINE_DATA (
     BGE_RELEASE_DATA (workbuf1, g_free));
 
 static const char *
+parse_widget_block (const char  *p,
+                    BgeWdgtSpec *spec,
+                    GHashTable  *macro_arrays,
+                    GHashTable  *macro_replacements,
+                    guint       *n_anon_vals,
+                    GHashTable  *type_hints,
+                    GError     **error);
+
+static const char *
 parse_snapshot_block (const char  *p,
                       BgeWdgtSpec *spec,
                       const char  *state,
+                      GHashTable  *macro_replacements,
                       guint       *n_anon_vals,
+                      GHashTable  *type_hints,
                       GError     **error);
 
 static const char *
 parse_eval (const char  *p,
             BgeWdgtSpec *spec,
             const char  *state,
+            GHashTable  *macro_replacements,
             guint       *n_anon_vals,
+            GHashTable  *type_hints,
             char       **value_out,
             GError     **error);
 
 static const char *
-parse_args (const char   *p,
-            BgeWdgtSpec  *spec,
-            const char   *state,
-            const char   *enclosing_object,
-            guint        *n_anon_vals,
-            char       ***values_out,
-            guint        *n_out,
-            ArgsParseKind parse_kind,
-            GError      **error);
+parse_args (const char        *p,
+            BgeWdgtSpec       *spec,
+            const char        *state,
+            const char        *enclosing_object,
+            GHashTable        *macro_replacements,
+            guint             *n_anon_vals,
+            GHashTable        *type_hints,
+            const char *const *destinations,
+            GType              destinations_types[],
+            guint              n_destinations,
+            char            ***values_out,
+            GType            **types_out,
+            guint             *n_out,
+            ArgsParseKind      parse_kind,
+            GError           **error);
 
 static char *
 parse_token_fundamental (const char  *token,
@@ -128,7 +149,15 @@ consume_token (const char    **pp,
                const char     *single_chars,
                TokenParseFlags flags,
                gboolean       *was_quoted,
+               GHashTable     *macro_replacements,
                GError        **error);
+
+static char *
+consume_token_inner (const char    **pp,
+                     const char     *single_chars,
+                     TokenParseFlags flags,
+                     gboolean       *was_quoted,
+                     GError        **error);
 
 static gdouble
 eval_closure (gpointer         this,
@@ -164,14 +193,22 @@ BgeWdgtSpec *
 bge_wdgt_parse_string (const char *string,
                        GError    **error)
 {
-  gboolean result                = FALSE;
-  g_autoptr (GError) local_error = NULL;
-  g_autoptr (BgeWdgtSpec) spec   = NULL;
-  guint n_anon_vals              = 0;
+  g_autoptr (GError) local_error            = NULL;
+  g_autoptr (BgeWdgtSpec) spec              = NULL;
+  g_autoptr (GHashTable) macro_arrays       = NULL;
+  g_autoptr (GHashTable) macro_replacements = NULL;
+  guint n_anon_vals                         = 0;
+  g_autoptr (GHashTable) type_hints         = NULL;
 
   g_return_val_if_fail (string != NULL, FALSE);
 
-  spec = bge_wdgt_spec_new ();
+  spec         = bge_wdgt_spec_new ();
+  macro_arrays = g_hash_table_new_full (
+      g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_ptr_array_unref);
+  macro_replacements = g_hash_table_new_full (
+      g_str_hash, g_str_equal, g_free, g_free);
+  type_hints = g_hash_table_new_full (
+      g_str_hash, g_str_equal, g_free, NULL);
 
 #define RETURN_ERROR_UNLESS(_cond)     \
   G_STMT_START                         \
@@ -221,10 +258,17 @@ bge_wdgt_parse_string (const char *string,
   G_STMT_END
 
   for (const char *p = string;
-       p != NULL && *p != '\0';)
+       !IS_EOF (p);)
     {
-      g_autofree char *token       = NULL;
-      g_autofree char *widget_name = NULL;
+      g_autofree char *token = NULL;
+
+      token = consume_token (
+          &p,
+          SINGLE_CHAR_TOKENS,
+          TOKEN_PARSE_DEFAULT,
+          NULL, NULL, NULL);
+      if (token == NULL)
+        break;
 
 #define GET_TOKEN_FULL(_token_out, _flags, _single_chars, _was_quoted) \
   G_STMT_START                                                         \
@@ -235,6 +279,7 @@ bge_wdgt_parse_string (const char *string,
         (_single_chars),                                               \
         (_flags),                                                      \
         (_was_quoted),                                                 \
+        macro_replacements,                                            \
         &local_error);                                                 \
     RETURN_ERROR_UNLESS (*(_token_out) != NULL);                       \
   }                                                                    \
@@ -251,254 +296,45 @@ bge_wdgt_parse_string (const char *string,
   }                                                   \
   G_STMT_END
 
-      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, STR_DEFWIDGET);
-      GET_TOKEN (&widget_name, TOKEN_PARSE_QUOTED);
-      bge_wdgt_spec_set_name (spec, widget_name);
-
-      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
-      for (;;)
+      if (g_strcmp0 (token, STR_DEFWIDGET) == 0)
         {
-          GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
-          if (g_strcmp0 (token, "}") == 0)
-            break;
-          if (g_strcmp0 (token, STR_VARIABLE) == 0)
-            {
-              g_autofree char *name  = NULL;
-              g_autofree char *gtype = NULL;
+          g_autofree char *widget_name = NULL;
 
-              GET_TOKEN (&name, TOKEN_PARSE_DEFAULT);
-              GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ":");
-              GET_TOKEN (&gtype, TOKEN_PARSE_QUOTED);
-              GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ";");
+          GET_TOKEN (&widget_name, TOKEN_PARSE_QUOTED);
+          bge_wdgt_spec_set_name (spec, widget_name);
 
-              result = bge_wdgt_spec_add_variable_value (
-                  spec, g_type_from_name (gtype), name, &local_error);
-              RETURN_ERROR_UNLESS (result);
-            }
-          else if (g_strcmp0 (token, STR_INIT) == 0 ||
-                   g_strcmp0 (token, STR_STATE) == 0 ||
-                   g_strcmp0 (token, STR_DEFAULT_STATE) == 0)
-            {
-              g_autofree char *state_name = NULL;
-
-              if (g_strcmp0 (token, STR_INIT) != 0)
-                {
-                  GET_TOKEN (&state_name, TOKEN_PARSE_QUOTED);
-
-                  result = bge_wdgt_spec_add_state (
-                      spec,
-                      state_name,
-                      g_strcmp0 (token, STR_DEFAULT_STATE) == 0,
-                      &local_error);
-                  RETURN_ERROR_UNLESS (result);
-                  GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "=");
-                }
-
-              GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
-              for (;;)
-                {
-                  GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
-                  if (g_strcmp0 (token, "}") == 0)
-                    break;
-                  else if (g_strcmp0 (token, STR_SNAPSHOT) == 0)
-                    {
-                      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "=");
-                      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
-                      p = parse_snapshot_block (p, spec, state_name, &n_anon_vals, &local_error);
-                      RETURN_ERROR_UNLESS (p != NULL);
-                    }
-                  else if (g_strcmp0 (token, STR_SET) == 0)
-                    {
-                      guint n_dest_values        = 0;
-                      g_auto (GStrv) dest_values = NULL;
-                      guint n_src_values         = 0;
-                      g_auto (GStrv) src_values  = NULL;
-
-                      p = parse_args (p, spec, state_name, NULL, &n_anon_vals, &dest_values,
-                                      &n_dest_values, ARGS_PARSE_LEFT_ASSIGN, &local_error);
-                      RETURN_ERROR_UNLESS (p != NULL);
-                      if (n_dest_values == 0)
-                        {
-                          g_set_error (
-                              error,
-                              G_IO_ERROR,
-                              G_IO_ERROR_UNKNOWN,
-                              "Left assignment needs at least one argument");
-                          return NULL;
-                        }
-
-                      p = parse_args (p, spec, state_name, NULL, &n_anon_vals, &src_values,
-                                      &n_src_values, ARGS_PARSE_RIGHT_ASSIGN, &local_error);
-                      RETURN_ERROR_UNLESS (p != NULL);
-                      if (n_src_values != n_dest_values)
-                        {
-                          g_set_error (
-                              error,
-                              G_IO_ERROR,
-                              G_IO_ERROR_UNKNOWN,
-                              "Right assignment needs %d argument(s) "
-                              "to match the left side",
-                              n_dest_values);
-                          return NULL;
-                        }
-
-                      for (guint i = 0; i < n_dest_values; i++)
-                        {
-                          result = bge_wdgt_spec_set_value (
-                              spec,
-                              state_name,
-                              dest_values[i],
-                              src_values[i],
-                              &local_error);
-                          RETURN_ERROR_UNLESS (result);
-                        }
-                    }
-                  else if (g_strcmp0 (token, STR_TRANSITION) == 0)
-                    {
-                      g_autofree char *transition_value    = NULL;
-                      g_autofree char *transition_type     = NULL;
-                      g_autofree char *transition_seconds  = NULL;
-                      g_autoptr (GEnumClass) enum_class    = NULL;
-                      GEnumValue *enum_value               = NULL;
-                      g_autoptr (GVariant) seconds_variant = NULL;
-                      gdouble seconds                      = 0.0;
-
-                      GET_TOKEN (&transition_value, TOKEN_PARSE_DEFAULT);
-                      GET_TOKEN (&transition_type, TOKEN_PARSE_DEFAULT);
-                      GET_TOKEN (&transition_seconds, TOKEN_PARSE_DEFAULT);
-
-                      enum_class = g_type_class_ref (BGE_TYPE_EASING);
-                      enum_value = g_enum_get_value_by_nick (enum_class, transition_type);
-                      if (enum_value == NULL)
-                        enum_value = g_enum_get_value_by_name (enum_class, transition_type);
-                      if (enum_value == NULL)
-                        {
-                          g_set_error (
-                              error,
-                              G_IO_ERROR,
-                              G_IO_ERROR_UNKNOWN,
-                              "'%s' not found in enum type %s",
-                              transition_type, g_type_name (BGE_TYPE_EASING));
-                          return NULL;
-                        }
-
-                      seconds_variant = g_variant_parse (
-                          G_VARIANT_TYPE_DOUBLE,
-                          transition_seconds,
-                          NULL, NULL, &local_error);
-                      RETURN_ERROR_UNLESS (seconds_variant != NULL);
-                      seconds = g_variant_get_double (seconds_variant);
-
-                      result = bge_wdgt_spec_transition_value (
-                          spec,
-                          state_name,
-                          transition_value,
-                          seconds,
-                          enum_value->value,
-                          &local_error);
-                      RETURN_ERROR_UNLESS (result);
-
-                      GET_TOKEN_EXPECT (&transition_seconds, TOKEN_PARSE_DEFAULT, ";");
-                    }
-                  else if (g_strcmp0 (token, STR_TRANSITION_SPRING) == 0)
-                    {
-                      g_autofree char *transition_value = NULL;
-                      guint            n_spec_values    = 0;
-                      g_auto (GStrv) spec_values        = NULL;
-
-                      GET_TOKEN (&transition_value, TOKEN_PARSE_DEFAULT);
-
-                      p = parse_args (p, spec, state_name, NULL, &n_anon_vals, &spec_values,
-                                      &n_spec_values, ARGS_PARSE_RIGHT_ASSIGN, &local_error);
-                      RETURN_ERROR_UNLESS (p != NULL);
-                      if (n_spec_values != 3)
-                        {
-                          g_set_error (
-                              error,
-                              G_IO_ERROR,
-                              G_IO_ERROR_UNKNOWN,
-                              "spring transition spec needs 3 arguments "
-                              "(damping-ratio, mass, stiffness), got %u",
-                              n_spec_values);
-                          return NULL;
-                        }
-
-                      result = bge_wdgt_spec_transition_value_spring (
-                          spec,
-                          state_name,
-                          transition_value,
-                          spec_values[0],
-                          spec_values[1],
-                          spec_values[2],
-                          &local_error);
-                      RETURN_ERROR_UNLESS (result);
-                    }
-                  else if (g_strcmp0 (token, STR_ALLOCATE) == 0)
-                    {
-                      g_autofree char *child_value         = NULL;
-                      guint            n_allocation_values = 0;
-                      g_auto (GStrv) allocation_values     = NULL;
-
-                      GET_TOKEN (&child_value, TOKEN_PARSE_DEFAULT);
-
-                      p = parse_args (p, spec, state_name, NULL, &n_anon_vals, &allocation_values,
-                                      &n_allocation_values, ARGS_PARSE_RIGHT_ASSIGN, &local_error);
-                      RETURN_ERROR_UNLESS (p != NULL);
-                      if (n_allocation_values != 2 &&
-                          n_allocation_values != 3)
-                        {
-                          g_set_error (
-                              error,
-                              G_IO_ERROR,
-                              G_IO_ERROR_UNKNOWN,
-                              "allocation needs 2 or 3 values, a width "
-                              "and height and one transform, got %u",
-                              n_allocation_values);
-                          return NULL;
-                        }
-
-                      for (guint i = 0; i < n_allocation_values; i++)
-                        {
-                          g_autofree char *allocation_key = NULL;
-
-                          allocation_key = make_widget_allocation_name (child_value, n_anon_vals++);
-                          switch (i)
-                            {
-                            case 0:
-                              result = bge_wdgt_spec_add_allocation_width_value (
-                                  spec, allocation_key, child_value, &local_error);
-                              break;
-                            case 1:
-                              result = bge_wdgt_spec_add_allocation_height_value (
-                                  spec, allocation_key, child_value, &local_error);
-                              break;
-                            case 2:
-                              result = bge_wdgt_spec_add_allocation_transform_value (
-                                  spec, allocation_key, child_value, &local_error);
-                              break;
-                            default:
-                              g_assert_not_reached ();
-                            }
-                          RETURN_ERROR_UNLESS (result);
-
-                          result = bge_wdgt_spec_set_value (
-                              spec,
-                              state_name,
-                              allocation_key,
-                              allocation_values[i],
-                              &local_error);
-                          RETURN_ERROR_UNLESS (result);
-                        }
-                    }
-                  else
-                    UNEXPECTED_TOKEN (token);
-                }
-            }
-          else
-            UNEXPECTED_TOKEN (token);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
+          p = parse_widget_block (
+              p, spec, macro_arrays, macro_replacements,
+              &n_anon_vals, type_hints, &local_error);
+          RETURN_ERROR_UNLESS (p != NULL);
         }
+      else if (g_strcmp0 (token, STR_DEFARRAY) == 0)
+        {
+          g_autofree char *array_name = NULL;
+          guint            n_elements = 0;
+          g_auto (GStrv) elements     = NULL;
+          g_autoptr (GPtrArray) array = NULL;
 
-      break;
+          GET_TOKEN (&array_name, TOKEN_PARSE_DEFAULT);
+
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
+          p = parse_args (p, spec, NULL, NULL, macro_replacements,
+                          &n_anon_vals, type_hints,
+                          NULL, NULL, 0, &elements, NULL, &n_elements,
+                          ARGS_PARSE_PARENS, &local_error);
+          RETURN_ERROR_UNLESS (p != NULL);
+
+          array = g_ptr_array_new_take_null_terminated (
+              (gpointer *) g_steal_pointer (&elements),
+              g_free);
+          g_hash_table_replace (
+              macro_arrays,
+              g_steal_pointer (&array_name),
+              g_steal_pointer (&array));
+        }
+      else
+        UNEXPECTED_TOKEN (token);
     }
 
   bge_wdgt_spec_mark_ready (spec);
@@ -506,10 +342,359 @@ bge_wdgt_parse_string (const char *string,
 }
 
 static const char *
+parse_widget_block (const char  *p,
+                    BgeWdgtSpec *spec,
+                    GHashTable  *macro_arrays,
+                    GHashTable  *macro_replacements,
+                    guint       *n_anon_vals,
+                    GHashTable  *type_hints,
+                    GError     **error)
+{
+  g_autoptr (GError) local_error = NULL;
+  gboolean         result        = FALSE;
+  g_autofree char *token         = NULL;
+
+  for (;;)
+    {
+      GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+      if (g_strcmp0 (token, "}") == 0)
+        return p;
+      else if (g_strcmp0 (token, STR_FOREACH) == 0)
+        {
+          g_autofree char *var_name            = NULL;
+          g_autofree char *iterator_name       = NULL;
+          g_autofree char *iterator_paste_name = NULL;
+          g_autofree char *array_name          = NULL;
+          GPtrArray       *array               = NULL;
+          const char      *fixed_p             = NULL;
+
+          GET_TOKEN (&var_name, TOKEN_PARSE_DEFAULT);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ",");
+          GET_TOKEN (&iterator_name, TOKEN_PARSE_DEFAULT);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ",");
+          GET_TOKEN (&iterator_paste_name, TOKEN_PARSE_DEFAULT);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "IN");
+          GET_TOKEN (&array_name, TOKEN_PARSE_DEFAULT);
+
+          array = g_hash_table_lookup (macro_arrays, array_name);
+          if (array == NULL)
+            {
+              g_set_error (
+                  error,
+                  G_IO_ERROR,
+                  G_IO_ERROR_UNKNOWN,
+                  "macro array \"%s\" is undefined",
+                  array_name);
+              return NULL;
+            }
+
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
+          fixed_p = p;
+          for (guint i = 0; i < array->len; i++)
+            {
+              const char      *element        = NULL;
+              g_autofree char *iterator       = NULL;
+              g_autofree char *iterator_paste = NULL;
+              GValue           iter_value     = G_VALUE_INIT;
+
+              element = g_ptr_array_index (array, i);
+              g_hash_table_replace (
+                  macro_replacements,
+                  g_strdup (var_name),
+                  g_strdup (element));
+
+              iterator = make_anon_name ((*n_anon_vals)++);
+              g_value_set_uint (g_value_init (&iter_value, G_TYPE_UINT), i);
+              result = bge_wdgt_spec_add_constant_source_value (
+                  spec,
+                  iterator,
+                  &iter_value,
+                  &local_error);
+              g_value_unset (&iter_value);
+              RETURN_ERROR_UNLESS (result);
+              g_hash_table_replace (
+                  macro_replacements,
+                  g_strdup (iterator_name),
+                  g_steal_pointer (&iterator));
+
+              iterator_paste = g_strdup_printf ("%u", i);
+              g_hash_table_replace (
+                  macro_replacements,
+                  g_strdup (iterator_paste_name),
+                  g_steal_pointer (&iterator_paste));
+
+              p = parse_widget_block (
+                  fixed_p, spec, macro_arrays, macro_replacements,
+                  n_anon_vals, type_hints, &local_error);
+              RETURN_ERROR_UNLESS (p != NULL);
+            }
+          g_hash_table_remove (macro_replacements, var_name);
+          g_hash_table_remove (macro_replacements, iterator_name);
+          g_hash_table_remove (macro_replacements, iterator_paste_name);
+        }
+      else if (g_strcmp0 (token, STR_VARIABLE) == 0)
+        {
+          g_autofree char *name        = NULL;
+          g_autofree char *type_string = NULL;
+          GType            type        = 0;
+
+          GET_TOKEN (&name, TOKEN_PARSE_DEFAULT);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ":");
+          GET_TOKEN (&type_string, TOKEN_PARSE_QUOTED);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ";");
+
+          type   = g_type_from_name (type_string);
+          result = bge_wdgt_spec_add_variable_value (
+              spec, type, name, &local_error);
+          RETURN_ERROR_UNLESS (result);
+
+          g_hash_table_replace (type_hints,
+                                g_steal_pointer (&name),
+                                GSIZE_TO_POINTER (type));
+        }
+      else if (g_strcmp0 (token, STR_INIT) == 0 ||
+               g_strcmp0 (token, STR_STATE) == 0 ||
+               g_strcmp0 (token, STR_DEFAULT_STATE) == 0)
+        {
+          g_autofree char *state_name = NULL;
+
+          if (g_strcmp0 (token, STR_INIT) != 0)
+            {
+              GET_TOKEN (&state_name, TOKEN_PARSE_QUOTED);
+
+              result = bge_wdgt_spec_add_state (
+                  spec,
+                  state_name,
+                  g_strcmp0 (token, STR_DEFAULT_STATE) == 0,
+                  &local_error);
+              /* TODO: allow states to be redefined for macros, so they are just
+                 concatenated */
+              g_clear_error (&local_error);
+              // RETURN_ERROR_UNLESS (result);
+            }
+
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
+          for (;;)
+            {
+              GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+              if (g_strcmp0 (token, "}") == 0)
+                break;
+              else if (g_strcmp0 (token, STR_SNAPSHOT) == 0)
+                {
+                  GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
+                  p = parse_snapshot_block (p, spec, state_name, macro_replacements, n_anon_vals,
+                                            type_hints, &local_error);
+                  RETURN_ERROR_UNLESS (p != NULL);
+                }
+              else if (g_strcmp0 (token, STR_SET) == 0)
+                {
+                  guint n_dest_values            = 0;
+                  g_auto (GStrv) dest_values     = NULL;
+                  g_autofree GType *dest_types   = NULL;
+                  guint             n_src_values = 0;
+                  g_auto (GStrv) src_values      = NULL;
+
+                  p = parse_args (p, spec, state_name, NULL, macro_replacements, n_anon_vals,
+                                  type_hints, NULL, NULL, 0, &dest_values,
+                                  &dest_types, &n_dest_values, ARGS_PARSE_LEFT_ASSIGN,
+                                  &local_error);
+                  RETURN_ERROR_UNLESS (p != NULL);
+                  if (n_dest_values == 0)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "Left assignment needs at least one argument");
+                      return NULL;
+                    }
+
+                  p = parse_args (p, spec, state_name, NULL, macro_replacements, n_anon_vals,
+                                  type_hints, (const char *const *) dest_values,
+                                  dest_types, n_dest_values, &src_values, NULL,
+                                  &n_src_values, ARGS_PARSE_RIGHT_ASSIGN, &local_error);
+                  RETURN_ERROR_UNLESS (p != NULL);
+                  if (n_src_values != n_dest_values)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "Right assignment needs %d argument(s) "
+                          "to match the left side",
+                          n_dest_values);
+                      return NULL;
+                    }
+
+                  for (guint i = 0; i < n_dest_values; i++)
+                    {
+                      result = bge_wdgt_spec_set_value (
+                          spec,
+                          state_name,
+                          dest_values[i],
+                          src_values[i],
+                          &local_error);
+                      RETURN_ERROR_UNLESS (result);
+                    }
+                }
+              else if (g_strcmp0 (token, STR_TRANSITION) == 0)
+                {
+                  g_autofree char *transition_value    = NULL;
+                  g_autofree char *transition_type     = NULL;
+                  g_autofree char *transition_seconds  = NULL;
+                  g_autoptr (GEnumClass) enum_class    = NULL;
+                  GEnumValue *enum_value               = NULL;
+                  g_autoptr (GVariant) seconds_variant = NULL;
+                  gdouble seconds                      = 0.0;
+
+                  GET_TOKEN (&transition_value, TOKEN_PARSE_DEFAULT);
+                  GET_TOKEN (&transition_type, TOKEN_PARSE_DEFAULT);
+                  GET_TOKEN (&transition_seconds, TOKEN_PARSE_DEFAULT);
+
+                  enum_class = g_type_class_ref (BGE_TYPE_EASING);
+                  enum_value = g_enum_get_value_by_nick (enum_class, transition_type);
+                  if (enum_value == NULL)
+                    enum_value = g_enum_get_value_by_name (enum_class, transition_type);
+                  if (enum_value == NULL)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "'%s' not found in enum type %s",
+                          transition_type, g_type_name (BGE_TYPE_EASING));
+                      return NULL;
+                    }
+
+                  seconds_variant = g_variant_parse (
+                      G_VARIANT_TYPE_DOUBLE,
+                      transition_seconds,
+                      NULL, NULL, &local_error);
+                  RETURN_ERROR_UNLESS (seconds_variant != NULL);
+                  seconds = g_variant_get_double (seconds_variant);
+
+                  result = bge_wdgt_spec_transition_value (
+                      spec,
+                      state_name,
+                      transition_value,
+                      seconds,
+                      enum_value->value,
+                      &local_error);
+                  RETURN_ERROR_UNLESS (result);
+
+                  GET_TOKEN_EXPECT (&transition_seconds, TOKEN_PARSE_DEFAULT, ";");
+                }
+              else if (g_strcmp0 (token, STR_TRANSITION_SPRING) == 0)
+                {
+                  g_autofree char *transition_value = NULL;
+                  guint            n_spec_values    = 0;
+                  g_auto (GStrv) spec_values        = NULL;
+
+                  GET_TOKEN (&transition_value, TOKEN_PARSE_DEFAULT);
+
+                  p = parse_args (p, spec, state_name, NULL, macro_replacements, n_anon_vals, type_hints, NULL,
+                                  (GType[]){ G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_DOUBLE }, 3,
+                                  &spec_values, NULL, &n_spec_values, ARGS_PARSE_RIGHT_ASSIGN, &local_error);
+                  RETURN_ERROR_UNLESS (p != NULL);
+                  if (n_spec_values != 3)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "spring transition spec needs 3 arguments "
+                          "(damping-ratio, mass, stiffness), got %u",
+                          n_spec_values);
+                      return NULL;
+                    }
+
+                  result = bge_wdgt_spec_transition_value_spring (
+                      spec,
+                      state_name,
+                      transition_value,
+                      spec_values[0],
+                      spec_values[1],
+                      spec_values[2],
+                      &local_error);
+                  RETURN_ERROR_UNLESS (result);
+                }
+              else if (g_strcmp0 (token, STR_ALLOCATE) == 0)
+                {
+                  g_autofree char *child_value         = NULL;
+                  guint            n_allocation_values = 0;
+                  g_auto (GStrv) allocation_values     = NULL;
+
+                  GET_TOKEN (&child_value, TOKEN_PARSE_DEFAULT);
+
+                  p = parse_args (p, spec, state_name, NULL, macro_replacements, n_anon_vals, type_hints, NULL,
+                                  (GType[]){ G_TYPE_INT, G_TYPE_INT, GSK_TYPE_TRANSFORM }, 3,
+                                  &allocation_values, NULL, &n_allocation_values,
+                                  ARGS_PARSE_RIGHT_ASSIGN, &local_error);
+                  RETURN_ERROR_UNLESS (p != NULL);
+                  if (n_allocation_values != 2 &&
+                      n_allocation_values != 3)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "allocation needs 2 or 3 values, a width "
+                          "and height and one transform, got %u",
+                          n_allocation_values);
+                      return NULL;
+                    }
+
+                  for (guint i = 0; i < n_allocation_values; i++)
+                    {
+                      g_autofree char *allocation_key = NULL;
+
+                      allocation_key = make_widget_allocation_name (child_value, (*n_anon_vals)++);
+                      switch (i)
+                        {
+                        case 0:
+                          result = bge_wdgt_spec_add_allocation_width_value (
+                              spec, allocation_key, child_value, &local_error);
+                          break;
+                        case 1:
+                          result = bge_wdgt_spec_add_allocation_height_value (
+                              spec, allocation_key, child_value, &local_error);
+                          break;
+                        case 2:
+                          result = bge_wdgt_spec_add_allocation_transform_value (
+                              spec, allocation_key, child_value, &local_error);
+                          break;
+                        default:
+                          g_assert_not_reached ();
+                        }
+                      RETURN_ERROR_UNLESS (result);
+
+                      result = bge_wdgt_spec_set_value (
+                          spec,
+                          state_name,
+                          allocation_key,
+                          allocation_values[i],
+                          &local_error);
+                      RETURN_ERROR_UNLESS (result);
+                    }
+                }
+              else
+                UNEXPECTED_TOKEN (token);
+            }
+        }
+      else
+        UNEXPECTED_TOKEN (token);
+    }
+
+  return p;
+}
+
+static const char *
 parse_snapshot_block (const char  *p,
                       BgeWdgtSpec *spec,
                       const char  *state,
+                      GHashTable  *macro_replacements,
                       guint       *n_anon_vals,
+                      GHashTable  *type_hints,
                       GError     **error)
 {
   g_autoptr (GError) local_error = NULL;
@@ -548,8 +733,11 @@ parse_snapshot_block (const char  *p,
       else
         {
           GET_TOKEN (&instr, TOKEN_PARSE_DEFAULT);
-          p = parse_args (p, spec, state, NULL, n_anon_vals, &args,
-                          &n_args, ARGS_PARSE_PARENS, &local_error);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
+          p = parse_args (p, spec, state, NULL, macro_replacements,
+                          n_anon_vals, type_hints,
+                          NULL, NULL, 0, &args, NULL, &n_args,
+                          ARGS_PARSE_PARENS, &local_error);
           RETURN_ERROR_UNLESS (p != NULL);
 
           result = bge_wdgt_spec_append_snapshot_instr (
@@ -564,7 +752,8 @@ parse_snapshot_block (const char  *p,
       else if (kind == BGE_WDGT_SNAPSHOT_INSTR_PUSH)
         {
           GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
-          p = parse_snapshot_block (p, spec, state, n_anon_vals, &local_error);
+          p = parse_snapshot_block (p, spec, state, macro_replacements,
+                                    n_anon_vals, type_hints, &local_error);
           RETURN_ERROR_UNLESS (p != NULL);
 
           result = bge_wdgt_spec_append_snapshot_instr (
@@ -575,7 +764,8 @@ parse_snapshot_block (const char  *p,
       else if (kind == BGE_WDGT_SNAPSHOT_INSTR_SAVE)
         {
           GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "{");
-          p = parse_snapshot_block (p, spec, state, n_anon_vals, &local_error);
+          p = parse_snapshot_block (p, spec, state, macro_replacements,
+                                    n_anon_vals, type_hints, &local_error);
           RETURN_ERROR_UNLESS (p != NULL);
 
           result = bge_wdgt_spec_append_snapshot_instr (
@@ -586,6 +776,22 @@ parse_snapshot_block (const char  *p,
     }
 
   return p;
+}
+
+static gdouble
+floor_closure (gpointer this,
+               gdouble  x,
+               gpointer data)
+{
+  return floor (x);
+}
+
+static gdouble
+ceil_closure (gpointer this,
+              gdouble  x,
+              gpointer data)
+{
+  return floor (x);
 }
 
 static gdouble
@@ -608,7 +814,9 @@ static const char *
 parse_eval (const char  *p,
             BgeWdgtSpec *spec,
             const char  *state,
+            GHashTable  *macro_replacements,
             guint       *n_anon_vals,
+            GHashTable  *type_hints,
             char       **value_out,
             GError     **error)
 {
@@ -636,7 +844,7 @@ parse_eval (const char  *p,
   }                                                        \
   G_STMT_END
 
-  for (;;)
+  for (gboolean apply_negative = FALSE;;)
     {
       g_autofree char *value          = NULL;
       Operator         op             = -1;
@@ -647,7 +855,8 @@ parse_eval (const char  *p,
         break;
       else if (g_strcmp0 (token, "(") == 0)
         {
-          p = parse_eval (p, spec, state, n_anon_vals, &value, &local_error);
+          p = parse_eval (p, spec, state, macro_replacements, n_anon_vals,
+                          type_hints, &value, &local_error);
           RETURN_ERROR_UNLESS (p != NULL);
         }
       else if (g_strcmp0 (token, "#") == 0)
@@ -655,8 +864,10 @@ parse_eval (const char  *p,
           g_auto (GStrv) escape_args = NULL;
           guint n_escape_args        = 0;
 
-          p = parse_args (p, spec, state, NULL, n_anon_vals, &escape_args,
-                          &n_escape_args, ARGS_PARSE_PARENS, &local_error);
+          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
+          p = parse_args (p, spec, state, NULL, macro_replacements, n_anon_vals, type_hints,
+                          NULL, (GType[]){ G_TYPE_DOUBLE }, 1, &escape_args,
+                          NULL, &n_escape_args, ARGS_PARSE_PARENS, &local_error);
           RETURN_ERROR_UNLESS (p != NULL);
           if (n_escape_args != 1)
             {
@@ -671,20 +882,27 @@ parse_eval (const char  *p,
 
           value = g_strdup (escape_args[0]);
         }
-      else if (g_strcmp0 (token, "sin") == 0 ||
+      else if (g_strcmp0 (token, "ceil") == 0 ||
+               g_strcmp0 (token, "floor") == 0 ||
+               g_strcmp0 (token, "sin") == 0 ||
                g_strcmp0 (token, "cos") == 0)
         {
           GCallback        cb            = NULL;
           g_autofree char *arg           = NULL;
           g_autofree char *math_func_key = NULL;
 
-          if (g_strcmp0 (token, "sin") == 0)
+          if (g_strcmp0 (token, "ceil") == 0)
+            cb = G_CALLBACK (ceil_closure);
+          else if (g_strcmp0 (token, "floor") == 0)
+            cb = G_CALLBACK (floor_closure);
+          else if (g_strcmp0 (token, "sin") == 0)
             cb = G_CALLBACK (sin_closure);
           else if (g_strcmp0 (token, "cos") == 0)
             cb = G_CALLBACK (cos_closure);
 
           GET_TOKEN_EVAL_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
-          p = parse_eval (p, spec, state, n_anon_vals, &arg, &local_error);
+          p = parse_eval (p, spec, state, macro_replacements, n_anon_vals,
+                          type_hints, &arg, &local_error);
           RETURN_ERROR_UNLESS (p != NULL);
 
           math_func_key = make_anon_name ((*n_anon_vals)++);
@@ -736,6 +954,33 @@ parse_eval (const char  *p,
                   "Expected operator, got \"%s\"", token);
               return NULL;
             }
+
+          if (apply_negative)
+            {
+              GValue           gvalue       = G_VALUE_INIT;
+              g_autofree char *negative_key = NULL;
+              EvalOperator     append       = { 0 };
+
+              g_value_set_double (g_value_init (&gvalue, G_TYPE_DOUBLE), -1.0);
+              negative_key = make_anon_name ((*n_anon_vals)++);
+              result       = bge_wdgt_spec_add_constant_source_value (
+                  spec,
+                  negative_key,
+                  &gvalue,
+                  &local_error);
+              g_value_unset (&gvalue);
+              RETURN_ERROR_UNLESS (result);
+
+              g_ptr_array_add (values, g_steal_pointer (&negative_key));
+              g_array_append_val (value_types, type_double);
+
+              append.op  = OPERATOR_MULTIPLY;
+              append.pos = ops->len;
+              g_array_append_val (ops, append);
+
+              apply_negative = FALSE;
+            }
+
           g_ptr_array_add (values, g_steal_pointer (&value));
           g_array_append_val (value_types, type_double);
         }
@@ -745,17 +990,26 @@ parse_eval (const char  *p,
 
           if (expected_value)
             {
-              g_set_error (
-                  error,
-                  G_IO_ERROR,
-                  G_IO_ERROR_UNKNOWN,
-                  "Expected value, got \"%s\"", token);
-              return NULL;
+              if (op == OPERATOR_SUBTRACT)
+                apply_negative = !apply_negative;
+              else if (op != OPERATOR_ADD)
+                /* Allow adding `+` in front of numbers for alignment with
+                   negatives etc */
+                {
+                  g_set_error (
+                      error,
+                      G_IO_ERROR,
+                      G_IO_ERROR_UNKNOWN,
+                      "Expected value, got \"%s\"", token);
+                  return NULL;
+                }
             }
-
-          append.op  = op;
-          append.pos = ops->len;
-          g_array_append_val (ops, append);
+          else
+            {
+              append.op  = op;
+              append.pos = ops->len;
+              g_array_append_val (ops, append);
+            }
         }
     }
 
@@ -809,26 +1063,32 @@ parse_eval (const char  *p,
 }
 
 static const char *
-parse_args (const char   *p,
-            BgeWdgtSpec  *spec,
-            const char   *state,
-            const char   *enclosing_object,
-            guint        *n_anon_vals,
-            char       ***values_out,
-            guint        *n_out,
-            ArgsParseKind parse_kind,
-            GError      **error)
+parse_args (const char        *p,
+            BgeWdgtSpec       *spec,
+            const char        *state,
+            const char        *enclosing_object,
+            GHashTable        *macro_replacements,
+            guint             *n_anon_vals,
+            GHashTable        *type_hints,
+            const char *const *destinations,
+            GType              destinations_types[],
+            guint              n_destinations,
+            char            ***values_out,
+            GType            **types_out,
+            guint             *n_out,
+            ArgsParseKind      parse_kind,
+            GError           **error)
 {
   g_autoptr (GError) local_error   = NULL;
   gboolean         result          = FALSE;
   g_autofree char *token           = NULL;
   guint            n_args          = 0;
   g_autoptr (GStrvBuilder) builder = NULL;
+  g_autoptr (GArray) types_array   = NULL;
 
-  builder = g_strv_builder_new ();
+  builder     = g_strv_builder_new ();
+  types_array = g_array_new (FALSE, TRUE, sizeof (GType));
 
-  if (parse_kind == ARGS_PARSE_PARENS)
-    GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
   for (gboolean need_comma = FALSE,
                 get_token  = TRUE,
                 was_quoted = FALSE;
@@ -882,374 +1142,509 @@ parse_args (const char   *p,
           g_autofree char *key = NULL;
 
           GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
-          p = parse_eval (p, spec, state, n_anon_vals, &key, &local_error);
+          p = parse_eval (p, spec, state, macro_replacements, n_anon_vals,
+                          type_hints, &key, &local_error);
           RETURN_ERROR_UNLESS (p != NULL);
 
           g_strv_builder_take (builder, g_steal_pointer (&key));
-          n_args++;
-
-          need_comma = TRUE;
-        }
-      else if (g_strcmp0 (token, "#i") == 0 ||
-               g_strcmp0 (token, "#e") == 0 ||
-               g_strcmp0 (token, "#enum") == 0 ||
-               g_strcmp0 (token, "#rgba") == 0)
-        {
-          g_autofree char *tmp_token = NULL;
-          g_autofree char *key       = NULL;
-          GValue           value     = { 0 };
-
-          if (g_strcmp0 (token, "#i") == 0)
-            {
-              g_autofree char    *int_type_name = NULL;
-              GType               int_type      = 0;
-              const GVariantType *variant_type  = NULL;
-              g_autofree char    *int_string    = NULL;
-              g_autoptr (GVariant) variant      = NULL;
-
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, ":");
-              GET_TOKEN (&int_type_name, TOKEN_PARSE_QUOTED);
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, "(");
-
-              int_type = g_type_from_name (int_type_name);
-              if (int_type == G_TYPE_INT)
-                variant_type = G_VARIANT_TYPE_INT32;
-              else if (int_type == G_TYPE_INT64)
-                variant_type = G_VARIANT_TYPE_INT64;
-              else if (int_type == G_TYPE_UINT)
-                variant_type = G_VARIANT_TYPE_UINT32;
-              else if (int_type == G_TYPE_UINT64)
-                variant_type = G_VARIANT_TYPE_UINT64;
-              else
-                {
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "'%s' not found to be a valid int type",
-                      int_type_name);
-                  return NULL;
-                }
-
-              GET_TOKEN (&int_string, TOKEN_PARSE_DEFAULT);
-              variant = g_variant_parse (variant_type, int_string, NULL, NULL, &local_error);
-              RETURN_ERROR_UNLESS (variant != NULL);
-
-              if (int_type == G_TYPE_INT)
-                g_value_set_int (g_value_init (&value, G_TYPE_INT),
-                                 g_variant_get_int32 (variant));
-              else if (int_type == G_TYPE_INT64)
-                g_value_set_int64 (g_value_init (&value, G_TYPE_INT64),
-                                   g_variant_get_int64 (variant));
-              else if (int_type == G_TYPE_UINT)
-                g_value_set_uint (g_value_init (&value, G_TYPE_UINT),
-                                  g_variant_get_uint32 (variant));
-              else if (int_type == G_TYPE_UINT64)
-                g_value_set_uint64 (g_value_init (&value, G_TYPE_UINT64),
-                                    g_variant_get_uint64 (variant));
-
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, ")");
-            }
-          else if (g_strcmp0 (token, "#e") == 0 ||
-                   g_strcmp0 (token, "#enum") == 0)
-            {
-              g_autofree char *enum_type_name   = NULL;
-              g_autofree char *enum_nick        = NULL;
-              GType            enum_type        = 0;
-              g_autoptr (GEnumClass) enum_class = NULL;
-              GEnumValue *enum_value            = NULL;
-
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, ":");
-              GET_TOKEN (&enum_type_name, TOKEN_PARSE_QUOTED);
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, "(");
-
-              enum_type = g_type_from_name (enum_type_name);
-              if (!g_type_is_a (enum_type, G_TYPE_ENUM))
-                {
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "'%s' not found to be an enum type",
-                      enum_type_name);
-                  return NULL;
-                }
-
-              GET_TOKEN (&enum_nick, TOKEN_PARSE_DEFAULT);
-
-              enum_class = g_type_class_ref (enum_type);
-              enum_value = g_enum_get_value_by_nick (enum_class, enum_nick);
-              if (enum_value == NULL)
-                enum_value = g_enum_get_value_by_name (enum_class, enum_nick);
-              if (enum_value == NULL)
-                {
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "'%s' not found in enum type %s",
-                      enum_nick, enum_type_name);
-                  return NULL;
-                }
-
-              g_value_set_enum (g_value_init (&value, enum_type), enum_value->value);
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, ")");
-            }
-          else if (g_strcmp0 (token, "#rgba") == 0)
-            {
-              g_autofree char *string = NULL;
-              GdkRGBA          rgba   = { 0 };
-
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, "(");
-              GET_TOKEN (&string, TOKEN_PARSE_QUOTED);
-
-              result = gdk_rgba_parse (&rgba, string);
-              if (!result)
-                {
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "#color() specifier failed to "
-                      "parse color from string");
-                  return NULL;
-                }
-              g_value_set_boxed (g_value_init (&value, GDK_TYPE_RGBA), &rgba);
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, ")");
-            }
-
-          key    = make_anon_name ((*n_anon_vals)++);
-          result = bge_wdgt_spec_add_constant_source_value (
-              spec, key, &value, &local_error);
-          g_value_unset (&value);
-          RETURN_ERROR_UNLESS (result);
-
-          g_strv_builder_take (builder, g_steal_pointer (&key));
-          n_args++;
-
-          need_comma = TRUE;
-        }
-      else if (g_strcmp0 (token, "#point") == 0 ||
-               g_strcmp0 (token, "#size") == 0 ||
-               g_strcmp0 (token, "#rect") == 0)
-        {
-          g_auto (GStrv) component_args     = NULL;
-          guint            n_component_args = 0;
-          GType            component_type   = 0;
-          g_autofree char *component_key    = NULL;
-
-          p = parse_args (p, spec, state, enclosing_object, n_anon_vals, &component_args,
-                          &n_component_args, ARGS_PARSE_PARENS, &local_error);
-          RETURN_ERROR_UNLESS (p != NULL);
-
-          if (g_strcmp0 (token, "#point") == 0)
-            {
-              switch (n_component_args)
-                {
-                case 2:
-                  component_type = GRAPHENE_TYPE_POINT;
-                  break;
-                case 3:
-                  component_type = GRAPHENE_TYPE_POINT3D;
-                  break;
-                default:
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "#point() specifier can have 2 or 3 arguments, got %u",
-                      n_component_args);
-                  return NULL;
-                }
-            }
-          else if (g_strcmp0 (token, "#size") == 0)
-            {
-              switch (n_component_args)
-                {
-                case 2:
-                  component_type = GRAPHENE_TYPE_SIZE;
-                  break;
-                default:
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "#size() specifier can have 2 arguments, got %u",
-                      n_component_args);
-                  return NULL;
-                }
-            }
-          else if (g_strcmp0 (token, "#rect") == 0)
-            {
-              switch (n_component_args)
-                {
-                case 4:
-                  component_type = GRAPHENE_TYPE_RECT;
-                  break;
-                default:
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "#rect() specifier can have 4 arguments, got %u",
-                      n_component_args);
-                  return NULL;
-                }
-            }
-
-          component_key = make_anon_name ((*n_anon_vals)++);
-          result        = bge_wdgt_spec_add_component_source_value (
-              spec, component_key, component_type,
-              (const char *const *) component_args,
-              n_component_args, &local_error);
-          RETURN_ERROR_UNLESS (result);
-
-          g_strv_builder_take (builder, g_steal_pointer (&component_key));
-          n_args++;
-
-          need_comma = TRUE;
-        }
-      else if (g_strcmp0 (token, "#o") == 0 ||
-               g_strcmp0 (token, "#obj") == 0 ||
-               g_strcmp0 (token, "#object") == 0 ||
-               g_strcmp0 (token, "#ch") == 0 ||
-               g_strcmp0 (token, "#child") == 0)
-        {
-          g_autofree char *tmp_token   = NULL;
-          g_autofree char *object_type = NULL;
-          g_autofree char *object_name = NULL;
-
-          GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, ":");
-          GET_TOKEN (&object_type, TOKEN_PARSE_QUOTED);
-
-          object_name = make_anon_name ((*n_anon_vals)++);
-          if (g_strcmp0 (token, "#o") == 0 ||
-              g_strcmp0 (token, "#obj") == 0 ||
-              g_strcmp0 (token, "#object") == 0)
-            {
-              result = bge_wdgt_spec_add_instance_source_value (
-                  spec, object_name, g_type_from_name (object_type), &local_error);
-              RETURN_ERROR_UNLESS (result);
-            }
-          else if (g_strcmp0 (token, "#ch") == 0 ||
-                   g_strcmp0 (token, "#child") == 0)
-            {
-              g_autofree char *builder_type = NULL;
-
-              GET_TOKEN_EXPECT (&tmp_token, TOKEN_PARSE_DEFAULT, ":");
-              GET_TOKEN (&builder_type, TOKEN_PARSE_QUOTED);
-              if (*builder_type == '\0')
-                g_clear_pointer (&builder_type, g_free);
-
-              result = bge_wdgt_spec_add_child_source_value (
-                  spec, object_name, g_type_from_name (object_type),
-                  enclosing_object, builder_type, &local_error);
-              RETURN_ERROR_UNLESS (result);
-            }
-
-          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
-          for (;;)
-            {
-              g_autofree char *property_name = NULL;
-              g_autofree char *set_key       = NULL;
-              g_auto (GStrv) value_args      = NULL;
-              guint n_value_args             = 0;
-
-              GET_TOKEN (&property_name, TOKEN_PARSE_DEFAULT);
-              if (g_strcmp0 (property_name, ")") == 0)
-                break;
-              else if (g_strcmp0 (property_name, "%set") == 0)
-                GET_TOKEN (&set_key, TOKEN_PARSE_DEFAULT);
-              else if (g_strcmp0 (property_name, "_") != 0)
-                {
-                  set_key = make_object_property_name (object_name, property_name, (*n_anon_vals)++);
-                  result  = bge_wdgt_spec_add_property_value (
-                      spec, set_key, object_name, property_name, &local_error);
-                  RETURN_ERROR_UNLESS (result);
-                }
-              GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "=");
-
-              p = parse_args (p, spec, state, object_name, n_anon_vals, &value_args,
-                              &n_value_args, ARGS_PARSE_RIGHT_ASSIGN, &local_error);
-              RETURN_ERROR_UNLESS (p != NULL);
-
-              if (n_value_args != 1)
-                {
-                  g_set_error (
-                      error,
-                      G_IO_ERROR,
-                      G_IO_ERROR_UNKNOWN,
-                      "property/child assignment "
-                      "needs a single argument");
-                  return NULL;
-                }
-
-              if (set_key != NULL)
-                {
-                  result = bge_wdgt_spec_set_value (spec, state, set_key,
-                                                    value_args[0], &local_error);
-                  RETURN_ERROR_UNLESS (result);
-                }
-            }
-
-          g_strv_builder_take (builder, g_steal_pointer (&object_name));
-          n_args++;
-
-          need_comma = TRUE;
-        }
-      else if (g_strcmp0 (token, "#transform") == 0)
-        {
-          g_autofree char *last_key = NULL;
-          GValue           value    = G_VALUE_INIT;
-
-          last_key = make_anon_name ((*n_anon_vals)++);
-          g_value_take_boxed (g_value_init (&value, GSK_TYPE_TRANSFORM),
-                              gsk_transform_new ());
-          result = bge_wdgt_spec_add_constant_source_value (
-              spec, last_key, &value, error);
-          g_value_unset (&value);
-          if (!result)
-            return NULL;
-
-          GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
-          for (;;)
-            {
-              g_autofree char *instr        = NULL;
-              g_auto (GStrv) value_args     = NULL;
-              guint            n_value_args = 0;
-              g_autofree char *key          = NULL;
-
-              GET_TOKEN (&instr, TOKEN_PARSE_DEFAULT);
-              if (g_strcmp0 (instr, ")") == 0)
-                break;
-
-              p = parse_args (p, spec, state, enclosing_object, n_anon_vals, &value_args,
-                              &n_value_args, ARGS_PARSE_PARENS, &local_error);
-              RETURN_ERROR_UNLESS (p != NULL);
-              GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ";");
-
-              key    = make_anon_name ((*n_anon_vals)++);
-              result = bge_wdgt_spec_add_transform_source_value (
-                  spec, key, last_key, instr,
-                  (const char *const *) value_args,
-                  n_value_args, &local_error);
-              RETURN_ERROR_UNLESS (result);
-
-              g_clear_pointer (&last_key, g_free);
-              last_key = g_steal_pointer (&key);
-            }
-
-          g_strv_builder_take (builder, g_steal_pointer (&last_key));
           n_args++;
 
           need_comma = TRUE;
         }
       else
         {
-          g_autofree char *parsed = NULL;
+          g_autofree char *key  = NULL;
+          GType            type = G_TYPE_INVALID;
 
-          parsed = parse_token_fundamental (token, spec, n_anon_vals, &local_error);
-          RETURN_ERROR_UNLESS (parsed != NULL);
+          if (g_hash_table_contains (type_hints, token) ||
+              /* A macro placed this here */
+              g_utf8_strchr (token, -1, '@') != NULL)
+            key = g_steal_pointer (&token);
+          else
+            {
+              GType    type_hint            = G_TYPE_INVALID;
+              gboolean expect_closing_paren = FALSE;
+              gboolean is_child             = FALSE;
+              gboolean constant             = FALSE;
+              GValue   value                = G_VALUE_INIT;
+
+              if (n_args < n_destinations)
+                {
+                  if (destinations != NULL)
+                    type_hint = GPOINTER_TO_SIZE (g_hash_table_lookup (
+                        type_hints, destinations[n_args]));
+                  if (type_hint == G_TYPE_INVALID &&
+                      destinations_types != NULL)
+                    type_hint = destinations_types[n_args];
+                }
+
+              if (g_str_has_prefix (token, "#"))
+                {
+                  const char *type_name = token + 1;
+
+                  if (g_str_has_prefix (type_name, "child/"))
+                    {
+                      is_child = TRUE;
+                      type_name += strlen ("child/");
+                    }
+
+                  if (*type_name == '\0')
+                    {
+                      if (type_hint == G_TYPE_INVALID)
+                        {
+                          g_set_error (
+                              error,
+                              G_IO_ERROR,
+                              G_IO_ERROR_UNKNOWN,
+                              "Unable to guess type for value");
+                          return NULL;
+                        }
+                      type = type_hint;
+                    }
+                  else
+                    {
+                      type = g_type_from_name (type_name);
+                      if (type == G_TYPE_INVALID)
+                        {
+                          g_set_error (
+                              error,
+                              G_IO_ERROR,
+                              G_IO_ERROR_UNKNOWN,
+                              "Unknown type name \"%s\"",
+                              type_name);
+                          return NULL;
+                        }
+                    }
+
+                  GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
+                  expect_closing_paren = TRUE;
+                }
+              else
+                type = type_hint;
+
+              if (is_child &&
+                  !g_type_is_a (type, GTK_TYPE_WIDGET))
+                {
+                  g_set_error (
+                      error,
+                      G_IO_ERROR,
+                      G_IO_ERROR_UNKNOWN,
+                      "Children must be a widget type");
+                  return NULL;
+                }
+
+              if (type == G_TYPE_INVALID)
+                {
+                  if (expect_closing_paren)
+                    GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+                  key = parse_token_fundamental (token, spec, n_anon_vals, &local_error);
+                  RETURN_ERROR_UNLESS (key != NULL);
+                }
+              else if (type == G_TYPE_STRING)
+                {
+                  if (expect_closing_paren)
+                    GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+
+                  g_value_set_string (g_value_init (&value, G_TYPE_STRING),
+                                      token);
+                  constant = TRUE;
+
+                  if (expect_closing_paren)
+                    GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ")");
+                }
+              else if (type == G_TYPE_BOOLEAN)
+                {
+                  if (expect_closing_paren)
+                    GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+
+                  if (g_strcmp0 (token, "true") == 0)
+                    g_value_set_boolean (g_value_init (&value, G_TYPE_BOOLEAN),
+                                         TRUE);
+                  else if (g_strcmp0 (token, "false") == 0)
+                    g_value_set_boolean (g_value_init (&value, G_TYPE_BOOLEAN),
+                                         FALSE);
+                  else
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "a boolean value must be 'true' "
+                          "or 'false', got \"%s\"",
+                          token);
+                      return NULL;
+                    }
+                  constant = TRUE;
+
+                  if (expect_closing_paren)
+                    GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ")");
+                }
+              else if (type == G_TYPE_INT ||
+                       type == G_TYPE_INT64 ||
+                       type == G_TYPE_UINT ||
+                       type == G_TYPE_UINT64 ||
+                       type == G_TYPE_FLOAT ||
+                       type == G_TYPE_DOUBLE)
+                {
+                  const GVariantType *variant_type = NULL;
+                  g_autoptr (GVariant) variant     = NULL;
+
+                  if (type == G_TYPE_INT)
+                    variant_type = G_VARIANT_TYPE_INT32;
+                  else if (type == G_TYPE_INT64)
+                    variant_type = G_VARIANT_TYPE_INT64;
+                  else if (type == G_TYPE_UINT)
+                    variant_type = G_VARIANT_TYPE_UINT32;
+                  else if (type == G_TYPE_UINT64)
+                    variant_type = G_VARIANT_TYPE_UINT64;
+                  else if (type == G_TYPE_FLOAT ||
+                           type == G_TYPE_DOUBLE)
+                    variant_type = G_VARIANT_TYPE_DOUBLE;
+
+                  if (expect_closing_paren)
+                    GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+                  variant = g_variant_parse (variant_type, token, NULL, NULL, &local_error);
+                  RETURN_ERROR_UNLESS (variant != NULL);
+
+                  if (type == G_TYPE_INT)
+                    g_value_set_int (g_value_init (&value, G_TYPE_INT),
+                                     g_variant_get_int32 (variant));
+                  else if (type == G_TYPE_INT64)
+                    g_value_set_int64 (g_value_init (&value, G_TYPE_INT64),
+                                       g_variant_get_int64 (variant));
+                  else if (type == G_TYPE_UINT)
+                    g_value_set_uint (g_value_init (&value, G_TYPE_UINT),
+                                      g_variant_get_uint32 (variant));
+                  else if (type == G_TYPE_UINT64)
+                    g_value_set_uint64 (g_value_init (&value, G_TYPE_UINT64),
+                                        g_variant_get_uint64 (variant));
+                  else if (type == G_TYPE_FLOAT)
+                    g_value_set_float (g_value_init (&value, G_TYPE_FLOAT),
+                                       g_variant_get_double (variant));
+                  else if (type == G_TYPE_DOUBLE)
+                    g_value_set_double (g_value_init (&value, G_TYPE_DOUBLE),
+                                        g_variant_get_double (variant));
+                  constant = TRUE;
+
+                  if (expect_closing_paren)
+                    GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ")");
+                }
+              else if (g_type_is_a (type, G_TYPE_ENUM))
+                {
+                  g_autoptr (GEnumClass) enum_class = NULL;
+                  GEnumValue *enum_value            = NULL;
+
+                  if (expect_closing_paren)
+                    GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+
+                  enum_class = g_type_class_ref (type);
+                  enum_value = g_enum_get_value_by_nick (enum_class, token);
+                  if (enum_value == NULL)
+                    enum_value = g_enum_get_value_by_name (enum_class, token);
+                  if (enum_value == NULL)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "\"%s\" not found in enum type %s",
+                          token, g_type_name (type));
+                      return NULL;
+                    }
+
+                  g_value_set_enum (g_value_init (&value, type),
+                                    enum_value->value);
+                  constant = TRUE;
+
+                  if (expect_closing_paren)
+                    GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ")");
+                }
+              else if (type == GDK_TYPE_RGBA)
+                {
+                  GdkRGBA rgba = { 0 };
+
+                  if (expect_closing_paren)
+                    GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+                  result = gdk_rgba_parse (&rgba, token);
+                  if (!result)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "#color() specifier failed to "
+                          "parse color from string");
+                      return NULL;
+                    }
+                  g_value_set_boxed (g_value_init (&value, GDK_TYPE_RGBA), &rgba);
+                  constant = TRUE;
+
+                  if (expect_closing_paren)
+                    GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ")");
+                }
+              else if (type == GRAPHENE_TYPE_POINT ||
+                       type == GRAPHENE_TYPE_SIZE ||
+                       type == GRAPHENE_TYPE_RECT)
+                {
+                  g_auto (GStrv) component_args = NULL;
+                  guint n_component_args        = 0;
+                  GType component_type          = 0;
+
+                  if (!expect_closing_paren)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "type %s must be wrapped in #(...)",
+                          g_type_name (type));
+                      return NULL;
+                    }
+
+                  p = parse_args (p, spec, state, enclosing_object,
+                                  macro_replacements,
+                                  n_anon_vals, type_hints, NULL,
+                                  (GType[]){ G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_DOUBLE }, 4,
+                                  &component_args, NULL, &n_component_args, ARGS_PARSE_PARENS,
+                                  &local_error);
+                  RETURN_ERROR_UNLESS (p != NULL);
+
+                  if (type == GRAPHENE_TYPE_POINT)
+                    {
+                      switch (n_component_args)
+                        {
+                        case 2:
+                          component_type = GRAPHENE_TYPE_POINT;
+                          break;
+                        case 3:
+                          component_type = GRAPHENE_TYPE_POINT3D;
+                          break;
+                        default:
+                          g_set_error (
+                              error,
+                              G_IO_ERROR,
+                              G_IO_ERROR_UNKNOWN,
+                              "#point() specifier can have 2 or 3 arguments, got %u",
+                              n_component_args);
+                          return NULL;
+                        }
+                    }
+                  else if (type == GRAPHENE_TYPE_SIZE)
+                    {
+                      switch (n_component_args)
+                        {
+                        case 2:
+                          component_type = GRAPHENE_TYPE_SIZE;
+                          break;
+                        default:
+                          g_set_error (
+                              error,
+                              G_IO_ERROR,
+                              G_IO_ERROR_UNKNOWN,
+                              "#size() specifier can have 2 arguments, got %u",
+                              n_component_args);
+                          return NULL;
+                        }
+                    }
+                  else if (type == GRAPHENE_TYPE_RECT)
+                    {
+                      switch (n_component_args)
+                        {
+                        case 4:
+                          component_type = GRAPHENE_TYPE_RECT;
+                          break;
+                        default:
+                          g_set_error (
+                              error,
+                              G_IO_ERROR,
+                              G_IO_ERROR_UNKNOWN,
+                              "#rect() specifier can have 4 arguments, got %u",
+                              n_component_args);
+                          return NULL;
+                        }
+                    }
+
+                  key    = make_anon_name ((*n_anon_vals)++);
+                  result = bge_wdgt_spec_add_component_source_value (
+                      spec, key, component_type,
+                      (const char *const *) component_args,
+                      n_component_args, &local_error);
+                  RETURN_ERROR_UNLESS (result);
+                }
+              else if (g_type_is_a (type, G_TYPE_OBJECT))
+                {
+                  if (!expect_closing_paren)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "type %s must be wrapped in #(...)",
+                          g_type_name (type));
+                      return NULL;
+                    }
+
+                  key = make_anon_name ((*n_anon_vals)++);
+                  if (is_child)
+                    {
+                      g_autofree char *builder_type     = NULL;
+                      g_autoptr (GPtrArray) css_classes = NULL;
+
+                      GET_TOKEN (&builder_type, TOKEN_PARSE_QUOTED);
+                      if (*builder_type == '\0')
+                        g_clear_pointer (&builder_type, g_free);
+
+                      css_classes = g_ptr_array_new_with_free_func (g_free);
+                      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
+                      for (;;)
+                        {
+                          GET_TOKEN (&token, TOKEN_PARSE_DEFAULT);
+                          if (g_strcmp0 (token, ")") == 0)
+                            break;
+                          g_ptr_array_add (css_classes, g_steal_pointer (&token));
+                        }
+
+                      result = bge_wdgt_spec_add_child_source_value (
+                          spec, key, type, enclosing_object, builder_type,
+                          (const char *const *) css_classes->pdata, css_classes->len,
+                          &local_error);
+                      RETURN_ERROR_UNLESS (result);
+                    }
+                  else
+                    {
+                      result = bge_wdgt_spec_add_instance_source_value (
+                          spec, key, type, &local_error);
+                      RETURN_ERROR_UNLESS (result);
+                    }
+
+                  for (;;)
+                    {
+                      g_autofree char *property_name = NULL;
+                      g_autofree char *set_key       = NULL;
+                      GType            prop_type     = G_TYPE_INVALID;
+                      g_auto (GStrv) value_args      = NULL;
+                      guint n_value_args             = 0;
+
+                      GET_TOKEN (&property_name, TOKEN_PARSE_DEFAULT);
+                      if (g_strcmp0 (property_name, ")") == 0)
+                        break;
+                      else if (g_strcmp0 (property_name, "%set") == 0)
+                        {
+                          GET_TOKEN (&set_key, TOKEN_PARSE_DEFAULT);
+                          prop_type = GPOINTER_TO_SIZE (g_hash_table_lookup (type_hints, set_key));
+                        }
+                      else if (g_strcmp0 (property_name, "_") != 0)
+                        {
+                          set_key = make_object_property_name (key, property_name, (*n_anon_vals)++);
+                          result  = bge_wdgt_spec_add_property_value (
+                              spec, set_key, key, property_name, &prop_type, &local_error);
+                          RETURN_ERROR_UNLESS (result);
+                        }
+                      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "=");
+
+                      p = parse_args (p, spec, state, key, macro_replacements,
+                                      n_anon_vals, type_hints,
+                                      NULL, (GType[]){ prop_type }, 1, &value_args,
+                                      NULL, &n_value_args, ARGS_PARSE_RIGHT_ASSIGN,
+                                      &local_error);
+                      RETURN_ERROR_UNLESS (p != NULL);
+
+                      if (n_value_args != 1)
+                        {
+                          g_set_error (
+                              error,
+                              G_IO_ERROR,
+                              G_IO_ERROR_UNKNOWN,
+                              "property/child assignment "
+                              "needs a single argument, got %u",
+                              n_value_args);
+                          return NULL;
+                        }
+
+                      if (set_key != NULL)
+                        {
+                          result = bge_wdgt_spec_set_value (spec, state, set_key,
+                                                            value_args[0], &local_error);
+                          RETURN_ERROR_UNLESS (result);
+                        }
+                    }
+                }
+              else if (type == GSK_TYPE_TRANSFORM)
+                {
+                  g_autofree char *last_key = NULL;
+
+                  if (!expect_closing_paren)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "type %s must be wrapped in #(...)",
+                          g_type_name (type));
+                      return NULL;
+                    }
+
+                  last_key = make_anon_name ((*n_anon_vals)++);
+                  g_value_take_boxed (g_value_init (&value, GSK_TYPE_TRANSFORM),
+                                      gsk_transform_new ());
+                  result = bge_wdgt_spec_add_constant_source_value (
+                      spec, last_key, &value, error);
+                  g_value_unset (&value);
+                  if (!result)
+                    return NULL;
+
+                  for (;;)
+                    {
+                      g_autofree char *instr        = NULL;
+                      g_auto (GStrv) value_args     = NULL;
+                      guint            n_value_args = 0;
+                      g_autofree char *tmp_key      = NULL;
+
+                      GET_TOKEN (&instr, TOKEN_PARSE_DEFAULT);
+                      if (g_strcmp0 (instr, ")") == 0)
+                        break;
+
+                      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, "(");
+                      p = parse_args (p, spec, state, enclosing_object,
+                                      macro_replacements, n_anon_vals,
+                                      type_hints, NULL, NULL, 0, &value_args, NULL,
+                                      &n_value_args, ARGS_PARSE_PARENS, &local_error);
+                      RETURN_ERROR_UNLESS (p != NULL);
+                      GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ";");
+
+                      tmp_key = make_anon_name ((*n_anon_vals)++);
+                      result  = bge_wdgt_spec_add_transform_source_value (
+                          spec, tmp_key, last_key, instr,
+                          (const char *const *) value_args,
+                          n_value_args, &local_error);
+                      RETURN_ERROR_UNLESS (result);
+
+                      g_clear_pointer (&last_key, g_free);
+                      last_key = g_steal_pointer (&tmp_key);
+                    }
+
+                  key = g_steal_pointer (&last_key);
+                }
+              else
+                {
+                  g_set_error (
+                      error,
+                      G_IO_ERROR,
+                      G_IO_ERROR_UNKNOWN,
+                      "Can't parse type %s",
+                      g_type_name (type));
+                  return NULL;
+                }
+
+              if (constant)
+                {
+                  key    = make_anon_name ((*n_anon_vals)++);
+                  result = bge_wdgt_spec_add_constant_source_value (
+                      spec, key, &value, &local_error);
+                  g_value_unset (&value);
+                  RETURN_ERROR_UNLESS (result);
+                }
+            }
 
           for (;;)
             {
@@ -1260,23 +1655,23 @@ parse_args (const char   *p,
                   g_autofree char *name     = NULL;
 
                   GET_TOKEN (&property, TOKEN_PARSE_DEFAULT);
-                  name = make_object_property_name (parsed, property, (*n_anon_vals)++);
+                  name = make_object_property_name (key, property, (*n_anon_vals)++);
 
                   result = bge_wdgt_spec_add_property_value (
-                      spec, name, parsed, property, &local_error);
+                      spec, name, key, property, &type, &local_error);
                   RETURN_ERROR_UNLESS (result);
 
-                  g_clear_pointer (&parsed, g_free);
-                  parsed = g_steal_pointer (&name);
+                  g_clear_pointer (&key, g_free);
+                  key = g_steal_pointer (&name);
                 }
               else
                 break;
             }
           get_token = FALSE;
 
-          g_strv_builder_take (builder, g_steal_pointer (&parsed));
+          g_strv_builder_add (builder, key);
+          g_array_append_val (types_array, type);
           n_args++;
-
           need_comma = TRUE;
         }
     }
@@ -1285,6 +1680,8 @@ parse_args (const char   *p,
     *n_out = n_args;
   if (values_out != NULL)
     *values_out = g_strv_builder_end (builder);
+  if (types_out != NULL)
+    *types_out = g_array_steal (types_array, NULL);
 
   return p;
 }
@@ -1365,7 +1762,93 @@ consume_token (const char    **pp,
                const char     *single_chars,
                TokenParseFlags flags,
                gboolean       *was_quoted,
+               GHashTable     *macro_replacements,
                GError        **error)
+{
+  g_autofree char *token = NULL;
+
+  token = consume_token_inner (pp, single_chars, flags, was_quoted, error);
+  if (token == NULL)
+    return NULL;
+
+  if (macro_replacements != NULL)
+    {
+      const char *replacement = NULL;
+
+      replacement = g_hash_table_lookup (macro_replacements, token);
+      if (replacement != NULL)
+        return g_strdup (replacement);
+      else
+        {
+          const char *replace_start = NULL;
+
+          replace_start = g_utf8_strchr (token, -1, '@');
+          if (replace_start != NULL)
+            {
+              const char *last_end       = token;
+              g_autoptr (GString) string = NULL;
+
+              string = g_string_new (NULL);
+              for (;;)
+                {
+                  g_autofree char *replace = NULL;
+                  const char      *with    = NULL;
+
+                  if (replace_start - last_end > 0)
+                    g_string_append_len (string, last_end, replace_start - last_end);
+                  replace_start++;
+
+                  last_end = g_utf8_strchr (replace_start, -1, '@');
+                  if (last_end == NULL)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "error in macro expansion: "
+                          "unterminated replacement");
+                      return NULL;
+                    }
+
+                  replace = g_strndup (replace_start, last_end - replace_start);
+                  with    = g_hash_table_lookup (macro_replacements, replace);
+                  if (with == NULL)
+                    {
+                      g_set_error (
+                          error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_UNKNOWN,
+                          "error in macro expansion: "
+                          "undefined string \"%s\"",
+                          replace);
+                      return NULL;
+                    }
+
+                  g_string_append (string, with);
+
+                  last_end++;
+                  replace_start = g_utf8_strchr (last_end, '@', -1);
+                  if (replace_start == NULL)
+                    break;
+                }
+
+              if (*last_end != '\0')
+                g_string_append (string, last_end);
+
+              return g_string_free_and_steal (g_steal_pointer (&string));
+            }
+        }
+    }
+
+  return g_steal_pointer (&token);
+}
+
+static char *
+consume_token_inner (const char    **pp,
+                     const char     *single_chars,
+                     TokenParseFlags flags,
+                     gboolean       *was_quoted,
+                     GError        **error)
 {
   const char *p             = *pp;
   gboolean    hit_non_space = FALSE;
