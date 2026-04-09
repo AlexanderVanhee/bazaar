@@ -16,6 +16,7 @@
 
     <file>countries.gvariant</file>
 
+    <file preprocess="xml-stripblanks">bz-addon-tile.ui</file>
     <file preprocess="xml-stripblanks">bz-addons-dialog.ui</file>
     <file preprocess="xml-stripblanks">bz-donations-dialog.ui</file>
     <file preprocess="xml-stripblanks">bz-age-rating-dialog.ui</file>
@@ -199,6 +200,8 @@
     <file preprocess="xml-stripblanks">icons/io.github.kolunmi.Bazaar.gnome.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolunmi.Bazaar.kde.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolunmi.Bazaar.google.svg</file>
+
+    <file>bz-global-progress.wdgt</file>
 
   </gresource>
 </gresources>
