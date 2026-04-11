@@ -1,6 +1,6 @@
-/* bge.h - Bazaar GTK Extensions
+/* bz-metainfo-preview.h
  *
- * Copyright 2026 Eva M
+ * Copyright 2026 Alexander Vanhee
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,24 +20,31 @@
 
 #pragma once
 
+#include <adwaita.h>
+#include <gio/gio.h>
 #include <gtk/gtk.h>
+#include <libdex.h>
+
+#include "bz-entry-group.h"
 
 G_BEGIN_DECLS
 
-#define BGE_INSIDE
-#include "bge-version-macros.h"
+typedef struct
+{
+  GFile *metainfo_file;
+  GFile *icon_file;
+} BzMetainfoPickResult;
 
-#include "bge-animation.h"
-#include "bge-carousel.h"
-#include "bge-markdown-render.h"
-#include "wdgt/bge-easing.h"
-#include "wdgt/bge-wdgt-renderer.h"
-#include "wdgt/bge-wdgt-spec.h"
-#include "wdgt/bge-wdgt-time.h"
-#undef BGE_INSIDE
-
-BGE_AVAILABLE_IN_ALL
 void
-bge_init (void);
+bz_metainfo_pick_result_free (BzMetainfoPickResult *result);
+
+GType
+bz_metainfo_pick_result_get_type (void);
+
+DexFuture *
+bz_metainfo_preview_pick_files (void);
+
+AdwNavigationPage *
+create_entry_group_preview_page (BzEntryGroup *group);
 
 G_END_DECLS
