@@ -48,31 +48,30 @@ _marshal_BOXED__ARGS_DIRECT (GClosure                *closure,
 
 typedef enum
 {
-  VALUE_OBJECT = 0,
-  VALUE_ITERATOR,
-  VALUE_CONSTANT,
-  VALUE_COMPONENT,
-  VALUE_TRANSFORM,
-  VALUE_PATH,
+  VALUE_ALLOCATION_HEIGHT = 0,
+  VALUE_ALLOCATION_TRANSFORM,
+  VALUE_ALLOCATION_WIDTH,
+  VALUE_CHILD,
   VALUE_CLOSURE,
   VALUE_COERCION,
-  VALUE_TRACK_TRANSITION,
-  VALUE_SPECIAL,
-  VALUE_VARIABLE,
-  VALUE_REFERENCE_OBJECT,
-  VALUE_PROPERTY,
-  VALUE_CHILD,
-  VALUE_ALLOCATION_WIDTH,
-  VALUE_ALLOCATION_HEIGHT,
-  VALUE_ALLOCATION_TRANSFORM,
-  VALUE_MEASURE_MINIMUM_WIDTH,
-  VALUE_MEASURE_NATURAL_WIDTH,
-  VALUE_MEASURE_MINIMUM_HEIGHT,
-  VALUE_MEASURE_NATURAL_HEIGHT,
+  VALUE_COMPONENT,
+  VALUE_CONSTANT,
+  VALUE_ITERATOR,
   VALUE_MEASURE_FOR_SIZE,
-  VALUE_WIDGET_WIDTH,
-  VALUE_WIDGET_HEIGHT,
+  VALUE_MEASURE_MINIMUM_HEIGHT,
+  VALUE_MEASURE_MINIMUM_WIDTH,
+  VALUE_MEASURE_NATURAL_HEIGHT,
+  VALUE_MEASURE_NATURAL_WIDTH,
+  VALUE_OBJECT,
+  VALUE_PATH,
+  VALUE_PROPERTY,
+  VALUE_REFERENCE_OBJECT,
   VALUE_TICK_TIME,
+  VALUE_TRACK_TRANSITION,
+  VALUE_TRANSFORM,
+  VALUE_VARIABLE,
+  VALUE_WIDGET_HEIGHT,
+  VALUE_WIDGET_WIDTH,
 } ValueKind;
 
 typedef enum
@@ -135,8 +134,14 @@ BGE_DEFINE_DATA (
       ValueKind kind;
       union
       {
-        GValue     constant;
-        GPtrArray *component;
+        struct
+        {
+          GValue value;
+        } constant;
+        struct
+        {
+          GPtrArray *params;
+        } component;
         struct
         {
           ForeachData *context;
@@ -170,7 +175,6 @@ BGE_DEFINE_DATA (
             ValueData *stiffness;
           } spring;
         } track_transition;
-        BgeWdgtSpecialValue special;
         struct
         {
           ValueData *value;
@@ -215,16 +219,14 @@ deinit_value (gpointer ptr)
   g_clear_pointer (&value->name, g_free);
   switch (value->kind)
     {
-    case VALUE_OBJECT:
-      break;
     case VALUE_CONSTANT:
-      g_value_unset (&value->constant);
+      g_value_unset (&value->constant.value);
       break;
     case VALUE_ITERATOR:
       g_clear_pointer (&value->iterator.context, foreach_data_unref);
       break;
     case VALUE_COMPONENT:
-      g_clear_pointer (&value->component, g_ptr_array_unref);
+      g_clear_pointer (&value->component.params, g_ptr_array_unref);
       break;
     case VALUE_TRANSFORM:
       g_clear_pointer (&value->transform.next, value_data_unref);
@@ -248,12 +250,6 @@ deinit_value (gpointer ptr)
       g_clear_pointer (&value->track_transition.spring.mass, value_data_unref);
       g_clear_pointer (&value->track_transition.spring.stiffness, value_data_unref);
       break;
-    case VALUE_SPECIAL:
-      break;
-    case VALUE_VARIABLE:
-      break;
-    case VALUE_REFERENCE_OBJECT:
-      break;
     case VALUE_PROPERTY:
       g_clear_pointer (&value->property.object, value_data_unref);
       g_clear_pointer (&value->property.prop_name, g_free);
@@ -268,14 +264,17 @@ deinit_value (gpointer ptr)
     case VALUE_ALLOCATION_TRANSFORM:
       g_clear_pointer (&value->allocation.widget, value_data_unref);
       break;
-    case VALUE_MEASURE_MINIMUM_WIDTH:
-    case VALUE_MEASURE_NATURAL_WIDTH:
-    case VALUE_MEASURE_MINIMUM_HEIGHT:
-    case VALUE_MEASURE_NATURAL_HEIGHT:
     case VALUE_MEASURE_FOR_SIZE:
-    case VALUE_WIDGET_WIDTH:
-    case VALUE_WIDGET_HEIGHT:
+    case VALUE_MEASURE_MINIMUM_HEIGHT:
+    case VALUE_MEASURE_MINIMUM_WIDTH:
+    case VALUE_MEASURE_NATURAL_HEIGHT:
+    case VALUE_MEASURE_NATURAL_WIDTH:
+    case VALUE_OBJECT:
+    case VALUE_REFERENCE_OBJECT:
     case VALUE_TICK_TIME:
+    case VALUE_VARIABLE:
+    case VALUE_WIDGET_HEIGHT:
+    case VALUE_WIDGET_WIDTH:
       break;
     default:
       g_assert_not_reached ();
@@ -293,8 +292,8 @@ BGE_DEFINE_DATA (
       {
         struct
         {
-          double    seconds;
-          BgeEasing easing;
+          ValueData *seconds;
+          ValueData *easing;
         } ease;
         struct
         {
@@ -314,6 +313,8 @@ deinit_transition (gpointer ptr)
   switch (transition->kind)
     {
     case TRANSITION_EASE:
+      g_clear_pointer (&transition->ease.seconds, value_data_unref);
+      g_clear_pointer (&transition->ease.easing, value_data_unref);
       break;
     case TRANSITION_SPRING:
       g_clear_pointer (&transition->spring.damping_ratio, value_data_unref);
@@ -1093,7 +1094,7 @@ bge_wdgt_spec_add_constant_source_value (BgeWdgtSpec  *self,
   value->name = g_strdup (name);
   value->type = constant->g_type;
   value->kind = VALUE_CONSTANT;
-  g_value_copy (constant, g_value_init (&value->constant, constant->g_type));
+  g_value_copy (constant, g_value_init (&value->constant.value, constant->g_type));
 
   g_hash_table_replace (self->values, g_strdup (name), value_data_ref (value));
   return TRUE;
@@ -1189,11 +1190,11 @@ bge_wdgt_spec_add_component_source_value (BgeWdgtSpec       *self,
       return FALSE;
     }
 
-  value            = value_data_new ();
-  value->name      = g_strdup (name);
-  value->type      = type;
-  value->kind      = VALUE_COMPONENT;
-  value->component = g_ptr_array_new_with_free_func (value_data_unref);
+  value                   = value_data_new ();
+  value->name             = g_strdup (name);
+  value->type             = type;
+  value->kind             = VALUE_COMPONENT;
+  value->component.params = g_ptr_array_new_with_free_func (value_data_unref);
 
   for (guint i = 0; i < n_components; i++)
     {
@@ -1217,7 +1218,8 @@ bge_wdgt_spec_add_component_source_value (BgeWdgtSpec       *self,
           return FALSE;
         }
 
-      g_ptr_array_add (value->component, value_data_ref (value_data));
+      g_ptr_array_add (value->component.params,
+                       value_data_ref (value_data));
     }
 
   g_hash_table_replace (self->values, g_strdup (name), value_data_ref (value));
@@ -1886,63 +1888,6 @@ bge_wdgt_spec_add_track_transition_source_value (BgeWdgtSpec *self,
 }
 
 gboolean
-bge_wdgt_spec_add_special_source_value (BgeWdgtSpec        *self,
-                                        const char         *name,
-                                        BgeWdgtSpecialValue kind,
-                                        GError            **error)
-{
-  g_autoptr (ValueData) value = NULL;
-
-  g_return_val_if_fail (BGE_IS_WDGT_SPEC (self), FALSE);
-  g_return_val_if_fail (name != NULL, FALSE);
-
-  if (g_hash_table_contains (self->values, name))
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
-                   "value '%s' already exists", name);
-      return FALSE;
-    }
-
-  switch (kind)
-    {
-    case BGE_WDGT_SPECIAL_VALUE_MOTION_X:
-      if (self->special_values.motion_x != NULL)
-        value = value_data_ref (self->special_values.motion_x);
-      break;
-    case BGE_WDGT_SPECIAL_VALUE_MOTION_Y:
-      if (self->special_values.motion_y != NULL)
-        value = value_data_ref (self->special_values.motion_y);
-      break;
-    default:
-      g_critical ("Invalid special value specified");
-      return FALSE;
-    }
-
-  if (value == NULL)
-    {
-      value          = value_data_new ();
-      value->name    = g_strdup (name);
-      value->kind    = VALUE_SPECIAL;
-      value->special = kind;
-
-      switch (kind)
-        {
-        case BGE_WDGT_SPECIAL_VALUE_MOTION_X:
-          self->special_values.motion_x = value_data_ref (value);
-          break;
-        case BGE_WDGT_SPECIAL_VALUE_MOTION_Y:
-          self->special_values.motion_y = value_data_ref (value);
-          break;
-        default:
-          g_assert_not_reached ();
-        }
-    }
-
-  g_hash_table_replace (self->values, g_strdup (name), value_data_ref (value));
-  return TRUE;
-}
-
-gboolean
 bge_wdgt_spec_add_variable_value (BgeWdgtSpec *self,
                                   GType        type,
                                   const char  *name,
@@ -2375,12 +2320,6 @@ bge_wdgt_spec_set_value (BgeWdgtSpec *self,
                    "cannot assign to a constant source value");
       return FALSE;
     }
-  if (dest_data->kind == VALUE_SPECIAL)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
-                   "cannot assign to a special source value");
-      return FALSE;
-    }
   if (dest_data->kind == VALUE_PROPERTY &&
       !(dest_data->property.pspec_flags & G_PARAM_WRITABLE))
     {
@@ -2413,35 +2352,35 @@ gboolean
 bge_wdgt_spec_transition_value (BgeWdgtSpec *self,
                                 const char  *state,
                                 const char  *value,
-                                double       seconds,
-                                BgeEasing    easing,
+                                const char  *seconds,
+                                const char  *easing,
                                 GError     **error)
 {
   StateData *state_data                 = NULL;
   ValueData *value_data                 = NULL;
+  ValueData *seconds_data               = NULL;
+  ValueData *easing_data                = NULL;
   g_autoptr (TransitionData) transition = NULL;
 
   g_return_val_if_fail (BGE_IS_WDGT_SPEC (self), FALSE);
   /* state is required for transitions */
   g_return_val_if_fail (state != NULL, FALSE);
   g_return_val_if_fail (value != NULL, FALSE);
-
-  if (seconds <= 0.0)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
-                   "transition period must be greater than 0.0");
-      return FALSE;
-    }
+  g_return_val_if_fail (seconds != NULL, FALSE);
+  g_return_val_if_fail (easing != NULL, FALSE);
 
   state_data = g_hash_table_lookup (self->states, state);
-  value_data = g_hash_table_lookup (self->values, value);
-
   if (state_data == NULL)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
                    "state '%s' is undefined", state);
       return FALSE;
     }
+
+  value_data   = g_hash_table_lookup (self->values, value);
+  seconds_data = g_hash_table_lookup (self->values, seconds);
+  easing_data  = g_hash_table_lookup (self->values, easing);
+
   if (value_data == NULL)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
@@ -2457,10 +2396,39 @@ bge_wdgt_spec_transition_value (BgeWdgtSpec *self,
       return FALSE;
     }
 
+  if (seconds_data == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
+                   "value '%s' is undefined", value);
+      return FALSE;
+    }
+  if (seconds_data->type != G_TYPE_DOUBLE)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
+                   "transition ease seconds value must be a double, got %s",
+                   g_type_name (seconds_data->type));
+      return FALSE;
+    }
+
+  if (easing_data == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
+                   "value '%s' is undefined", value);
+      return FALSE;
+    }
+  if (easing_data->type != BGE_TYPE_EASING)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_UNKNOWN,
+                   "transition ease easing value must be of type %s, got %s",
+                   g_type_name (BGE_TYPE_EASING),
+                   g_type_name (easing_data->type));
+      return FALSE;
+    }
+
   transition               = transition_data_new ();
   transition->kind         = TRANSITION_EASE;
-  transition->ease.seconds = seconds;
-  transition->ease.easing  = easing;
+  transition->ease.seconds = value_data_ref (seconds_data);
+  transition->ease.easing  = value_data_ref (easing_data);
 
   g_hash_table_replace (
       state_data->transitions,
@@ -5351,7 +5319,12 @@ BGE_DEFINE_DATA (
       double           value;
       double           elapsed;
       BgeWdgtNotifier *notifier;
-      SpringCache      spring;
+      struct
+      {
+        BgeEasing easing;
+        double    seconds;
+      } ease;
+      SpringCache spring;
     },
     BGE_RELEASE_DATA (notifier, g_object_unref))
 
@@ -5422,6 +5395,11 @@ static double
 resolve_value_double (BgeWdgtRenderer   *self,
                       ValueData         *value,
                       StateInstanceData *instance);
+
+static gint
+resolve_value_enum (BgeWdgtRenderer   *self,
+                    ValueData         *value,
+                    StateInstanceData *instance);
 
 static gpointer
 resolve_value_boxed_dup (BgeWdgtRenderer   *self,
@@ -6004,7 +5982,7 @@ tick_cb (BgeWdgtRenderer *self,
           switch (transition->kind)
             {
             case TRANSITION_EASE:
-              if (elapsed <= transition->ease.seconds)
+              if (elapsed <= transition_instance->ease.seconds)
                 finished_all_state_transitions = FALSE;
               break;
             case TRANSITION_SPRING:
@@ -6908,7 +6886,7 @@ expression_adjust_state_transition (BgeWdgtRenderer       *this,
   if (last_transition != NULL &&
       last_transition_instance != NULL &&
       last_transition->kind == TRANSITION_EASE &&
-      last_transition_instance->elapsed < last_transition->ease.seconds)
+      last_transition_instance->elapsed < last_transition_instance->ease.seconds)
     last_in = last_transition_instance->value;
   else
     {
@@ -6923,6 +6901,32 @@ expression_adjust_state_transition (BgeWdgtRenderer       *this,
 
   switch (transition->kind)
     {
+    case TRANSITION_EASE:
+      {
+        BgeEasing easing  = 0;
+        double    seconds = 0.0;
+
+        easing = resolve_value_enum (
+            this,
+            transition->ease.easing,
+            this->active_instance);
+        seconds = resolve_value_double (
+            this,
+            transition->ease.seconds,
+            this->active_instance);
+
+        if (elapsed >= seconds)
+          interpolated_number = in;
+        else
+          {
+            progress            = bge_easing_ease (easing, elapsed / seconds);
+            interpolated_number = last_in + progress * (in - last_in);
+          }
+
+        transition_instance->ease.easing  = easing;
+        transition_instance->ease.seconds = seconds;
+      }
+      break;
     case TRANSITION_SPRING:
       {
         double damping_ratio = 0.0;
@@ -6982,18 +6986,6 @@ expression_adjust_state_transition (BgeWdgtRenderer       *this,
               in,
               elapsed,
               &transition_instance->spring.velocity);
-      }
-      break;
-    case TRANSITION_EASE:
-      {
-        if (elapsed >= transition->ease.seconds)
-          interpolated_number = in;
-        else
-          {
-            progress            = bge_easing_ease (transition->ease.easing,
-                                                   elapsed / transition->ease.seconds);
-            interpolated_number = last_in + progress * (in - last_in);
-          }
       }
       break;
     default:
@@ -7130,7 +7122,7 @@ ensure_expressions (BgeWdgtRenderer   *self,
   switch (value->kind)
     {
     case VALUE_CONSTANT:
-      expression = gtk_constant_expression_new_for_value (&value->constant);
+      expression = gtk_constant_expression_new_for_value (&value->constant.value);
       break;
     case VALUE_OBJECT:
     case VALUE_CHILD:
@@ -7366,12 +7358,12 @@ ensure_expressions (BgeWdgtRenderer   *self,
 
         params = g_ptr_array_new ();
 
-        for (guint i = 0; i < value->component->len; i++)
+        for (guint i = 0; i < value->component.params->len; i++)
           {
             ValueData *member                     = NULL;
             g_autoptr (GtkExpression) member_expr = NULL;
 
-            member      = g_ptr_array_index (value->component, i);
+            member      = g_ptr_array_index (value->component.params, i);
             member_expr = ensure_expressions (self, member, state, instance);
             g_ptr_array_add (params, g_steal_pointer (&member_expr));
           }
@@ -7517,9 +7509,6 @@ ensure_expressions (BgeWdgtRenderer   *self,
             value->property.prop_name);
       }
       break;
-    case VALUE_SPECIAL:
-      g_assert (FALSE);
-      break;
     default:
       g_assert_not_reached ();
       break;
@@ -7541,7 +7530,7 @@ ensure_expressions (BgeWdgtRenderer   *self,
       switch (transition->kind)
         {
         case TRANSITION_EASE:
-          instance_data->elapsed = transition->ease.seconds;
+          instance_data->elapsed = G_MAXINT;
           break;
         case TRANSITION_SPRING:
           instance_data->spring.est_duration = -1.0;
@@ -7687,7 +7676,6 @@ set_value (BgeWdgtRenderer   *self,
                   case VALUE_PATH:
                   case VALUE_PROPERTY:
                   case VALUE_REFERENCE_OBJECT:
-                  case VALUE_SPECIAL:
                   case VALUE_TICK_TIME:
                   case VALUE_TRACK_TRANSITION:
                   case VALUE_TRANSFORM:
@@ -7745,7 +7733,6 @@ set_value (BgeWdgtRenderer   *self,
           case VALUE_PATH:
           case VALUE_PROPERTY:
           case VALUE_REFERENCE_OBJECT:
-          case VALUE_SPECIAL:
           case VALUE_TICK_TIME:
           case VALUE_TRACK_TRANSITION:
           case VALUE_TRANSFORM:
@@ -7771,7 +7758,6 @@ set_value (BgeWdgtRenderer   *self,
     case VALUE_OBJECT:
     case VALUE_PATH:
     case VALUE_REFERENCE_OBJECT:
-    case VALUE_SPECIAL:
     case VALUE_TICK_TIME:
     case VALUE_TRACK_TRANSITION:
     case VALUE_TRANSFORM:
@@ -7842,6 +7828,27 @@ resolve_value_double (BgeWdgtRenderer   *self,
       self,
       &resolved);
   ret = g_value_get_double (&resolved);
+  g_value_unset (&resolved);
+
+  return ret;
+}
+
+static gint
+resolve_value_enum (BgeWdgtRenderer   *self,
+                    ValueData         *value,
+                    StateInstanceData *instance)
+{
+  GtkExpression *expression = NULL;
+  GValue         resolved   = G_VALUE_INIT;
+  gint           ret        = 0;
+
+  expression = g_hash_table_lookup (instance->expressions, value);
+  g_assert (expression != NULL);
+  gtk_expression_evaluate (
+      expression,
+      self,
+      &resolved);
+  ret = g_value_get_enum (&resolved);
   g_value_unset (&resolved);
 
   return ret;
