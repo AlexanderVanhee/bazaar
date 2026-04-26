@@ -1,5 +1,15 @@
 .bz-monospace {
+    font-size: smaller;
     font-family: monospace;
+}
+
+.bz-small-button {
+    padding: 1px;
+    margin: 0;
+}
+.bz-small-button > * {
+    margin: 0;
+    padding: 0;
 }
 
 .bz-debug {
