@@ -540,6 +540,14 @@ bge_wdgt_spec_class_init (BgeWdgtSpecClass *klass)
   g_type_ensure (GRAPHENE_TYPE_EULER);
   g_type_ensure (GRAPHENE_TYPE_RAY);
 
+  g_type_ensure (GSK_TYPE_PATH);
+  g_type_ensure (GSK_TYPE_PATH_POINT);
+  g_type_ensure (GSK_TYPE_PATH_MEASURE);
+  g_type_ensure (GSK_TYPE_TRANSFORM);
+  g_type_ensure (GSK_TYPE_FILL_RULE);
+  g_type_ensure (GSK_TYPE_LINE_CAP);
+  g_type_ensure (GSK_TYPE_LINE_JOIN);
+
   /* Ensure GTK names are available for the parser */
   g_type_ensure (gtk_at_context_get_type ());
   g_type_ensure (gtk_about_dialog_get_type ());
@@ -4214,7 +4222,7 @@ lookup_snapshot_push_instr (const char    *lookup_name,
      },
      gtk_snapshot_push_fill,
      snapshot_push_instr_fill,
-     2,
+     1,
      },
     {
      "stroke",
@@ -4226,7 +4234,7 @@ lookup_snapshot_push_instr (const char    *lookup_name,
      },
      gtk_snapshot_push_stroke,
      snapshot_push_instr_stroke,
-     2,
+     1,
      },
     {
      "shadow",
@@ -4240,7 +4248,7 @@ lookup_snapshot_push_instr (const char    *lookup_name,
      },
      gtk_snapshot_push_shadow,
      snapshot_push_instr_shadow,
-     2,
+     1,
      },
     {
      "blend",
@@ -5654,7 +5662,7 @@ bge_wdgt_renderer_size_allocate (GtkWidget *widget,
     }
 }
 
-static void
+static gboolean
 recurse_snapshot (BgeWdgtRenderer *self,
                   GtkSnapshot     *snapshot,
                   GPtrArray       *calls,
@@ -5663,6 +5671,7 @@ recurse_snapshot (BgeWdgtRenderer *self,
                   ForeachData     *parent_foreach,
                   gboolean         skip_foreach)
 {
+  gboolean             result           = FALSE;
   guint                start_idx        = 0;
   guint                n_iters          = 0;
   ForeachData         *next_foreach     = NULL;
@@ -5714,14 +5723,18 @@ recurse_snapshot (BgeWdgtRenderer *self,
       *idx = start_idx;
 
       if (next_foreach != NULL)
-        recurse_snapshot (
-            self,
-            snapshot,
-            calls,
-            idx,
-            next_foreach,
-            foreach_context,
-            skip_foreach);
+        {
+          result = recurse_snapshot (
+              self,
+              snapshot,
+              calls,
+              idx,
+              next_foreach,
+              foreach_context,
+              skip_foreach);
+          if (!result)
+            return FALSE;
+        }
 
       for (; *idx < calls->len; (*idx)++)
         {
@@ -5734,14 +5747,18 @@ recurse_snapshot (BgeWdgtRenderer *self,
               call->foreach_context == parent_foreach)
             break;
           else if (call->foreach_context != foreach_context)
-            recurse_snapshot (
-                self,
-                snapshot,
-                calls,
-                idx,
-                call->foreach_context,
-                foreach_context,
-                skip_foreach);
+            {
+              result = recurse_snapshot (
+                  self,
+                  snapshot,
+                  calls,
+                  idx,
+                  call->foreach_context,
+                  foreach_context,
+                  skip_foreach);
+              if (!result)
+                return FALSE;
+            }
           else if (!skip_foreach)
             {
               switch (call->kind)
@@ -5774,7 +5791,9 @@ recurse_snapshot (BgeWdgtRenderer *self,
 
                         value      = g_ptr_array_index (call->args, j);
                         expression = g_hash_table_lookup (self->active_instance->expressions, value);
-                        gtk_expression_evaluate (expression, self, &arg_values[j]);
+                        result     = gtk_expression_evaluate (expression, self, &arg_values[j]);
+                        if (!result)
+                          return FALSE;
                       }
                     for (guint j = 0; j < n_rest_values; j++)
                       {
@@ -5783,7 +5802,9 @@ recurse_snapshot (BgeWdgtRenderer *self,
 
                         value      = g_ptr_array_index (call->rest, j);
                         expression = g_hash_table_lookup (self->active_instance->expressions, value);
-                        gtk_expression_evaluate (expression, self, &rest_values[j]);
+                        result     = gtk_expression_evaluate (expression, self, &rest_values[j]);
+                        if (!result)
+                          return FALSE;
                       }
 
                     call->func (snapshot, arg_values, rest_values, n_rest_values);
@@ -5828,6 +5849,8 @@ recurse_snapshot (BgeWdgtRenderer *self,
             }
         }
     }
+
+  return TRUE;
 }
 
 static void
@@ -8032,39 +8055,79 @@ reset_setter (WatchSetterData *data)
       NULL);
 }
 
+static GHashTable *renderer_resource_cache = NULL;
+
+static void
+cache_weak_notify (char    *resource,
+                   GObject *where_the_object_was)
+{
+  g_hash_table_remove (renderer_resource_cache, resource);
+  g_free (resource);
+}
+
 static void
 wdgt_renderer_set_from_resource (BgeWdgtRenderer *self,
                                  const char      *resource)
 {
   g_autoptr (GError) local_error = NULL;
   g_autoptr (GBytes) bytes       = NULL;
+  BgeWdgtSpec  *cached           = NULL;
   gsize         buffer_size      = 0;
   gconstpointer buffer           = NULL;
   g_autoptr (BgeWdgtSpec) spec   = NULL;
 
-  bytes = g_resources_lookup_data (
-      resource,
-      G_RESOURCE_LOOKUP_FLAGS_NONE,
-      &local_error);
-  if (bytes == NULL)
+  if (g_once_init_enter_pointer (&renderer_resource_cache))
     {
-      g_critical ("failed to set renderer spec from resource: %s",
-                  local_error->message);
-      bge_wdgt_renderer_set_spec (self, NULL);
-      return;
+      GHashTable *tmp = NULL;
+
+      tmp = g_hash_table_new_full (
+          g_str_hash,
+          g_str_equal,
+          g_free,
+          NULL);
+      g_once_init_leave_pointer (&renderer_resource_cache, tmp);
     }
 
-  buffer = g_bytes_get_data (bytes, &buffer_size);
-  spec   = bge_wdgt_spec_new_for_string (buffer, &local_error);
-  if (spec == NULL)
+  cached = g_hash_table_lookup (
+      renderer_resource_cache,
+      resource);
+  if (cached == NULL)
     {
-      g_critical ("failed to set renderer spec from resource %s: %s",
-                  resource, local_error->message);
-      bge_wdgt_renderer_set_spec (self, NULL);
-      return;
+      bytes = g_resources_lookup_data (
+          resource,
+          G_RESOURCE_LOOKUP_FLAGS_NONE,
+          &local_error);
+      if (bytes == NULL)
+        {
+          g_critical ("failed to set renderer spec from resource: %s",
+                      local_error->message);
+          bge_wdgt_renderer_set_spec (self, NULL);
+          return;
+        }
+
+      buffer = g_bytes_get_data (bytes, &buffer_size);
+      spec   = bge_wdgt_spec_new_for_string (buffer, &local_error);
+      if (spec == NULL)
+        {
+          g_critical ("failed to set renderer spec from resource %s: %s",
+                      resource, local_error->message);
+          bge_wdgt_renderer_set_spec (self, NULL);
+          return;
+        }
+
+      g_hash_table_replace (
+          renderer_resource_cache,
+          g_strdup (resource),
+          spec);
+      g_object_weak_ref (
+          G_OBJECT (spec),
+          (GWeakNotify) cache_weak_notify,
+          g_strdup (resource));
+
+      cached = spec;
     }
 
-  bge_wdgt_renderer_set_spec (self, spec);
+  bge_wdgt_renderer_set_spec (self, cached);
 }
 
 static void

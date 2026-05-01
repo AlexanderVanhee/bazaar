@@ -25,7 +25,6 @@
 
 #include "bz-addons-dialog.h"
 #include "bz-application.h"
-#include "bz-comet-overlay.h"
 #include "bz-curated-view.h"
 #include "bz-entry-group-util.h"
 #include "bz-entry-group.h"
@@ -34,7 +33,6 @@
 #include "bz-flathub-page.h"
 #include "bz-flatpak-entry.h"
 #include "bz-full-view.h"
-#include "bz-global-progress.h"
 #include "bz-hooks.h"
 #include "bz-io.h"
 #include "bz-library-page.h"
@@ -58,7 +56,6 @@ struct _BzWindow
   gboolean breakpoint_applied;
 
   /* Template widgets */
-  BzCometOverlay    *comet_overlay;
   AdwNavigationView *navigation_view;
   BzFullView        *full_view;
   BzSearchPage      *search_page;
@@ -303,7 +300,7 @@ browse_flathub_cb (BzWindow      *self,
 }
 
 static void
-open_search_cb (BzWindow       *self,
+open_search_cb (BzWindow     *self,
                 BzSearchPage *widget)
 {
   adw_view_stack_set_visible_child_name (self->main_view_stack, "search");
@@ -449,11 +446,11 @@ action_cancel_group (GtkWidget  *widget,
   for (guint i = 0; i < n_items; i++)
     {
       g_autoptr (BzTransactionEntryTracker) tracker = NULL;
-      BzEntry    *entry    = NULL;
-      const char *entry_id = NULL;
+      BzEntry    *entry                             = NULL;
+      const char *entry_id                          = NULL;
 
-      tracker  = g_list_model_get_item (trackers, i);
-      entry    = bz_transaction_entry_tracker_get_entry (tracker);
+      tracker = g_list_model_get_item (trackers, i);
+      entry   = bz_transaction_entry_tracker_get_entry (tracker);
       if (entry == NULL)
         continue;
 
@@ -488,7 +485,7 @@ action_show_group (GtkWidget  *widget,
     {
       AdwDialog *dialog = NULL;
 
-      dialog =bz_addons_dialog_new_single (group);
+      dialog = bz_addons_dialog_new_single (group);
       adw_dialog_present (dialog, GTK_WIDGET (self));
     }
   else
@@ -503,7 +500,7 @@ action_addons_group (GtkWidget  *widget,
   BzWindow   *self               = BZ_WINDOW (widget);
   const char *id                 = NULL;
   g_autoptr (BzEntryGroup) group = NULL;
-  AdwDialog  *addons_dialog      = NULL;
+  AdwDialog *addons_dialog       = NULL;
 
   id    = g_variant_get_string (parameter, NULL);
   group = bz_application_map_factory_convert_one (
@@ -572,10 +569,10 @@ action_open_library (GtkWidget  *widget,
 static DexFuture *
 launch_group_fiber (BzEntryGroup *group)
 {
-  g_autoptr (GError) local_error  = NULL;
-  g_autoptr (GListStore) store    = NULL;
-  GtkWidget   *window             = NULL;
-  BzStateInfo *state              = NULL;
+  g_autoptr (GError) local_error = NULL;
+  g_autoptr (GListStore) store   = NULL;
+  GtkWidget   *window            = NULL;
+  BzStateInfo *state             = NULL;
 
   state  = bz_state_info_get_default ();
   window = GTK_WIDGET (gtk_application_get_active_window (
@@ -592,9 +589,9 @@ launch_group_fiber (BzEntryGroup *group)
 
   for (guint i = 0; i < g_list_model_get_n_items (G_LIST_MODEL (store)); i++)
     {
-      g_autoptr (BzEntry) entry    = NULL;
-      const char         *ref      = NULL;
-      gboolean            result   = FALSE;
+      g_autoptr (BzEntry) entry = NULL;
+      const char *ref           = NULL;
+      gboolean    result        = FALSE;
 
       entry = g_list_model_get_item (G_LIST_MODEL (store), i);
 
@@ -604,7 +601,7 @@ launch_group_fiber (BzEntryGroup *group)
       ref = bz_flatpak_entry_get_addon_extension_of_ref (BZ_FLATPAK_ENTRY (entry));
       if (ref != NULL)
         {
-          g_auto (GStrv)           parts   = NULL;
+          g_auto (GStrv) parts             = NULL;
           BzApplicationMapFactory *factory = NULL;
           g_autoptr (BzEntryGroup) parent  = NULL;
 
@@ -681,9 +678,7 @@ bz_window_class_init (BzWindowClass *klass)
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
-  g_type_ensure (BZ_TYPE_COMET_OVERLAY);
   g_type_ensure (BZ_TYPE_SEARCH_PAGE);
-  g_type_ensure (BZ_TYPE_GLOBAL_PROGRESS);
   g_type_ensure (BZ_TYPE_PROGRESS_BAR);
   g_type_ensure (BZ_TYPE_CURATED_VIEW);
   g_type_ensure (BZ_TYPE_FULL_VIEW);
@@ -693,7 +688,6 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-window.ui");
   bz_widget_class_bind_all_util_callbacks (widget_class);
 
-  gtk_widget_class_bind_template_child (widget_class, BzWindow, comet_overlay);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, navigation_view);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, full_view);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, toasts);
@@ -994,7 +988,7 @@ bz_window_show_entry (BzWindow *self,
   g_return_if_fail (BZ_IS_ENTRY (entry));
 
   group = bz_entry_group_new_for_single_entry (entry);
-  bz_window_show_group(self, group);
+  bz_window_show_group (self, group);
 }
 
 void
