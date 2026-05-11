@@ -33,6 +33,7 @@ configure_file(
 bge_deps = [
   cc.find_library('m', required: true),
   dependency('gtk4', version: '>= 4.22.1'),
+  dependency('gtksourceview-5', version: '>= 5.17'),
   dependency('md4c', version: '>= 0.5.1'),
 ]
 
