@@ -110,7 +110,6 @@ bz_sources = files(
   'bz-group-tile-css-watcher.c',
   'bz-hardware-support-dialog.c',
   'bz-hooks.c',
-  'bz-inhibited-scrollable.c',
   'bz-inspector.c',
   'bz-install-controls.c',
   'bz-installed-tile.c',

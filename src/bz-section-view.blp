@@ -155,6 +155,7 @@ template $BzSectionView: Adw.Bin {
         hexpand: true;
         vexpand: true;
         markdown: bind template.section as <$BzCuratedSection>.markdown as <$BzCuratedMarkdownInfo>.string as <string>;
+        bind-inline-uri => $markdown_bind_inline_uri(template);
       }
     }
 
