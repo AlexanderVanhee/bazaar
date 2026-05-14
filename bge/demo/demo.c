@@ -20,12 +20,15 @@
 
 #include <bge.h>
 
+static BgeWdgtRenderer *wdgt      = NULL;
+static GtkLabel        *error_lbl = NULL;
+
 static void
 on_activate (GtkApplication *app);
 
 static void
-on_buffer_changed (GtkTextBuffer   *buffer,
-                   BgeWdgtRenderer *wdgt);
+on_buffer_changed (GtkTextBuffer *buffer,
+                   gpointer       user_data);
 
 int
 main (int argc, char **argv)
@@ -56,7 +59,6 @@ on_activate (GtkApplication *app)
   GtkWidget         *window             = NULL;
   GtkWidget         *root               = NULL;
   GtkTextBuffer     *buffer             = NULL;
-  BgeWdgtRenderer   *wdgt               = NULL;
   BgeMarkdownRender *markdown           = NULL;
   g_autoptr (GtkStringObject) reference = NULL;
   g_autoptr (GtkBuilder) builder        = NULL;
@@ -76,10 +78,11 @@ on_activate (GtkApplication *app)
   builder = gtk_builder_new ();
   gtk_builder_set_scope (builder, scope);
   gtk_builder_add_from_resource (builder, "/io/github/kolunmi/BgeDemo/window.ui", NULL);
-  root     = GTK_WIDGET (gtk_builder_get_object (builder, "root"));
-  buffer   = GTK_TEXT_BUFFER (gtk_builder_get_object (builder, "buffer"));
-  wdgt     = BGE_WDGT_RENDERER (gtk_builder_get_object (builder, "wdgt"));
-  markdown = BGE_MARKDOWN_RENDER (gtk_builder_get_object (builder, "markdown"));
+  root      = GTK_WIDGET (gtk_builder_get_object (builder, "root"));
+  buffer    = GTK_TEXT_BUFFER (gtk_builder_get_object (builder, "buffer"));
+  wdgt      = BGE_WDGT_RENDERER (gtk_builder_get_object (builder, "wdgt"));
+  error_lbl = GTK_LABEL (gtk_builder_get_object (builder, "error_lbl"));
+  markdown  = BGE_MARKDOWN_RENDER (gtk_builder_get_object (builder, "markdown"));
 
   reference = gtk_string_object_new ("Hello from demo.c!!");
   bge_wdgt_renderer_set_reference (wdgt, G_OBJECT (reference));
@@ -87,7 +90,7 @@ on_activate (GtkApplication *app)
   g_signal_connect (
       buffer, "changed",
       G_CALLBACK (on_buffer_changed),
-      wdgt);
+      NULL);
 
   wdgt_bytes = g_resources_lookup_data (
       "/io/github/kolunmi/BgeDemo/test.wdgt",
@@ -108,8 +111,8 @@ on_activate (GtkApplication *app)
 }
 
 static void
-on_buffer_changed (GtkTextBuffer   *buffer,
-                   BgeWdgtRenderer *wdgt)
+on_buffer_changed (GtkTextBuffer *buffer,
+                   gpointer       user_data)
 {
   g_autoptr (GError) local_error = NULL;
   g_autofree char *text          = NULL;
@@ -122,7 +125,12 @@ on_buffer_changed (GtkTextBuffer   *buffer,
 
   text = gtk_text_buffer_get_text (buffer, &start_iter, &end_iter, FALSE);
   spec = bge_wdgt_spec_new_for_string (text, &local_error);
-  if (spec == NULL)
-    g_print ("Error!! %s\n", local_error->message);
+  if (spec != NULL)
+    gtk_widget_set_visible (GTK_WIDGET (error_lbl), FALSE);
+  else
+    {
+      gtk_label_set_label (error_lbl, local_error->message);
+      gtk_widget_set_visible (GTK_WIDGET (error_lbl), TRUE);
+    }
   bge_wdgt_renderer_set_spec (wdgt, spec);
 }

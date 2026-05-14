@@ -241,6 +241,7 @@ gobject_specs = files(
   'bz-safety-row.txt',
   'bz-search-bias.txt',
   'bz-search-result.txt',
+  'bz-size-result.txt',
   'bz-state-info.txt',
   'bz-transact-icon-info.txt',
   'bz-transaction-dialog-result.txt',

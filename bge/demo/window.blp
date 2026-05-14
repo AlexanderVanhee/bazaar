@@ -24,6 +24,11 @@ Box root {
       };
       end-child: Box {
         orientation: vertical;
+        Label error_lbl {
+          styles ["error"]
+          visible: false;
+          wrap: true;
+        }
         $BgeWdgtRenderer wdgt {
           styles ["debug"]
           halign: center;
