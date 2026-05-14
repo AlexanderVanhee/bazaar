@@ -55,4 +55,7 @@ bz_query_flathub_v2_json_authenticated_delete (const char *request,
 DexFuture *
 bz_query_flathub_v2_json_take (char *request);
 
+DexFuture *
+bz_fetch_uri_contents (const char *uri);
+
 G_END_DECLS

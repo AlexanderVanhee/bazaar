@@ -1,6 +1,6 @@
-/* bz-row-view.h
+/* bz-featured-carousel-view.h
  *
- * Copyright 2025 Adam Masciola
+ * Copyright 2026 Alexander Vanhee
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,21 +22,21 @@
 
 #include <adwaita.h>
 
-#include "bz-curated-row.h"
+#include "bz-curated-featured-carousel.h"
 
 G_BEGIN_DECLS
 
-#define BZ_TYPE_ROW_VIEW (bz_row_view_get_type ())
-G_DECLARE_FINAL_TYPE (BzRowView, bz_row_view, BZ, ROW_VIEW, AdwBin)
+#define BZ_TYPE_FEATURED_CAROUSEL_VIEW (bz_featured_carousel_view_get_type ())
+G_DECLARE_FINAL_TYPE (BzFeaturedCarouselView, bz_featured_carousel_view, BZ, FEATURED_CAROUSEL_VIEW, AdwBin)
 
 GtkWidget *
-bz_row_view_new (BzCuratedRow *row);
+bz_featured_carousel_view_new (BzCuratedFeaturedCarousel *carousel);
 
 void
-bz_row_view_set_row (BzRowView    *self,
-                     BzCuratedRow *row);
+bz_featured_carousel_view_set_carousel (BzFeaturedCarouselView    *self,
+                                        BzCuratedFeaturedCarousel *carousel);
 
-BzCuratedRow *
-bz_row_view_get_row (BzRowView *self);
+BzCuratedFeaturedCarousel *
+bz_featured_carousel_view_get_carousel (BzFeaturedCarouselView *self);
 
 G_END_DECLS

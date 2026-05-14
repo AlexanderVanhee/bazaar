@@ -1,0 +1,105 @@
+rows:
+  - banner:
+      height: 250
+      image:
+        light-uri: https://www.mibatcontrol.com/wp-content/uploads/2026/04/Raccoon-Removal-Services-1.png # regular "uri" option is also available
+        dark-uri: https://cdn.answeroverflow.com/1233140484017487952/image.png # you can also use file://
+        fit: contain # contain, fill, cover or scale-down
+        can-shrink: true
+        halign: center
+      dark-color: "#2b1f3d"
+      light-color: "#778cf7"
+  - section:
+      title: "Welcome to Bazaar"
+      subtitle:
+        string: | # Basic markdown is supported here.
+          Discover apps you'll love. Here's one to get you started: [GNOME Calculator](appstream://org.gnome.Calculator).
+      overflow-count: 8 # Will automatically create a "Show More" button, if there are more apps than the count (except if enable-bulk-install is true)
+      appids:
+        list:
+          - org.gnome.Calendar
+          - org.gnome.Contacts
+          - org.gnome.Maps
+          - org.gnome.Calculator
+          - org.gnome.TextEditor
+          - org.gnome.Loupe
+          - org.mozilla.firefox
+          - org.gnome.Boxes
+          - org.gnome.Weather
+          - org.gnome.clocks
+          - org.gnome.Music
+          - org.gnome.Showtime
+          - org.gnome.Characters
+          - org.gnome.Connections
+          - org.gnome.Software
+          - org.gnome.SimpleScan
+          - org.gnome.font-viewer
+          - org.gnome.Logs
+  - articles:
+      uri: https://usebazaar.org/curated/articles.yaml # Can be used as a feed.
+      list: # Used only if URI fails, or is not given.
+        - title: "Introducing GNOME 50, “Tokyo”" # Also used as the title on the article page
+          subtitle: "First Half of 2026"
+          image: https://release.gnome.org/50.webp # Always in 16:9
+          uri: file:///var/home/xander/test-article.md
+        - title: "#254 Commit Graph"
+          subtitle: "This Week in GNOME"
+          image: https://thisweek.gnome.org/posts/2026/06/twig-254/cover.webp
+          uri: file:///var/home/xander/twig.md
+        - title: "Introducing GNOME 50, “Tokyo”"
+          subtitle: "First Half of 2026"
+          image: https://release.gnome.org/50.webp
+          uri: file:///var/home/xander/test-article.md
+        - title: "HTTPS Test"
+          subtitle: "This Week in GNOME"
+          image: https://thisweek.gnome.org/posts/2026/06/twig-254/cover.webp
+          uri: https://gist.githubusercontent.com/allysonsilva/85fff14a22bbdf55485be947566cc09e/raw/fa8048a906ebed3c445d08b20c9173afd1b4a1e5/Full-Markdown.md
+  - featured-carousel: # A carousel, like the one seen at the top of the "Explore" page
+      disable-auto-rotate: true
+      appids:
+        list:
+          - io.github.kolunmi.Bazaar
+          - be.alexandervanhee.gradia
+  - section:
+      title: "Web Browsers"
+      list-type: rich # Directly features an install button on the card, use when a section has little apps.
+      appids:
+        list:
+          - org.mozilla.firefox
+          - com.google.Chrome
+          - com.brave.Browser
+          - org.chromium.Chromium
+  - section:
+      title: "Creative & Media"
+      appids:
+        list: # Sections of 12 apps look nice at all window widths
+          - org.gnome.Music
+          - org.gnome.Showtime
+          - org.gnome.Loupe
+          - org.gimp.GIMP
+          - org.inkscape.Inkscape
+          - org.blender.Blender
+          - org.kde.krita
+          - org.audacityteam.Audacity
+          - org.kde.kdenlive
+          - com.obsproject.Studio
+          - org.shotcut.Shotcut
+          - com.github.PintaProject.Pinta
+  - section:
+      title: "Developer Tools"
+      subtitle:
+        string: |
+          Install these to become the *ultimate* developer
+      list-type: rich
+      appids:
+        list:
+          - me.iepure.devtoolbox
+          - org.gnome.Builder
+          - com.jetbrains.IntelliJ-IDEA-Community
+          - re.sonny.Workbench
+      enable-bulk-install: true
+  - banner:
+      image:
+        uri: https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+        fit: cover
+        can-shrink: true

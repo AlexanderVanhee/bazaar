@@ -26,6 +26,7 @@
 #include <xmlb.h>
 #include <yaml.h>
 
+#include "bz-curated-article.h"
 #include "bz-parser.h"
 #include "bz-util.h"
 #include "bz-yaml-parser.h"
@@ -144,6 +145,7 @@ bz_yaml_parser_class_init (BzYamlParserClass *klass)
   object_class->dispose = bz_yaml_parser_dispose;
 
   g_type_ensure (GTK_TYPE_STRING_OBJECT);
+  g_type_ensure (BZ_TYPE_CURATED_ARTICLE);
 }
 
 static void

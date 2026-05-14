@@ -12,6 +12,7 @@
     <file preprocess="xml-stripblanks">blocklist-schema.xml</file>
     <file preprocess="xml-stripblanks">curated-config-schema.xml</file>
     <file preprocess="xml-stripblanks">pride-flag-config-schema.xml</file>
+    <file preprocess="xml-stripblanks">article-list-schema.xml</file>
     <file>release-notes.xml</file>
 
     <file>countries.gvariant</file>
@@ -24,10 +25,12 @@
     <file preprocess="xml-stripblanks">bz-app-tile.ui</file>
     <file preprocess="xml-stripblanks">bz-apps-page.ui</file>
     <file preprocess="xml-stripblanks">bz-appstream-description-render.ui</file>
+    <file preprocess="xml-stripblanks">bz-article.ui</file>
+    <file preprocess="xml-stripblanks">bz-article-tile.ui</file>
+    <file preprocess="xml-stripblanks">bz-banner-view.ui</file>
     <file preprocess="xml-stripblanks">bz-bundle-install-dialog.ui</file>
     <file preprocess="xml-stripblanks">bz-category-tile.ui</file>
     <file preprocess="xml-stripblanks">bz-context-tile.ui</file>
-    <file preprocess="xml-stripblanks">bz-curated-app-tile.ui</file>
     <file preprocess="xml-stripblanks">bz-curated-view.ui</file>
     <file preprocess="xml-stripblanks">bz-decorated-screenshot.ui</file>
     <file preprocess="xml-stripblanks">bz-developer-badge.ui</file>
@@ -55,7 +58,6 @@
     <file preprocess="xml-stripblanks">bz-releases-dialog.ui</file>
     <file preprocess="xml-stripblanks">bz-releases-list.ui</file>
     <file preprocess="xml-stripblanks">bz-rich-app-tile.ui</file>
-    <file preprocess="xml-stripblanks">bz-row-view.ui</file>
     <file preprocess="xml-stripblanks">bz-safety-dialog.ui</file>
     <file preprocess="xml-stripblanks">bz-screenshot-page.ui</file>
     <file preprocess="xml-stripblanks">bz-screenshots-carousel.ui</file>

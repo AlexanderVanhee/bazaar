@@ -1,6 +1,6 @@
-/* bz-row-view.h
+/* bz-aspect-picture.h
  *
- * Copyright 2025 Adam Masciola
+ * Copyright 2026 Alexander Vanhee
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,23 +20,27 @@
 
 #pragma once
 
-#include <adwaita.h>
-
-#include "bz-curated-row.h"
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-#define BZ_TYPE_ROW_VIEW (bz_row_view_get_type ())
-G_DECLARE_FINAL_TYPE (BzRowView, bz_row_view, BZ, ROW_VIEW, AdwBin)
+#define BZ_TYPE_ASPECT_PICTURE (bz_aspect_picture_get_type ())
+
+G_DECLARE_FINAL_TYPE (BzAspectPicture, bz_aspect_picture, BZ, ASPECT_PICTURE, GtkWidget)
 
 GtkWidget *
-bz_row_view_new (BzCuratedRow *row);
+bz_aspect_picture_new (void);
 
 void
-bz_row_view_set_row (BzRowView    *self,
-                     BzCuratedRow *row);
+bz_aspect_picture_set_paintable (BzAspectPicture *self,
+                                 GdkPaintable    *paintable);
+GdkPaintable *
+bz_aspect_picture_get_paintable (BzAspectPicture *self);
 
-BzCuratedRow *
-bz_row_view_get_row (BzRowView *self);
+void
+bz_aspect_picture_set_ratio (BzAspectPicture *self,
+                             double           ratio);
+double
+bz_aspect_picture_get_ratio (BzAspectPicture *self);
 
 G_END_DECLS

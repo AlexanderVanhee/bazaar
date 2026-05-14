@@ -1,6 +1,6 @@
-/* bz-curated-app-tile.h
+/* bz-banner-view.h
  *
- * Copyright 2025 Adam Masciola
+ * Copyright 2026 Alexander Vanhee
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,23 +22,21 @@
 
 #include <adwaita.h>
 
-#include "bz-entry-group.h"
+#include "bz-curated-banner.h"
 
 G_BEGIN_DECLS
 
-#define BZ_TYPE_CURATED_APP_TILE (bz_curated_app_tile_get_type ())
-G_DECLARE_FINAL_TYPE (BzCuratedAppTile, bz_curated_app_tile, BZ, CURATED_APP_TILE, AdwBin)
+#define BZ_TYPE_BANNER_VIEW (bz_banner_view_get_type ())
+G_DECLARE_FINAL_TYPE (BzBannerView, bz_banner_view, BZ, BANNER_VIEW, AdwBin)
 
-BzCuratedAppTile *
-bz_curated_app_tile_new (void);
-
-BzEntryGroup *
-bz_curated_app_tile_get_group (BzCuratedAppTile *self);
+GtkWidget *
+bz_banner_view_new (BzCuratedBanner *banner);
 
 void
-bz_curated_app_tile_set_group (BzCuratedAppTile *self,
-                               BzEntryGroup     *group);
+bz_banner_view_set_banner (BzBannerView    *self,
+                           BzCuratedBanner *banner);
+
+BzCuratedBanner *
+bz_banner_view_get_banner (BzBannerView *self);
 
 G_END_DECLS
-
-/* End of bz-curated-app-tile.h */
