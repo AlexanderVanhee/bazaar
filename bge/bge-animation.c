@@ -442,13 +442,13 @@ tick_cb (GtkWidget     *widget,
 
   cancel = !bge_should_animate (widget);
 
-#define UPDATE(_data, _out_value, _out_finished)                   \
+#define UPDATE(_data, _out_value, _out_finished, _out_cancelled)   \
   G_STMT_START                                                     \
   {                                                                \
     if (cancel ||                                                  \
         ((_data)->cancellable != NULL &&                           \
          g_cancellable_is_cancelled ((_data)->cancellable)))       \
-      (_out_finished) = TRUE;                                      \
+      (_out_finished) = (_out_cancelled) = TRUE;                   \
     else                                                           \
       {                                                            \
         double elapsed = 0.0;                                      \
@@ -482,10 +482,11 @@ tick_cb (GtkWidget     *widget,
   g_hash_table_iter_init (&iter, self->data);
   for (;;)
     {
-      char       *key      = NULL;
-      SpringData *data     = NULL;
-      double      value    = 0.0;
-      gboolean    finished = FALSE;
+      char       *key       = NULL;
+      SpringData *data      = NULL;
+      double      value     = 0.0;
+      gboolean    finished  = FALSE;
+      gboolean    cancelled = FALSE;
 
       if (!g_hash_table_iter_next (
               &iter,
@@ -493,8 +494,9 @@ tick_cb (GtkWidget     *widget,
               (gpointer *) &data))
         break;
 
-      UPDATE (data, value, finished);
-      data->cb (widget, key, value, data->user_data);
+      UPDATE (data, value, finished, cancelled);
+      if (!cancelled)
+        data->cb (widget, key, value, data->user_data);
 
       if (finished)
         g_hash_table_iter_remove (&iter);
@@ -503,14 +505,16 @@ tick_cb (GtkWidget     *widget,
   /* Anonymous anims */
   for (guint i = 0; i < self->anonymous->len;)
     {
-      SpringData *data     = NULL;
-      double      value    = 0.0;
-      gboolean    finished = FALSE;
+      SpringData *data      = NULL;
+      double      value     = 0.0;
+      gboolean    finished  = FALSE;
+      gboolean    cancelled = FALSE;
 
       data = g_ptr_array_index (self->anonymous, i);
 
-      UPDATE (data, value, finished);
-      data->cb (widget, NULL, value, data->user_data);
+      UPDATE (data, value, finished, cancelled);
+      if (!cancelled)
+        data->cb (widget, NULL, value, data->user_data);
 
       if (finished)
         g_ptr_array_remove_index (self->anonymous, i);
