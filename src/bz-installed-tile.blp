@@ -84,6 +84,20 @@ template $BzInstalledTile: $BzListTile {
       hexpand: true;
       halign: end;
 
+      Button {
+        visible: bind $is_masked(template.state as <$BzStateInfo>.masked-ids, template.group) as <bool>;
+        valign: center;
+        icon-name: "view-pin-symbolic";
+        tooltip-text: _("Updates Disabled");
+
+        clicked => $masked_cb() swapped;
+
+        styles [
+          "warning",
+          "flat",
+        ]
+      }
+
       Button addons_button {
         styles [
           "flat"

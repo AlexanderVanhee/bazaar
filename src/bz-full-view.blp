@@ -245,7 +245,6 @@ template $BzFullView: Adw.Bin {
                             entry-group: bind template.entry-group as <$BzEntryGroup>;
                             state: bind template.state as <$BzStateInfo>;
                             settings: bind template.state as <$BzStateInfo>.settings;
-                            update => $update_cb(template);
                           }
                         }
                       }
@@ -399,7 +398,6 @@ template $BzFullView: Adw.Bin {
                         entry-group: bind template.entry-group as <$BzEntryGroup>;
                         state: bind template.state as <$BzStateInfo>;
                         settings: bind template.state as <$BzStateInfo>.settings;
-                        update => $update_cb(template);
                       }
 
                       Box {
@@ -476,49 +474,88 @@ template $BzFullView: Adw.Bin {
                         margin-top: 10;
                         spacing: 15;
 
-                        Revealer {
-                          transition-type: slide_down;
-                          reveal-child: bind $logical_and(
-                              $logical_and($invert_boolean($is_zero(template.entry-group as <$BzEntryGroup>.user-data-size) as <bool>) as <bool>,$is_zero(template.entry-group as <$BzEntryGroup>.removable) as <bool>) as <bool>,
-                              $invert_boolean($is_zero(template.entry-group as <$BzEntryGroup>.installable-and-available) as <bool>) as <bool>
-                            ) as <bool>;
-                          visible: bind $invert_boolean($logical_and($is_zero(template.entry-group as <$BzEntryGroup>.removable) as <bool>, $is_zero(template.entry-group as <$BzEntryGroup>.installable) as <bool>) as <bool>) as <bool>;
-                          child: Box {
-                            height-request: 50;
-                            margin-bottom: 10;
-                            spacing: 12;
+                        Box {
+                          orientation: vertical;
+                          Revealer {
+                            transition-type: slide_down;
+                            reveal-child: bind $logical_and(
+                                $logical_and($invert_boolean($is_zero(template.entry-group as <$BzEntryGroup>.user-data-size) as <bool>) as <bool>,$is_zero(template.entry-group as <$BzEntryGroup>.removable) as <bool>) as <bool>,
+                                $invert_boolean($is_zero(template.entry-group as <$BzEntryGroup>.installable-and-available) as <bool>) as <bool>
+                              ) as <bool>;
+                            visible: bind $invert_boolean($logical_and($is_zero(template.entry-group as <$BzEntryGroup>.removable) as <bool>, $is_zero(template.entry-group as <$BzEntryGroup>.installable) as <bool>) as <bool>) as <bool>;
+                            child: Box {
+                              height-request: 50;
+                              margin-bottom: 10;
+                              spacing: 12;
 
-                            styles [
-                              "card",
-                              "colored",
-                              "accent",
-                            ]
+                              styles [
+                                "card",
+                                "colored",
+                                "accent",
+                              ]
 
-                            Label {
-                              halign: start;
-                              valign: center;
-                              hexpand: true;
-                              margin-start: 12;
-                              margin-top: 8;
-                              margin-bottom: 8;
-                              label: bind $format_leftover_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.title, template.entry-group as <$BzEntryGroup>.user-data-size) as <string>;
-                              use-markup: true;
-                              wrap: true;
-                              wrap-mode: word_char;
-                              justify: left;
-                            }
+                              Label {
+                                halign: start;
+                                valign: center;
+                                hexpand: true;
+                                margin-start: 12;
+                                margin-top: 8;
+                                margin-bottom: 8;
+                                label: bind $format_leftover_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.title, template.entry-group as <$BzEntryGroup>.user-data-size) as <string>;
+                                use-markup: true;
+                                wrap: true;
+                                wrap-mode: word_char;
+                                justify: left;
+                              }
 
-                            Button {
-                              valign: center;
-                              margin-end: 8;
-                              clicked => $delete_user_data_cb(template);
+                              Button {
+                                valign: center;
+                                margin-end: 8;
+                                clicked => $delete_user_data_cb(template);
 
-                              child: Adw.ButtonContent {
-                                icon-name: "user-trash-symbolic";
-                                label: _("Trash Data");
-                              };
-                            }
-                          };
+                                child: Adw.ButtonContent {
+                                  icon-name: "user-trash-symbolic";
+                                  label: _("Trash Data");
+                                };
+                              }
+                            };
+                          }
+
+                          Revealer {
+                            transition-type: slide_down;
+                            reveal-child: bind $is_masked(template.state as <$BzStateInfo>.masked-ids, template.entry-group) as <bool>;
+                            child: Box {
+                              height-request: 50;
+                              margin-bottom: 10;
+                              spacing: 12;
+                              styles [
+                                "card",
+                                "colored",
+                                "warning",
+                              ]
+
+                              Label {
+                                halign: start;
+                                valign: center;
+                                hexpand: true;
+                                margin-start: 12;
+                                margin-top: 8;
+                                margin-bottom: 8;
+                                label: _("Updates for this app are disabled, probably to keep an older version.");
+                                use-markup: true;
+                                wrap: true;
+                                wrap-mode: word_char;
+                                justify: left;
+                              }
+
+                              Button {
+                                valign: center;
+                                margin-end: 8;
+                                clicked => $unmask_cb(template);
+                                label: _("Re-enable Updates");
+                              }
+                            };
+                          }
                         }
 
                         Box {
@@ -589,6 +626,7 @@ template $BzFullView: Adw.Bin {
                         $BzReleasesList releases_list {
                           version-history: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.version-history;
                           installed-versions: bind template.entry-group as <$BzEntryGroup>.installed-versions;
+                          entry-group: bind template.entry-group as <$BzEntryGroup>;
                         }
 
                         $BzShareList {

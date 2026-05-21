@@ -32,6 +32,7 @@
 #include "bz-error.h"
 #include "bz-flathub-page.h"
 #include "bz-flatpak-entry.h"
+#include "bz-flatpak-mask.h"
 #include "bz-full-view.h"
 #include "bz-hooks.h"
 #include "bz-io.h"
@@ -109,6 +110,35 @@ BZ_DEFINE_DATA (
 
 static DexFuture *
 bulk_install_fiber (BulkInstallData *data);
+
+BZ_DEFINE_DATA (
+    update_entries,
+    UpdateEntries,
+    {
+      GWeakRef *self;
+      GVariant *parameter;
+    },
+    BZ_RELEASE_DATA (self, bz_weak_release);
+    BZ_RELEASE_DATA (parameter, g_variant_unref))
+
+static DexFuture *
+update_entries_fiber (UpdateEntriesData *data);
+
+BZ_DEFINE_DATA (
+    set_mask,
+    SetMask,
+    {
+      GWeakRef     *self;
+      GCancellable *cancellable;
+      char         *app_id;
+      gboolean      masked;
+    },
+    BZ_RELEASE_DATA (self, bz_weak_release);
+    BZ_RELEASE_DATA (cancellable, g_object_unref);
+    BZ_RELEASE_DATA (app_id, g_free))
+
+static DexFuture *
+set_mask_fiber (SetMaskData *data);
 
 static DexFuture *
 transact (BzEntry   *entry,
@@ -195,75 +225,6 @@ list_length (gpointer    object,
     return g_strdup (0);
 
   return g_strdup_printf ("%u", g_list_model_get_n_items (model));
-}
-
-static void
-update_cb (BzWindow   *self,
-           GListModel *entries,
-           GtkWidget  *widget)
-{
-  g_autoptr (BzTransaction) transaction  = NULL;
-  guint                n_updates         = 0;
-  g_autofree BzEntry **updates_buf       = NULL;
-  GListModel          *available_updates = NULL;
-
-  g_return_if_fail (BZ_IS_WINDOW (self));
-  g_return_if_fail (G_IS_LIST_MODEL (entries));
-
-  n_updates = g_list_model_get_n_items (entries);
-  if (n_updates == 0)
-    return;
-
-  updates_buf = g_malloc_n (n_updates, sizeof (*updates_buf));
-  for (guint i = 0; i < n_updates; i++)
-    updates_buf[i] = g_list_model_get_item (entries, i);
-
-  transaction = bz_transaction_new_full (
-      NULL, 0,
-      updates_buf, n_updates,
-      NULL, 0);
-
-  dex_future_disown (bz_transaction_manager_add (
-      bz_state_info_get_transaction_manager (self->state),
-      transaction));
-
-  available_updates = bz_state_info_get_available_updates (self->state);
-  if (G_IS_LIST_STORE (available_updates))
-    {
-      GListStore *store       = G_LIST_STORE (available_updates);
-      guint       n_available = g_list_model_get_n_items (available_updates);
-
-      for (guint i = n_available; i > 0; i--)
-        {
-          guint current_size                  = 0;
-          guint idx                           = 0;
-          g_autoptr (BzEntry) available_entry = NULL;
-          const char *available_id            = NULL;
-
-          idx          = i - 1;
-          current_size = g_list_model_get_n_items (available_updates);
-
-          if (idx >= current_size)
-            continue;
-
-          available_entry = g_list_model_get_item (available_updates, idx);
-          available_id    = bz_entry_get_id (available_entry);
-
-          for (guint j = 0; j < n_updates; j++)
-            {
-              if (g_strcmp0 (available_id, bz_entry_get_id (updates_buf[j])) == 0)
-                {
-                  g_list_store_remove (store, idx);
-                  break;
-                }
-            }
-        }
-    }
-
-  g_object_notify (G_OBJECT (self->state), "available-updates");
-
-  for (guint i = 0; i < n_updates; i++)
-    g_object_unref (updates_buf[i]);
 }
 
 void
@@ -463,6 +424,163 @@ action_cancel_group (GtkWidget  *widget,
     }
 }
 
+static DexFuture *
+update_entries_fiber (UpdateEntriesData *data)
+{
+  g_autoptr (BzWindow) self              = NULL;
+  GVariantIter iter                      = { 0 };
+  const char  *unique_id                 = NULL;
+  const char  *checksum                  = NULL;
+  g_autoptr (GPtrArray) entries          = NULL;
+  guint                n_updates         = 0;
+  g_autofree BzEntry **updates_buf       = NULL;
+  GListModel          *available_updates = NULL;
+  BzEntryCacheManager *cache             = NULL;
+  g_autoptr (BzTransaction) transaction  = NULL;
+
+  bz_weak_get_or_return_reject (self, data->self);
+
+  cache   = bz_state_info_get_cache_manager (self->state);
+  entries = g_ptr_array_new_with_free_func (g_object_unref);
+
+  g_variant_iter_init (&iter, data->parameter);
+  while (g_variant_iter_next (&iter, "(&s&s)", &unique_id, &checksum))
+    {
+      g_autoptr (GError) local_error = NULL;
+      g_autoptr (BzEntry) entry      = NULL;
+
+      entry = dex_await_object (
+          bz_entry_cache_manager_get (cache, unique_id),
+          &local_error);
+      if (entry == NULL)
+        {
+          g_clear_error (&local_error);
+          continue;
+        }
+      if (checksum != NULL && *checksum != '\0' &&
+          BZ_IS_FLATPAK_ENTRY (entry))
+        bz_flatpak_entry_set_target_checksum (BZ_FLATPAK_ENTRY (entry), checksum);
+
+      g_ptr_array_add (entries, g_steal_pointer (&entry));
+    }
+
+  n_updates = entries->len;
+  if (n_updates == 0)
+    return dex_future_new_true ();
+
+  updates_buf = g_malloc_n (n_updates, sizeof (*updates_buf));
+  for (guint i = 0; i < n_updates; i++)
+    updates_buf[i] = g_ptr_array_index (entries, i);
+
+  transaction = bz_transaction_new_full (
+      NULL, 0,
+      updates_buf, n_updates,
+      NULL, 0);
+
+  dex_future_disown (bz_transaction_manager_add (
+      bz_state_info_get_transaction_manager (self->state),
+      transaction));
+
+  available_updates = bz_state_info_get_available_updates (self->state);
+  if (G_IS_LIST_STORE (available_updates))
+    {
+      GListStore *store       = G_LIST_STORE (available_updates);
+      guint       n_available = g_list_model_get_n_items (available_updates);
+
+      for (guint i = n_available; i > 0; i--)
+        {
+          guint current_size                  = 0;
+          guint idx                           = 0;
+          g_autoptr (BzEntry) available_entry = NULL;
+          const char *available_id            = NULL;
+
+          idx          = i - 1;
+          current_size = g_list_model_get_n_items (available_updates);
+
+          if (idx >= current_size)
+            continue;
+
+          available_entry = g_list_model_get_item (available_updates, idx);
+          available_id    = bz_entry_get_unique_id (available_entry);
+
+          for (guint j = 0; j < n_updates; j++)
+            {
+              if (g_strcmp0 (available_id, bz_entry_get_unique_id (updates_buf[j])) == 0)
+                {
+                  g_list_store_remove (store, idx);
+                  break;
+                }
+            }
+        }
+    }
+
+  g_object_notify (G_OBJECT (self->state), "available-updates");
+  return dex_future_new_true ();
+}
+
+static DexFuture *
+set_mask_fiber (SetMaskData *data)
+{
+  g_autoptr (BzFlatpakInstance) self = NULL;
+  BzBackend *backend                 = NULL;
+
+  bz_weak_get_or_return_reject (self, data->self);
+
+  backend = bz_state_info_get_backend (bz_state_info_get_default ());
+  if (backend == NULL)
+    return dex_future_new_false ();
+
+  self = BZ_FLATPAK_INSTANCE (backend);
+
+  dex_await (bz_flatpak_instance_set_mask (self, data->app_id, data->masked, FALSE, data->cancellable), NULL);
+  dex_await (bz_flatpak_instance_set_mask (self, data->app_id, data->masked, TRUE, data->cancellable), NULL);
+
+  return dex_future_new_true ();
+}
+
+static void
+action_update_entries (GtkWidget  *widget,
+                       const char *action_name,
+                       GVariant   *parameter)
+{
+  g_autoptr (UpdateEntriesData) data = NULL;
+
+  data            = update_entries_data_new ();
+  data->self      = bz_track_weak (BZ_WINDOW (widget));
+  data->parameter = g_variant_ref (parameter);
+
+  dex_future_disown (dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      (DexFiberFunc) update_entries_fiber,
+      update_entries_data_ref (data),
+      update_entries_data_unref));
+}
+
+static void
+action_unmask_group (GtkWidget  *widget,
+                     const char *action_name,
+                     GVariant   *parameter)
+{
+  BzWindow   *self             = BZ_WINDOW (widget);
+  const char *id               = NULL;
+  g_autoptr (SetMaskData) data = NULL;
+
+  id = g_variant_get_string (parameter, NULL);
+
+  data         = set_mask_data_new ();
+  data->self   = bz_track_weak (self);
+  data->app_id = g_strdup (id);
+  data->masked = FALSE;
+
+  dex_future_disown (dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      (DexFiberFunc) set_mask_fiber,
+      set_mask_data_ref (data),
+      set_mask_data_unref));
+}
+
 static void
 action_show_group (GtkWidget  *widget,
                    const char *action_name,
@@ -574,6 +692,15 @@ action_open_library (GtkWidget  *widget,
   adw_navigation_view_pop_to_tag (self->navigation_view, "main");
   adw_view_stack_set_visible_child_name (self->main_view_stack, "installed");
   bz_library_page_reset_search (self->library_page);
+}
+
+static void
+action_full_view_reset_focus (GtkWidget  *widget,
+                              const char *action_name,
+                              GVariant   *parameter)
+{
+  BzWindow *self = BZ_WINDOW (widget);
+  bz_full_view_reset_focus (self->full_view);
 }
 
 static DexFuture *
@@ -706,7 +833,6 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_view_stack);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_stack);
   gtk_widget_class_bind_template_callback (widget_class, list_length);
-  gtk_widget_class_bind_template_callback (widget_class, update_cb);
   gtk_widget_class_bind_template_callback (widget_class, page_toggled_cb);
   gtk_widget_class_bind_template_callback (widget_class, breakpoint_apply_cb);
   gtk_widget_class_bind_template_callback (widget_class, breakpoint_unapply_cb);
@@ -721,10 +847,13 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_install_action (widget_class, "window.user-data", NULL, action_user_data);
   gtk_widget_class_install_action (widget_class, "window.open-library", NULL, action_open_library);
   gtk_widget_class_install_action (widget_class, "window.open-flathub-page", NULL, action_open_flathub_page);
+  gtk_widget_class_install_action (widget_class, "window.full-view-reset-focus", NULL, action_full_view_reset_focus);
 
   gtk_widget_class_install_action (widget_class, "window.install-group", "(sb)", action_install_group);
   gtk_widget_class_install_action (widget_class, "window.remove-group", "(sb)", action_remove_group);
   gtk_widget_class_install_action (widget_class, "window.cancel-group", "s", action_cancel_group);
+  gtk_widget_class_install_action (widget_class, "window.update-entries", "a(ss)", action_update_entries);
+  gtk_widget_class_install_action (widget_class, "window.unmask-group", "s", action_unmask_group);
   gtk_widget_class_install_action (widget_class, "window.show-group", "s", action_show_group);
   gtk_widget_class_install_action (widget_class, "window.addons-group", "s", action_addons_group);
   gtk_widget_class_install_action (widget_class, "window.bulk-install", NULL, action_bulk_install);
@@ -757,7 +886,7 @@ key_pressed (BzWindow              *self,
   g_unichar_to_utf8 (unichar, buf);
 
   was_deeper = g_list_model_get_n_items (
-      adw_navigation_view_get_navigation_stack (self->navigation_view)) > 1;
+                   adw_navigation_view_get_navigation_stack (self->navigation_view)) > 1;
 
   adw_navigation_view_pop_to_tag (self->navigation_view, "main");
 
@@ -823,7 +952,6 @@ transact_fiber (TransactData *data)
   GdkDevice       *keyboard             = NULL;
   GdkModifierType  modifiers            = GDK_NO_MODIFIER_MASK;
 
-
   // Get ID early before any async operations
   if (data->group != NULL)
     id_dup = g_strdup (bz_entry_group_get_id (data->group));
@@ -839,7 +967,7 @@ transact_fiber (TransactData *data)
       if (g_strcmp0 (id_dup, bazaar_id) == 0)
         {
           GtkWidget *window = NULL;
-          window = GTK_WIDGET (gtk_application_get_active_window (GTK_APPLICATION (g_application_get_default ())));
+          window            = GTK_WIDGET (gtk_application_get_active_window (GTK_APPLICATION (g_application_get_default ())));
           bz_show_error_for_widget (window, _ ("You can't remove Bazaar from Bazaar!"), _ ("You can't remove Bazaar from Bazaar!"));
           return dex_future_new_false ();
         }

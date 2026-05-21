@@ -21,6 +21,7 @@
 #include <glib/gi18n.h>
 
 #include "bz-appstream-description-render.h"
+#include "bz-downgrade-page.h"
 #include "bz-fading-clamp.h"
 #include "bz-release.h"
 #include "bz-releases-list.h"
@@ -30,9 +31,14 @@
 typedef struct
 {
   /* Template widgets */
-  AdwDialog   parent_instance;
-  GtkListBox *releases_box;
-  GListModel *installed_versions;
+  AdwDialog          parent_instance;
+  GtkListBox        *releases_box;
+  GtkListBox        *change_version_box;
+  AdwNavigationView *nav_view;
+
+  GListModel   *installed_versions;
+  GListModel   *version_history;
+  BzEntryGroup *group;
 } BzReleasesDialog;
 
 typedef struct
@@ -48,8 +54,9 @@ struct _BzReleasesList
 {
   AdwBin parent_instance;
 
-  GListModel *version_history;
-  GListModel *installed_versions;
+  GListModel   *version_history;
+  GListModel   *installed_versions;
+  BzEntryGroup *entry_group;
 
   /* Template widgets */
   GtkListBox *preview_box;
@@ -63,6 +70,7 @@ enum
   PROP_0,
   PROP_VERSION_HISTORY,
   PROP_INSTALLED_VERSIONS,
+  PROP_ENTRY_GROUP,
   LAST_PROP
 };
 
@@ -260,7 +268,7 @@ create_release_row (const char *version,
     {
       more_info_box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4));
 
-      markup = g_markup_printf_escaped ("<a href=\"%s\" title=\"%s\">%s</a>", url, url, _ ("Get More Information"));
+      markup          = g_markup_printf_escaped ("<a href=\"%s\" title=\"%s\">%s</a>", url, url, _ ("Get More Information"));
       more_info_label = GTK_LABEL (gtk_label_new (NULL));
       gtk_label_set_markup (more_info_label, markup);
       gtk_widget_set_tooltip_text (GTK_WIDGET (more_info_label), url);
@@ -280,11 +288,24 @@ create_release_row (const char *version,
 }
 
 static void
+change_version_cb (BzReleasesDialog *self,
+                   AdwButtonRow     *button)
+{
+  GtkWidget *page = NULL;
+
+  page = bz_downgrade_page_new (self->group, self->version_history);
+  adw_navigation_view_push (self->nav_view, ADW_NAVIGATION_PAGE (page));
+}
+
+static void
 bz_releases_dialog_dispose (GObject *object)
 {
   BzReleasesDialog *self = (BzReleasesDialog *) object;
 
   g_clear_object (&self->installed_versions);
+  g_clear_object (&self->group);
+  g_clear_object (&self->version_history);
+
   G_OBJECT_CLASS (bz_releases_dialog_parent_class)->dispose (object);
 }
 
@@ -296,9 +317,11 @@ bz_releases_dialog_class_init (BzReleasesDialogClass *klass)
 
   object_class->dispose = bz_releases_dialog_dispose;
 
-  gtk_widget_class_set_template_from_resource (widget_class,
-                                               "/io/github/kolunmi/Bazaar/bz-releases-dialog.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-releases-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, BzReleasesDialog, releases_box);
+  gtk_widget_class_bind_template_child (widget_class, BzReleasesDialog, nav_view);
+  gtk_widget_class_bind_template_child (widget_class, BzReleasesDialog, change_version_box);
+  gtk_widget_class_bind_template_callback (widget_class, change_version_cb);
 }
 
 static void
@@ -308,16 +331,26 @@ bz_releases_dialog_init (BzReleasesDialog *self)
 }
 
 GtkWidget *
-bz_releases_dialog_new (GListModel *version_history,
-                        GListModel *installed_versions)
+bz_releases_dialog_new (GListModel   *version_history,
+                        GListModel   *installed_versions,
+                        BzEntryGroup *entry_group)
 {
   BzReleasesDialog *dialog  = NULL;
   guint             n_items = 0;
 
   dialog = g_object_new (bz_releases_dialog_get_type (), NULL);
+  if (entry_group)
+    {
+      dialog->group = g_object_ref (entry_group);
+      gtk_widget_set_visible (GTK_WIDGET (dialog->change_version_box),
+                              bz_entry_group_get_removable (entry_group) > 0);
+    }
 
   if (installed_versions)
     dialog->installed_versions = g_object_ref (installed_versions);
+
+  if (version_history)
+    dialog->version_history = g_object_ref (version_history);
 
   if (version_history == NULL)
     return GTK_WIDGET (dialog);
@@ -422,7 +455,7 @@ show_all_releases_cb (AdwButtonRow   *button,
   if (root == NULL)
     return;
 
-  dialog = bz_releases_dialog_new (self->version_history, self->installed_versions);
+  dialog = bz_releases_dialog_new (self->version_history, self->installed_versions, self->entry_group);
   adw_dialog_present (ADW_DIALOG (dialog), GTK_WIDGET (root));
 }
 
@@ -433,6 +466,7 @@ bz_releases_list_dispose (GObject *object)
 
   g_clear_object (&self->version_history);
   g_clear_object (&self->installed_versions);
+  g_clear_object (&self->entry_group);
 
   G_OBJECT_CLASS (bz_releases_list_parent_class)->dispose (object);
 }
@@ -452,6 +486,9 @@ bz_releases_list_get_property (GObject    *object,
       break;
     case PROP_INSTALLED_VERSIONS:
       g_value_set_object (value, self->installed_versions);
+      break;
+    case PROP_ENTRY_GROUP:
+      g_value_set_object (value, self->entry_group);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -475,6 +512,10 @@ bz_releases_list_set_property (GObject      *object,
       g_clear_object (&self->installed_versions);
       self->installed_versions = g_value_dup_object (value);
       populate_preview_box (self);
+      break;
+    case PROP_ENTRY_GROUP:
+      g_clear_object (&self->entry_group);
+      self->entry_group = g_value_dup_object (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -503,6 +544,13 @@ bz_releases_list_class_init (BzReleasesListClass *klass)
                            NULL,
                            NULL,
                            G_TYPE_LIST_MODEL,
+                           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+
+  props[PROP_ENTRY_GROUP] =
+      g_param_spec_object ("entry-group",
+                           NULL,
+                           NULL,
+                           BZ_TYPE_ENTRY_GROUP,
                            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);

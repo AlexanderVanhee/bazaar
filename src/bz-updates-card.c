@@ -56,14 +56,6 @@ enum
 
 static GParamSpec *props[LAST_PROP] = { 0 };
 
-enum
-{
-  SIGNAL_UPDATE,
-  LAST_SIGNAL,
-};
-
-static guint signals[LAST_SIGNAL];
-
 static char    *format_update_count (gpointer object, GListModel *updates);
 static void     update_all_cb (GtkButton *button, BzUpdatesCard *self);
 static void     update_runtimes_cb (GtkButton *button, BzUpdatesCard *self);
@@ -73,16 +65,42 @@ static void     on_available_updates_changed (BzUpdatesCard *self, GParamSpec *p
 static void     on_runtimes_changed (GtkFilterListModel *model, guint position, guint removed, guint added, BzUpdatesCard *self);
 
 static void
+activate_update_entries (GtkWidget  *widget,
+                         GListModel *entries)
+{
+  GVariantBuilder builder;
+  g_autoptr (GVariant) param = NULL;
+  guint n_items              = 0;
+
+  n_items = g_list_model_get_n_items (entries);
+  if (n_items == 0)
+    return;
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(ss)"));
+  for (guint i = 0; i < n_items; i++)
+    {
+      g_autoptr (BzEntry) entry = g_list_model_get_item (entries, i);
+      if (entry != NULL)
+        g_variant_builder_add (&builder, "(ss)",
+                               bz_entry_get_unique_id (entry),
+                               "");
+    }
+  param = g_variant_builder_end (&builder);
+
+  gtk_widget_activate_action_variant (widget,
+                                      "window.update-entries",
+                                      param);
+}
+
+static void
 on_update_single_cb (GtkButton *button,
                      BzEntry   *entry)
 {
-  BzUpdatesCard *self          = NULL;
   g_autoptr (GListStore) store = NULL;
 
-  self  = BZ_UPDATES_CARD (gtk_widget_get_ancestor (GTK_WIDGET (button), BZ_TYPE_UPDATES_CARD));
   store = g_list_store_new (BZ_TYPE_ENTRY);
   g_list_store_append (store, entry);
-  g_signal_emit (self, signals[SIGNAL_UPDATE], 0, store);
+  activate_update_entries (GTK_WIDGET (button), G_LIST_MODEL (store));
 }
 
 static void
@@ -98,7 +116,7 @@ on_version_history_cb (GtkButton *button,
     return;
 
   g_object_get (entry, "version-history", &history, NULL);
-  dialog = bz_releases_dialog_new (history, NULL);
+  dialog = bz_releases_dialog_new (history, NULL, NULL);
   adw_dialog_present (ADW_DIALOG (dialog), GTK_WIDGET (root));
 }
 
@@ -261,7 +279,7 @@ repopulate_expander_row (BzUpdatesCard *self)
   on_runtimes_changed (self->runtimes_filter_model, 0, 0, 0, self);
 
   if (!self->has_closed)
-      adw_expander_row_set_expanded (self->expander_row, n_items <= 3);
+    adw_expander_row_set_expanded (self->expander_row, n_items <= 3);
 }
 
 static void
@@ -340,21 +358,6 @@ bz_updates_card_class_init (BzUpdatesCardClass *klass)
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
-
-  signals[SIGNAL_UPDATE] =
-      g_signal_new (
-          "update",
-          G_OBJECT_CLASS_TYPE (klass),
-          G_SIGNAL_RUN_FIRST,
-          0,
-          NULL, NULL,
-          g_cclosure_marshal_VOID__OBJECT,
-          G_TYPE_NONE, 1,
-          G_TYPE_LIST_MODEL);
-  g_signal_set_va_marshaller (
-      signals[SIGNAL_UPDATE],
-      G_TYPE_FROM_CLASS (klass),
-      g_cclosure_marshal_VOID__OBJECTv);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-updates-card.ui");
 
@@ -452,33 +455,15 @@ update_all_cb (GtkButton     *button,
   if (updates == NULL)
     return;
 
-  g_signal_emit (self, signals[SIGNAL_UPDATE], 0, updates);
+  activate_update_entries (GTK_WIDGET (button), updates);
 }
 
 static void
 update_runtimes_cb (GtkButton     *button,
                     BzUpdatesCard *self)
 {
-  GListModel *runtimes         = NULL;
-  g_autoptr (GListStore) store = NULL;
-  guint n_items                = 0;
-
-  runtimes = G_LIST_MODEL (self->runtimes_filter_model);
-  n_items  = g_list_model_get_n_items (runtimes);
-
-  if (n_items == 0)
-    return;
-
-  store = g_list_store_new (BZ_TYPE_ENTRY);
-
-  for (guint i = 0; i < n_items; i++)
-    {
-      g_autoptr (BzEntry) entry = g_list_model_get_item (runtimes, i);
-      if (entry != NULL)
-        g_list_store_append (store, entry);
-    }
-
-  g_signal_emit (self, signals[SIGNAL_UPDATE], 0, store);
+  activate_update_entries (GTK_WIDGET (button),
+                           G_LIST_MODEL (self->runtimes_filter_model));
 }
 
 static void

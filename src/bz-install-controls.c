@@ -65,13 +65,6 @@ enum
 };
 static GParamSpec *props[LAST_PROP] = { 0 };
 
-enum
-{
-  SIGNAL_UPDATE,
-  LAST_SIGNAL,
-};
-static guint signals[LAST_SIGNAL];
-
 static void
 pride_flag_changed (BzInstallControls *self,
                     const char        *key,
@@ -209,6 +202,9 @@ update_cb (BzInstallControls *self,
 {
   GListModel *available_updates = NULL;
   g_autoptr (GListStore) store  = NULL;
+  GVariantBuilder builder;
+  g_autoptr (GVariant) param = NULL;
+  guint n_items              = 0;
 
   if (self->state == NULL)
     return;
@@ -216,8 +212,25 @@ update_cb (BzInstallControls *self,
   available_updates = bz_state_info_get_available_updates (self->state);
   store             = find_matching_updates (self, available_updates);
 
-  if (store != NULL)
-    g_signal_emit (self, signals[SIGNAL_UPDATE], 0, G_LIST_MODEL (store));
+  if (store == NULL)
+    return;
+
+  n_items = g_list_model_get_n_items (G_LIST_MODEL (store));
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(ss)"));
+  for (guint i = 0; i < n_items; i++)
+    {
+      g_autoptr (BzEntry) entry = g_list_model_get_item (G_LIST_MODEL (store), i);
+      if (entry != NULL)
+        g_variant_builder_add (&builder, "(ss)",
+                               bz_entry_get_unique_id (entry),
+                               "");
+    }
+  param = g_variant_builder_end (&builder);
+
+  gtk_widget_activate_action_variant (GTK_WIDGET (self),
+                                      "window.update-entries",
+                                      param);
 }
 
 static char *
@@ -235,8 +248,7 @@ get_visible_page (gpointer    object,
 
   if (removable > 0)
     {
-      if (g_signal_has_handler_pending (self, signals[SIGNAL_UPDATE], 0, FALSE))
-        store = find_matching_updates (self, available_updates);
+      store = find_matching_updates (self, available_updates);
       return g_strdup (store != NULL ? "update" : "open");
     }
   else if (installable > 0)
@@ -507,21 +519,6 @@ bz_install_controls_class_init (BzInstallControlsClass *klass)
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
-  signals[SIGNAL_UPDATE] =
-      g_signal_new (
-          "update",
-          G_OBJECT_CLASS_TYPE (klass),
-          G_SIGNAL_RUN_FIRST,
-          0,
-          NULL, NULL,
-          g_cclosure_marshal_VOID__OBJECT,
-          G_TYPE_NONE, 1,
-          G_TYPE_LIST_MODEL);
-  g_signal_set_va_marshaller (
-      signals[SIGNAL_UPDATE],
-      G_TYPE_FROM_CLASS (klass),
-      g_cclosure_marshal_VOID__OBJECTv);
-
   g_type_ensure (BZ_TYPE_ENTRY_GROUP);
   g_type_ensure (BZ_TYPE_STATE_INFO);
 
@@ -652,6 +649,17 @@ bz_install_controls_set_state (BzInstallControls *self,
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_STATE]);
   update_tracker (self);
+}
+
+void
+bz_install_controls_grab_focus (BzInstallControls *self)
+{
+  g_return_if_fail (BZ_IS_INSTALL_CONTROLS (self));
+
+  g_idle_add_full (
+      G_PRIORITY_DEFAULT_IDLE,
+      (GSourceFunc) idle_grab_focus,
+      bz_track_weak (self), bz_weak_release);
 }
 
 static void

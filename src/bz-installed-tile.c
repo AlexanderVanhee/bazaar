@@ -21,6 +21,7 @@
 #include <glib/gi18n.h>
 
 #include "bz-addons-dialog.h"
+#include "bz-application.h"
 #include "bz-entry-group-util.h"
 #include "bz-entry-group.h"
 #include "bz-env.h"
@@ -28,8 +29,8 @@
 #include "bz-installed-tile.h"
 #include "bz-library-page.h"
 #include "bz-state-info.h"
-#include "bz-transact-icon.h"
 #include "bz-transact-icon-info.h"
+#include "bz-transact-icon.h"
 #include "bz-window.h"
 
 struct _BzInstalledTile
@@ -38,9 +39,9 @@ struct _BzInstalledTile
 
   BzEntryGroup *group;
 
-  GtkLabel   *title_label;
-  GtkButton  *support_button;
-  GtkButton  *remove_button;
+  GtkLabel  *title_label;
+  GtkButton *support_button;
+  GtkButton *remove_button;
 };
 
 G_DEFINE_FINAL_TYPE (BzInstalledTile, bz_installed_tile, BZ_TYPE_LIST_TILE)
@@ -49,6 +50,7 @@ enum
 {
   PROP_0,
   PROP_GROUP,
+  PROP_STATE,
   LAST_PROP
 };
 
@@ -76,6 +78,9 @@ bz_installed_tile_get_property (GObject    *object,
     {
     case PROP_GROUP:
       g_value_set_object (value, bz_installed_tile_get_group (self));
+      break;
+    case PROP_STATE:
+      g_value_set_object (value, bz_state_info_get_default ());
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -135,6 +140,23 @@ logical_or (gpointer object,
             gboolean b)
 {
   return a || b;
+}
+
+static gboolean
+is_masked (gpointer      object,
+           GHashTable   *masked_ids,
+           BzEntryGroup *group)
+{
+  const char *id = NULL;
+
+  if (masked_ids == NULL || group == NULL)
+    return FALSE;
+
+  id = bz_entry_group_get_id (group);
+  if (id == NULL)
+    return FALSE;
+
+  return g_hash_table_contains (masked_ids, id);
 }
 
 static char *
@@ -212,6 +234,16 @@ permissions_cb (BzInstalledTile *self)
 }
 
 static void
+masked_cb (BzInstalledTile *self)
+{
+  if (self->group == NULL)
+    return;
+
+  gtk_widget_activate_action (GTK_WIDGET (self), "window.unmask-group", "s",
+                              bz_entry_group_get_id (self->group));
+}
+
+static void
 install_addons_cb (BzInstalledTile *self)
 {
   if (self->group == NULL)
@@ -249,6 +281,13 @@ bz_installed_tile_class_init (BzInstalledTileClass *klass)
           BZ_TYPE_ENTRY_GROUP,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_STATE] =
+      g_param_spec_object (
+          "state",
+          NULL, NULL,
+          BZ_TYPE_STATE_INFO,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
   g_type_ensure (BZ_TYPE_LIST_TILE);
@@ -265,14 +304,16 @@ bz_installed_tile_class_init (BzInstalledTileClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, is_zero);
   gtk_widget_class_bind_template_callback (widget_class, logical_and);
   gtk_widget_class_bind_template_callback (widget_class, logical_or);
+  gtk_widget_class_bind_template_callback (widget_class, is_masked);
   gtk_widget_class_bind_template_callback (widget_class, format_description);
   gtk_widget_class_bind_template_callback (widget_class, support_cb);
   gtk_widget_class_bind_template_callback (widget_class, install_addons_cb);
   gtk_widget_class_bind_template_callback (widget_class, remove_cb);
   gtk_widget_class_bind_template_callback (widget_class, permissions_cb);
+  gtk_widget_class_bind_template_callback (widget_class, masked_cb);
 
   gtk_widget_class_install_action (widget_class, "installed-tile.install-addons", NULL,
-                                 (GtkWidgetActionActivateFunc) install_addons_cb);
+                                   (GtkWidgetActionActivateFunc) install_addons_cb);
   gtk_widget_class_install_action (widget_class, "installed-tile.permissions", NULL,
                                    (GtkWidgetActionActivateFunc) permissions_cb);
 

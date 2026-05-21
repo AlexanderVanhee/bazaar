@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <flatpak.h>
 #include <libdex.h>
 
 G_BEGIN_DECLS
@@ -51,5 +52,10 @@ bz_flatpak_instance_has_flathub (BzFlatpakInstance *self,
 DexFuture *
 bz_flatpak_instance_ensure_has_flathub (BzFlatpakInstance *self,
                                         GCancellable      *cancellable);
+
+DexFuture *bz_flatpak_instance_get_commit_history (BzFlatpakInstance *self,
+                                                   FlatpakRef        *ref,
+                                                   gboolean           user,
+                                                   GCancellable      *cancellable);
 
 G_END_DECLS

@@ -1,0 +1,94 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $BzDowngradePage: Adw.NavigationPage {
+  title: _("Change Version");
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-title: true;
+    }
+
+    content: Stack stack {
+      transition-type: crossfade;
+      transition-duration: 150;
+
+      StackPage {
+        name: "loading";
+
+        child: Adw.Spinner {
+          halign: center;
+          valign: center;
+          width-request: 96;
+          height-request: 96;
+        };
+      }
+
+      StackPage {
+        name: "commits";
+
+        child: ScrolledWindow {
+          vexpand: true;
+          hscrollbar-policy: never;
+
+          child: Adw.Clamp {
+            maximum-size: 500;
+            tightening-threshold: 600;
+            margin-top: 30;
+            margin-bottom: 24;
+            margin-start: 12;
+            margin-end: 12;
+
+            child: Box {
+              orientation: vertical;
+              spacing: 16;
+
+              Label {
+                label: _(
+                  "Switching to an older version may cause issues with your data or reduce security.\n\nIt will also stop updates for this app, until manually resumed."
+                );
+                xalign: 0;
+                wrap: true;
+                wrap-mode: word_char;
+              }
+
+              ListBox commits_box {
+                styles [
+                  "boxed-list",
+                ]
+
+                valign: start;
+                selection-mode: none;
+              }
+
+              Button downgrade_button {
+                margin-top: 8;
+                valign: start;
+                halign: center;
+                sensitive: false;
+                label: _("Change Version");
+                clicked => $downgrade_cb();
+
+                styles [
+                  "pill",
+                  "suggested-action",
+                ]
+              }
+            };
+          };
+        };
+      }
+
+      StackPage {
+        name: "error";
+
+        child: Adw.StatusPage {
+          icon-name: "dialog-error-symbolic";
+          title: _("Failed to Load History");
+          description: _("Could not retrieve commit history for this application.");
+        };
+      }
+    };
+  };
+}

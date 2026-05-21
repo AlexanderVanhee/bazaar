@@ -54,6 +54,7 @@ struct _BzFlatpakEntry
   char     *runtime_name;
   char     *addon_extension_of_ref;
   char     *bundle_path;
+  char     *target_checksum;
   BzResult *runtime_result;
 
   FlatpakRef *ref;
@@ -796,6 +797,23 @@ bz_flatpak_entry_get_bundle_path (BzFlatpakEntry *self)
   return self->bundle_path;
 }
 
+const char *
+bz_flatpak_entry_get_target_checksum (BzFlatpakEntry *self)
+{
+  g_return_val_if_fail (BZ_IS_FLATPAK_ENTRY (self), NULL);
+  return self->target_checksum;
+}
+
+void
+bz_flatpak_entry_set_target_checksum (BzFlatpakEntry *self,
+                                      const char     *checksum)
+{
+  g_return_if_fail (BZ_IS_FLATPAK_ENTRY (self));
+
+  g_free (self->target_checksum);
+  self->target_checksum = g_strdup (checksum);
+}
+
 gboolean
 bz_flatpak_entry_launch (BzFlatpakEntry    *self,
                          BzFlatpakInstance *flatpak,
@@ -852,6 +870,7 @@ clear_entry (BzFlatpakEntry *self)
   g_clear_pointer (&self->runtime_name, g_free);
   g_clear_pointer (&self->addon_extension_of_ref, g_free);
   g_clear_pointer (&self->bundle_path, g_free);
+  g_clear_pointer (&self->target_checksum, g_free);
   g_clear_object (&self->runtime_result);
 }
 

@@ -46,6 +46,7 @@
 #include "bz-flatpak-bundle-result.h"
 #include "bz-flatpak-entry.h"
 #include "bz-flatpak-instance.h"
+#include "bz-flatpak-mask.h"
 #include "bz-gnome-shell-search-provider.h"
 #include "bz-hash-table-object.h"
 #include "bz-inspector.h"
@@ -100,6 +101,7 @@ struct _BzApplication
   GHashTable                 *ids_to_groups;
   GHashTable                 *ignore_eol_set;
   GHashTable                 *installed_set;
+  GHashTable                 *masked_set;
   GHashTable                 *sys_name_to_addons;
   GHashTable                 *sys_ref_to_addon_group_ids;
   GHashTable                 *usr_name_to_addons;
@@ -414,6 +416,7 @@ bz_application_dispose (GObject *object)
   g_clear_pointer (&self->ignore_eol_set, g_hash_table_unref);
   g_clear_pointer (&self->init_timer, g_timer_destroy);
   g_clear_pointer (&self->installed_set, g_hash_table_unref);
+  g_clear_pointer (&self->masked_set, g_hash_table_unref);
   g_clear_pointer (&self->sys_name_to_addons, g_hash_table_unref);
   g_clear_pointer (&self->txt_blocked_id_sets, g_ptr_array_unref);
   g_clear_pointer (&self->usr_name_to_addons, g_hash_table_unref);
@@ -1114,6 +1117,19 @@ init_fiber (GWeakRef *wr)
           g_str_hash, g_str_equal, g_free, g_free);
     }
 
+  self->masked_set = dex_await_boxed (
+      bz_flatpak_instance_get_masked_ids (self->flatpak, NULL),
+      &local_error);
+  if (self->masked_set == NULL)
+    {
+      g_warning ("Unable to enumerate masked entries from flatpak backend: %s",
+                 local_error->message);
+      g_clear_error (&local_error);
+      self->masked_set = g_hash_table_new_full (
+          g_str_hash, g_str_equal, g_free, NULL);
+    }
+  bz_state_info_set_masked_ids (self->state, self->masked_set);
+
   repos = dex_await_object (
       bz_backend_list_repositories (BZ_BACKEND (self->flatpak), NULL),
       &local_error);
@@ -1600,6 +1616,7 @@ respond_to_flatpak_fiber (RespondToFlatpakData *data)
           {
             g_autoptr (GListModel) repos         = NULL;
             g_autoptr (GHashTable) installed_set = NULL;
+            g_autoptr (GHashTable) masked_set    = NULL;
             g_autoptr (GPtrArray) diff_reads     = NULL;
             GHashTableIter old_iter              = { 0 };
             GHashTableIter new_iter              = { 0 };
@@ -1629,6 +1646,20 @@ respond_to_flatpak_fiber (RespondToFlatpakData *data)
                 finish_with_background_task_label (self);
                 break;
               }
+            masked_set = dex_await_boxed (
+                bz_flatpak_instance_get_masked_ids (self->flatpak, NULL),
+                &local_error);
+              if (masked_set == NULL)
+                {
+                  g_warning ("Failed to re-read masked ids: %s", local_error->message);
+                  g_clear_error (&local_error);
+                }
+              else
+                {
+                  g_clear_pointer (&self->masked_set, g_hash_table_unref);
+                  self->masked_set = g_steal_pointer (&masked_set);
+                  bz_state_info_set_masked_ids (self->state, self->masked_set);
+                }
 
             diff_reads = g_ptr_array_new_with_free_func (dex_unref);
 

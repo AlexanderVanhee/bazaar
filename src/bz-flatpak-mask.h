@@ -1,6 +1,6 @@
-/* bz-releases-list.h
+/* bz-flatpak-mask.h
  *
- * Copyright 2025 Alexander Vanhee, Adam Masciola
+ * Copyright 2026 Alexander Vanhee
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,29 +20,20 @@
 
 #pragma once
 
-#include <adwaita.h>
-
-#include "bz-entry-group.h"
+#include "bz-flatpak-instance.h"
+#include <libdex.h>
 
 G_BEGIN_DECLS
 
-#define BZ_TYPE_RELEASES_LIST (bz_releases_list_get_type ())
+DexFuture *
+bz_flatpak_instance_get_masked_ids (BzFlatpakInstance *self,
+                                    GCancellable      *cancellable);
 
-G_DECLARE_FINAL_TYPE (BzReleasesList, bz_releases_list, BZ, RELEASES_LIST, AdwBin)
-
-GtkWidget *
-bz_releases_list_new (void);
-
-GtkWidget *
-bz_releases_dialog_new (GListModel   *version_history,
-                        GListModel   *installed_versions,
-                        BzEntryGroup *entry_group);
-
-void
-bz_releases_list_set_version_history (BzReleasesList *self,
-                                      GListModel     *version_history);
-
-GListModel *
-bz_releases_list_get_version_history (BzReleasesList *self);
+DexFuture *
+bz_flatpak_instance_set_mask (BzFlatpakInstance *self,
+                              const char        *app_id,
+                              gboolean           masked,
+                              gboolean           user,
+                              GCancellable      *cancellable);
 
 G_END_DECLS

@@ -6,32 +6,61 @@ template $BzReleasesDialog: Adw.Dialog {
   content-width: 550;
   content-height: 600;
 
-  child: Adw.ToolbarView {
-    [top]
-    Adw.HeaderBar {
-      show-title: true;
-    }
+  child: Adw.NavigationView nav_view {
+    Adw.NavigationPage {
+      title: _("Version History");
 
-    content: ScrolledWindow {
-      propagate-natural-height: true;
-      vexpand: true;
-      hscrollbar-policy: never;
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {
+          show-title: true;
+        }
 
-      child: Adw.Clamp {
-        maximum-size: 500;
-        tightening-threshold: 600;
-        margin-top: 24;
-        margin-bottom: 24;
-        margin-start: 12;
-        margin-end: 12;
+        content: ScrolledWindow {
+          propagate-natural-height: true;
+          vexpand: true;
+          hscrollbar-policy: never;
 
-        child: ListBox releases_box {
-          styles ["boxed-list"]
+          child: Adw.Clamp {
+            maximum-size: 500;
+            tightening-threshold: 600;
+            margin-top: 24;
+            margin-bottom: 24;
+            margin-start: 12;
+            margin-end: 12;
 
-          valign: start;
-          selection-mode: none;
+            child: Box {
+              orientation: vertical;
+              spacing: 15;
+
+              ListBox releases_box {
+                styles [
+                  "boxed-list",
+                ]
+
+                valign: start;
+                selection-mode: none;
+              }
+
+              ListBox change_version_box {
+                styles [
+                  "boxed-list",
+                ]
+
+                visible: false;
+                valign: start;
+                selection-mode: none;
+
+                Adw.ButtonRow {
+                  title: _("Change Version");
+                  end-icon-name: "go-next-symbolic";
+                  activated => $change_version_cb(template);
+                }
+              }
+            };
+          };
         };
       };
-    };
+    }
   };
 }

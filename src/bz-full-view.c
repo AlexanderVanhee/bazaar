@@ -75,6 +75,8 @@ struct _BzFullView
   AdwViewStack      *stack;
   GtkWidget         *shadow_overlay;
   GtkToggleButton   *description_toggle;
+  BzInstallControls *wide_install_controls;
+  BzInstallControls *narrow_install_controls;
 };
 
 G_DEFINE_FINAL_TYPE (BzFullView, bz_full_view, ADW_TYPE_BIN)
@@ -90,14 +92,6 @@ enum
   LAST_PROP
 };
 static GParamSpec *props[LAST_PROP] = { 0 };
-
-enum
-{
-  SIGNAL_UPDATE,
-
-  LAST_SIGNAL,
-};
-static guint signals[LAST_SIGNAL];
 
 static void
 bz_full_view_dispose (GObject *object)
@@ -223,6 +217,23 @@ format_leftover_label (gpointer object, const char *name, guint64 size)
 
   formatted_size = g_format_size (size);
   return g_strdup_printf (_ ("%s is not installed, but it still has <b>%s</b> of data present."), name, formatted_size);
+}
+
+static gboolean
+is_masked (gpointer      object,
+           GHashTable   *masked_ids,
+           BzEntryGroup *group)
+{
+  const char *id = NULL;
+
+  if (masked_ids == NULL || group == NULL)
+    return FALSE;
+
+  id = bz_entry_group_get_id (group);
+  if (id == NULL)
+    return FALSE;
+
+  return g_hash_table_contains (masked_ids, id);
 }
 
 static gpointer
@@ -512,14 +523,6 @@ safety_cb (BzFullView *self,
   adw_dialog_present (dialog, GTK_WIDGET (self));
 }
 
-static void
-update_cb (BzFullView        *self,
-           GListModel        *entries,
-           BzInstallControls *controls)
-{
-  g_signal_emit (self, signals[SIGNAL_UPDATE], 0, entries);
-}
-
 static DexFuture *
 reap_user_data_done (DexFuture *future,
                      GWeakRef  *wr)
@@ -557,6 +560,16 @@ delete_user_data_cb (BzFullView *self,
         (DexFutureCallback) reap_user_data_done,
         bz_track_weak (self),
         bz_weak_release));
+}
+
+static void
+unmask_cb (BzFullView *self)
+{
+  if (self->group == NULL)
+    return;
+
+  gtk_widget_activate_action (GTK_WIDGET (self), "window.unmask-group", "s",
+                              bz_entry_group_get_id (self->group));
 }
 
 static void
@@ -692,21 +705,6 @@ bz_full_view_class_init (BzFullViewClass *klass)
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
-  signals[SIGNAL_UPDATE] =
-      g_signal_new (
-          "update",
-          G_OBJECT_CLASS_TYPE (klass),
-          G_SIGNAL_RUN_FIRST,
-          0,
-          NULL, NULL,
-          g_cclosure_marshal_VOID__OBJECT,
-          G_TYPE_NONE, 1,
-          G_TYPE_LIST_MODEL);
-  g_signal_set_va_marshaller (
-      signals[SIGNAL_UPDATE],
-      G_TYPE_FROM_CLASS (klass),
-      g_cclosure_marshal_VOID__OBJECTv);
-
   g_type_ensure (BZ_TYPE_APPSTREAM_DESCRIPTION_RENDER);
   g_type_ensure (BZ_TYPE_DEVELOPER_BADGE);
   g_type_ensure (BZ_TYPE_DYNAMIC_LIST_VIEW);
@@ -731,11 +729,14 @@ bz_full_view_class_init (BzFullViewClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzFullView, main_scroll);
   gtk_widget_class_bind_template_child (widget_class, BzFullView, shadow_overlay);
   gtk_widget_class_bind_template_child (widget_class, BzFullView, description_toggle);
+  gtk_widget_class_bind_template_child (widget_class, BzFullView, wide_install_controls);
+  gtk_widget_class_bind_template_child (widget_class, BzFullView, narrow_install_controls);
   gtk_widget_class_bind_template_callback (widget_class, is_scrolled_down);
   gtk_widget_class_bind_template_callback (widget_class, age_rating_cb);
   gtk_widget_class_bind_template_callback (widget_class, format_as_link);
   gtk_widget_class_bind_template_callback (widget_class, has_link);
   gtk_widget_class_bind_template_callback (widget_class, format_leftover_label);
+  gtk_widget_class_bind_template_callback (widget_class, is_masked);
   gtk_widget_class_bind_template_callback (widget_class, format_other_apps_label);
   gtk_widget_class_bind_template_callback (widget_class, format_more_other_apps_label);
   gtk_widget_class_bind_template_callback (widget_class, get_developer_apps_entries);
@@ -748,8 +749,8 @@ bz_full_view_class_init (BzFullViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, size_cb);
   gtk_widget_class_bind_template_callback (widget_class, formfactor_cb);
   gtk_widget_class_bind_template_callback (widget_class, safety_cb);
-  gtk_widget_class_bind_template_callback (widget_class, update_cb);
   gtk_widget_class_bind_template_callback (widget_class, delete_user_data_cb);
+  gtk_widget_class_bind_template_callback (widget_class, unmask_cb);
   gtk_widget_class_bind_template_callback (widget_class, support_cb);
   gtk_widget_class_bind_template_callback (widget_class, pick_license_warning);
   gtk_widget_class_bind_template_callback (widget_class, install_addons_cb);
@@ -878,4 +879,17 @@ bz_full_view_get_entry_group (BzFullView *self)
 {
   g_return_val_if_fail (BZ_IS_FULL_VIEW (self), NULL);
   return self->group;
+}
+
+void
+bz_full_view_reset_focus (BzFullView *self)
+{
+  g_return_if_fail (BZ_IS_FULL_VIEW (self));
+
+  gtk_adjustment_set_value (
+      gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (self->main_scroll)),
+      0.0);
+
+  bz_install_controls_grab_focus (self->wide_install_controls);
+  bz_install_controls_grab_focus (self->narrow_install_controls);
 }

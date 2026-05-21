@@ -65,14 +65,6 @@ enum
 };
 static GParamSpec *props[LAST_PROP] = { 0 };
 
-enum
-{
-  SIGNAL_UPDATE,
-
-  LAST_SIGNAL,
-};
-static guint signals[LAST_SIGNAL];
-
 static void
 items_changed (BzLibraryPage *self,
                guint          position,
@@ -181,22 +173,6 @@ no_results_found_subtitle (gpointer    object,
 }
 
 static char *
-format_update_count (gpointer    object,
-                     GListModel *updates)
-{
-  guint n_updates = 0;
-
-  if (updates == NULL)
-    return g_strdup ("");
-
-  n_updates = g_list_model_get_n_items (updates);
-  return g_strdup_printf (ngettext ("%u Available Update",
-                                    "%u Available Updates",
-                                    n_updates),
-                          n_updates);
-}
-
-static char *
 format_install_count (gpointer object,
                       gint     n_items)
 {
@@ -298,14 +274,6 @@ clear_tasks_cb (BzLibraryPage *self)
 }
 
 static void
-updates_card_update_cb (BzLibraryPage *self,
-                        GListModel    *entries,
-                        BzUpdatesCard *card)
-{
-  g_signal_emit (self, signals[SIGNAL_UPDATE], 0, entries);
-}
-
-static void
 global_search_cb (BzLibraryPage *self,
                   GtkButton     *button)
 {
@@ -388,21 +356,6 @@ bz_library_page_class_init (BzLibraryPageClass *klass)
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
-  signals[SIGNAL_UPDATE] =
-      g_signal_new (
-          "update",
-          G_OBJECT_CLASS_TYPE (klass),
-          G_SIGNAL_RUN_FIRST,
-          0,
-          NULL, NULL,
-          g_cclosure_marshal_VOID__OBJECT,
-          G_TYPE_NONE, 1,
-          G_TYPE_LIST_MODEL);
-  g_signal_set_va_marshaller (
-      signals[SIGNAL_UPDATE],
-      G_TYPE_FROM_CLASS (klass),
-      g_cclosure_marshal_VOID__OBJECTv);
-
   g_type_ensure (BZ_TYPE_SECTION_VIEW);
   g_type_ensure (BZ_TYPE_ENTRY_GROUP);
   g_type_ensure (BZ_TYPE_INSTALLED_TILE);
@@ -423,7 +376,6 @@ bz_library_page_class_init (BzLibraryPageClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, sort_name);
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, sort_size);
   gtk_widget_class_bind_template_callback (widget_class, no_results_found_subtitle);
-  gtk_widget_class_bind_template_callback (widget_class, format_update_count);
   gtk_widget_class_bind_template_callback (widget_class, format_install_count);
   gtk_widget_class_bind_template_callback (widget_class, tile_activated_cb);
   gtk_widget_class_bind_template_callback (widget_class, reset_search_cb);
@@ -431,7 +383,6 @@ bz_library_page_class_init (BzLibraryPageClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, search_text_activate);
   gtk_widget_class_bind_template_callback (widget_class, n_filtered_items_changed);
   gtk_widget_class_bind_template_callback (widget_class, clear_tasks_cb);
-  gtk_widget_class_bind_template_callback (widget_class, updates_card_update_cb);
   gtk_widget_class_bind_template_callback (widget_class, global_search_cb);
   gtk_widget_class_bind_template_callback (widget_class, sort_changed_cb);
 }

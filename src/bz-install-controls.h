@@ -53,4 +53,7 @@ void
 bz_install_controls_set_state (BzInstallControls *self,
                                BzStateInfo       *state);
 
+void
+bz_install_controls_grab_focus (BzInstallControls *self);
+
 G_END_DECLS

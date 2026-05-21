@@ -69,6 +69,13 @@ bz_flatpak_entry_get_bundle_path (BzFlatpakEntry *self);
 const char *
 bz_flatpak_entry_get_addon_extension_of_ref (BzFlatpakEntry *self);
 
+const char *
+bz_flatpak_entry_get_target_checksum (BzFlatpakEntry *self);
+
+void
+bz_flatpak_entry_set_target_checksum (BzFlatpakEntry *self,
+                                      const char     *checksum);
+
 gboolean
 bz_flatpak_entry_launch (BzFlatpakEntry    *self,
                          BzFlatpakInstance *flatpak,

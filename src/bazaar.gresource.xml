@@ -32,6 +32,7 @@
     <file preprocess="xml-stripblanks">bz-decorated-screenshot.ui</file>
     <file preprocess="xml-stripblanks">bz-developer-badge.ui</file>
     <file preprocess="xml-stripblanks">bz-donations-dialog.ui</file>
+    <file preprocess="xml-stripblanks">bz-downgrade-page.ui</file>
     <file preprocess="xml-stripblanks">bz-entry-inspector.ui</file>
     <file preprocess="xml-stripblanks">bz-entry-selection-row.ui</file>
     <file preprocess="xml-stripblanks">bz-error-dialog.ui</file>

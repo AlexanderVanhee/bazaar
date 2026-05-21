@@ -54,4 +54,7 @@ bz_full_view_set_debounce (BzFullView *self,
 gboolean
 bz_full_view_get_debounce (BzFullView *self);
 
+void
+bz_full_view_reset_focus (BzFullView *self);
+
 G_END_DECLS

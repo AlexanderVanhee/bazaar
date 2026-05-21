@@ -22,6 +22,7 @@
 #define BAZAAR_MODULE "flatpak"
 
 #include <malloc.h>
+#include <ostree.h>
 #include <xmlb.h>
 
 #include "config.h"
@@ -30,8 +31,10 @@
 #include "bz-backend-transaction-op-payload.h"
 #include "bz-backend-transaction-op-progress-payload.h"
 #include "bz-backend.h"
+#include "bz-commit.h"
 #include "bz-env.h"
 #include "bz-flatpak-bundle-result.h"
+#include "bz-flatpak-mask.h"
 #include "bz-flatpak-private.h"
 #include "bz-flatpak-repo.h"
 #include "bz-global-net.h"
@@ -52,11 +55,13 @@ struct _BzFlatpakInstance
   FlatpakInstallation *system;
   FlatpakInstallation *system_interactive;
   GFileMonitor        *system_events;
+  GFileMonitor        *system_config_events;
   int                  system_mute;
 
   FlatpakInstallation *user;
   FlatpakInstallation *user_interactive;
   GFileMonitor        *user_events;
+  GFileMonitor        *user_config_events;
   int                  user_mute;
 
   GMutex mute_mutex;
@@ -112,6 +117,26 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (cancellable, g_object_unref));
 static DexFuture *
 ensure_flathub_fiber (EnsureFlathubData *data);
+
+BZ_DEFINE_DATA (
+    get_commit_history,
+    GetCommitHistory,
+    {
+      GWeakRef     *self;
+      GCancellable *cancellable;
+      FlatpakRef   *ref;
+      gboolean      user;
+      DexPromise   *promise;
+    },
+    BZ_RELEASE_DATA (self, bz_weak_release);
+    BZ_RELEASE_DATA (cancellable, g_object_unref);
+    BZ_RELEASE_DATA (ref, g_object_unref);
+    BZ_RELEASE_DATA (promise, dex_unref));
+static void
+get_commit_history_thread (GTask        *task,
+                           gpointer      source_object,
+                           gpointer      task_data,
+                           GCancellable *cancellable);
 
 BZ_DEFINE_DATA (
     load_local_ref,
@@ -379,6 +404,8 @@ bz_flatpak_instance_dispose (GObject *object)
   g_clear_object (&self->user);
   g_clear_object (&self->user_interactive);
   g_clear_object (&self->user_events);
+  g_clear_object (&self->system_config_events);
+  g_clear_object (&self->user_config_events);
 
   g_mutex_clear (&self->mute_mutex);
 
@@ -700,19 +727,50 @@ bz_flatpak_instance_ensure_has_flathub (BzFlatpakInstance *self,
       ensure_flathub_data_ref (data), ensure_flathub_data_unref);
 }
 
+DexFuture *
+bz_flatpak_instance_get_commit_history (BzFlatpakInstance *self,
+                                        FlatpakRef        *ref,
+                                        gboolean           user,
+                                        GCancellable      *cancellable)
+{
+  g_autoptr (GetCommitHistoryData) data = NULL;
+  g_autoptr (GTask) task                = NULL;
+
+  dex_return_error_if_fail (BZ_IS_FLATPAK_INSTANCE (self));
+  dex_return_error_if_fail (FLATPAK_IS_REF (ref));
+  dex_return_error_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  data              = get_commit_history_data_new ();
+  data->self        = bz_track_weak (self);
+  data->cancellable = bz_object_maybe_ref (cancellable);
+  data->ref         = g_object_ref (ref);
+  data->user        = user;
+  data->promise     = dex_promise_new ();
+
+  task = g_task_new (NULL, cancellable, NULL, NULL);
+  g_task_set_task_data (task,
+                        get_commit_history_data_ref (data),
+                        get_commit_history_data_unref);
+  g_task_run_in_thread (task, get_commit_history_thread);
+
+  return DEX_FUTURE (dex_ref (data->promise));
+}
+
 static DexFuture *
 init_fiber (InitData *data)
 {
   BzFlatpakInstance *self        = data->self;
   g_autoptr (GError) local_error = NULL;
-  g_autofree char *main_cache    = NULL;
 
   bz_discard_module_dir ();
 
   self->system = flatpak_installation_new_system (NULL, &local_error);
   if (self->system != NULL)
     {
-      g_autoptr (GFile) path = NULL;
+      g_autoptr (GFile) path        = NULL;
+      g_autofree char *path_str     = NULL;
+      g_autofree char *config_path  = NULL;
+      g_autoptr (GFile) config_file = NULL;
 
       flatpak_installation_set_no_interaction (self->system, TRUE);
 
@@ -732,14 +790,31 @@ init_fiber (InitData *data)
         {
           g_warning ("Failed to initialize event watch for system installation: %s",
                      local_error->message);
-          g_clear_pointer (&local_error, g_error_free);
+          g_clear_error (&local_error);
+        }
+
+      path_str    = g_file_get_path (path);
+      config_path = g_build_filename (path_str, "repo", "config", NULL);
+      config_file = g_file_new_for_path (config_path);
+
+      self->system_config_events = g_file_monitor_file (
+          config_file, G_FILE_MONITOR_NONE, NULL, &local_error);
+      if (self->system_config_events != NULL)
+        g_signal_connect_swapped (
+            self->system_config_events, "changed",
+            G_CALLBACK (installation_event), self);
+      else
+        {
+          g_warning ("Failed to initialize config watch for system installation: %s",
+                     local_error->message);
+          g_clear_error (&local_error);
         }
     }
   else
     {
       g_warning ("Failed to initialize system installation: %s",
                  local_error->message);
-      g_clear_pointer (&local_error, g_error_free);
+      g_clear_error (&local_error);
     }
 
 #ifdef SANDBOXED_LIBFLATPAK
@@ -761,7 +836,10 @@ init_fiber (InitData *data)
 
   if (self->user != NULL)
     {
-      g_autoptr (GFile) path = NULL;
+      g_autoptr (GFile) path        = NULL;
+      g_autofree char *path_str     = NULL;
+      g_autofree char *config_path  = NULL;
+      g_autoptr (GFile) config_file = NULL;
 
       flatpak_installation_set_no_interaction (self->user, TRUE);
 
@@ -781,14 +859,31 @@ init_fiber (InitData *data)
         {
           g_warning ("Failed to initialize event watch for user installation: %s",
                      local_error->message);
-          g_clear_pointer (&local_error, g_error_free);
+          g_clear_error (&local_error);
+        }
+
+      path_str    = g_file_get_path (path);
+      config_path = g_build_filename (path_str, "repo", "config", NULL);
+      config_file = g_file_new_for_path (config_path);
+
+      self->user_config_events = g_file_monitor_file (
+          config_file, G_FILE_MONITOR_NONE, NULL, &local_error);
+      if (self->user_config_events != NULL)
+        g_signal_connect_swapped (
+            self->user_config_events, "changed",
+            G_CALLBACK (installation_event), self);
+      else
+        {
+          g_warning ("Failed to initialize config watch for user installation: %s",
+                     local_error->message);
+          g_clear_error (&local_error);
         }
     }
   else
     {
       g_warning ("Failed to initialize user installation: %s",
                  local_error->message);
-      g_clear_pointer (&local_error, g_error_free);
+      g_clear_error (&local_error);
     }
 
 #ifdef SANDBOXED_LIBFLATPAK
@@ -974,6 +1069,185 @@ ensure_flathub_fiber (EnsureFlathubData *data)
     }
 
   return dex_future_new_true ();
+}
+
+static void
+get_commit_history_thread (GTask        *task,
+                           gpointer      source_object,
+                           gpointer      task_data,
+                           GCancellable *cancellable)
+{
+  GetCommitHistoryData *data           = task_data;
+  DexPromise           *promise        = data->promise;
+  FlatpakRef           *ref            = NULL;
+  g_autoptr (BzFlatpakInstance) self   = NULL;
+  g_autoptr (GError) local_error       = NULL;
+  FlatpakInstallation *installation    = NULL;
+  g_autoptr (FlatpakRemote) remote     = NULL;
+  g_autoptr (FlatpakInstalledRef) iref = NULL;
+  g_autoptr (GFile) repo_file          = NULL;
+  g_autoptr (OstreeRepo) tmp_repo      = NULL;
+  g_autoptr (GListStore) history       = NULL;
+  g_autofree char *checksum            = NULL;
+  g_autofree char *cache_dir           = NULL;
+  g_autofree char *repo_path           = NULL;
+  g_autofree char *ostree_ref          = NULL;
+  g_autofree char *remote_name         = NULL;
+  g_autofree char *installed_checksum  = NULL;
+  const char      *remote_url          = NULL;
+  GMainContext    *ctx                 = NULL;
+
+  ref = data->ref;
+
+  ctx = g_main_context_new ();
+  g_main_context_push_thread_default (ctx);
+
+  self         = g_weak_ref_get (data->self);
+  installation = data->user ? self->user : self->system;
+
+  iref = flatpak_installation_get_installed_ref (
+      installation,
+      flatpak_ref_get_kind (ref),
+      flatpak_ref_get_name (ref),
+      flatpak_ref_get_arch (ref),
+      flatpak_ref_get_branch (ref),
+      cancellable,
+      &local_error);
+  if (iref == NULL)
+    {
+      dex_promise_reject (promise, g_steal_pointer (&local_error));
+      goto out;
+    }
+
+  installed_checksum = g_strdup (flatpak_installed_ref_get_latest_commit (iref));
+  remote_name        = g_strdup (flatpak_installed_ref_get_origin (iref));
+
+  remote = flatpak_installation_get_remote_by_name (installation, remote_name, cancellable, &local_error);
+  if (remote == NULL)
+    {
+      dex_promise_reject (promise, g_steal_pointer (&local_error));
+      goto out;
+    }
+
+  remote_url = flatpak_remote_get_url (remote);
+
+  ostree_ref = g_strdup_printf ("%s/%s/%s/%s",
+                                flatpak_ref_get_kind (ref) == FLATPAK_REF_KIND_APP ? "app" : "runtime",
+                                flatpak_ref_get_name (ref), flatpak_ref_get_arch (ref), flatpak_ref_get_branch (ref));
+
+  cache_dir = bz_dup_root_cache_dir ();
+  repo_path = g_build_filename (cache_dir, "commit-history-repo", NULL);
+  repo_file = g_file_new_for_path (repo_path);
+  tmp_repo  = ostree_repo_new (repo_file);
+
+  if (!g_file_make_directory_with_parents (repo_file, cancellable, &local_error) &&
+      !g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_EXISTS))
+    {
+      dex_promise_reject (promise, g_steal_pointer (&local_error));
+      goto out;
+    }
+  g_clear_error (&local_error);
+
+  if (!ostree_repo_create (tmp_repo, OSTREE_REPO_MODE_BARE_USER_ONLY, cancellable, &local_error) &&
+      !g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_EXISTS))
+    {
+      dex_promise_reject (promise, g_steal_pointer (&local_error));
+      goto out;
+    }
+  g_clear_error (&local_error);
+
+  if (!ostree_repo_open (tmp_repo, cancellable, &local_error))
+    {
+      dex_promise_reject (promise, g_steal_pointer (&local_error));
+      goto out;
+    }
+
+  if (!ostree_repo_remote_get_url (tmp_repo, remote_name, NULL, NULL))
+    {
+      g_autoptr (GVariant) remote_options = g_variant_new_parsed ("{'gpg-verify': <false>}");
+      if (!ostree_repo_remote_add (tmp_repo, remote_name, remote_url, remote_options, cancellable, &local_error))
+        {
+          dex_promise_reject (promise, g_steal_pointer (&local_error));
+          goto out;
+        }
+    }
+
+  {
+    g_autoptr (GVariant) pull_options = NULL;
+    GVariantBuilder builder;
+    const char     *refs[] = { ostree_ref, NULL };
+
+    g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+    g_variant_builder_add (&builder, "{sv}", "refs", g_variant_new_strv (refs, -1));
+    g_variant_builder_add (&builder, "{sv}", "flags",
+                           g_variant_new_int32 (OSTREE_REPO_PULL_FLAGS_COMMIT_ONLY));
+    pull_options = g_variant_builder_end (&builder);
+
+    if (!ostree_repo_pull_with_options (tmp_repo, remote_name, pull_options, NULL, cancellable, &local_error))
+      {
+        dex_promise_reject (promise, g_steal_pointer (&local_error));
+        goto out;
+      }
+  }
+
+  if (!ostree_repo_resolve_rev (tmp_repo, ostree_ref, FALSE, &checksum, &local_error))
+    {
+      dex_promise_reject (promise, g_steal_pointer (&local_error));
+      goto out;
+    }
+
+  history = g_list_store_new (BZ_TYPE_COMMIT);
+
+  while (checksum != NULL)
+    {
+      g_autoptr (GVariant) pull_options = NULL;
+      g_autoptr (GVariant) commit       = NULL;
+      g_autofree char *parent           = NULL;
+      g_autofree char *subject          = NULL;
+      g_autoptr (BzCommit) bz_commit    = NULL;
+      GVariantBuilder builder;
+      const char     *refs[] = { checksum, NULL };
+
+      if (g_cancellable_is_cancelled (cancellable))
+        break;
+
+      g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+      g_variant_builder_add (&builder, "{sv}", "refs", g_variant_new_strv (refs, -1));
+      g_variant_builder_add (&builder, "{sv}", "flags",
+                             g_variant_new_int32 (OSTREE_REPO_PULL_FLAGS_COMMIT_ONLY));
+      pull_options = g_variant_builder_end (&builder);
+
+      if (!ostree_repo_pull_with_options (tmp_repo, remote_name, pull_options, NULL, cancellable, &local_error))
+        {
+          g_clear_error (&local_error);
+          break;
+        }
+
+      if (!ostree_repo_load_commit (tmp_repo, checksum, &commit, NULL, &local_error))
+        {
+          g_clear_error (&local_error);
+          break;
+        }
+
+      g_variant_get_child (commit, 3, "s", &subject);
+
+      bz_commit = g_object_new (BZ_TYPE_COMMIT, NULL);
+      bz_commit_set_checksum (bz_commit, checksum);
+      bz_commit_set_timestamp (bz_commit, ostree_commit_get_timestamp (commit));
+      bz_commit_set_subject (bz_commit, subject);
+      bz_commit_set_installed (bz_commit, g_strcmp0 (checksum, installed_checksum) == 0);
+      g_list_store_append (history, bz_commit);
+
+      parent = ostree_commit_get_parent (commit);
+      g_free (checksum);
+      checksum = g_steal_pointer (&parent);
+    }
+
+  dex_promise_resolve_object (promise, g_steal_pointer (&history));
+
+out:
+  g_main_context_pop_thread_default (ctx);
+  g_main_context_unref (ctx);
 }
 
 DexFuture *
@@ -2419,7 +2693,7 @@ transaction_fiber (TransactionData *data)
                   : sys_transaction,
               ref_fmt,
               NULL,
-              NULL,
+              bz_flatpak_entry_get_target_checksum (entry),
               &local_error);
           if (!result)
             {
@@ -2430,6 +2704,18 @@ transaction_fiber (TransactionData *data)
                   "Failed to append the update of %s to transaction: %s",
                   ref_fmt,
                   local_error->message);
+            }
+
+          if (bz_flatpak_entry_get_target_checksum (entry) != NULL)
+            {
+              bz_flatpak_entry_set_target_checksum (entry, NULL);
+              dex_await (
+                  bz_flatpak_instance_set_mask (self,
+                                                flatpak_ref_get_name (ref),
+                                                TRUE,
+                                                is_user,
+                                                cancellable),
+                  NULL);
             }
 
           g_ptr_array_add (entries, g_object_ref (entry));
