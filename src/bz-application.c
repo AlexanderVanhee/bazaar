@@ -191,6 +191,9 @@ static DexFuture *
 enumerate_disk_entries_fiber (GWeakRef *wr);
 
 static DexFuture *
+check_for_updates_fiber (GWeakRef *wr);
+
+static DexFuture *
 cache_flathub_fiber (GWeakRef *wr);
 
 static DexFuture *
@@ -1289,7 +1292,27 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_LESS_STRICT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_LESS_STRICT);
 
+  dex_future_disown (dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      (DexFiberFunc) check_for_updates_fiber,
+      bz_track_weak (self),
+      bz_weak_release));
+
   return dex_future_new_for_boolean (has_flathub_entry);
+}
+
+static DexFuture *
+check_for_updates_fiber (GWeakRef *wr)
+{
+  g_autoptr (BzApplication) self = NULL;
+
+  bz_weak_get_or_return_reject (self, wr);
+
+  fiber_check_for_updates (self);
+  finish_with_background_task_label (self);
+
+  return dex_future_new_true ();
 }
 
 static DexFuture *
