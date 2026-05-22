@@ -242,8 +242,8 @@ static void
 fiber_replace_entry (BzApplication *self,
                      BzEntry       *entry);
 
-static void
-fiber_check_for_updates (BzApplication *self);
+static DexFuture *
+fiber_check_for_updates (GWeakRef *wr);
 
 static GFile *
 fiber_dup_flathub_cache_file (char   **path_out,
@@ -1289,6 +1289,13 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_LESS_STRICT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_LESS_STRICT);
 
+  dex_future_disown (dex_scheduler_spawn (
+    dex_scheduler_get_default (),
+    bz_get_dex_stack_size (),
+    (DexFiberFunc) fiber_check_for_updates,
+    bz_track_weak (self),
+    bz_weak_release));
+
   return dex_future_new_for_boolean (has_flathub_entry);
 }
 
@@ -1728,7 +1735,13 @@ respond_to_flatpak_fiber (RespondToFlatpakData *data)
             g_clear_pointer (&self->installed_set, g_hash_table_unref);
             self->installed_set = g_steal_pointer (&installed_set);
 
-            fiber_check_for_updates (self);
+            dex_await (dex_scheduler_spawn (
+                dex_scheduler_get_default (),
+                bz_get_dex_stack_size (),
+                (DexFiberFunc) fiber_check_for_updates,
+                bz_track_weak (self),
+                bz_weak_release),
+                NULL);
             finish_with_background_task_label (self);
           }
           break;
@@ -1772,7 +1785,12 @@ respond_to_flatpak_fiber (RespondToFlatpakData *data)
             self->state, _ ("Loading %d apps…"), self->n_entries_incoming);
       else
         {
-          fiber_check_for_updates (self);
+          dex_future_disown (dex_scheduler_spawn (
+            dex_scheduler_get_default (),
+            bz_get_dex_stack_size (),
+            (DexFiberFunc) fiber_check_for_updates,
+            bz_track_weak (self),
+            bz_weak_release));
           finish_with_background_task_label (self);
         }
     }
@@ -2285,12 +2303,15 @@ fiber_replace_entry (BzApplication *self,
     }
 }
 
-static void
-fiber_check_for_updates (BzApplication *self)
+static DexFuture *
+fiber_check_for_updates (GWeakRef *wr)
 {
+  g_autoptr (BzApplication) self   = NULL;
   g_autoptr (GError) local_error   = NULL;
   g_autoptr (GPtrArray) update_ids = NULL;
   GtkWindow *window                = NULL;
+
+  bz_weak_get_or_return_reject (self, wr);
 
   g_debug ("Checking for updates...");
   bz_state_info_set_background_task_label (self->state, _ ("Checking for updates…"));
@@ -2353,6 +2374,7 @@ fiber_check_for_updates (BzApplication *self)
     }
 
   bz_state_info_set_checking_for_updates (self->state, FALSE);
+  return dex_future_new_true ();
 }
 
 static GFile *
