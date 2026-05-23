@@ -75,22 +75,22 @@
   <releases>
     <release version="0.8.1" date="2026-05-22">
       <url type="details">https://github.com/bazaar-org/bazaar/releases/tag/v0.8.1</url>
-        <description translate="no">
-          <p>
-            Fixes an issue where updates would not show, also adds a cancel button to the app tiles on the search page.
-          </p>
-          <p>
-            <em>Other Fixes</em>
-          </p>
-          <ul>
-            <li>Fix Flathub page graphics being rendered full colored in</li>
-            <li>Disable broken graphs for very new Flathub apps</li>
-            <li>Add workaround for kRunner sending broken app IDs</li>
-          </ul>
-          <p>
-            Thanks for reading, and have a great day!
-          </p>
-        </description>
+      <description translate="no">
+        <p>
+          Hot fix for an issue where updates would not show. Also adds a cancel button to the app tiles on the search page.
+        </p>
+        <p>
+          <em>Other Fixes</em>
+        </p>
+        <ul>
+          <li>Fix Flathub page svg graphics being rendered with a solid fill</li>
+          <li>Disable broken graphs for very new Flathub apps</li>
+          <li>Add workaround for KRunner sending broken app IDs</li>
+        </ul>
+        <p>
+          Thanks for reading, and have a great day!
+        </p>
+      </description>
     </release>
     <release version="0.8.0" date="2026-05-16">
       <url type="details">https://github.com/bazaar-org/bazaar/releases/tag/v0.8.0</url>
