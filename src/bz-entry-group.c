@@ -1612,3 +1612,277 @@ check_user_data_size (BzEntryGroup *self)
       bz_track_weak (self), bz_weak_release);
   self->user_data_size_future = g_steal_pointer (&future);
 }
+
+void
+bz_entry_group_serialize (BzEntryGroup    *self,
+                          GVariantBuilder *builder)
+{
+  guint n_ids = 0;
+
+  g_variant_builder_add (builder, "{sv}", "id",
+                         g_variant_new_string (self->id ? self->id : ""));
+  g_variant_builder_add (builder, "{sv}", "title",
+                         g_variant_new_string (self->title ? self->title : ""));
+  if (self->developer != NULL)
+    g_variant_builder_add (builder, "{sv}", "developer",
+                           g_variant_new_string (self->developer));
+  if (self->description != NULL)
+    g_variant_builder_add (builder, "{sv}", "description",
+                           g_variant_new_string (self->description));
+  if (self->search_tokens != NULL)
+    g_variant_builder_add (builder, "{sv}", "search-tokens",
+                           g_variant_new_string (self->search_tokens));
+  if (self->eol != NULL)
+    g_variant_builder_add (builder, "{sv}", "eol",
+                           g_variant_new_string (self->eol));
+  if (self->light_accent_color != NULL)
+    g_variant_builder_add (builder, "{sv}", "light-accent-color",
+                           g_variant_new_string (self->light_accent_color));
+  if (self->dark_accent_color != NULL)
+    g_variant_builder_add (builder, "{sv}", "dark-accent-color",
+                           g_variant_new_string (self->dark_accent_color));
+  if (self->donation_url != NULL)
+    g_variant_builder_add (builder, "{sv}", "donation-url",
+                           g_variant_new_string (self->donation_url));
+
+  g_variant_builder_add (builder, "{sv}", "is-floss",
+                         g_variant_new_boolean (self->is_floss));
+  g_variant_builder_add (builder, "{sv}", "is-flathub",
+                         g_variant_new_boolean (self->is_flathub));
+  g_variant_builder_add (builder, "{sv}", "is-verified",
+                         g_variant_new_boolean (self->is_verified));
+  g_variant_builder_add (builder, "{sv}", "is-addon",
+                         g_variant_new_boolean (self->is_addon));
+  g_variant_builder_add (builder, "{sv}", "searchable",
+                         g_variant_new_boolean (self->searchable));
+  g_variant_builder_add (builder, "{sv}", "read-only",
+                         g_variant_new_boolean (self->read_only));
+  g_variant_builder_add (builder, "{sv}", "installed-size",
+                         g_variant_new_uint64 (self->installed_size));
+  g_variant_builder_add (builder, "{sv}", "n-addons",
+                         g_variant_new_int32 (self->n_addons));
+  g_variant_builder_add (builder, "{sv}", "categories",
+                         g_variant_new_uint32 (self->categories));
+  g_variant_builder_add (builder, "{sv}", "content-age-rating",
+                         g_variant_new_int32 (self->content_age_rating));
+  g_variant_builder_add (builder, "{sv}", "max-usefulness",
+                         g_variant_new_int32 (self->max_usefulness));
+
+  n_ids = g_list_model_get_n_items (G_LIST_MODEL (self->unique_ids));
+  if (n_ids > 0)
+    {
+      g_autoptr (GVariantBuilder) ids_b = NULL;
+      g_autoptr (GVariantBuilder) iv_b  = NULL;
+      g_autoptr (GVariantBuilder) sf_b  = NULL;
+
+      ids_b = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+      iv_b  = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+      sf_b  = g_variant_builder_new (G_VARIANT_TYPE ("ai"));
+
+      for (guint i = 0; i < n_ids; i++)
+        {
+          g_autoptr (GtkStringObject) s  = NULL;
+          g_autoptr (GtkStringObject) iv = NULL;
+          gint32 flags                   = 0;
+
+          s     = g_list_model_get_item (G_LIST_MODEL (self->unique_ids), i);
+          iv    = g_list_model_get_item (G_LIST_MODEL (self->installed_versions), i);
+          flags = g_array_index (self->state_flags, gint32, i);
+
+          g_variant_builder_add (ids_b, "s", gtk_string_object_get_string (s));
+          g_variant_builder_add (iv_b, "s",
+                                 iv != NULL ? gtk_string_object_get_string (iv) : "");
+          g_variant_builder_add (sf_b, "i", flags);
+        }
+
+      g_variant_builder_add (builder, "{sv}", "unique-ids",
+                             g_variant_builder_end (ids_b));
+      g_variant_builder_add (builder, "{sv}", "installed-versions",
+                             g_variant_builder_end (iv_b));
+      g_variant_builder_add (builder, "{sv}", "state-flags",
+                             g_variant_builder_end (sf_b));
+    }
+
+  if (self->addon_group_ids != NULL)
+    {
+      guint n_addon_ids = 0;
+
+      n_addon_ids = g_list_model_get_n_items (G_LIST_MODEL (self->addon_group_ids));
+      if (n_addon_ids > 0)
+        {
+          g_autoptr (GVariantBuilder) addon_b = NULL;
+
+          addon_b = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+          for (guint i = 0; i < n_addon_ids; i++)
+            {
+              g_autoptr (GtkStringObject) s = NULL;
+
+              s = g_list_model_get_item (G_LIST_MODEL (self->addon_group_ids), i);
+              g_variant_builder_add (addon_b, "s", gtk_string_object_get_string (s));
+            }
+          g_variant_builder_add (builder, "{sv}", "addon-group-ids",
+                                 g_variant_builder_end (addon_b));
+        }
+    }
+
+  if (self->mini_icon != NULL)
+    {
+      g_autoptr (GVariant) icon_variant = NULL;
+
+      icon_variant = g_icon_serialize (self->mini_icon);
+      if (icon_variant != NULL)
+        g_variant_builder_add (builder, "{sv}", "mini-icon", icon_variant);
+    }
+}
+
+gboolean
+bz_entry_group_deserialize (BzEntryGroup *self,
+                            GVariant     *import)
+{
+  g_autoptr (GVariantIter) iter = NULL;
+
+  iter = g_variant_iter_new (import);
+  for (;;)
+    {
+      g_autofree char *key       = NULL;
+      g_autoptr (GVariant) value = NULL;
+
+      if (!g_variant_iter_next (iter, "{sv}", &key, &value))
+        break;
+
+      if (g_strcmp0 (key, "id") == 0)
+        self->id = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "title") == 0)
+        self->title = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "developer") == 0)
+        self->developer = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "description") == 0)
+        self->description = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "search-tokens") == 0)
+        self->search_tokens = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "eol") == 0)
+        self->eol = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "light-accent-color") == 0)
+        self->light_accent_color = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "dark-accent-color") == 0)
+        self->dark_accent_color = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "donation-url") == 0)
+        self->donation_url = g_variant_dup_string (value, NULL);
+      else if (g_strcmp0 (key, "is-floss") == 0)
+        self->is_floss = g_variant_get_boolean (value);
+      else if (g_strcmp0 (key, "is-flathub") == 0)
+        self->is_flathub = g_variant_get_boolean (value);
+      else if (g_strcmp0 (key, "is-verified") == 0)
+        self->is_verified = g_variant_get_boolean (value);
+      else if (g_strcmp0 (key, "is-addon") == 0)
+        self->is_addon = g_variant_get_boolean (value);
+      else if (g_strcmp0 (key, "searchable") == 0)
+        self->searchable = g_variant_get_boolean (value);
+      else if (g_strcmp0 (key, "read-only") == 0)
+        self->read_only = g_variant_get_boolean (value);
+      else if (g_strcmp0 (key, "installed-size") == 0)
+        self->installed_size = g_variant_get_uint64 (value);
+      else if (g_strcmp0 (key, "n-addons") == 0)
+        self->n_addons = g_variant_get_int32 (value);
+      else if (g_strcmp0 (key, "categories") == 0)
+        self->categories = g_variant_get_uint32 (value);
+      else if (g_strcmp0 (key, "content-age-rating") == 0)
+        self->content_age_rating = g_variant_get_int32 (value);
+      else if (g_strcmp0 (key, "max-usefulness") == 0)
+        self->max_usefulness = g_variant_get_int32 (value);
+      else if (g_strcmp0 (key, "unique-ids") == 0)
+        {
+          g_autoptr (GVariantIter) ids_iter = NULL;
+          g_autofree char *uid              = NULL;
+
+          ids_iter = g_variant_iter_new (value);
+          while (g_variant_iter_next (ids_iter, "s", &uid))
+            gtk_string_list_append (self->unique_ids, uid);
+        }
+      else if (g_strcmp0 (key, "installed-versions") == 0)
+        {
+          g_autoptr (GVariantIter) iv_iter = NULL;
+          g_autofree char *iv              = NULL;
+
+          iv_iter = g_variant_iter_new (value);
+          while (g_variant_iter_next (iv_iter, "s", &iv))
+            gtk_string_list_append (self->installed_versions, iv);
+        }
+      else if (g_strcmp0 (key, "state-flags") == 0)
+        {
+          g_autoptr (GVariantIter) sf_iter = NULL;
+          gint32 flags                     = 0;
+
+          sf_iter = g_variant_iter_new (value);
+          while (g_variant_iter_next (sf_iter, "i", &flags))
+            g_array_append_val (self->state_flags, flags);
+        }
+      else if (g_strcmp0 (key, "addon-group-ids") == 0)
+        {
+          g_autoptr (GVariantIter) addon_iter = NULL;
+          g_autofree char *addon_id           = NULL;
+
+          addon_iter = g_variant_iter_new (value);
+          while (g_variant_iter_next (addon_iter, "s", &addon_id))
+            bz_entry_group_append_addon_group_id (self, addon_id);
+        }
+      else if (g_strcmp0 (key, "mini-icon") == 0)
+        self->mini_icon = g_icon_deserialize (value);
+    }
+
+  if (self->id != NULL)
+    self->read_only = g_strcmp0 (
+                          self->id,
+                          g_application_get_application_id (g_application_get_default ())) == 0;
+
+  return self->id != NULL;
+}
+
+void
+bz_entry_group_reconcile_with_installed_set (BzEntryGroup *self,
+                                             GHashTable   *installed_set)
+{
+  g_autoptr (GMutexLocker) locker = NULL;
+  guint n_ids                     = 0;
+
+  g_return_if_fail (BZ_IS_ENTRY_GROUP (self));
+  g_return_if_fail (installed_set != NULL);
+
+  locker = g_mutex_locker_new (&self->mutex);
+
+  self->installable           = 0;
+  self->removable             = 0;
+  self->installable_available = 0;
+  self->removable_available   = 0;
+
+  n_ids = g_list_model_get_n_items (G_LIST_MODEL (self->unique_ids));
+  for (guint i = 0; i < n_ids; i++)
+    {
+      g_autoptr (GtkStringObject) uid_obj = NULL;
+      const char *uid                     = NULL;
+      gint32      flags                   = 0;
+
+      uid_obj = g_list_model_get_item (G_LIST_MODEL (self->unique_ids), i);
+      uid     = gtk_string_object_get_string (uid_obj);
+
+      if (g_hash_table_contains (installed_set, uid))
+        {
+          flags |= ENTRY_REMOVABLE | ENTRY_REMOVABLE_AVAILABLE;
+          self->removable++;
+          self->removable_available++;
+        }
+      else
+        {
+          flags |= ENTRY_INSTALLABLE | ENTRY_INSTALLABLE_AVAILABLE;
+          self->installable++;
+          self->installable_available++;
+        }
+
+      g_array_index (self->state_flags, gint32, i) = flags;
+    }
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_REMOVABLE]);
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_REMOVABLE_AND_AVAILABLE]);
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_INSTALLABLE]);
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_INSTALLABLE_AND_AVAILABLE]);
+}
