@@ -1856,9 +1856,8 @@ open_flatpakref_fiber (OpenFlatpakrefData *data)
       GtkWindow             *window        = NULL;
       BzEntry               *entry         = NULL;
       BzFlatpakRepo         *repo          = NULL;
-      BzBundleInstallDialog *install_ui    = NULL;
+      BzBundleInstallDialog *dialog        = NULL;
       BzFlatpakBundleResult *bundle_result = NULL;
-      AdwDialog             *dialog        = NULL;
       const char            *id            = NULL;
 
       window = get_or_create_window (self);
@@ -1881,19 +1880,13 @@ open_flatpakref_fiber (OpenFlatpakrefData *data)
             bz_entry_set_installed (entry, TRUE);
         }
 
-      install_ui = g_object_new (
+      dialog = g_object_new (
           BZ_TYPE_BUNDLE_INSTALL_DIALOG,
           "state", self->state,
           "entry", entry,
           "runtime-repo", repo,
           NULL);
-
-      dialog = adw_dialog_new ();
-      adw_dialog_set_content_width (dialog, 500);
-      adw_dialog_set_content_height (dialog, -1);
-      adw_dialog_set_child (dialog, GTK_WIDGET (install_ui));
-
-      adw_dialog_present (dialog, GTK_WIDGET (window));
+      adw_dialog_present (ADW_DIALOG (dialog), GTK_WIDGET (window));
     }
 
   return dex_future_new_true ();
