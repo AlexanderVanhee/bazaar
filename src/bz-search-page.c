@@ -635,20 +635,10 @@ static void
 search_changed (GtkEditable  *editable,
                 BzSearchPage *self)
 {
-  GSettings *settings = NULL;
-
   g_clear_handle_id (&self->search_update_timeout, g_source_remove);
-
-  settings = bz_state_info_get_settings (self->state);
-  if (settings != NULL &&
-      g_settings_get_boolean (settings, "search-debounce"))
-    {
-      self->search_update_timeout = g_timeout_add_once (
-          150, (GSourceOnceFunc) update_filter, self);
-      gtk_widget_set_visible (GTK_WIDGET (self->search_busy), TRUE);
-    }
-  else
-    update_filter (self);
+  self->search_update_timeout = g_timeout_add_once (
+      150, (GSourceOnceFunc) update_filter, self);
+  gtk_widget_set_visible (GTK_WIDGET (self->search_busy), TRUE);
 }
 
 static void

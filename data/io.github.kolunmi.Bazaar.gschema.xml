@@ -21,11 +21,6 @@
       <summary>Show Only Verified Content</summary>
       <description>Hide applications which are not verified on Flathub</description>
     </key>
-    <key name="search-debounce" type="b">
-      <default>true</default>
-      <summary>Debounce Search Inputs</summary>
-      <description>Add a delay before searching to prevent instant replies while typing</description>
-    </key>
     <key name="global-progress-bar-theme" type="s">
       <choices>
         <choice value="accent-color"/>
