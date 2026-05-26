@@ -53,6 +53,8 @@ template $BzFullView: Adw.Bin {
               context_bar.homogeneous: false;
               header_box.spacing: 12;
               app_name_box.spacing: 0;
+              formfactor_support_tile_wide.visible: false;
+              formfactor_support_tile_narrow.visible: true;
               screenshots.compact: true;
               header_bar.show-title: false;
             }
@@ -336,12 +338,38 @@ template $BzFullView: Adw.Bin {
                         Box {
                           homogeneous: true;
 
-                          $BzContextTile {
+                          $BzContextTile formfactor_support_tile_wide {
                             label: bind $get_formfactor_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
                             has-tooltip: true;
                             tooltip-text: bind $get_formfactor_tooltip(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
                             clicked => $formfactor_cb(template);
                             lozenge-style: "grey";
+
+                            lozenge-child: Box {
+                              Image {
+                                visible: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly as <bool>;
+                                icon-name: "device-support-adaptive-symbolic";
+                                pixel-size: 56;
+
+                                styles [
+                                  "wide-image",
+                                ]
+                              }
+
+                              Image {
+                                visible: bind $invert_boolean(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <bool>;
+                                icon-name: "device-support-desktop-symbolic";
+                              }
+                            };
+                          }
+
+                          $BzContextTile formfactor_support_tile_narrow {
+                            label: bind $get_formfactor_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
+                            has-tooltip: true;
+                            tooltip-text: bind $get_formfactor_tooltip(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
+                            clicked => $formfactor_cb(template);
+                            lozenge-style: bind $bool_to_string(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly, "grey", "error") as <string>;
+                            visible: false;
 
                             lozenge-child: Box {
                               Image {
