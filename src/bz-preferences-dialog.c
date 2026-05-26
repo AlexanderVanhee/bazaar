@@ -67,7 +67,6 @@ struct _BzPreferencesDialog
   AdwSwitchRow *search_debounce_switch;
   GtkFlowBox   *flag_buttons_box;
   AdwSwitchRow *hide_eol_switch;
-  AdwSwitchRow *rotate_switch;
 
   GtkToggleButton *flag_buttons[G_N_ELEMENTS (bar_themes)];
 };
@@ -134,22 +133,6 @@ global_progress_theme_settings_changed (BzPreferencesDialog *self,
 }
 
 static void
-on_rotate_switch_changed (AdwSwitchRow        *row,
-                          GParamSpec          *pspec,
-                          BzPreferencesDialog *self)
-{
-  gboolean active = FALSE;
-  active = adw_switch_row_get_active (row);
-  for (guint i = 0; i < G_N_ELEMENTS (bar_themes); i++)
-    {
-      if (active)
-        gtk_widget_add_css_class (GTK_WIDGET (self->flag_buttons[i]), "horizontal");
-      else
-        gtk_widget_remove_css_class (GTK_WIDGET (self->flag_buttons[i]), "horizontal");
-    }
-}
-
-static void
 create_flag_buttons (BzPreferencesDialog *self)
 {
   GtkToggleButton *first_button = NULL;
@@ -212,18 +195,6 @@ bind_settings (BzPreferencesDialog *self)
   g_settings_bind (self->settings, "hide-eol",
                    self->hide_eol_switch, "active",
                    G_SETTINGS_BIND_DEFAULT);
-
-  g_settings_bind (self->settings, "rotate-flag",
-                 self->rotate_switch, "active",
-                 G_SETTINGS_BIND_DEFAULT);
-
-  if (adw_switch_row_get_active (self->rotate_switch))
-    {
-      for (guint i = 0; i < G_N_ELEMENTS (bar_themes); i++)
-        {
-          gtk_widget_add_css_class (GTK_WIDGET (self->flag_buttons[i]), "horizontal");
-        }
-    }
 
   g_signal_connect_object (
       self->settings,
@@ -299,9 +270,7 @@ bz_preferences_dialog_class_init (BzPreferencesDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, search_debounce_switch);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, flag_buttons_box);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, hide_eol_switch);
-  gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, rotate_switch);
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
-  gtk_widget_class_bind_template_callback (widget_class, on_rotate_switch_changed);
 }
 
 static void

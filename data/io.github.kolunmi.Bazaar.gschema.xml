@@ -55,10 +55,6 @@
       <summary>Global Progress Bar Theme</summary>
       <description>Describes the look of the global progress bar</description>
     </key>
-    <key name="rotate-flag" type="b">
-      <default>false</default>
-      <summary>Rotate selected flag by 90 degrees</summary>
-    </key>
     <key name="window-dimensions" type="(ii)">
       <default>(1220, 900)</default>
       <summary>Saved Window Dimensions</summary>
