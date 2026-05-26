@@ -6,7 +6,9 @@ template $BzLoginPage: Adw.NavigationPage {
 
   child: Adw.ToolbarView {
     [top]
-    Adw.HeaderBar {}
+    Adw.HeaderBar {
+      show-title: false;
+    }
 
     content: Stack main_stack {
       transition-type: crossfade;
@@ -40,7 +42,7 @@ template $BzLoginPage: Adw.NavigationPage {
           child: Adw.StatusPage {
             icon-name: "flathub-symbolic";
             title: _("Connect to Flathub");
-            description: _("Connect your Flathub account to Bazaar to manage your favorited apps.");
+            description: _("Log in to sync your favorited apps across devices");
 
             child: Adw.PreferencesGroup provider_preferences_group {
               margin-start: 10;
