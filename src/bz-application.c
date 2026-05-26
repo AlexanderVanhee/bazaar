@@ -517,15 +517,26 @@ bz_application_command_line (GApplication            *app,
       g_autoptr (GtkStringList) txt_blocklists  = NULL;
       g_autoptr (GtkStringList) content_configs = NULL;
       g_autoptr (DexFuture) init                = NULL;
+      GTimer *startup_timer                     = g_timer_new ();
 
       g_debug ("Starting daemon!");
       g_application_hold (G_APPLICATION (self));
       self->running = TRUE;
 
+      g_print ("[startup] hold + running flag: %.3f ms\n",
+               g_timer_elapsed (startup_timer, NULL) * 1000.0);
+
       blocklists      = gtk_string_list_new (NULL);
       txt_blocklists  = gtk_string_list_new (NULL);
       content_configs = gtk_string_list_new (NULL);
+
+      g_print ("[startup] string lists alloc: %.3f ms\n",
+               g_timer_elapsed (startup_timer, NULL) * 1000.0);
+
       init_service_struct (self, blocklists, txt_blocklists, content_configs);
+
+      g_print ("[startup] init_service_struct: %.3f ms\n",
+               g_timer_elapsed (startup_timer, NULL) * 1000.0);
 
 #ifdef HARDCODED_BLOCKLIST
       g_debug ("Bazaar was configured with a hardcoded txt blocklist at %s, adding that now...",
@@ -551,9 +562,12 @@ bz_application_command_line (GApplication            *app,
             0,
             (const char *const *) content_configs_strv);
 
+      g_print ("[startup] hardcoded config appends: %.3f ms\n",
+               g_timer_elapsed (startup_timer, NULL) * 1000.0);
+
       g_timer_start (self->init_timer);
       init = dex_scheduler_spawn (
-          dex_scheduler_get_default (),
+          bz_get_io_scheduler (),
           bz_get_dex_stack_size (),
           (DexFiberFunc) init_fiber,
           bz_track_weak (self),
@@ -564,14 +578,25 @@ bz_application_command_line (GApplication            *app,
           bz_track_weak (self),
           bz_weak_release);
       dex_future_disown (g_steal_pointer (&init));
+
+      g_print ("[startup] fiber spawned: %.3f ms\n",
+               g_timer_elapsed (startup_timer, NULL) * 1000.0);
+
+      g_timer_destroy (startup_timer);
     }
 
   if (!no_window && !preview_metainfo)
     {
+      GTimer *window_timer = g_timer_new ();
+
       if (locations == NULL || *locations == NULL)
         new_window (self);
       else
         get_or_create_window (self);
+
+      g_print ("[startup] window created: %.3f ms\n",
+               g_timer_elapsed (window_timer, NULL) * 1000.0);
+      g_timer_destroy (window_timer);
     }
 
   if (locations != NULL && *locations != NULL)
@@ -972,13 +997,17 @@ init_fiber (GWeakRef *wr)
   gboolean         result               = FALSE;
   g_autofree char *flathub_cache        = NULL;
   g_autoptr (GFile) flathub_cache_file  = NULL;
+  GTimer          *step_timer           = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
+
+  step_timer = g_timer_new ();
 
   bz_state_info_set_online (self->state, TRUE);
   bz_state_info_set_busy (self->state, TRUE);
   bz_state_info_set_background_task_label (self->state, _ ("Performing setup…"));
 
+  g_timer_start (step_timer);
   root_cache_dir      = bz_dup_root_cache_dir ();
   root_cache_dir_file = g_file_new_for_path (root_cache_dir);
   if (dex_await (dex_file_query_exists (root_cache_dir_file), NULL))
@@ -1032,87 +1061,34 @@ init_fiber (GWeakRef *wr)
     }
   else
     bz_state_info_set_donation_prompt_dismissed (self->state, TRUE);
+  g_print ("[init] cache version check: %.3f ms\n", g_timer_elapsed (step_timer, NULL) * 1000.0);
 
+  g_timer_start (step_timer);
   g_clear_object (&self->flatpak);
   self->flatpak = dex_await_object (bz_flatpak_instance_new (), &local_error);
   if (self->flatpak == NULL)
-    return dex_future_new_for_error (g_steal_pointer (&local_error));
+    {
+      g_timer_destroy (step_timer);
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
   bz_transaction_manager_set_backend (self->transactions, BZ_BACKEND (self->flatpak));
   bz_state_info_set_backend (self->state, BZ_BACKEND (self->flatpak));
+  g_print ("[init] flatpak instance init: %.3f ms\n", g_timer_elapsed (step_timer, NULL) * 1000.0);
 
+  g_timer_start (step_timer);
   has_flathub = dex_await_boolean (
       bz_flatpak_instance_has_flathub (self->flatpak, NULL),
       &local_error);
   if (local_error != NULL)
-    return dex_future_new_for_error (g_steal_pointer (&local_error));
-
-  if (!has_flathub)
     {
-      GtkWindow       *window   = NULL;
-      g_autofree char *response = NULL;
-      AdwDialog       *alert    = NULL;
-
-      dex_await (DEX_FUTURE (self->first_window_opened), NULL);
-
-      window = gtk_application_get_active_window (GTK_APPLICATION (self));
-      if (window == NULL)
-        window = new_window (self);
-
-      alert = adw_alert_dialog_new (NULL, NULL);
-
-#ifdef SANDBOXED_LIBFLATPAK
-      adw_alert_dialog_format_heading (
-          ADW_ALERT_DIALOG (alert),
-          _ ("Set Up System Flathub?"));
-      adw_alert_dialog_format_body (
-          ADW_ALERT_DIALOG (alert),
-          _ ("The system Flathub remote is not set up. Bazaar requires "
-             "Flathub to be configured on the system Flatpak installation "
-             "to browse and install applications.\n\n"
-             "You can still use Bazaar to browse and remove already installed apps."));
-#else
-      adw_alert_dialog_format_heading (
-          ADW_ALERT_DIALOG (alert),
-          _ ("Set Up Flathub?"));
-      adw_alert_dialog_format_body (
-          ADW_ALERT_DIALOG (alert),
-          _ ("Flathub is not set up on this system. "
-             "You will not be able to browse and install applications in Bazaar if its unavailable.\n\n"
-             "You can still use Bazaar to browse and remove already installed apps."));
-#endif
-      adw_alert_dialog_add_responses (
-          ADW_ALERT_DIALOG (alert),
-          "later", _ ("Later"),
-          "add", _ ("Set Up Flathub"),
-          NULL);
-      adw_alert_dialog_set_response_appearance (
-          ADW_ALERT_DIALOG (alert), "add", ADW_RESPONSE_SUGGESTED);
-      adw_alert_dialog_set_default_response (ADW_ALERT_DIALOG (alert), "add");
-      adw_alert_dialog_set_close_response (ADW_ALERT_DIALOG (alert), "later");
-
-      adw_dialog_present (alert, GTK_WIDGET (window));
-      response = dex_await_string (
-          bz_make_alert_dialog_future (ADW_ALERT_DIALOG (alert)),
-          NULL);
-
-      if (response != NULL &&
-          g_strcmp0 (response, "add") == 0)
-        {
-          result = dex_await (
-              bz_flatpak_instance_ensure_has_flathub (self->flatpak, NULL),
-              &local_error);
-          if (result)
-            has_flathub = TRUE;
-          else
-            {
-              g_warning ("Failed to install flathub: %s",
-                         local_error->message);
-              g_clear_error (&local_error);
-            }
-        }
+      g_timer_destroy (step_timer);
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
     }
+  g_print ("[init] flathub check: %.3f ms\n", g_timer_elapsed (step_timer, NULL) * 1000.0);
+
   bz_state_info_set_has_flathub (self->state, has_flathub);
 
+  g_timer_start (step_timer);
   self->installed_set = dex_await_boxed (
       bz_backend_retrieve_install_ids (
           BZ_BACKEND (self->flatpak), NULL),
@@ -1127,7 +1103,9 @@ init_fiber (GWeakRef *wr)
       self->installed_set = g_hash_table_new_full (
           g_str_hash, g_str_equal, g_free, g_free);
     }
+  g_print ("[init] retrieve installed IDs: %.3f ms\n", g_timer_elapsed (step_timer, NULL) * 1000.0);
 
+  g_timer_start (step_timer);
   repos = dex_await_object (
       bz_backend_list_repositories (BZ_BACKEND (self->flatpak), NULL),
       &local_error);
@@ -1139,17 +1117,20 @@ init_fiber (GWeakRef *wr)
       g_warning ("Failed to enumerate repositories: %s", local_error->message);
       g_clear_error (&local_error);
     }
+  g_print ("[init] list repositories: %.3f ms\n", g_timer_elapsed (step_timer, NULL) * 1000.0);
 
-  /* Revive old cache from previous Bazaar process */
+  g_timer_start (step_timer);
   cache_has_flathub = dex_await_boolean (
       dex_scheduler_spawn (
-          dex_scheduler_get_default (),
+          bz_get_io_scheduler (),
           bz_get_dex_stack_size (),
           (DexFiberFunc) enumerate_disk_groups_fiber,
           bz_track_weak (self),
           bz_weak_release),
       NULL);
+  g_print ("[init] enumerate disk groups: %.3f ms\n", g_timer_elapsed (step_timer, NULL) * 1000.0);
 
+  g_timer_start (step_timer);
   flathub_cache_file = fiber_dup_cache_file ("flathub-cache", &flathub_cache, &local_error);
   if (flathub_cache_file != NULL)
     {
@@ -1208,7 +1189,12 @@ init_fiber (GWeakRef *wr)
       g_warning ("Unable to ensure cache directory: %s", local_error->message);
       g_clear_error (&local_error);
     }
+  g_print ("[init] flathub cache load: %.3f ms\n", g_timer_elapsed (step_timer, NULL) * 1000.0);
 
+  g_print ("[init] total time since service start: %.3f ms\n",
+           g_timer_elapsed (self->init_timer, NULL) * 1000.0);
+
+  g_timer_destroy (step_timer);
   return dex_future_new_true ();
 }
 
@@ -1223,18 +1209,32 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
   g_autoptr (GVariant) variant        = NULL;
   g_autoptr (GVariantIter) iter       = NULL;
   gboolean has_flathub_group          = FALSE;
+  GTimer  *timer                      = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
+
+  timer = g_timer_new ();
+  g_print ("[enumerate_disk_groups] starting\n");
 
   groups_cache_file = fiber_dup_cache_file ("groups-cache", &groups_cache, &local_error);
   if (groups_cache_file == NULL)
     {
       g_warning ("Unable to ensure groups cache directory: %s", local_error->message);
+      g_timer_destroy (timer);
       return dex_future_new_for_boolean (FALSE);
     }
+  g_print ("[enumerate_disk_groups] cache file path resolved: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   if (!dex_await (dex_file_query_exists (groups_cache_file), NULL))
-    return dex_future_new_for_boolean (FALSE);
+    {
+      g_print ("[enumerate_disk_groups] no cache file found: %.3f ms\n",
+               g_timer_elapsed (timer, NULL) * 1000.0);
+      g_timer_destroy (timer);
+      return dex_future_new_for_boolean (FALSE);
+    }
+  g_print ("[enumerate_disk_groups] existence check: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   bytes = dex_await_boxed (
       dex_file_load_contents_bytes (groups_cache_file),
@@ -1243,15 +1243,21 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
     {
       g_warning ("Failed to load groups cache from %s: %s",
                  groups_cache, local_error->message);
+      g_timer_destroy (timer);
       return dex_future_new_for_boolean (FALSE);
     }
+  g_print ("[enumerate_disk_groups] file loaded: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   variant = g_variant_new_from_bytes (G_VARIANT_TYPE ("aa{sv}"), bytes, FALSE);
   if (variant == NULL)
     {
       g_warning ("Failed to parse groups cache from %s", groups_cache);
+      g_timer_destroy (timer);
       return dex_future_new_for_boolean (FALSE);
     }
+  g_print ("[enumerate_disk_groups] variant parsed: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   iter = g_variant_iter_new (variant);
   for (;;)
@@ -1288,9 +1294,13 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
                 (GCompareDataFunc) cmp_group, NULL);
         }
     }
+  g_print ("[enumerate_disk_groups] all groups deserialized: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_LESS_STRICT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_LESS_STRICT);
+  g_print ("[enumerate_disk_groups] filters updated: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   dex_future_disown (dex_scheduler_spawn (
       dex_scheduler_get_default (),
@@ -1299,6 +1309,9 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
       bz_track_weak (self),
       bz_weak_release));
 
+  g_print ("[enumerate_disk_groups] done: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
+  g_timer_destroy (timer);
   return dex_future_new_for_boolean (has_flathub_group);
 }
 
@@ -3445,9 +3458,15 @@ new_window (BzApplication *self)
   g_autoptr (GtkWidget) main_window = NULL;
   int width                         = 0;
   int height                        = 0;
+  GTimer *timer                     = g_timer_new ();
 
   window = bz_window_new (self->state);
+  g_print ("[new_window] bz_window_new: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
+
   gtk_application_add_window (GTK_APPLICATION (self), GTK_WINDOW (window));
+  g_print ("[new_window] gtk_application_add_window: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   main_window = g_weak_ref_get (&self->main_window);
   if (main_window != NULL)
@@ -3467,12 +3486,23 @@ new_window (BzApplication *self)
           self, G_CONNECT_SWAPPED);
       g_weak_ref_init (&self->main_window, window);
     }
+  g_print ("[new_window] window size setup: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   gtk_window_set_default_size (GTK_WINDOW (window), width, height);
+  g_print ("[new_window] set_default_size: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
+
   gtk_window_present (GTK_WINDOW (window));
+  g_print ("[new_window] gtk_window_present: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
 
   if (dex_future_is_pending (DEX_FUTURE (self->first_window_opened)))
     dex_promise_resolve_boolean (self->first_window_opened, TRUE);
+
+  g_print ("[new_window] total: %.3f ms\n",
+           g_timer_elapsed (timer, NULL) * 1000.0);
+  g_timer_destroy (timer);
 
   return GTK_WINDOW (window);
 }
