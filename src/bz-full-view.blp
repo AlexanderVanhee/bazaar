@@ -525,10 +525,11 @@ template $BzFullView: Adw.Bin {
                             Label {
                               halign: start;
                               valign: center;
+                              xalign: 0;
                               hexpand: true;
                               margin-start: 12;
-                              margin-top: 8;
-                              margin-bottom: 8;
+                              margin-top: 12;
+                              margin-bottom: 12;
                               label: bind $format_leftover_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.title, template.entry-group as <$BzEntryGroup>.user-data-size) as <string>;
                               use-markup: true;
                               wrap: true;
