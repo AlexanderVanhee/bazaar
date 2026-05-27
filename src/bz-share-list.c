@@ -30,8 +30,8 @@ struct _BzShareList
 {
   GtkBox parent_instance;
 
-  GListModel          *urls;
-  AdwPreferencesGroup *group;
+  GListModel *urls;
+  gboolean    dual_column;
 };
 
 G_DEFINE_FINAL_TYPE (BzShareList, bz_share_list, GTK_TYPE_BOX)
@@ -41,6 +41,7 @@ enum
   PROP_0,
 
   PROP_URLS,
+  PROP_DUAL_COLUMN,
 
   LAST_PROP
 };
@@ -67,8 +68,8 @@ static const UrlInfo url_info[] = {
   {          NULL,                         NULL,                                       NULL }
 };
 
-static const UrlInfo *get_url_info (const char *id);
 static void           populate_urls (BzShareList *self);
+static GtkListBox    *create_list_box (void);
 static AdwActionRow  *create_url_action_row (BzShareList *self,
                                              BzUrl       *url_item);
 static void           copy_cb (BzShareList *self,
@@ -99,6 +100,9 @@ bz_share_list_get_property (GObject    *object,
     case PROP_URLS:
       g_value_set_object (value, self->urls);
       break;
+    case PROP_DUAL_COLUMN:
+      g_value_set_boolean (value, self->dual_column);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -117,6 +121,10 @@ bz_share_list_set_property (GObject      *object,
     case PROP_URLS:
       g_clear_object (&self->urls);
       self->urls = g_value_dup_object (value);
+      populate_urls (self);
+      break;
+    case PROP_DUAL_COLUMN:
+      self->dual_column = g_value_get_boolean (value);
       populate_urls (self);
       break;
     default:
@@ -140,6 +148,13 @@ bz_share_list_class_init (BzShareListClass *klass)
           G_TYPE_LIST_MODEL,
           G_PARAM_READWRITE);
 
+  props[PROP_DUAL_COLUMN] =
+      g_param_spec_boolean (
+          "dual-column",
+          NULL, NULL,
+          FALSE,
+          G_PARAM_READWRITE);
+
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
   g_type_ensure (BZ_TYPE_URL);
@@ -157,45 +172,97 @@ bz_share_list_new (void)
   return g_object_new (BZ_TYPE_SHARE_LIST, NULL);
 }
 
-static const UrlInfo *
-get_url_info (const char *id)
-{
-  for (int i = 0; url_info[i].id != NULL; i++)
-    {
-      if (g_strcmp0 (url_info[i].id, id) == 0)
-        return &url_info[i];
-    }
-  return NULL;
-}
-
 static void
 populate_urls (BzShareList *self)
 {
-  guint n_items = 0;
+  GtkWidget *child       = NULL;
+  guint      n_items     = 0;
+  guint      left_count  = 0;
+  guint      right_count = 0;
 
-  if (self->group)
-    {
-      gtk_box_remove (GTK_BOX (self), GTK_WIDGET (self->group));
-      self->group = NULL;
-    }
-
-  self->group = ADW_PREFERENCES_GROUP (adw_preferences_group_new ());
-  gtk_box_append (GTK_BOX (self), GTK_WIDGET (self->group));
+  while ((child = gtk_widget_get_first_child (GTK_WIDGET (self))) != NULL)
+    gtk_box_remove (GTK_BOX (self), child);
 
   if (!self->urls)
     return;
 
   n_items = g_list_model_get_n_items (self->urls);
 
-  for (guint i = 0; i < n_items; i++)
+  if (!self->dual_column)
     {
-      g_autoptr (BzUrl) url_item = NULL;
-      AdwActionRow *action_row   = NULL;
+      GtkListBox *list_box = NULL;
 
-      url_item   = g_list_model_get_item (self->urls, i);
-      action_row = create_url_action_row (self, url_item);
-      adw_preferences_group_add (self->group, GTK_WIDGET (action_row));
+      list_box = create_list_box ();
+      gtk_widget_set_hexpand (GTK_WIDGET (list_box), TRUE);
+
+      for (guint i = 0; i < n_items; i++)
+        {
+          g_autoptr (BzUrl) url_item = NULL;
+          AdwActionRow *action_row   = NULL;
+
+          url_item   = g_list_model_get_item (self->urls, i);
+          action_row = create_url_action_row (self, url_item);
+          gtk_list_box_append (list_box, GTK_WIDGET (action_row));
+        }
+
+      gtk_box_append (GTK_BOX (self), GTK_WIDGET (list_box));
     }
+  else
+    {
+      GtkBox     *columns_box = NULL;
+      GtkListBox *left_box    = NULL;
+      GtkListBox *right_box   = NULL;
+
+      left_count  = (n_items + 1) / 2;
+      right_count = n_items / 2;
+
+      columns_box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12));
+      gtk_widget_set_hexpand (GTK_WIDGET (columns_box), TRUE);
+      gtk_box_set_homogeneous (columns_box, TRUE);
+
+      left_box = create_list_box ();
+      gtk_widget_set_hexpand (GTK_WIDGET (left_box), TRUE);
+
+      for (guint i = 0; i < left_count; i++)
+        {
+          g_autoptr (BzUrl) url_item = NULL;
+          AdwActionRow *action_row   = NULL;
+
+          url_item   = g_list_model_get_item (self->urls, i);
+          action_row = create_url_action_row (self, url_item);
+          gtk_list_box_append (left_box, GTK_WIDGET (action_row));
+        }
+
+      right_box = create_list_box ();
+      gtk_widget_set_hexpand (GTK_WIDGET (right_box), TRUE);
+
+      for (guint i = 0; i < right_count; i++)
+        {
+          g_autoptr (BzUrl) url_item = NULL;
+          AdwActionRow *action_row   = NULL;
+
+          url_item   = g_list_model_get_item (self->urls, left_count + i);
+          action_row = create_url_action_row (self, url_item);
+          gtk_list_box_append (right_box, GTK_WIDGET (action_row));
+        }
+
+      gtk_box_append (columns_box, GTK_WIDGET (left_box));
+      gtk_box_append (columns_box, GTK_WIDGET (right_box));
+      gtk_box_append (GTK_BOX (self), GTK_WIDGET (columns_box));
+    }
+}
+
+static GtkListBox *
+create_list_box (void)
+{
+  GtkListBox *list_box = NULL;
+
+  list_box = GTK_LIST_BOX (gtk_list_box_new ());
+  gtk_list_box_set_selection_mode (list_box, GTK_SELECTION_NONE);
+  gtk_widget_add_css_class (GTK_WIDGET (list_box), "boxed-list");
+  gtk_widget_set_valign (GTK_WIDGET (list_box), GTK_ALIGN_START);
+
+  return list_box;
 }
 
 static AdwActionRow *
@@ -204,13 +271,13 @@ create_url_action_row (BzShareList *self,
 {
   const char    *url_string  = NULL;
   const char    *id          = NULL;
-  const UrlInfo *info        = NULL;
   const char    *display     = NULL;
   AdwActionRow  *action_row  = NULL;
   GtkImage      *suffix_icon = NULL;
   GtkBox        *suffix_box  = NULL;
   GtkButton     *copy_button = NULL;
   GtkSeparator  *separator   = NULL;
+  const UrlInfo *info        = NULL;
 
   url_string = bz_url_get_url (url_item);
   id         = bz_url_get_id (url_item);
@@ -220,7 +287,15 @@ create_url_action_row (BzShareList *self,
                 ? strstr (url_string, "://") + 3
                 : url_string;
 
-  info       = get_url_info (id);
+  for (int i = 0; url_info[i].id != NULL; i++)
+    {
+      if (g_strcmp0 (url_info[i].id, id) == 0)
+        {
+          info = &url_info[i];
+          break;
+        }
+    }
+
   action_row = ADW_ACTION_ROW (adw_action_row_new ());
   adw_preferences_row_set_use_markup (ADW_PREFERENCES_ROW (action_row), FALSE);
   adw_preferences_row_set_title (ADW_PREFERENCES_ROW (action_row),

@@ -57,6 +57,7 @@ template $BzFullView: Adw.Bin {
               formfactor_support_tile_narrow.visible: true;
               screenshots.compact: true;
               header_bar.show-title: false;
+              link_list.dual-column: false;
             }
           }
 
@@ -658,8 +659,9 @@ template $BzFullView: Adw.Bin {
                               margin-start: 3;
                             }
 
-                            $BzShareList {
+                            $BzShareList link_list {
                               urls: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.share-urls;
+                              dual-column: true;
                             }
                           }
                         }
