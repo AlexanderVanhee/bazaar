@@ -454,11 +454,6 @@ bz_install_controls_set_property (GObject      *object,
                 "changed::global-progress-bar-theme",
                 G_CALLBACK (pride_flag_changed),
                 self);
-            g_signal_connect_swapped (
-                self->settings,
-                "changed::rotate-flag",
-                G_CALLBACK (pride_flag_changed),
-                self);
           }
         ensure_draw_css (self);
       }
@@ -679,12 +674,10 @@ ensure_draw_css (BzInstallControls *self)
       g_autofree char *id       = NULL;
       g_autofree char *final_id = NULL;
       g_autofree char *class    = NULL;
-      gboolean         rotate   = FALSE;
 
-      id     = g_settings_get_string (self->settings, "global-progress-bar-theme");
-      rotate = g_settings_get_boolean (self->settings, "rotate-flag");
+      id = g_settings_get_string (self->settings, "global-progress-bar-theme");
 
-      if (rotate && g_strcmp0 (id, "accent-color") != 0)
+      if (g_strcmp0 (id, "accent-color") != 0)
         final_id = g_strdup_printf ("%s-horizontal", id);
       else
         final_id = g_strdup (id);
