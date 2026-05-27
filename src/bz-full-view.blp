@@ -650,12 +650,19 @@ template $BzFullView: Adw.Bin {
                             orientation: vertical;
 
                             Label {
-                              styles ["heading"]
                               halign: start;
                               label: _("Links");
                               margin-top: 5;
                               margin-bottom: 8;
                               margin-start: 3;
+                              visible: bind $logical_and(
+                                  $invert_boolean($is_empty(template.ui-entry as <$BzResult>.object as <$BzEntry>.share-urls) as <bool>) as <bool>,
+                                  $invert_boolean($is_zero(addon_model.n-items) as <int>) as <bool>
+                                ) as <bool>;
+
+                              styles [
+                                "heading",
+                              ]
                             }
 
                             $BzShareList {
