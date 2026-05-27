@@ -719,24 +719,6 @@ template $BzFullView: Adw.Bin {
                             ]
                           }
                         }
-
-                        $BzTagList {
-                          margin-top: 8;
-                          flathub-state: bind template.state as <$BzStateInfo>.flathub;
-
-                          prefix: Label {
-                            label: _("Tags:");
-
-                            styles [
-                              "dimmed",
-                            ]
-                          };
-
-                          model: SliceListModel {
-                            size: 5;
-                            model: bind template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.keywords;
-                          };
-                        }
                       }
                     };
                   }
