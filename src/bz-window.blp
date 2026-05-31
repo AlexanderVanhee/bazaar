@@ -1,5 +1,6 @@
 using Gtk 4.0;
 using Gio 2.0;
+using Gdk 4.0;
 using Adw 1;
 
 template $BzWindow: Adw.ApplicationWindow {
@@ -170,7 +171,9 @@ template $BzWindow: Adw.ApplicationWindow {
 
                     child: Adw.Avatar {
                       size: 24;
-                      custom-image: bind template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.paintable;
+                      show-initials: true;
+                      text: bind template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.name;
+                      custom-image: bind try { $choose(template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.paintable as <$BzAsyncTexture>.loaded, template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.paintable , null as <Gdk.Paintable>), null as <Gdk.Paintable>};
                     };
                   }
 
