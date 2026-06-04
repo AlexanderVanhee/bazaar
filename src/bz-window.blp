@@ -280,18 +280,11 @@ menu primary_menu {
       action: "app.donate";
     }
   }
-
   section {
     item {
       label: _("_Refresh");
       action: "app.sync-remotes";
     }
-
-    item {
-      label: _("_Preferences");
-      action: "app.preferences";
-    }
-
     item {
       label: _("_Login With Flathub");
       action: "app.flathub-login";
@@ -301,6 +294,12 @@ menu primary_menu {
     item {
       label: _("_Manage Leftover User Data");
       action: "window.user-data";
+    }
+  }
+  section {
+    item {
+      label: _("_Preferences");
+      action: "app.preferences";
     }
 
     item {
@@ -313,7 +312,6 @@ menu primary_menu {
       action: "app.about";
     }
   }
-
   section {
     item {
       label: _("_Quit Bazaar");
