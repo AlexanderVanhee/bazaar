@@ -65,6 +65,7 @@ static const UrlInfo url_info[] = {
   {     "contact",    NC_ ("Project URL Type",         "Contact"),     "mail-send-symbolic" },
   { "vcs-browser",    NC_ ("Project URL Type",     "Source Code"),          "code-symbolic" },
   {  "contribute",    NC_ ("Project URL Type",      "Contribute"),  "system-users-symbolic" },
+  {    "manifest",    NC_ ("Project URL Type",        "Manifest"),      "shoe-box-symbolic" },
   {          NULL,                         NULL,                                       NULL }
 };
 
