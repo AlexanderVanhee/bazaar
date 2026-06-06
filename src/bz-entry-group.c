@@ -713,6 +713,13 @@ bz_entry_group_get_is_verified (BzEntryGroup *self)
   return self->is_verified;
 }
 
+gboolean
+bz_entry_group_get_is_mobile_friendly (BzEntryGroup *self)
+{
+  g_return_val_if_fail (BZ_IS_ENTRY_GROUP (self), FALSE);
+  return (self->categories & BZ_CATEGORY_FLAGS_MOBILE) != 0;
+}
+
 const char *
 bz_entry_group_get_search_tokens (BzEntryGroup *self)
 {
