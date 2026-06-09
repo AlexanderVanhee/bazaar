@@ -1218,15 +1218,17 @@ enumerate_disk_io_fiber (EnumerateDiskIoData *data)
   g_autoptr (GError) local_error    = NULL;
   g_autoptr (GHashTable) cached_set = NULL;
   g_autoptr (GPtrArray) futures     = NULL;
+  g_autoptr (GPtrArray) entries     = NULL;
   GHashTableIter iter               = { 0 };
 
   cached_set = dex_await_boxed (
       bz_entry_cache_manager_enumerate_disk (data->cache),
       &local_error);
   if (cached_set == NULL)
-      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    return dex_future_new_for_error (g_steal_pointer (&local_error));
 
   futures = g_ptr_array_new_with_free_func (dex_unref);
+  entries = g_ptr_array_new_with_free_func (g_object_unref);
 
   g_hash_table_iter_init (&iter, cached_set);
   for (;;)
@@ -1249,7 +1251,24 @@ enumerate_disk_io_fiber (EnumerateDiskIoData *data)
                    futures->len),
                NULL);
 
-  return dex_future_new_take_boxed (G_TYPE_PTR_ARRAY, g_steal_pointer (&futures));
+  for (guint i = 0; i < futures->len; i++)
+    {
+      DexFuture    *future = NULL;
+      const GValue *value  = NULL;
+
+      future = g_ptr_array_index (futures, i);
+      value  = dex_future_get_value (future, &local_error);
+
+      if (value != NULL)
+        g_ptr_array_add (entries, g_value_dup_object (value));
+      else
+        {
+          g_warning ("Unable to retrieve cached entry: %s", local_error->message);
+          g_clear_error (&local_error);
+        }
+    }
+
+  return dex_future_new_take_boxed (G_TYPE_PTR_ARRAY, g_steal_pointer (&entries));
 }
 
 static DexFuture *
@@ -1257,7 +1276,6 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
 {
   g_autoptr (BzApplication) self          = NULL;
   g_autoptr (GError) local_error          = NULL;
-  g_autoptr (GPtrArray) futures           = NULL;
   g_autoptr (GPtrArray) entries           = NULL;
   g_autoptr (EnumerateDiskIoData) io_data = NULL;
   gboolean has_flathub_entry              = FALSE;
@@ -1267,7 +1285,7 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
   io_data        = enumerate_disk_io_data_new ();
   io_data->cache = g_object_ref (self->cache);
 
-  futures = dex_await_boxed (
+  entries = dex_await_boxed (
       dex_scheduler_spawn (
           bz_get_io_scheduler (),
           bz_get_dex_stack_size (),
@@ -1276,51 +1294,28 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
           enumerate_disk_io_data_unref),
       &local_error);
 
-  if (futures == NULL)
+  if (entries == NULL)
     {
       g_warning ("Unable to enumerate cached entries: %s", local_error->message);
       return dex_future_new_for_error (g_steal_pointer (&local_error));
     }
 
-  entries = g_ptr_array_new_with_free_func (g_object_unref);
-  for (guint i = 0; i < futures->len; i++)
-    {
-      DexFuture    *future = NULL;
-      const GValue *value  = NULL;
-
-      future = g_ptr_array_index (futures, i);
-      value  = dex_future_get_value (future, &local_error);
-      if (value != NULL)
-        {
-          g_autoptr (BzEntry) entry = NULL;
-
-          entry = g_value_dup_object (value);
-          if (BZ_IS_FLATPAK_ENTRY (entry) &&
-              bz_flatpak_entry_get_bundle_path (BZ_FLATPAK_ENTRY (entry)) != NULL)
-            /* refrain from restoring bundle entries */
-            continue;
-
-          if (!has_flathub_entry &&
-              BZ_IS_FLATPAK_ENTRY (entry) &&
-              g_strcmp0 (bz_entry_get_remote_repo_name (entry), "flathub") == 0)
-            has_flathub_entry = TRUE;
-
-          g_ptr_array_add (entries, g_steal_pointer (&entry));
-        }
-      else
-        {
-          g_warning ("Unable to retrieve cached entry: %s", local_error->message);
-          g_clear_error (&local_error);
-        }
-    }
-
-  g_ptr_array_sort_values_with_data (
-      entries, (GCompareDataFunc) cmp_entry, NULL);
   for (guint i = 0; i < entries->len; i++)
     {
       BzEntry *entry = NULL;
 
       entry = g_ptr_array_index (entries, i);
+
+      if (BZ_IS_FLATPAK_ENTRY (entry) &&
+          bz_flatpak_entry_get_bundle_path (BZ_FLATPAK_ENTRY (entry)) != NULL)
+        /* refrain from restoring bundle entries */
+        continue;
+
+      if (!has_flathub_entry &&
+          BZ_IS_FLATPAK_ENTRY (entry) &&
+          g_strcmp0 (bz_entry_get_remote_repo_name (entry), "flathub") == 0)
+        has_flathub_entry = TRUE;
+
       fiber_replace_entry (self, entry);
     }
 
