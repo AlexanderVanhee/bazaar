@@ -221,6 +221,16 @@ update_cb (BzInstallControls *self,
     g_signal_emit (self, signals[SIGNAL_UPDATE], 0, G_LIST_MODEL (store));
 }
 
+static gboolean
+is_not_empty_page (gpointer    object,
+                   const char *page_name)
+{
+  if (page_name == NULL)
+    return FALSE;
+
+  return g_strcmp0 (page_name, "empty") != 0;
+}
+
 static char *
 get_visible_page (gpointer    object,
                   int         installable,
@@ -539,6 +549,7 @@ bz_install_controls_class_init (BzInstallControlsClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, remove_cb);
   gtk_widget_class_bind_template_callback (widget_class, run_cb);
   gtk_widget_class_bind_template_callback (widget_class, update_cb);
+  gtk_widget_class_bind_template_callback (widget_class, is_not_empty_page);
   gtk_widget_class_bind_template_callback (widget_class, get_visible_page);
   gtk_widget_class_bind_template_callback (widget_class, get_install_btn_state);
   gtk_widget_class_bind_template_callback (widget_class, install_btn_state_fallback);
