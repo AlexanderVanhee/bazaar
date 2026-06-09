@@ -788,7 +788,7 @@ initialize_fiber (GWeakRef *wr)
   {
     static const char *categories[] = {
       "audiovideo", "development", "education", "game", "graphics",
-      "network", "office", "science", "system", "utility"
+      "network", "office", "science", "system", "utility", "healthfitness"
     };
     g_autoptr (GPtrArray) category_futures = NULL;
 

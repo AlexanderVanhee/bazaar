@@ -833,6 +833,19 @@ window.narrow .category-tile {
   background: linear-gradient(135deg, shade(#f6f5f4, .95) 0%, shade(#deddda, .95) 100%);
 }
 
+.category-tile.category-healthfitness {
+  color: #1c71d8;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.35);
+  background: linear-gradient(45deg, #d4e6f9 0%, #d4e6f9 100%);
+  box-shadow: 0 5px 5px -3px rgba(28, 113, 216, 0.25);
+}
+.category-tile.category-healthfitness:hover {
+  background: linear-gradient(45deg, shade(#d4e6f9, 1.05) 0%, shade(#d4e6f9, 1.05) 100%);
+}
+.category-tile.category-healthfitness:active {
+  background: linear-gradient(45deg, shade(#d4e6f9, 0.95) 0%, shade(#d4e6f9, 0.95) 100%);
+}
+
 .category-tile.category-adwaita {
   text-shadow: 0 1px rgba(255, 255, 255, 0.35);
   background: linear-gradient(45deg, #1c71d8 0%, #57e289 100%);

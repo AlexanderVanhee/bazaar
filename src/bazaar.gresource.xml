@@ -88,6 +88,7 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/device-support-touch-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/device-supported-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/explore-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/doctor-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/download-plus-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/drive-harddisk-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/earth-symbolic.svg</file>
@@ -195,6 +196,7 @@
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Science.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.System.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Utilities.svg</file>
+    <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Health.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Mobile.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Trending.svg</file>
     <file preprocess="xml-stripblanks">icons/io.github.kolumni.Bazaar.Popular.svg</file>

@@ -139,6 +139,7 @@ static const CategoryInfo category_info[] = {
   {          "science",                N_ ("Science"),  N_ ("Science"),                N_ ("More Science"),  TRUE,    "io.github.kolumni.Bazaar.Science",    "applications-science-symbolic",                     NULL },
   {           "system",                 N_ ("System"),   N_ ("System"),                 N_ ("More System"),  TRUE,     "io.github.kolumni.Bazaar.System",     "applications-system-symbolic",                     NULL },
   {          "utility",              N_ ("Utilities"),    N_ ("Tools"),              N_ ("More Utilities"),  TRUE,  "io.github.kolumni.Bazaar.Utilities",  "applications-utilities-symbolic",                     NULL },
+  {    "healthfitness",       N_ ("Health & Fitness"),   N_ ("Health"),       N_ ("More Health & Fitness"),  TRUE,     "io.github.kolumni.Bazaar.Health",                  "doctor-symbolic",                     NULL },
   {         "trending",               N_ ("Trending"), N_ ("Trending"),               N_ ("More Trending"), FALSE,   "io.github.kolumni.Bazaar.Trending",                                 "",                     NULL },
   {          "popular",                N_ ("Popular"),  N_ ("Popular"),                N_ ("More Popular"), FALSE,    "io.github.kolumni.Bazaar.Popular",                                 "",                     NULL },
   {   "recently-added",         N_ ("Recently Added"),      N_ ("New"),                    N_ ("More New"), FALSE,        "io.github.kolumni.Bazaar.New",                                 "",                     NULL },
