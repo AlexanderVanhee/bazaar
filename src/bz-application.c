@@ -983,6 +983,8 @@ init_fiber (GWeakRef *wr)
   gboolean         result               = FALSE;
   g_autofree char *flathub_cache        = NULL;
   g_autoptr (GFile) flathub_cache_file  = NULL;
+  g_autofree char *cache_version_path   = NULL;
+  g_autoptr (GFile) cache_version_file  = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
 
@@ -992,14 +994,13 @@ init_fiber (GWeakRef *wr)
 
   root_cache_dir      = bz_dup_root_cache_dir ();
   root_cache_dir_file = g_file_new_for_path (root_cache_dir);
+  cache_version_path = g_build_filename (root_cache_dir, "cache-version", NULL);
+  cache_version_file = g_file_new_for_path (cache_version_path);
+
   if (dex_await (dex_file_query_exists (root_cache_dir_file), NULL))
     {
-      g_autofree char *cache_version_path  = NULL;
-      g_autoptr (GFile) cache_version_file = NULL;
-      gboolean wipe_cache                  = TRUE;
+      gboolean wipe_cache = TRUE;
 
-      cache_version_path = g_build_filename (root_cache_dir, "cache-version", NULL);
-      cache_version_file = g_file_new_for_path (cache_version_path);
       if (dex_await (dex_file_query_exists (cache_version_file), NULL))
         {
           g_autoptr (GBytes) bytes = NULL;
@@ -1027,22 +1028,29 @@ init_fiber (GWeakRef *wr)
           g_info ("Version incompatibility detected: clearing cache");
           dex_await (bz_reap_file_dex (root_cache_dir_file), NULL);
         }
-
-      if (dex_await (dex_file_make_directory_with_parents (root_cache_dir_file), NULL))
-        {
-          g_autoptr (GVariant) variant = NULL;
-          g_autoptr (GBytes) bytes     = NULL;
-
-          variant = g_variant_new_string (PACKAGE_VERSION);
-          bytes   = g_variant_get_data_as_bytes (variant);
-          dex_await (dex_file_replace_contents_bytes (
-                         cache_version_file, bytes, NULL, FALSE,
-                         G_FILE_CREATE_REPLACE_DESTINATION),
-                     NULL);
-        }
     }
   else
     bz_state_info_set_donation_prompt_dismissed (self->state, TRUE);
+
+  {
+    g_autoptr (GError) mkdir_error = NULL;
+
+    dex_await (dex_file_make_directory_with_parents (root_cache_dir_file), &mkdir_error);
+    if (mkdir_error == NULL || mkdir_error->code == G_IO_ERROR_EXISTS)
+      {
+        g_autoptr (GVariant) variant = NULL;
+        g_autoptr (GBytes) bytes     = NULL;
+
+        variant = g_variant_new_string (PACKAGE_VERSION);
+        bytes   = g_variant_get_data_as_bytes (variant);
+        dex_await (dex_file_replace_contents_bytes (
+                       cache_version_file, bytes, NULL, FALSE,
+                       G_FILE_CREATE_REPLACE_DESTINATION),
+                   NULL);
+      }
+    else
+      g_warning ("Unable to ensure cache directory: %s", mkdir_error->message);
+  }
 
   g_clear_object (&self->flatpak);
   self->flatpak = dex_await_object (bz_flatpak_instance_new (), &local_error);
