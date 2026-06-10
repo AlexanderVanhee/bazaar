@@ -270,9 +270,9 @@ static void
 fiber_check_for_updates (BzApplication *self);
 
 static GFile *
-fiber_dup_cache_file (const char  *name,
-                      char       **path_out,
-                      GError     **error);
+fiber_dup_cache_file (const char *name,
+                      char      **path_out,
+                      GError    **error);
 
 static gboolean
 periodic_timeout_cb (BzApplication *self);
@@ -2583,14 +2583,14 @@ fiber_check_for_updates (BzApplication *self)
 }
 
 static GFile *
-fiber_dup_cache_file (const char  *name,
-                      char       **path_out,
-                      GError     **error)
+fiber_dup_cache_file (const char *name,
+                      char      **path_out,
+                      GError    **error)
 {
-  gboolean          result          = FALSE;
-  g_autofree char  *module_dir      = NULL;
+  gboolean         result           = FALSE;
+  g_autofree char *module_dir       = NULL;
   g_autoptr (GFile) module_dir_file = NULL;
-  g_autofree char  *path            = NULL;
+  g_autofree char *path             = NULL;
   g_autoptr (GFile) file            = NULL;
 
   module_dir      = bz_dup_module_dir ();
