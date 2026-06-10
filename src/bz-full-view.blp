@@ -53,8 +53,11 @@ template $BzFullView: Adw.Bin {
               context_bar.homogeneous: false;
               header_box.spacing: 12;
               app_name_box.spacing: 0;
+              formfactor_support_tile_wide.visible: false;
+              formfactor_support_tile_narrow.visible: true;
               screenshots.compact: true;
               header_bar.show-title: false;
+              link_list.dual-column: false;
             }
           }
 
@@ -336,12 +339,38 @@ template $BzFullView: Adw.Bin {
                         Box {
                           homogeneous: true;
 
-                          $BzContextTile {
+                          $BzContextTile formfactor_support_tile_wide {
                             label: bind $get_formfactor_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
                             has-tooltip: true;
                             tooltip-text: bind $get_formfactor_tooltip(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
                             clicked => $formfactor_cb(template);
                             lozenge-style: "grey";
+
+                            lozenge-child: Box {
+                              Image {
+                                visible: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly as <bool>;
+                                icon-name: "device-support-adaptive-symbolic";
+                                pixel-size: 56;
+
+                                styles [
+                                  "wide-image",
+                                ]
+                              }
+
+                              Image {
+                                visible: bind $invert_boolean(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <bool>;
+                                icon-name: "device-support-desktop-symbolic";
+                              }
+                            };
+                          }
+
+                          $BzContextTile formfactor_support_tile_narrow {
+                            label: bind $get_formfactor_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
+                            has-tooltip: true;
+                            tooltip-text: bind $get_formfactor_tooltip(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly) as <string>;
+                            clicked => $formfactor_cb(template);
+                            lozenge-style: bind $bool_to_string(template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly, "grey", "error") as <string>;
+                            visible: false;
 
                             lozenge-child: Box {
                               Image {
@@ -391,15 +420,15 @@ template $BzFullView: Adw.Bin {
                             };
                           }
                         }
-                      }
-
-                      $BzInstallControls narrow_install_controls {
-                        wide: false;
-                        visible: false;
-                        entry-group: bind template.entry-group as <$BzEntryGroup>;
-                        state: bind template.state as <$BzStateInfo>;
-                        settings: bind template.state as <$BzStateInfo>.settings;
-                        update => $update_cb(template);
+                        $BzInstallControls narrow_install_controls {
+                          wide: false;
+                          visible: false;
+                          margin-top: 6;
+                          entry-group: bind template.entry-group as <$BzEntryGroup>;
+                          state: bind template.state as <$BzStateInfo>;
+                          settings: bind template.state as <$BzStateInfo>.settings;
+                          update => $update_cb(template);
+                        }
                       }
 
                       Box {
@@ -449,10 +478,6 @@ template $BzFullView: Adw.Bin {
                     $BzScreenshotsCarousel screenshots {
                       vexpand: true;
                       hexpand: true;
-                      visible: bind $logical_and(
-                        template.ui-entry as <$BzResult>.resolved as <bool>,
-                        $invert_boolean($is_empty(template.ui-entry as <$BzResult>.object as <$BzEntry>.screenshot-paintables) as <bool>) as <bool>
-                      ) as <bool>;
                       clicked => $screenshot_clicked_cb() swapped;
                       light-accent-color: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.light-accent-color;
                       dark-accent-color: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.dark-accent-color;
@@ -470,6 +495,7 @@ template $BzFullView: Adw.Bin {
 
                       Box bottom_box {
                         orientation: vertical;
+                        valign: start;
                         margin-start: 25;
                         margin-end: 25;
                         margin-bottom: 20;
@@ -497,10 +523,11 @@ template $BzFullView: Adw.Bin {
                             Label {
                               halign: start;
                               valign: center;
+                              xalign: 0;
                               hexpand: true;
                               margin-start: 12;
-                              margin-top: 8;
-                              margin-bottom: 8;
+                              margin-top: 12;
+                              margin-bottom: 12;
                               label: bind $format_leftover_label(template.ui-entry as <$BzResult>.object as <$BzEntry>.title, template.entry-group as <$BzEntryGroup>.user-data-size) as <string>;
                               use-markup: true;
                               wrap: true;
@@ -622,16 +649,24 @@ template $BzFullView: Adw.Bin {
                             orientation: vertical;
 
                             Label {
-                              styles ["heading"]
                               halign: start;
                               label: _("Links");
                               margin-top: 5;
                               margin-bottom: 8;
                               margin-start: 3;
+                              visible: bind $logical_and(
+                                  $invert_boolean($is_empty(template.ui-entry as <$BzResult>.object as <$BzEntry>.share-urls) as <bool>) as <bool>,
+                                  $invert_boolean($is_zero(addon_model.n-items) as <int>) as <bool>
+                                ) as <bool>;
+
+                              styles [
+                                "heading",
+                              ]
                             }
 
-                            $BzShareList {
+                            $BzShareList link_list {
                               urls: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.share-urls;
+                              dual-column: true;
                             }
                           }
                         }
@@ -690,24 +725,6 @@ template $BzFullView: Adw.Bin {
                               "pill",
                             ]
                           }
-                        }
-
-                        $BzTagList {
-                          margin-top: 8;
-                          flathub-state: bind template.state as <$BzStateInfo>.flathub;
-
-                          prefix: Label {
-                            label: _("Tags:");
-
-                            styles [
-                              "dimmed",
-                            ]
-                          };
-
-                          model: SliceListModel {
-                            size: 5;
-                            model: bind template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.keywords;
-                          };
                         }
                       }
                     };

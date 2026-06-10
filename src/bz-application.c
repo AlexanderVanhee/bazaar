@@ -184,11 +184,22 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (self, bz_weak_release);
     BZ_RELEASE_DATA (id, g_free))
 
+BZ_DEFINE_DATA (
+    enumerate_disk_io,
+    EnumerateDiskIo,
+    {
+      BzEntryCacheManager *cache;
+    },
+    BZ_RELEASE_DATA (cache, g_object_unref))
+
 static DexFuture *
 init_fiber (GWeakRef *wr);
 
 static DexFuture *
 enumerate_disk_groups_fiber (GWeakRef *wr);
+
+static DexFuture *
+enumerate_disk_io_fiber (EnumerateDiskIoData *data);
 
 static DexFuture *
 enumerate_disk_entries_fiber (GWeakRef *wr);
@@ -1303,28 +1314,22 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
 }
 
 static DexFuture *
-enumerate_disk_entries_fiber (GWeakRef *wr)
+enumerate_disk_io_fiber (EnumerateDiskIoData *data)
 {
-  g_autoptr (BzApplication) self    = NULL;
   g_autoptr (GError) local_error    = NULL;
   g_autoptr (GHashTable) cached_set = NULL;
   g_autoptr (GPtrArray) futures     = NULL;
-  GHashTableIter iter               = { 0 };
   g_autoptr (GPtrArray) entries     = NULL;
-  gboolean has_flathub_entry        = FALSE;
-
-  bz_weak_get_or_return_reject (self, wr);
+  GHashTableIter iter               = { 0 };
 
   cached_set = dex_await_boxed (
-      bz_entry_cache_manager_enumerate_disk (self->cache),
+      bz_entry_cache_manager_enumerate_disk (data->cache),
       &local_error);
   if (cached_set == NULL)
-    {
-      g_warning ("Unable to enumerate cached entries: %s", local_error->message);
-      return dex_future_new_for_error (g_steal_pointer (&local_error));
-    }
+    return dex_future_new_for_error (g_steal_pointer (&local_error));
 
   futures = g_ptr_array_new_with_free_func (dex_unref);
+  entries = g_ptr_array_new_with_free_func (g_object_unref);
 
   g_hash_table_iter_init (&iter, cached_set);
   for (;;)
@@ -1338,9 +1343,8 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
       g_ptr_array_add (
           futures,
           bz_entry_cache_manager_get_by_checksum (
-              self->cache, checksum));
+              data->cache, checksum));
     }
-  g_clear_pointer (&cached_set, g_hash_table_unref);
 
   if (futures->len > 0)
     dex_await (dex_future_allv (
@@ -1348,7 +1352,6 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
                    futures->len),
                NULL);
 
-  entries = g_ptr_array_new_with_free_func (g_object_unref);
   for (guint i = 0; i < futures->len; i++)
     {
       DexFuture    *future = NULL;
@@ -1356,23 +1359,9 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
 
       future = g_ptr_array_index (futures, i);
       value  = dex_future_get_value (future, &local_error);
+
       if (value != NULL)
-        {
-          g_autoptr (BzEntry) entry = NULL;
-
-          entry = g_value_dup_object (value);
-          if (BZ_IS_FLATPAK_ENTRY (entry) &&
-              bz_flatpak_entry_get_bundle_path (BZ_FLATPAK_ENTRY (entry)) != NULL)
-            /* refrain from restoring bundle entries */
-            continue;
-
-          if (!has_flathub_entry &&
-              BZ_IS_FLATPAK_ENTRY (entry) &&
-              g_strcmp0 (bz_entry_get_remote_repo_name (entry), "flathub") == 0)
-            has_flathub_entry = TRUE;
-
-          g_ptr_array_add (entries, g_steal_pointer (&entry));
-        }
+        g_ptr_array_add (entries, g_value_dup_object (value));
       else
         {
           g_warning ("Unable to retrieve cached entry: %s", local_error->message);
@@ -1380,13 +1369,54 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
         }
     }
 
-  g_ptr_array_sort_values_with_data (
-      entries, (GCompareDataFunc) cmp_entry, NULL);
+  return dex_future_new_take_boxed (G_TYPE_PTR_ARRAY, g_steal_pointer (&entries));
+}
+
+static DexFuture *
+enumerate_disk_entries_fiber (GWeakRef *wr)
+{
+  g_autoptr (BzApplication) self          = NULL;
+  g_autoptr (GError) local_error          = NULL;
+  g_autoptr (GPtrArray) entries           = NULL;
+  g_autoptr (EnumerateDiskIoData) io_data = NULL;
+  gboolean has_flathub_entry              = FALSE;
+
+  bz_weak_get_or_return_reject (self, wr);
+
+  io_data        = enumerate_disk_io_data_new ();
+  io_data->cache = g_object_ref (self->cache);
+
+  entries = dex_await_boxed (
+      dex_scheduler_spawn (
+          bz_get_io_scheduler (),
+          bz_get_dex_stack_size (),
+          (DexFiberFunc) enumerate_disk_io_fiber,
+          enumerate_disk_io_data_ref (io_data),
+          enumerate_disk_io_data_unref),
+      &local_error);
+
+  if (entries == NULL)
+    {
+      g_warning ("Unable to enumerate cached entries: %s", local_error->message);
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
+
   for (guint i = 0; i < entries->len; i++)
     {
       BzEntry *entry = NULL;
 
       entry = g_ptr_array_index (entries, i);
+
+      if (BZ_IS_FLATPAK_ENTRY (entry) &&
+          bz_flatpak_entry_get_bundle_path (BZ_FLATPAK_ENTRY (entry)) != NULL)
+        /* refrain from restoring bundle entries */
+        continue;
+
+      if (!has_flathub_entry &&
+          BZ_IS_FLATPAK_ENTRY (entry) &&
+          g_strcmp0 (bz_entry_get_remote_repo_name (entry), "flathub") == 0)
+        has_flathub_entry = TRUE;
+
       fiber_replace_entry (self, entry);
     }
 
