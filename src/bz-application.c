@@ -1269,7 +1269,6 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
     {
       g_autoptr (GVariant) group_variant = NULL;
       g_autoptr (BzEntryGroup) group     = NULL;
-      const char *id                     = NULL;
 
       group_variant = g_variant_iter_next_value (iter);
       if (group_variant == NULL)
@@ -1278,8 +1277,9 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
       group = bz_entry_group_new (self->entry_factory);
       if (bz_entry_group_deserialize (group, group_variant))
         {
+          const char *id = NULL;
+
           bz_entry_group_reconcile_with_installed_set (group, self->installed_set);
-          id = bz_entry_group_get_id (group);
 
           if (!has_flathub_group &&
               bz_entry_group_get_is_flathub (group))
@@ -1287,6 +1287,7 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
 
           g_list_store_append (self->groups, group);
 
+          id = bz_entry_group_get_id (group);
           if (id != NULL)
             g_hash_table_replace (
                 self->ids_to_groups,
