@@ -609,6 +609,9 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
         }
     }
 
+  if (is_mobile_friendly)
+    categories = bz_category_flags_add (categories, "mobile");
+
   if (g_strcmp0 (remote_name, "flathub") == 0)
     {
       const char *verified_str     = NULL;

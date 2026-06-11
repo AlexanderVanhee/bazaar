@@ -420,15 +420,15 @@ template $BzFullView: Adw.Bin {
                             };
                           }
                         }
-                      }
-
-                      $BzInstallControls narrow_install_controls {
-                        wide: false;
-                        visible: false;
-                        entry-group: bind template.entry-group as <$BzEntryGroup>;
-                        state: bind template.state as <$BzStateInfo>;
-                        settings: bind template.state as <$BzStateInfo>.settings;
-                        update => $update_cb(template);
+                        $BzInstallControls narrow_install_controls {
+                          wide: false;
+                          visible: false;
+                          margin-top: 6;
+                          entry-group: bind template.entry-group as <$BzEntryGroup>;
+                          state: bind template.state as <$BzStateInfo>;
+                          settings: bind template.state as <$BzStateInfo>.settings;
+                          update => $update_cb(template);
+                        }
                       }
 
                       Box {
@@ -478,10 +478,6 @@ template $BzFullView: Adw.Bin {
                     $BzScreenshotsCarousel screenshots {
                       vexpand: true;
                       hexpand: true;
-                      visible: bind $logical_and(
-                        template.ui-entry as <$BzResult>.resolved as <bool>,
-                        $invert_boolean($is_empty(template.ui-entry as <$BzResult>.object as <$BzEntry>.screenshot-paintables) as <bool>) as <bool>
-                      ) as <bool>;
                       clicked => $screenshot_clicked_cb() swapped;
                       light-accent-color: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.light-accent-color;
                       dark-accent-color: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.dark-accent-color;
