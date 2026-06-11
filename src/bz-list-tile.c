@@ -242,10 +242,6 @@ on_gesture_click_released (BzListTile      *self,
   if (gtk_widget_contains (GTK_WIDGET (self), x, y))
     {
       gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
-
-      if (!gtk_widget_grab_focus (GTK_WIDGET (self)))
-        g_assert_not_reached ();
-
       g_signal_emit (self, signals[ACTIVATED], 0);
     }
   else
