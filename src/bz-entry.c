@@ -24,6 +24,7 @@
 #define BAZAAR_MODULE "entry"
 
 #include <json-glib/json-glib.h>
+#include <locale.h>
 
 #include "bz-app-permissions.h"
 #include "bz-async-texture.h"
@@ -118,6 +119,7 @@ typedef struct
   gint              max_display_length;
   AsContentRating  *content_rating;
   GListModel       *keywords;
+  GListModel       *languages;
   BzCategoryFlags   categories;
   BzAppPermissions *permissions;
 
@@ -191,6 +193,7 @@ enum
   PROP_MAX_DISPLAY_LENGTH,
   PROP_CONTENT_RATING,
   PROP_KEYWORDS,
+  PROP_LANGUAGES,
   PROP_CATEGORIES,
   PROP_PERMISSIONS,
 
@@ -402,6 +405,9 @@ bz_entry_get_property (GObject    *object,
       break;
     case PROP_KEYWORDS:
       g_value_set_object (value, priv->keywords);
+      break;
+    case PROP_LANGUAGES:
+      g_value_set_object (value, priv->languages);
       break;
     case PROP_CATEGORIES:
       g_value_set_uint (value, priv->categories);
@@ -620,6 +626,10 @@ bz_entry_set_property (GObject      *object,
     case PROP_KEYWORDS:
       g_clear_object (&priv->keywords);
       priv->keywords = g_value_dup_object (value);
+      break;
+    case PROP_LANGUAGES:
+      g_clear_object (&priv->languages);
+      priv->languages = g_value_dup_object (value);
       break;
     case PROP_CATEGORIES:
       priv->categories = g_value_get_uint (value);
@@ -977,6 +987,13 @@ bz_entry_class_init (BzEntryClass *klass)
           G_TYPE_LIST_MODEL,
           G_PARAM_READWRITE);
 
+  props[PROP_LANGUAGES] =
+    g_param_spec_object (
+        "languages",
+        NULL, NULL,
+        G_TYPE_LIST_MODEL,
+        G_PARAM_READWRITE);
+
   props[PROP_CATEGORIES] =
       g_param_spec_uint (
           "categories",
@@ -1301,6 +1318,27 @@ bz_entry_real_serialize (BzSerializable  *serializable,
           g_variant_builder_add (builder, "{sv}", "keywords", g_variant_builder_end (sub_builder));
         }
     }
+  if (priv->languages != NULL)
+  {
+    guint n_items = 0;
+
+    n_items = g_list_model_get_n_items (priv->languages);
+    if (n_items > 0)
+      {
+        g_autoptr (GVariantBuilder) sub_builder = NULL;
+
+        sub_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+        for (guint i = 0; i < n_items; i++)
+          {
+            g_autoptr (GtkStringObject) string = NULL;
+
+            string = g_list_model_get_item (priv->languages, i);
+            g_variant_builder_add (sub_builder, "s", gtk_string_object_get_string (string));
+          }
+
+        g_variant_builder_add (builder, "{sv}", "languages", g_variant_builder_end (sub_builder));
+      }
+  }
   if (priv->categories != BZ_CATEGORY_FLAGS_NONE)
     g_variant_builder_add (builder, "{sv}", "categories",
                            g_variant_new_uint32 (priv->categories));
@@ -1643,6 +1681,27 @@ bz_entry_real_deserialize (BzSerializable *serializable,
             }
 
           priv->keywords = G_LIST_MODEL (g_steal_pointer (&store));
+        }
+      else if (g_strcmp0 (key, "languages") == 0)
+        {
+          g_autoptr (GListStore) store            = NULL;
+          g_autoptr (GVariantIter) languages_iter = NULL;
+
+          store = g_list_store_new (GTK_TYPE_STRING_OBJECT);
+
+          languages_iter = g_variant_iter_new (value);
+          for (;;)
+            {
+              g_autofree char *lang              = NULL;
+              g_autoptr (GtkStringObject) string = NULL;
+
+              if (!g_variant_iter_next (languages_iter, "s", &lang))
+                break;
+              string = gtk_string_object_new (lang);
+              g_list_store_append (store, string);
+            }
+
+          priv->languages = G_LIST_MODEL (g_steal_pointer (&store));
         }
       else if (g_strcmp0 (key, "categories") == 0)
         priv->categories = g_variant_get_uint32 (value);
@@ -2260,6 +2319,55 @@ bz_entry_get_content_rating (BzEntry *self)
   return priv->content_rating;
 }
 
+gboolean
+bz_entry_get_has_user_language (BzEntry  *self,
+                                gboolean *is_english)
+{
+  BzEntryPrivate *priv          = NULL;
+  guint           n_items       = 0;
+  g_auto (GStrv)  variants      = NULL;
+  g_autofree char *base_lang    = NULL;
+  const char     *underscore    = NULL;
+  const char     *first_variant = NULL;
+
+  g_return_val_if_fail (BZ_IS_ENTRY (self), FALSE);
+
+  priv = bz_entry_get_instance_private (self);
+
+  variants = g_get_locale_variants (setlocale (LC_MESSAGES, NULL));
+  if (variants == NULL)
+    return TRUE;
+
+  first_variant = variants[0];
+  underscore = strchr (first_variant, '_');
+  base_lang = underscore != NULL
+    ? g_strndup (first_variant, underscore - first_variant)
+    : g_strdup (first_variant);
+
+  g_print ("base_lang = '%s'\n", base_lang);
+
+  if (is_english != NULL)
+    *is_english = g_strcmp0 (base_lang, "en") == 0;
+
+  if (priv->languages == NULL)
+    return TRUE;
+
+  n_items = g_list_model_get_n_items (priv->languages);
+  if (n_items == 0)
+    return TRUE;
+
+  for (guint i = 0; i < n_items; i++)
+    {
+      g_autoptr (GtkStringObject) string = g_list_model_get_item (priv->languages, i);
+      const char *lang = gtk_string_object_get_string (string);
+
+      if (g_strcmp0 (lang, base_lang) == 0)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
 BzCategoryFlags
 bz_entry_get_category_flags (BzEntry *self)
 {
@@ -2822,5 +2930,6 @@ clear_entry (BzEntry *self)
   g_clear_object (&priv->download_stats_per_country);
   g_clear_object (&priv->content_rating);
   g_clear_object (&priv->keywords);
+  g_clear_object (&priv->languages);
   g_clear_object (&priv->permissions);
 }

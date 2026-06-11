@@ -316,6 +316,20 @@ get_formfactor_tooltip (gpointer object, gboolean is_mobile_friendly)
                                       : _ ("May not work on mobile devices"));
 }
 
+static gboolean
+get_language_support (gpointer    object,
+                      GListModel *languages)
+{
+  BzEntry  *entry      = NULL;
+  gboolean  is_english = FALSE;
+
+  if (!BZ_IS_ENTRY (object))
+    return TRUE;
+
+  entry = BZ_ENTRY (object);
+  return bz_entry_get_has_user_language (entry, &is_english) && !is_english;
+}
+
 static char *
 get_safety_rating_icon (gpointer object,
                         BzEntry *entry,
@@ -431,6 +445,7 @@ bz_widget_class_bind_all_context_tile_callbacks (GtkWidgetClass *widget_class)
   gtk_widget_class_bind_template_callback (widget_class, get_license_icon);
   gtk_widget_class_bind_template_callback (widget_class, get_formfactor_label);
   gtk_widget_class_bind_template_callback (widget_class, get_formfactor_tooltip);
+  gtk_widget_class_bind_template_callback (widget_class, get_language_support);
   gtk_widget_class_bind_template_callback (widget_class, get_safety_rating_icon);
   gtk_widget_class_bind_template_callback (widget_class, get_safety_rating_style);
   gtk_widget_class_bind_template_callback (widget_class, get_safety_rating_label);

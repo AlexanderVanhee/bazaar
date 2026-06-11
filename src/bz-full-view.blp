@@ -348,6 +348,11 @@ template $BzFullView: Adw.Bin {
 
                             lozenge-child: Box {
                               Image {
+                                visible: bind $invert_boolean($get_language_support(template.ui-entry as <$BzResult>.object as <$BzEntry>.languages) as <bool>) as <bool>;
+                                icon-name: "language-disabled-symbolic";
+                              }
+
+                              Image {
                                 visible: bind template.ui-entry as <$BzResult>.object as <$BzEntry>.is-mobile-friendly as <bool>;
                                 icon-name: "device-support-adaptive-symbolic";
                                 pixel-size: 56;

@@ -143,6 +143,8 @@ update_list (BzHardwareSupportDialog *self)
   guint         recommended_controls;
   guint         supported_controls;
   gboolean      is_mobile_friendly;
+  gboolean      has_user_language;
+  gboolean      is_english = FALSE;
 
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (self->list))) != NULL)
     gtk_list_box_remove (self->list, child);
@@ -154,6 +156,7 @@ update_list (BzHardwareSupportDialog *self)
   recommended_controls = bz_entry_get_recommended_controls (self->entry);
   supported_controls   = bz_entry_get_supported_controls (self->entry);
   is_mobile_friendly   = bz_entry_get_is_mobile_friendly (self->entry);
+  has_user_language    = bz_entry_get_has_user_language (self->entry, &is_english);
 
   row = bz_context_row_new ("phone-symbolic",
                             is_mobile_friendly ? BZ_IMPORTANCE_UNIMPORTANT : BZ_IMPORTANCE_NEUTRAL,
@@ -177,6 +180,18 @@ update_list (BzHardwareSupportDialog *self)
                                            control_infos[i].control_flag);
       add_control_row (self, &control_infos[i], importance);
     }
+
+  if (!is_english)
+  {
+    row = bz_context_row_new ("language-symbolic",
+                              has_user_language ? BZ_IMPORTANCE_UNIMPORTANT : BZ_IMPORTANCE_NEUTRAL,
+                              _ ("Language support"),
+                              has_user_language ? _ ("Available in your language") : _ ("Not available in your language"));
+    gtk_list_box_append (self->list, GTK_WIDGET (row));
+  }
+
+  if (is_english)
+    adw_dialog_set_content_height (ADW_DIALOG (self), 530);
 }
 
 static void

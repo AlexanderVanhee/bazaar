@@ -106,6 +106,8 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/heart-outline-thick-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/horizontal-arrows-disabled-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/left-large-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/language-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/language-disabled-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/library-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/license-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/meeting-symbolic.svg</file>

@@ -215,6 +215,8 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
   g_autoptr (AsContentRating) content_rating           = NULL;
   GPtrArray *as_keywords                               = NULL;
   g_autoptr (GListStore) keywords                      = NULL;
+  GList *as_languages                                  = NULL;
+  g_autoptr (GListStore) languages                     = NULL;
   GPtrArray *as_categories                             = NULL;
   BzCategoryFlags categories                           = BZ_CATEGORY_FLAGS_NONE;
   g_autoptr (BzVerificationStatus) verification_status = NULL;
@@ -597,6 +599,20 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
         }
     }
 
+  as_languages = as_component_get_languages (component);
+  if (as_languages != NULL)
+    {
+      languages = g_list_store_new (GTK_TYPE_STRING_OBJECT);
+      for (GList *l = as_languages; l != NULL; l = l->next)
+        {
+          const char                 *lang     = l->data;
+          g_autoptr (GtkStringObject) lang_obj = NULL;
+
+          lang_obj = gtk_string_object_new (lang);
+          g_list_store_append (languages, lang_obj);
+        }
+    }
+
   as_categories = as_component_get_categories (component);
   if (as_categories != NULL)
     {
@@ -685,6 +701,7 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
       "is-mobile-friendly", is_mobile_friendly,
       "content-rating", content_rating,
       "keywords", keywords,
+      "languages", languages,
       "categories", categories,
       "verification-status", verification_status,
       NULL);

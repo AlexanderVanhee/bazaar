@@ -223,6 +223,9 @@ bz_entry_get_age_rating (BzEntry *self);
 AsContentRating *
 bz_entry_get_content_rating (BzEntry *self);
 
+gboolean
+bz_entry_get_has_user_language (BzEntry *self, gboolean *is_english);
+
 BzCategoryFlags
 bz_entry_get_category_flags (BzEntry *self);
 
