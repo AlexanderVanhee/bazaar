@@ -24,6 +24,7 @@
 #include <graphene-gobject.h>
 
 #include "../bge-wdgt-spec-private.h"
+#include "../util/marshal.h"
 #include "bge-marshalers.h"
 #include "parser.h"
 #include "util.h"
@@ -209,30 +210,6 @@ make_anon_name (guint n);
 static gint
 cmp_operator (EvalOperator *a,
               EvalOperator *b);
-
-static void
-_marshal_DIRECT__ARGS_DIRECT (GClosure                *closure,
-                              GValue                  *return_value,
-                              guint                    n_param_values,
-                              const GValue            *param_values,
-                              gpointer invocation_hint G_GNUC_UNUSED,
-                              gpointer                 marshal_data);
-
-static void
-_marshal_BOOL__ARGS_DIRECT (GClosure                *closure,
-                            GValue                  *return_value,
-                            guint                    n_param_values,
-                            const GValue            *param_values,
-                            gpointer invocation_hint G_GNUC_UNUSED,
-                            gpointer                 marshal_data);
-
-static void
-_marshal_DOUBLE__ARGS_DIRECT (GClosure                *closure,
-                              GValue                  *return_value,
-                              guint                    n_param_values,
-                              const GValue            *param_values,
-                              gpointer invocation_hint G_GNUC_UNUSED,
-                              gpointer                 marshal_data);
 
 BgeWdgtSpec *
 bge_wdgt_parse_string (const char *string,
@@ -3114,123 +3091,4 @@ cmp_operator (EvalOperator *a,
   b_prec = operator_precedence[b->op];
 
   return a_prec > b_prec ? -1 : 1;
-}
-
-static void
-_marshal_DIRECT__ARGS_DIRECT (GClosure                *closure,
-                              GValue                  *return_value,
-                              guint                    n_param_values,
-                              const GValue            *param_values,
-                              gpointer invocation_hint G_GNUC_UNUSED,
-                              gpointer                 marshal_data)
-{
-  typedef void (*GMarshalFunc_DIRECT__ARGS_DIRECT) (gpointer      data1,
-                                                    GValue       *return_value,
-                                                    guint         n_param_values,
-                                                    const GValue *param_values,
-                                                    gpointer      data2);
-  GCClosure                       *cc = (GCClosure *) closure;
-  gpointer                         data1, data2;
-  GMarshalFunc_DIRECT__ARGS_DIRECT callback;
-
-  g_return_if_fail (return_value != NULL);
-  g_return_if_fail (n_param_values >= 1);
-
-  if (G_CCLOSURE_SWAP_DATA (closure))
-    {
-      data1 = closure->data;
-      data2 = g_value_peek_pointer (param_values + 0);
-    }
-  else
-    {
-      data1 = g_value_peek_pointer (param_values + 0);
-      data2 = closure->data;
-    }
-  callback = (GMarshalFunc_DIRECT__ARGS_DIRECT) (marshal_data ? marshal_data : cc->callback);
-
-  callback (data1,
-            return_value,
-            n_param_values - 1,
-            param_values + 1,
-            data2);
-}
-
-static void
-_marshal_BOOL__ARGS_DIRECT (GClosure                *closure,
-                            GValue                  *return_value,
-                            guint                    n_param_values,
-                            const GValue            *param_values,
-                            gpointer invocation_hint G_GNUC_UNUSED,
-                            gpointer                 marshal_data)
-{
-  typedef gboolean (*GMarshalFunc_BOOL__ARGS_DIRECT) (gpointer      data1,
-                                                      guint         n_param_values,
-                                                      const GValue *param_values,
-                                                      gpointer      data2);
-  GCClosure                     *cc = (GCClosure *) closure;
-  gpointer                       data1, data2;
-  GMarshalFunc_BOOL__ARGS_DIRECT callback;
-  gboolean                       v_return;
-
-  g_return_if_fail (return_value != NULL);
-  g_return_if_fail (n_param_values >= 1);
-
-  if (G_CCLOSURE_SWAP_DATA (closure))
-    {
-      data1 = closure->data;
-      data2 = g_value_peek_pointer (param_values + 0);
-    }
-  else
-    {
-      data1 = g_value_peek_pointer (param_values + 0);
-      data2 = closure->data;
-    }
-  callback = (GMarshalFunc_BOOL__ARGS_DIRECT) (marshal_data ? marshal_data : cc->callback);
-
-  v_return = callback (data1,
-                       n_param_values - 1,
-                       param_values + 1,
-                       data2);
-
-  g_value_set_boolean (return_value, v_return);
-}
-
-static void
-_marshal_DOUBLE__ARGS_DIRECT (GClosure                *closure,
-                              GValue                  *return_value,
-                              guint                    n_param_values,
-                              const GValue            *param_values,
-                              gpointer invocation_hint G_GNUC_UNUSED,
-                              gpointer                 marshal_data)
-{
-  typedef gdouble (*GMarshalFunc_DOUBLE__ARGS_DIRECT) (gpointer      data1,
-                                                       guint         n_param_values,
-                                                       const GValue *param_values,
-                                                       gpointer      data2);
-  GCClosure                       *cc = (GCClosure *) closure;
-  gpointer                         data1, data2;
-  GMarshalFunc_DOUBLE__ARGS_DIRECT callback;
-  gdouble                          v_return;
-
-  g_return_if_fail (return_value != NULL);
-  g_return_if_fail (n_param_values >= 1);
-
-  if (G_CCLOSURE_SWAP_DATA (closure))
-    {
-      data1 = closure->data;
-      data2 = g_value_peek_pointer (param_values + 0);
-    }
-  else
-    {
-      data1 = g_value_peek_pointer (param_values + 0);
-      data2 = closure->data;
-    }
-  callback = (GMarshalFunc_DOUBLE__ARGS_DIRECT) (marshal_data ? marshal_data : cc->callback);
-
-  v_return = callback (data1,
-                       n_param_values - 1,
-                       param_values + 1,
-                       data2);
-
-  g_value_set_double (return_value, v_return);
 }

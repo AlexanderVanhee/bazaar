@@ -189,7 +189,7 @@ populate_urls (BzShareList *self)
 
   n_items = g_list_model_get_n_items (self->urls);
 
-  if (!self->dual_column)
+  if (!self->dual_column || n_items <= 1)
     {
       GtkListBox *list_box = NULL;
 

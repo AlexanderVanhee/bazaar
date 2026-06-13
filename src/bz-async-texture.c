@@ -20,6 +20,7 @@
 
 #define G_LOG_DOMAIN "BAZAAR::ASYNC-TEXTURE"
 
+#define MAX_CONCURRENT_IO      8
 #define MAX_CONCURRENT_GLYCIN  32
 #define CACHE_INVALID_AGE      (G_TIME_SPAN_DAY * 1)
 #define HTTP_TIMEOUT_SECONDS   5
@@ -581,10 +582,10 @@ load_fiber_work (LoadData *data)
 {
   static GMutex queueing_mutex = { 0 };
 
-  static guint    concurrent_io                     = 8;
-  static guint    io_queued[MAX_CONCURRENT_GLYCIN]  = { 0 };
-  static BzGuard *io_gates[MAX_CONCURRENT_GLYCIN]   = { 0 };
-  static GMutex   io_mutexes[MAX_CONCURRENT_GLYCIN] = { 0 };
+  static guint    concurrent_io                 = MAX_CONCURRENT_IO;
+  static guint    io_queued[MAX_CONCURRENT_IO]  = { 0 };
+  static BzGuard *io_gates[MAX_CONCURRENT_IO]   = { 0 };
+  static GMutex   io_mutexes[MAX_CONCURRENT_IO] = { 0 };
 
   static guint    concurrent_glycin                     = 0;
   static guint    glycin_queued[MAX_CONCURRENT_GLYCIN]  = { 0 };
