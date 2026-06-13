@@ -76,6 +76,9 @@ bz_entry_group_get_is_flathub (BzEntryGroup *self);
 gboolean
 bz_entry_group_get_is_verified (BzEntryGroup *self);
 
+gboolean
+bz_entry_group_get_is_mobile_friendly (BzEntryGroup *self);
+
 const char *
 bz_entry_group_get_search_tokens (BzEntryGroup *self);
 
@@ -144,10 +147,10 @@ bz_entry_group_get_user_data_size (BzEntryGroup *self);
 guint64
 bz_entry_group_get_cache_size (BzEntryGroup *self);
 
-void
+DexFuture *
 bz_entry_group_reap_user_data (BzEntryGroup *self);
 
-void
+DexFuture *
 bz_entry_group_reap_user_cache (BzEntryGroup *self);
 
 void
@@ -162,5 +165,17 @@ bz_entry_group_connect_living (BzEntryGroup *self,
 
 DexFuture *
 bz_entry_group_dup_all_into_store (BzEntryGroup *self);
+
+void
+bz_entry_group_serialize (BzEntryGroup    *self,
+                          GVariantBuilder *builder);
+
+gboolean
+bz_entry_group_deserialize (BzEntryGroup *self,
+                            GVariant     *import);
+
+void
+bz_entry_group_reconcile_with_installed_set (BzEntryGroup *self,
+                                             GHashTable   *installed_set);
 
 G_END_DECLS

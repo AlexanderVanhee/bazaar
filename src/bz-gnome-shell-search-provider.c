@@ -212,7 +212,9 @@ get_result_metas (BzShellSearchProvider2     *skeleton,
       icon = bz_entry_group_get_mini_icon (group);
       if (icon != NULL)
         {
-          g_autofree gchar *icon_str = g_icon_to_string (icon);
+          g_autofree gchar *icon_str = NULL;
+
+          icon_str = g_icon_to_string (icon);
           if (icon_str != NULL)
             g_variant_builder_add (meta_builder, "{sv}", "gicon", g_variant_new_string (icon_str));
           else

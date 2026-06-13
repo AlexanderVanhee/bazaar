@@ -1,4 +1,4 @@
-/* lookup.c
+/* lookup.h
  *
  * Copyright 2026 Eva M
  *

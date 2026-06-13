@@ -38,7 +38,7 @@
 
 struct _BzBundleInstallDialog
 {
-  AdwBreakpointBin parent_instance;
+  AdwDialog parent_instance;
 
   BzStateInfo   *state;
   BzEntry       *entry;
@@ -47,7 +47,6 @@ struct _BzBundleInstallDialog
   AdwNavigationView *nav_view;
   GtkStack          *main_stack;
   AdwCarousel       *carousel;
-  GtkWidget         *page_info;
   GtkWidget         *page_progress;
   GtkWidget         *page_finish;
 
@@ -59,7 +58,7 @@ struct _BzBundleInstallDialog
   guint pulse_source_id;
 };
 
-G_DEFINE_FINAL_TYPE (BzBundleInstallDialog, bz_bundle_install_dialog, ADW_TYPE_BREAKPOINT_BIN);
+G_DEFINE_FINAL_TYPE (BzBundleInstallDialog, bz_bundle_install_dialog, ADW_TYPE_DIALOG);
 
 enum
 {
@@ -387,7 +386,6 @@ bz_bundle_install_dialog_class_init (BzBundleInstallDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzBundleInstallDialog, nav_view);
   gtk_widget_class_bind_template_child (widget_class, BzBundleInstallDialog, main_stack);
   gtk_widget_class_bind_template_child (widget_class, BzBundleInstallDialog, carousel);
-  gtk_widget_class_bind_template_child (widget_class, BzBundleInstallDialog, page_info);
   gtk_widget_class_bind_template_child (widget_class, BzBundleInstallDialog, page_progress);
   gtk_widget_class_bind_template_child (widget_class, BzBundleInstallDialog, page_finish);
   gtk_widget_class_bind_template_child (widget_class, BzBundleInstallDialog, progress_bar);

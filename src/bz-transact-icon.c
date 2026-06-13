@@ -299,9 +299,6 @@ apply_state (BzTransactIcon *self)
               g_signal_connect_swapped (
                   self->settings, "changed::global-progress-bar-theme",
                   G_CALLBACK (pride_flag_changed), self);
-              g_signal_connect_swapped (
-                  self->settings, "changed::rotate-flag",
-                  G_CALLBACK (pride_flag_changed), self);
             }
         }
     }
@@ -383,7 +380,7 @@ check_tracker (BzTransactIcon *self)
       status  = bz_transaction_entry_tracker_get_status (self->tracker);
 
       if ((active || pending) && status == BZ_TRANSACTION_ENTRY_STATUS_CANCELLED)
-        state = "cancelling";
+        state = "inactive";
       else if (pending || status == BZ_TRANSACTION_ENTRY_STATUS_QUEUED)
         state = "pending";
       else if (!active || status == BZ_TRANSACTION_ENTRY_STATUS_DONE)
@@ -402,10 +399,7 @@ ensure_draw_css (BzTransactIcon *self)
 {
   g_autoptr (GtkWidget) widget = NULL;
   g_autofree char *id          = NULL;
-  g_autofree char *final_id    = NULL;
   g_autofree char *class       = NULL;
-  gboolean         rotate      = FALSE;
-
   widget = bge_wdgt_renderer_lookup_object (self->wdgt, "flag");
 
   if (self->settings == NULL)
@@ -416,15 +410,8 @@ ensure_draw_css (BzTransactIcon *self)
       return;
     }
 
-  id     = g_settings_get_string (self->settings, "global-progress-bar-theme");
-  rotate = g_settings_get_boolean (self->settings, "rotate-flag");
-
-  if (rotate && g_strcmp0 (id, "accent-color") != 0)
-    final_id = g_strdup_printf ("%s-horizontal", id);
-  else
-    final_id = g_strdup (id);
-
-  class = bz_dup_css_class_for_pride_id (final_id);
+  id    = g_settings_get_string (self->settings, "global-progress-bar-theme");
+  class = bz_dup_css_class_for_pride_id (id);
 
   if (self->pride_class != NULL &&
       g_strcmp0 (self->pride_class, class) == 0)

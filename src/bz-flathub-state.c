@@ -45,7 +45,6 @@ struct _BzFlathubState
   char                    *app_of_the_day;
   GtkStringList           *apps_of_the_week;
   GListStore              *categories;
-  gboolean                 has_connection_error;
 
   DexFuture *initializing;
 };
@@ -79,7 +78,6 @@ enum
   PROP_APPS_OF_THE_WEEK,
   PROP_APPS_OF_THE_DAY_WEEK,
   PROP_CATEGORIES,
-  PROP_HAS_CONNECTION_ERROR,
 
   LAST_PROP
 };
@@ -140,9 +138,6 @@ bz_flathub_state_get_property (GObject    *object,
     case PROP_CATEGORIES:
       g_value_set_object (value, bz_flathub_state_get_categories (self));
       break;
-    case PROP_HAS_CONNECTION_ERROR:
-      g_value_set_boolean (value, bz_flathub_state_get_has_connection_error (self));
-      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -169,7 +164,6 @@ bz_flathub_state_set_property (GObject      *object,
     case PROP_APPS_OF_THE_WEEK:
     case PROP_APPS_OF_THE_DAY_WEEK:
     case PROP_CATEGORIES:
-    case PROP_HAS_CONNECTION_ERROR:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -229,12 +223,6 @@ bz_flathub_state_class_init (BzFlathubStateClass *klass)
           "categories",
           NULL, NULL,
           G_TYPE_LIST_MODEL,
-          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
-  props[PROP_HAS_CONNECTION_ERROR] =
-      g_param_spec_boolean (
-          "has-connection-error",
-          NULL, NULL,
-          FALSE,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
@@ -506,13 +494,6 @@ bz_flathub_state_get_categories (BzFlathubState *self)
   return G_LIST_MODEL (self->categories);
 }
 
-gboolean
-bz_flathub_state_get_has_connection_error (BzFlathubState *self)
-{
-  g_return_val_if_fail (BZ_IS_FLATHUB_STATE (self), FALSE);
-  return self->has_connection_error;
-}
-
 DexFuture *
 bz_flathub_state_set_for_day (BzFlathubState *self,
                               const char     *for_day)
@@ -749,7 +730,7 @@ initialize_fiber (GWeakRef *wr)
   ADD_REQUEST (added_f, "/collection/recently-added?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
   ADD_REQUEST (popular_f, "/collection/popular?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
   ADD_REQUEST (trending_f, "/collection/trending?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
-  ADD_REQUEST (mobile_f, "/collection/mobile?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
+  ADD_REQUEST (mobile_f, "/collection/mobile?page=0&per_page=%d", CATEGORY_FETCH_SIZE);
 
 #undef ADD_REQUEST
 
@@ -971,7 +952,6 @@ static void
 notify_all (BzFlathubState *self)
 {
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_FOR_DAY]);
-  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_HAS_CONNECTION_ERROR]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_APP_OF_THE_DAY]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_APP_OF_THE_DAY_GROUP]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_APPS_OF_THE_WEEK]);
@@ -986,7 +966,6 @@ clear (BzFlathubState *self)
   g_clear_pointer (&self->app_of_the_day, g_free);
   g_clear_pointer (&self->apps_of_the_week, g_object_unref);
   g_clear_pointer (&self->categories, g_object_unref);
-  self->has_connection_error = FALSE;
 }
 
 /* End of bz-flathub-state.c */

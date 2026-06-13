@@ -8,5 +8,6 @@ bge_headers += files(
   'bge-easing.h',
 )
 
+subdir('util')
 subdir('lookup')
 subdir('fmt')

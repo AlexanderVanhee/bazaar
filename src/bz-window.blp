@@ -1,5 +1,6 @@
 using Gtk 4.0;
 using Gio 2.0;
+using Gdk 4.0;
 using Adw 1;
 
 template $BzWindow: Adw.ApplicationWindow {
@@ -58,6 +59,7 @@ template $BzWindow: Adw.ApplicationWindow {
                     valign: center;
                     orientation: vertical;
                     spacing: 6;
+                    tooltip-text: bind template.state as <$BzStateInfo>.background-task-label;
 
                     Adw.Spinner {
                       width-request: 64;
@@ -66,7 +68,7 @@ template $BzWindow: Adw.ApplicationWindow {
                     }
 
                     Label {
-                      label: _("Refreshing…");
+                      label: _("Refreshing");
                       wrap: true;
                       justify: center;
                       margin-bottom: 24;
@@ -169,7 +171,9 @@ template $BzWindow: Adw.ApplicationWindow {
 
                     child: Adw.Avatar {
                       size: 24;
-                      custom-image: bind template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.paintable;
+                      show-initials: true;
+                      text: bind template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.name;
+                      custom-image: bind try { $choose(template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.paintable as <$BzAsyncTexture>.loaded, template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.paintable , null as <Gdk.Paintable>), null as <Gdk.Paintable>};
                     };
                   }
 
@@ -177,57 +181,30 @@ template $BzWindow: Adw.ApplicationWindow {
                   Revealer {
                     transition-type: crossfade;
                     transition-duration: 750;
-                    reveal-child: bind $logical_or($invert_boolean($is_null(template.state as <$BzStateInfo>.background-task-label) as <bool>) as <bool>, status_popover.visible) as <bool>;
-
-                    child: MenuButton {
-                      styles [
-                        "flat",
-                      ]
-
-                      child: Box {
-                        Adw.Spinner {
-                          visible: bind status_popover_label.visible;
-                        }
-
-                        Image {
-                          visible: bind $invert_boolean(status_popover_label.visible) as <bool>;
-                          icon-name: "check-plain-symbolic";
-                        }
-                      };
-
-                      popover: Popover status_popover {
-                        has-arrow: true;
-                        position: right;
-
-                        child: Box {
-                          orientation: vertical;
-                          margin-top: 12;
-                          margin-bottom: 12;
-                          margin-start: 12;
-                          margin-end: 12;
-                          width-request: 300;
-
-                          Label status_popover_label {
-                            hexpand: true;
-                            visible: bind $invert_boolean($is_null(template.state as <$BzStateInfo>.background-task-label) as <bool>) as <bool>;
-                            label: bind template.state as <$BzStateInfo>.background-task-label;
-                          }
-
-                          Label {
-                            hexpand: true;
-                            visible: bind $invert_boolean(status_popover_label.visible) as <bool>;
-                            label: _("Refresh completed!");
-                          }
-                        };
-                      };
+                    margin-start: 8;
+                    reveal-child: bind $logical_and($invert_boolean(template.state as <$BzStateInfo>.busy) as <bool>, $invert_boolean($is_null(template.state as <$BzStateInfo>.background-task-label) as <bool>) as <bool>) as <bool>;
+                    child: Adw.Spinner {
+                      width-request: 16;
+                      height-request: 16;
+                      has-tooltip: true;
+                      tooltip-text: bind template.state as <$BzStateInfo>.background-task-label;
                     };
                   }
 
                   [title]
-                  Adw.ViewSwitcher {
-                    stack: main_view_stack;
-                    policy: wide;
-                    sensitive: bind $invert_boolean(template.state as <$BzStateInfo>.busy) as <bool>;
+                  Box {
+                    Adw.ViewSwitcher {
+                      stack: main_view_stack;
+                      policy: wide;
+                      visible: bind $invert_boolean(template.state as <$BzStateInfo>.busy) as <bool>;
+                    }
+                    Label {
+                      label: _("Bazaar");
+                      visible: bind template.state as <$BzStateInfo>.busy as <bool>;
+                      styles [
+                        "title",
+                      ]
+                    }
                   }
 
                   [end]
@@ -264,7 +241,7 @@ template $BzWindow: Adw.ApplicationWindow {
               Adw.ViewSwitcherBar {
                 stack: main_view_stack;
                 reveal: true;
-                sensitive: bind $invert_boolean(template.state as <$BzStateInfo>.busy) as <bool>;
+                visible: bind $invert_boolean(template.state as <$BzStateInfo>.busy) as <bool>;
               }
             };
           }
@@ -303,18 +280,11 @@ menu primary_menu {
       action: "app.donate";
     }
   }
-
   section {
     item {
       label: _("_Refresh");
       action: "app.sync-remotes";
     }
-
-    item {
-      label: _("_Preferences");
-      action: "app.preferences";
-    }
-
     item {
       label: _("_Login With Flathub");
       action: "app.flathub-login";
@@ -324,6 +294,12 @@ menu primary_menu {
     item {
       label: _("_Manage Leftover User Data");
       action: "window.user-data";
+    }
+  }
+  section {
+    item {
+      label: _("_Preferences");
+      action: "app.preferences";
     }
 
     item {
@@ -336,7 +312,6 @@ menu primary_menu {
       action: "app.about";
     }
   }
-
   section {
     item {
       label: _("_Quit Bazaar");

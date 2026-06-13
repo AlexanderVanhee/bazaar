@@ -23,13 +23,15 @@
 #include <glib/gi18n.h>
 #include <json-glib/json-glib.h>
 
+#include "bz-addon-tile.h"
+#include "bz-addons-dialog.h"
 #include "bz-age-rating-dialog.h"
 #include "bz-app-size-dialog.h"
 #include "bz-app-tile.h"
 #include "bz-apps-page.h"
 #include "bz-appstream-description-render.h"
-#include "bz-context-tile.h"
 #include "bz-context-tile-callbacks.h"
+#include "bz-context-tile.h"
 #include "bz-developer-badge.h"
 #include "bz-dynamic-list-view.h"
 #include "bz-entry-inspector.h"
@@ -52,7 +54,6 @@
 #include "bz-spdx.h"
 #include "bz-state-info.h"
 #include "bz-stats-dialog.h"
-#include "bz-tag-list.h"
 #include "bz-template-callbacks.h"
 #include "bz-util.h"
 #include "bz-window.h"
@@ -277,8 +278,9 @@ get_developer_apps_entries (gpointer object, GtkStringList *app_ids, BzEntry *en
 static int
 get_dev_apps_max_children_per_line (gpointer object, GListModel *model)
 {
-    if (!model) return 3;
-    return g_list_model_get_n_items (model) > 2 ? 3 : 2;
+  if (!model)
+    return 3;
+  return g_list_model_get_n_items (model) > 2 ? 3 : 2;
 }
 
 static void
@@ -410,9 +412,9 @@ static void
 dl_stats_cb (BzFullView *self,
              GtkButton  *button)
 {
-  AdwDialog         *dialog   = NULL;
-  AdwBreakpointBin  *bin      = NULL;
-  BzEntry           *ui_entry = NULL;
+  AdwDialog        *dialog   = NULL;
+  AdwBreakpointBin *bin      = NULL;
+  BzEntry          *ui_entry = NULL;
 
   if (self->group == NULL)
     return;
@@ -519,16 +521,43 @@ update_cb (BzFullView        *self,
   g_signal_emit (self, signals[SIGNAL_UPDATE], 0, entries);
 }
 
+static DexFuture *
+reap_user_data_done (DexFuture *future,
+                     GWeakRef  *wr)
+{
+  g_autoptr (BzFullView) self    = NULL;
+  g_autoptr (GError) local_error = NULL;
+
+  dex_future_get_value (future, &local_error);
+
+  self = g_weak_ref_get (wr);
+  if (self != NULL && local_error != NULL)
+    bz_show_error_for_widget (
+        GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (self))),
+        _ ("Failed to Remove User Data"),
+        local_error->message);
+
+  return dex_future_new_true ();
+}
+
 static void
 delete_user_data_cb (BzFullView *self,
                      GtkButton  *button)
 {
+  g_autoptr (DexFuture) future = NULL;
+
   g_return_if_fail (BZ_IS_FULL_VIEW (self));
 
   if (self->group == NULL)
     return;
 
-  bz_entry_group_reap_user_data (self->group);
+  future = bz_entry_group_reap_user_data (self->group);
+  if (future != NULL)
+    dex_future_disown (dex_future_finally (
+        dex_ref (future),
+        (DexFutureCallback) reap_user_data_done,
+        bz_track_weak (self),
+        bz_weak_release));
 }
 
 static void
@@ -547,6 +576,45 @@ support_cb (BzFullView *self,
     }
 }
 
+static GListModel *
+get_addon_groups (BzFullView   *self,
+                  BzEntryGroup *group)
+{
+  BzApplicationMapFactory *factory = NULL;
+  GListModel              *ids     = NULL;
+  GListModel              *groups  = NULL;
+
+  if (group == NULL)
+    return NULL;
+
+  ids = bz_entry_group_get_addon_group_ids (group);
+  if (ids == NULL)
+    return NULL;
+
+  factory = bz_state_info_get_application_factory (self->state);
+  groups  = bz_application_map_factory_generate (factory, ids);
+  if (groups == NULL)
+    return NULL;
+
+  return G_LIST_MODEL (gtk_slice_list_model_new (groups, 0, 3));
+}
+
+static gboolean
+should_show_addon_overflow (gpointer      object,
+                            BzEntryGroup *group)
+{
+  GListModel *ids = NULL;
+
+  if (group == NULL)
+    return FALSE;
+
+  ids = bz_entry_group_get_addon_group_ids (group);
+  if (ids == NULL)
+    return FALSE;
+
+  return g_list_model_get_n_items (ids) > 3;
+}
+
 static void
 install_addons_cb (BzFullView *self,
                    GtkButton  *button)
@@ -556,6 +624,23 @@ install_addons_cb (BzFullView *self,
 
   gtk_widget_activate_action (GTK_WIDGET (self), "window.addons-group", "s",
                               bz_entry_group_get_id (self->group));
+}
+
+static void
+addon_tile_activated_cb (BzAddonTile *tile)
+{
+  BzFullView   *self   = NULL;
+  BzEntryGroup *group  = NULL;
+  AdwDialog    *dialog = NULL;
+
+  self  = BZ_FULL_VIEW (gtk_widget_get_ancestor (GTK_WIDGET (tile), BZ_TYPE_FULL_VIEW));
+  group = bz_addon_tile_get_group (tile);
+
+  if (group == NULL)
+    return;
+
+  dialog = bz_addons_dialog_new_single (group);
+  adw_dialog_present (dialog, GTK_WIDGET (self));
 }
 
 static int
@@ -693,8 +778,8 @@ bz_full_view_class_init (BzFullViewClass *klass)
   g_type_ensure (BZ_TYPE_RELEASES_LIST);
   g_type_ensure (BZ_TYPE_SCREENSHOTS_CAROUSEL);
   g_type_ensure (BZ_TYPE_SHARE_LIST);
-  g_type_ensure (BZ_TYPE_TAG_LIST);
   g_type_ensure (BZ_TYPE_CONTEXT_TILE);
+  g_type_ensure (BZ_TYPE_ADDON_TILE);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-full-view.ui");
   bz_widget_class_bind_all_util_callbacks (widget_class);
@@ -724,7 +809,10 @@ bz_full_view_class_init (BzFullViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, delete_user_data_cb);
   gtk_widget_class_bind_template_callback (widget_class, support_cb);
   gtk_widget_class_bind_template_callback (widget_class, pick_license_warning);
+  gtk_widget_class_bind_template_callback (widget_class, get_addon_groups);
+  gtk_widget_class_bind_template_callback (widget_class, should_show_addon_overflow);
   gtk_widget_class_bind_template_callback (widget_class, install_addons_cb);
+  gtk_widget_class_bind_template_callback (widget_class, addon_tile_activated_cb);
   gtk_widget_class_bind_template_callback (widget_class, bind_app_tile_cb);
   gtk_widget_class_bind_template_callback (widget_class, unbind_app_tile_cb);
   gtk_widget_class_bind_template_callback (widget_class, get_description_max_height);
