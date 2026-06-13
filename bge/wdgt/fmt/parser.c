@@ -2674,12 +2674,6 @@ parse_args (const char        *p,
   return p;
 }
 
-#undef GET_TOKEN_EXPECT
-#undef GET_TOKEN
-#undef UNEXPECTED_TOKEN
-#undef EXPECT_TOKEN
-#undef RETURN_ERROR_UNLESS
-
 static char *
 parse_token_fundamental (const char  *token,
                          BgeWdgtSpec *spec,
