@@ -42,6 +42,7 @@ struct _BzRichAppTile
   GtkWidget          *picture_box;
   GtkWidget          *get_button;
   BzTransactIconInfo *transact_icon_info;
+  GtkWidget          *action_stack;
 };
 
 G_DEFINE_FINAL_TYPE (BzRichAppTile, bz_rich_app_tile, BZ_TYPE_LIST_TILE);
@@ -352,6 +353,7 @@ bz_rich_app_tile_class_init (BzRichAppTileClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, picture_box);
   gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, get_button);
   gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, transact_icon_info);
+  gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, action_stack);
 
   gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);
 }
@@ -444,4 +446,17 @@ bz_rich_app_tile_set_group (BzRichAppTile *self,
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_GROUP]);
 }
+
+void
+bz_rich_app_tile_focus_action_button (BzRichAppTile *self)
+{
+  GtkWidget *visible_child = NULL;
+
+  g_return_if_fail (BZ_IS_RICH_APP_TILE (self));
+
+  visible_child = gtk_stack_get_visible_child (GTK_STACK (self->action_stack));
+  if (visible_child != NULL)
+    gtk_widget_grab_focus (visible_child);
+}
+
 /* End of bz-rich-app-tile.c */
