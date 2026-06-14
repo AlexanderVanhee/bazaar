@@ -290,8 +290,8 @@ update_permissions_list (BzSafetyDialog *self)
   BzImportance     importance              = BZ_IMPORTANCE_UNIMPORTANT;
   GtkWidget       *child                   = NULL;
   g_autoptr (GListModel) model             = NULL;
-  guint                 n_items            = 0;
-  BzAppPermissions     *permissions        = NULL;
+  guint n_items                            = 0;
+  g_autoptr (BzAppPermissions) permissions = NULL;
   BzAppPermissionsFlags perm_flags         = BZ_APP_PERMISSIONS_FLAGS_NONE;
 
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (self->permissions_list))) != NULL)
@@ -302,11 +302,7 @@ update_permissions_list (BzSafetyDialog *self)
 
   g_object_get (self->entry, "permissions", &permissions, NULL);
   if (permissions != NULL)
-    {
-      perm_flags = bz_app_permissions_get_flags (permissions);
-      g_object_unref (permissions);
-    }
-
+    perm_flags = bz_app_permissions_get_flags (permissions);
   self->has_sandbox_escape = (perm_flags & BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX) != 0;
 
   if (!self->has_sandbox_escape)
@@ -375,3 +371,4 @@ update_permissions_list (BzSafetyDialog *self)
   bz_lozenge_set_title (self->lozenge, title_text);
   bz_lozenge_set_importance (self->lozenge, importance);
 }
+
