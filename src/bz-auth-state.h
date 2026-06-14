@@ -22,6 +22,7 @@
 
 #include <gdk/gdk.h>
 #include <glib-object.h>
+#include <libdex.h>
 
 G_BEGIN_DECLS
 
@@ -29,29 +30,30 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (BzAuthState, bz_auth_state, BZ, AUTH_STATE, GObject)
 
-BzAuthState *bz_auth_state_new (void);
+BzAuthState *
+bz_auth_state_new                (void);
 
 const char *
-bz_auth_state_get_name (BzAuthState *self);
-
-const char *
-bz_auth_state_get_token (BzAuthState *self);
+bz_auth_state_get_name           (BzAuthState *self);
 
 const char *
 bz_auth_state_get_profile_icon_url (BzAuthState *self);
-
 gboolean
-bz_auth_state_is_authenticated (BzAuthState *self);
+bz_auth_state_is_authenticated   (BzAuthState *self);
 
 GdkPaintable *
-bz_auth_state_get_paintable (BzAuthState *self);
+bz_auth_state_get_paintable      (BzAuthState *self);
+
+DexFuture *
+bz_auth_state_get_access_token   (BzAuthState *self);
 
 void
-bz_auth_state_set_authenticated (BzAuthState *self,
-                                 const char  *name,
-                                 const char  *token,
-                                 GDateTime   *token_expires,
-                                 const char  *profile_icon_url);
+bz_auth_state_set_authenticated  (BzAuthState *self,
+                                  const char  *name,
+                                  const char  *access_token,
+                                  gint64       expires_in_seconds,
+                                  const char  *refresh_token,
+                                  const char  *profile_icon_url);
 
 void
 bz_auth_state_clear (BzAuthState *self);

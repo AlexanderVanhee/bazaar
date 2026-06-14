@@ -31,4 +31,7 @@ G_DECLARE_FINAL_TYPE (BzLoginPage, bz_login_page, BZ, LOGIN_PAGE, AdwNavigationP
 
 AdwNavigationPage *bz_login_page_new (BzAuthState *auth_state);
 
+void bz_login_page_handle_uri (BzLoginPage *self,
+                                const char  *uri);
+
 G_END_DECLS

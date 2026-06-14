@@ -115,6 +115,7 @@ struct _BzApplication
   GSettings                  *settings;
   GTimer                     *init_timer;
   GWeakRef                    main_window;
+  GWeakRef                    login_page;
   GtkCustomFilter            *appid_filter;
   GtkCustomFilter            *group_filter;
   GtkFilterListModel         *group_filter_model;
@@ -446,6 +447,8 @@ bz_application_dispose (GObject *object)
   g_clear_pointer (&self->usr_name_to_addons, g_hash_table_unref);
   g_clear_pointer (&self->sys_ref_to_addon_group_ids, g_hash_table_unref);
   g_clear_pointer (&self->usr_ref_to_addon_group_ids, g_hash_table_unref);
+
+  g_weak_ref_clear (&self->login_page);
   g_weak_ref_clear (&self->main_window);
 
   G_OBJECT_CLASS (bz_application_parent_class)->dispose (object);
@@ -836,6 +839,8 @@ bz_application_flathub_login_action (GSimpleAction *action,
   auth_state = bz_state_info_get_auth_state (self->state);
   login_page = bz_login_page_new (auth_state);
 
+  g_weak_ref_set (&self->login_page, login_page);
+
   bz_window_push_page (BZ_WINDOW (window), login_page);
 }
 
@@ -906,6 +911,7 @@ bz_application_init (BzApplication *self)
 {
   self->running = FALSE;
   g_weak_ref_init (&self->main_window, NULL);
+  g_weak_ref_init (&self->login_page, NULL);
 
   self->gs_search = bz_gnome_shell_search_provider_new ();
 
@@ -3608,6 +3614,22 @@ command_line_open_location (BzApplication           *self,
                             GApplicationCommandLine *cmdline,
                             const char              *location)
 {
+  if (g_str_has_prefix (location, "bazaar://oidc/"))
+    {
+      g_autoptr (BzLoginPage) login_page = NULL;
+
+      login_page = g_weak_ref_get (&self->login_page);
+      if (login_page != NULL)
+        {
+          get_or_create_window (self);
+          bz_login_page_handle_uri (login_page, location);
+        }
+      else
+        g_warning ("Received OIDC callback but no login page is open: %s", location);
+
+      return;
+    }
+
   if (g_uri_is_valid (location, G_URI_FLAGS_NONE, NULL))
     {
       if (g_str_has_prefix (location, "appstream:"))

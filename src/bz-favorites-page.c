@@ -363,7 +363,6 @@ fetch_favorites_fiber (GWeakRef *wr)
   g_autoptr (JsonNode) node              = NULL;
   BzApplicationMapFactory *factory       = NULL;
   BzAuthState             *auth_state    = NULL;
-  const char              *token         = NULL;
   JsonArray               *array         = NULL;
   guint                    n_favorites   = 0;
   guint                    n_items       = 0;
@@ -375,12 +374,11 @@ fetch_favorites_fiber (GWeakRef *wr)
   id_list = gtk_string_list_new (NULL);
 
   auth_state = bz_state_info_get_auth_state (self->state);
-  token      = bz_auth_state_get_token (auth_state);
 
-  if (token != NULL && bz_auth_state_is_authenticated (auth_state))
+  if (bz_auth_state_is_authenticated (auth_state))
     {
       node = dex_await_boxed (
-          bz_query_flathub_v2_json_authenticated ("/favorites", token),
+          bz_query_flathub_v2_json_authenticated ("/favorites", auth_state),
           &local_error);
 
       if (node == NULL)
@@ -391,7 +389,8 @@ fetch_favorites_fiber (GWeakRef *wr)
 
       if (!JSON_NODE_HOLDS_ARRAY (node))
         {
-          g_warning ("Unexpected response format from Flathub favorites API");
+          g_autofree char *debug = json_to_string (node, TRUE);
+          g_warning ("Unexpected response format from Flathub favorites API: %s", debug);
           goto done;
         }
 

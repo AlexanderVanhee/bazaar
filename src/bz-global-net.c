@@ -25,6 +25,9 @@
 #include <json-glib/json-glib.h>
 #include <libproxy/proxy.h>
 
+#ifndef BZ_NO_AUTH
+#include "bz-auth-state.h"
+#endif
 #include "bz-env.h"
 #include "bz-global-net.h"
 #include "bz-util.h"
@@ -58,9 +61,9 @@ send (SoupMessage   *message,
       gboolean       close_output);
 
 static DexFuture *
-query_flathub_v2_json_with_method (const char *request,
-                                   const char *method,
-                                   const char *token);
+query_flathub_v2_json_with_method (const char  *request,
+                                   const char  *method,
+                                   BzAuthState *auth_state);
 
 GProxyResolver *
 bz_get_default_proxy_resolver (void)
@@ -109,7 +112,6 @@ bz_send_with_global_http_session_then_splice_into (SoupMessage   *message,
 DexFuture *
 bz_https_query_json (const char *uri)
 {
-  g_autoptr (GError) local_error   = NULL;
   g_autoptr (SoupMessage) message  = NULL;
   SoupMessageHeaders *headers      = NULL;
   g_autoptr (GOutputStream) output = NULL;
@@ -139,6 +141,13 @@ bz_query_flathub_v2_json (const char *request)
 }
 
 DexFuture *
+bz_query_flathub_v2_json_post (const char *request)
+{
+  dex_return_error_if_fail (request != NULL);
+  return query_flathub_v2_json_with_method (request, SOUP_METHOD_POST, NULL);
+}
+
+DexFuture *
 bz_query_flathub_v2_json_take (char *request)
 {
   DexFuture *future = NULL;
@@ -151,34 +160,36 @@ bz_query_flathub_v2_json_take (char *request)
   return future;
 }
 
+#ifndef BZ_NO_AUTH
 DexFuture *
-bz_query_flathub_v2_json_authenticated (const char *request,
-                                        const char *token)
+bz_query_flathub_v2_json_authenticated (const char  *request,
+                                        BzAuthState *auth_state)
 {
   dex_return_error_if_fail (request != NULL);
-  return query_flathub_v2_json_with_method (request, SOUP_METHOD_GET, token);
+  return query_flathub_v2_json_with_method (request, SOUP_METHOD_GET, auth_state);
 }
 
 DexFuture *
-bz_query_flathub_v2_json_authenticated_post (const char *request,
-                                             const char *token)
+bz_query_flathub_v2_json_authenticated_post (const char  *request,
+                                             BzAuthState *auth_state)
 {
   dex_return_error_if_fail (request != NULL);
-  return query_flathub_v2_json_with_method (request, SOUP_METHOD_POST, token);
+  return query_flathub_v2_json_with_method (request, SOUP_METHOD_POST, auth_state);
 }
 
 DexFuture *
-bz_query_flathub_v2_json_authenticated_delete (const char *request,
-                                               const char *token)
+bz_query_flathub_v2_json_authenticated_delete (const char  *request,
+                                               BzAuthState *auth_state)
 {
   dex_return_error_if_fail (request != NULL);
-  return query_flathub_v2_json_with_method (request, SOUP_METHOD_DELETE, token);
+  return query_flathub_v2_json_with_method (request, SOUP_METHOD_DELETE, auth_state);
 }
+#endif
 
 static DexFuture *
-query_flathub_v2_json_with_method (const char *request,
-                                   const char *method,
-                                   const char *token)
+query_flathub_v2_json_with_method (const char  *request,
+                                   const char  *method,
+                                   BzAuthState *auth_state)
 {
   g_autofree char *uri             = NULL;
   g_autoptr (SoupMessage) message  = NULL;
@@ -186,19 +197,31 @@ query_flathub_v2_json_with_method (const char *request,
   g_autoptr (GOutputStream) output = NULL;
   g_autoptr (DexFuture) future     = NULL;
 
-  uri     = g_strdup_printf ("https://flathub.org/api/v2%s", request);
+  uri     = g_strdup_printf ("http://localhost:8000/api/v2%s", request);
   message = soup_message_new (method, uri);
   headers = soup_message_get_request_headers (message);
 
   soup_message_headers_append (headers, "User-Agent", "Bazaar");
 
-  if (token != NULL && token[0] != '\0')
+#ifdef BZ_NO_AUTH
+  (void) auth_state;
+#else
+  if (auth_state != NULL && bz_auth_state_is_authenticated (auth_state))
     {
-      g_autofree char *cookie_value = NULL;
-
-      cookie_value = g_strdup_printf ("session=%s", token);
-      soup_message_headers_append (headers, "Cookie", cookie_value);
+      g_autoptr (GError) error = NULL;
+      g_autofree char *token   = dex_await_string (
+          bz_auth_state_get_access_token (auth_state), &error);
+      if (token != NULL)
+        {
+          g_autofree char *auth_header = NULL;
+          g_print ("AUTH: using token: %s\n", token);
+          auth_header = g_strdup_printf ("Bearer %s", token);
+          soup_message_headers_append (headers, "Authorization", auth_header);
+        }
+      else if (error != NULL)
+        g_warning ("Failed to get access token: %s", error->message);
     }
+#endif
 
   output = g_memory_output_stream_new_resizable ();
 

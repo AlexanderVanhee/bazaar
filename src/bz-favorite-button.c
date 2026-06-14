@@ -305,7 +305,6 @@ fetch_favorite_status_fiber (BzFavoriteButton *button)
   g_autoptr (JsonNode) node      = NULL;
   g_autofree char *request       = NULL;
   BzAuthState     *auth_state    = NULL;
-  const char      *token         = NULL;
   const char      *app_id        = NULL;
 
   if (button->state == NULL || button->entry == NULL)
@@ -316,16 +315,12 @@ fetch_favorite_status_fiber (BzFavoriteButton *button)
   if (!bz_auth_state_is_authenticated (auth_state))
     return NULL;
 
-  token = bz_auth_state_get_token (auth_state);
-  if (token == NULL)
-    return NULL;
-
   g_object_get (button->entry, "id", &app_id, NULL);
 
   request = g_strdup_printf ("/favorites/%s", app_id);
 
   node = dex_await_boxed (
-      bz_query_flathub_v2_json_authenticated (request, token),
+      bz_query_flathub_v2_json_authenticated (request, auth_state),
       &local_error);
 
   if (local_error == NULL && node != NULL && JSON_NODE_HOLDS_VALUE (node))
@@ -355,10 +350,6 @@ toggle_favorite_fiber (BzFavoriteButton *button)
   if (!bz_auth_state_is_authenticated (auth_state))
     goto err;
 
-  token = bz_auth_state_get_token (auth_state);
-  if (token == NULL)
-    goto err;
-
   g_object_get (button->entry,
                 "id", &app_id,
                 "favorites-count", &current_count,
@@ -371,11 +362,11 @@ toggle_favorite_fiber (BzFavoriteButton *button)
 
   if (button->is_favorited)
     dex_await (
-        bz_query_flathub_v2_json_authenticated_delete (request, token),
+        bz_query_flathub_v2_json_authenticated_delete (request, auth_state),
         &local_error);
   else
     dex_await (
-        bz_query_flathub_v2_json_authenticated_post (request, token),
+        bz_query_flathub_v2_json_authenticated_post (request, auth_state),
         &local_error);
 
   if (local_error != NULL)

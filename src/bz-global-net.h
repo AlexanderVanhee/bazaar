@@ -23,8 +23,13 @@
 #include <libdex.h>
 #include <libsoup/soup.h>
 
-G_BEGIN_DECLS
+#ifndef BZ_NO_AUTH
+#include "bz-auth-state.h"
+#else
+typedef struct _BzAuthState BzAuthState;
+#endif
 
+G_BEGIN_DECLS
 GProxyResolver *
 bz_get_default_proxy_resolver (void);
 
@@ -42,15 +47,20 @@ DexFuture *
 bz_query_flathub_v2_json (const char *request);
 
 DexFuture *
-bz_query_flathub_v2_json_authenticated (const char *request,
-                                        const char *token);
+bz_query_flathub_v2_json_post (const char *request);
+
+#ifndef BZ_NO_AUTH
 
 DexFuture *
-bz_query_flathub_v2_json_authenticated_post (const char *request,
-                                             const char *token);
+bz_query_flathub_v2_json_authenticated (const char  *request,
+                                        BzAuthState *auth_state);
 DexFuture *
-bz_query_flathub_v2_json_authenticated_delete (const char *request,
-                                               const char *token);
+bz_query_flathub_v2_json_authenticated_post (const char  *request,
+                                             BzAuthState *auth_state);
+DexFuture *
+bz_query_flathub_v2_json_authenticated_delete (const char  *request,
+                                               BzAuthState *auth_state);
+#endif
 
 DexFuture *
 bz_query_flathub_v2_json_take (char *request);

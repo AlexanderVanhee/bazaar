@@ -314,7 +314,6 @@ unfavorite_fiber (BzFavoritesTile *tile)
   g_autofree char *request       = NULL;
   BzFavoritesPage *page          = NULL;
   BzAuthState     *auth_state    = NULL;
-  const char      *token         = NULL;
   const char      *app_id        = NULL;
   GtkWidget       *revealer      = NULL;
   GtkWidget       *row           = NULL;
@@ -331,16 +330,15 @@ unfavorite_fiber (BzFavoritesTile *tile)
     return NULL;
 
   auth_state = bz_state_info_get_auth_state (state);
-  token      = bz_auth_state_get_token (auth_state);
 
-  if (token == NULL || !bz_auth_state_is_authenticated (auth_state))
+  if (!bz_auth_state_is_authenticated (auth_state))
     return NULL;
 
   app_id  = bz_entry_group_get_id (tile->group);
   request = g_strdup_printf ("/favorites/%s/remove", app_id);
 
   dex_await (
-      bz_query_flathub_v2_json_authenticated_delete (request, token),
+      bz_query_flathub_v2_json_authenticated_delete (request, auth_state),
       &local_error);
 
   if (local_error != NULL)

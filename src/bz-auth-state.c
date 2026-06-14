@@ -18,26 +18,33 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include <json-glib/json-glib.h>
 #include <libsecret/secret.h>
+#include <libsoup/soup.h>
 
 #include "bz-async-texture.h"
 #include "bz-auth-state.h"
+#include "bz-global-net.h"
 
 #define SECRET_SCHEMA_NAME "io.github.kolunmi.Bazaar.FlathubAuth"
 #define SECRET_LABEL       "Flathub Authentication"
+#define TOKEN_EXPIRY_BUFFER_SECONDS 60
+#define OIDC_TOKEN_URL "http://localhost:8000/api/v2/oidc/token"
+#define OIDC_CLIENT_ID "bazaar"
+#define OIDC_CLIENT_SECRET "test-client-secret"
 
 struct _BzAuthState
 {
   GObject parent_instance;
 
-  char           *name;
-  char           *token;
-  char           *profile_icon_url;
-  GDateTime      *token_expires;
-  BzAsyncTexture *paintable;
+  char      *name;
+  char      *access_token;
+  char      *refresh_token;
+  char      *profile_icon_url;
+  gint64     access_token_expiry;
+  gboolean   loading;
 
-  gboolean loading;
-  guint    expiration_timeout_id;
+  BzAsyncTexture *paintable;
 };
 
 G_DEFINE_FINAL_TYPE (BzAuthState, bz_auth_state, G_TYPE_OBJECT)
@@ -46,7 +53,6 @@ enum
 {
   PROP_0,
   PROP_NAME,
-  PROP_TOKEN,
   PROP_PROFILE_ICON_URL,
   PROP_AUTHENTICATED,
   PROP_PAINTABLE,
@@ -64,59 +70,19 @@ get_secret_schema (void)
     {
       { "service", SECRET_SCHEMA_ATTRIBUTE_STRING },
       { "NULL", 0 },
-      }
-  };
-
-  return &schema;
-}
-
-static gboolean
-on_token_expired (gpointer user_data)
-{
-  BzAuthState *self           = BZ_AUTH_STATE (user_data);
-  self->expiration_timeout_id = 0;
-  bz_auth_state_clear (self);
-  return G_SOURCE_REMOVE;
-}
-
-static void
-schedule_token_expiration (BzAuthState *self)
-{
-  GDateTime *now;
-  gint64     seconds_until_expiration;
-
-  if (self->expiration_timeout_id != 0)
-    g_source_remove (self->expiration_timeout_id);
-
-  self->expiration_timeout_id = 0;
-
-  if (self->token_expires == NULL)
-    return;
-
-  now                      = g_date_time_new_now_utc ();
-  seconds_until_expiration = g_date_time_difference (self->token_expires, now) / G_TIME_SPAN_SECOND;
-  g_date_time_unref (now);
-
-  if (seconds_until_expiration <= 0)
-    {
-      bz_auth_state_clear (self);
-      return;
     }
-
-  if (seconds_until_expiration > G_MAXUINT / 1000)
-    self->expiration_timeout_id = g_timeout_add_seconds (G_MAXUINT / 1000, on_token_expired, self);
-  else
-    self->expiration_timeout_id = g_timeout_add_seconds (seconds_until_expiration, on_token_expired, self);
+  };
+  return &schema;
 }
 
 static void
 save_to_secrets (BzAuthState *self)
 {
-  GHashTable *attributes;
-  GError     *error                   = NULL;
+  g_autoptr (GHashTable) attributes   = NULL;
   g_autoptr (GVariantBuilder) builder = NULL;
   g_autoptr (GVariant) variant        = NULL;
   g_autofree char *serialized         = NULL;
+  g_autoptr (GError) error            = NULL;
 
   if (self->loading)
     return;
@@ -128,13 +94,11 @@ save_to_secrets (BzAuthState *self)
 
   if (self->name != NULL)
     g_variant_builder_add (builder, "{sv}", "name", g_variant_new_string (self->name));
-  if (self->token != NULL)
-    g_variant_builder_add (builder, "{sv}", "token", g_variant_new_string (self->token));
-  if (self->token_expires != NULL)
-    {
-      g_autofree char *expires = g_date_time_format_iso8601 (self->token_expires);
-      g_variant_builder_add (builder, "{sv}", "token-expires", g_variant_new_string (expires));
-    }
+  if (self->access_token != NULL)
+    g_variant_builder_add (builder, "{sv}", "access-token", g_variant_new_string (self->access_token));
+  if (self->refresh_token != NULL)
+    g_variant_builder_add (builder, "{sv}", "refresh-token", g_variant_new_string (self->refresh_token));
+  g_variant_builder_add (builder, "{sv}", "access-token-expiry", g_variant_new_int64 (self->access_token_expiry));
   if (self->profile_icon_url != NULL)
     g_variant_builder_add (builder, "{sv}", "profile-icon-url", g_variant_new_string (self->profile_icon_url));
 
@@ -150,21 +114,16 @@ save_to_secrets (BzAuthState *self)
       NULL,
       &error);
 
-  g_hash_table_unref (attributes);
-
   if (error != NULL)
-    {
-      g_warning ("Failed to save authentication to secrets: %s", error->message);
-      g_error_free (error);
-    }
+    g_warning ("Failed to save authentication to secrets: %s", error->message);
 }
 
 static void
 load_from_secrets (BzAuthState *self)
 {
-  GHashTable      *attributes;
-  GError          *error  = NULL;
-  g_autofree char *secret = NULL;
+  g_autoptr (GHashTable) attributes = NULL;
+  g_autoptr (GError) error          = NULL;
+  g_autofree char *secret           = NULL;
 
   attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
   g_hash_table_insert (attributes, g_strdup ("service"), g_strdup ("flathub"));
@@ -175,13 +134,10 @@ load_from_secrets (BzAuthState *self)
       NULL,
       &error);
 
-  g_hash_table_unref (attributes);
-
   if (error != NULL)
     {
       if (!g_error_matches (error, SECRET_ERROR, SECRET_ERROR_NO_SUCH_OBJECT))
         g_warning ("Failed to load authentication from secrets: %s", error->message);
-      g_error_free (error);
       return;
     }
 
@@ -189,13 +145,12 @@ load_from_secrets (BzAuthState *self)
     {
       g_autoptr (GVariant) variant  = NULL;
       g_autoptr (GVariantIter) iter = NULL;
+      g_autoptr (GError) parse_error = NULL;
 
-      variant = g_variant_parse (G_VARIANT_TYPE_VARDICT, secret, NULL, NULL, &error);
-
-      if (error != NULL)
+      variant = g_variant_parse (G_VARIANT_TYPE_VARDICT, secret, NULL, NULL, &parse_error);
+      if (parse_error != NULL)
         {
-          g_warning ("Failed to parse secret: %s", error->message);
-          g_error_free (error);
+          g_warning ("Failed to parse secret: %s", parse_error->message);
           return;
         }
 
@@ -215,19 +170,19 @@ load_from_secrets (BzAuthState *self)
                   g_clear_pointer (&self->name, g_free);
                   self->name = g_variant_dup_string (value, NULL);
                 }
-              else if (g_strcmp0 (key, "token") == 0)
+              else if (g_strcmp0 (key, "access-token") == 0)
                 {
-                  g_clear_pointer (&self->token, g_free);
-                  self->token = g_variant_dup_string (value, NULL);
+                  g_clear_pointer (&self->access_token, g_free);
+                  self->access_token = g_variant_dup_string (value, NULL);
                 }
-              else if (g_strcmp0 (key, "token-expires") == 0)
+              else if (g_strcmp0 (key, "refresh-token") == 0)
                 {
-                  g_autoptr (GDateTime) dt = g_date_time_new_from_iso8601 (g_variant_get_string (value, NULL), NULL);
-                  if (dt != NULL)
-                    {
-                      g_clear_pointer (&self->token_expires, g_date_time_unref);
-                      self->token_expires = g_steal_pointer (&dt);
-                    }
+                  g_clear_pointer (&self->refresh_token, g_free);
+                  self->refresh_token = g_variant_dup_string (value, NULL);
+                }
+              else if (g_strcmp0 (key, "access-token-expiry") == 0)
+                {
+                  self->access_token_expiry = g_variant_get_int64 (value);
                 }
               else if (g_strcmp0 (key, "profile-icon-url") == 0)
                 {
@@ -244,38 +199,101 @@ load_from_secrets (BzAuthState *self)
             }
         }
     }
-
-  if (self->token_expires != NULL)
-    {
-      GDateTime *now = g_date_time_new_now_utc ();
-      if (g_date_time_compare (now, self->token_expires) >= 0)
-        {
-          g_date_time_unref (now);
-          bz_auth_state_clear (self);
-          return;
-        }
-      g_date_time_unref (now);
-      schedule_token_expiration (self);
-    }
 }
 
 static void
 clear_secrets (BzAuthState *self)
 {
-  gboolean result                   = FALSE;
-  g_autoptr (GError) local_error    = NULL;
   g_autoptr (GHashTable) attributes = NULL;
+  g_autoptr (GError) local_error    = NULL;
 
   attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
   g_hash_table_replace (attributes, g_strdup ("service"), g_strdup ("flathub"));
 
-  result = secret_password_clearv_sync (
-      get_secret_schema (),
-      attributes,
-      NULL,
-      &local_error);
-  if (!result)
+  if (!secret_password_clearv_sync (get_secret_schema (), attributes, NULL, &local_error))
     g_warning ("Failed to clear auth values from secrets: %s", local_error->message);
+}
+
+static DexFuture *
+do_token_refresh (BzAuthState *self)
+{
+  g_autoptr (SoupSession) session = NULL;
+  g_autoptr (SoupMessage) msg     = NULL;
+  g_autofree char *body           = NULL;
+  g_autoptr (GBytes) body_bytes   = NULL;
+  g_autoptr (GBytes) response     = NULL;
+  g_autoptr (GError) error        = NULL;
+  g_autoptr (JsonParser) parser   = NULL;
+  JsonNode   *root                = NULL;
+  JsonObject *obj                 = NULL;
+  const char *new_access_token    = NULL;
+  const char *new_refresh_token   = NULL;
+  gint64      expires_in          = 3600;
+
+  body = g_strdup_printf (
+      "grant_type=refresh_token"
+      "&refresh_token=%s"
+      "&client_id=%s"
+      "&client_secret=%s",
+      self->refresh_token,
+      OIDC_CLIENT_ID,
+      OIDC_CLIENT_SECRET);
+
+  session = soup_session_new ();
+  msg     = soup_message_new ("POST", OIDC_TOKEN_URL);
+  soup_message_headers_append (soup_message_get_request_headers (msg),
+                               "Content-Type", "application/x-www-form-urlencoded");
+  body_bytes = g_bytes_new (body, strlen (body));
+  soup_message_set_request_body_from_bytes (msg, "application/x-www-form-urlencoded", body_bytes);
+
+  response = soup_session_send_and_read (session, msg, NULL, &error);
+  if (response == NULL)
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  parser = json_parser_new ();
+  if (!json_parser_load_from_data (parser,
+                                   g_bytes_get_data (response, NULL),
+                                   g_bytes_get_size (response),
+                                   &error))
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  root = json_parser_get_root (parser);
+  obj  = json_node_get_object (root);
+
+  if (json_object_has_member (obj, "error"))
+    {
+      const char *err = json_object_get_string_member (obj, "error");
+      return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_FAILED, "Token refresh failed: %s", err);
+    }
+
+  new_access_token  = json_object_get_string_member (obj, "access_token");
+  new_refresh_token = json_object_get_string_member (obj, "refresh_token");
+
+  if (json_object_has_member (obj, "expires_in"))
+    expires_in = json_object_get_int_member (obj, "expires_in");
+
+  if (new_access_token == NULL)
+    return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_FAILED, "No access token in refresh response");
+
+  g_clear_pointer (&self->access_token, g_free);
+  self->access_token = g_strdup (new_access_token);
+  self->access_token_expiry = g_get_real_time () / G_USEC_PER_SEC + expires_in;
+
+  if (new_refresh_token != NULL)
+    {
+      g_clear_pointer (&self->refresh_token, g_free);
+      self->refresh_token = g_strdup (new_refresh_token);
+    }
+
+  save_to_secrets (self);
+
+  return dex_future_new_take_string (g_strdup (new_access_token));
+}
+
+static DexFuture *
+refresh_fiber (BzAuthState *self)
+{
+  return do_token_refresh (self);
 }
 
 static void
@@ -283,27 +301,13 @@ bz_auth_state_dispose (GObject *object)
 {
   BzAuthState *self = BZ_AUTH_STATE (object);
 
-  g_clear_handle_id (&self->expiration_timeout_id, g_source_remove);
   g_clear_pointer (&self->name, g_free);
-  g_clear_pointer (&self->token, g_free);
+  g_clear_pointer (&self->access_token, g_free);
+  g_clear_pointer (&self->refresh_token, g_free);
   g_clear_pointer (&self->profile_icon_url, g_free);
-  g_clear_pointer (&self->token_expires, g_date_time_unref);
   g_clear_object (&self->paintable);
 
   G_OBJECT_CLASS (bz_auth_state_parent_class)->dispose (object);
-}
-
-static void
-bz_auth_state_finalize (GObject *object)
-{
-  BzAuthState *self = BZ_AUTH_STATE (object);
-
-  g_clear_pointer (&self->name, g_free);
-  g_clear_pointer (&self->token, g_free);
-  g_clear_pointer (&self->profile_icon_url, g_free);
-  g_clear_pointer (&self->token_expires, g_date_time_unref);
-
-  G_OBJECT_CLASS (bz_auth_state_parent_class)->finalize (object);
 }
 
 static void
@@ -318,9 +322,6 @@ bz_auth_state_get_property (GObject    *object,
     {
     case PROP_NAME:
       g_value_set_string (value, self->name);
-      break;
-    case PROP_TOKEN:
-      g_value_set_string (value, self->token);
       break;
     case PROP_PROFILE_ICON_URL:
       g_value_set_string (value, self->profile_icon_url);
@@ -342,35 +343,24 @@ bz_auth_state_class_init (BzAuthStateClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose      = bz_auth_state_dispose;
-  object_class->finalize     = bz_auth_state_finalize;
   object_class->get_property = bz_auth_state_get_property;
 
   properties[PROP_NAME] =
       g_param_spec_string (
           "name",
-          NULL, NULL,
-          NULL,
-          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
-
-  properties[PROP_TOKEN] =
-      g_param_spec_string (
-          "token",
-          NULL, NULL,
-          NULL,
+          NULL, NULL, NULL,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   properties[PROP_PROFILE_ICON_URL] =
       g_param_spec_string (
           "profile-icon-url",
-          NULL, NULL,
-          NULL,
+          NULL, NULL, NULL,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   properties[PROP_AUTHENTICATED] =
       g_param_spec_boolean (
           "authenticated",
-          NULL, NULL,
-          FALSE,
+          NULL, NULL, FALSE,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   properties[PROP_PAINTABLE] =
@@ -405,13 +395,6 @@ bz_auth_state_get_name (BzAuthState *self)
 }
 
 const char *
-bz_auth_state_get_token (BzAuthState *self)
-{
-  g_return_val_if_fail (BZ_IS_AUTH_STATE (self), NULL);
-  return self->token;
-}
-
-const char *
 bz_auth_state_get_profile_icon_url (BzAuthState *self)
 {
   g_return_val_if_fail (BZ_IS_AUTH_STATE (self), NULL);
@@ -422,7 +405,7 @@ gboolean
 bz_auth_state_is_authenticated (BzAuthState *self)
 {
   g_return_val_if_fail (BZ_IS_AUTH_STATE (self), FALSE);
-  return self->token != NULL && self->token[0] != '\0';
+  return self->refresh_token != NULL && self->refresh_token[0] != '\0';
 }
 
 GdkPaintable *
@@ -432,11 +415,39 @@ bz_auth_state_get_paintable (BzAuthState *self)
   return GDK_PAINTABLE (self->paintable);
 }
 
+DexFuture *
+bz_auth_state_get_access_token (BzAuthState *self)
+{
+  gint64 now = 0;
+
+  g_return_val_if_fail (BZ_IS_AUTH_STATE (self), dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_FAILED, "Invalid auth state"));
+
+  if (!bz_auth_state_is_authenticated (self))
+    return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED, "Not authenticated");
+
+  now = g_get_real_time () / G_USEC_PER_SEC;
+
+  if (self->access_token != NULL &&
+      self->access_token_expiry > now + TOKEN_EXPIRY_BUFFER_SECONDS)
+    return dex_future_new_take_string (g_strdup (self->access_token));
+
+  if (self->refresh_token == NULL)
+    return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED, "No refresh token");
+
+  return dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      0,
+      (DexFiberFunc) refresh_fiber,
+      g_object_ref (self),
+      g_object_unref);
+}
+
 void
 bz_auth_state_set_authenticated (BzAuthState *self,
                                  const char  *name,
-                                 const char  *token,
-                                 GDateTime   *token_expires,
+                                 const char  *access_token,
+                                 gint64       expires_in_seconds,
+                                 const char  *refresh_token,
                                  const char  *profile_icon_url)
 {
   gboolean was_authenticated = FALSE;
@@ -455,16 +466,24 @@ bz_auth_state_set_authenticated (BzAuthState *self,
       name_changed = TRUE;
     }
 
-  if (g_strcmp0 (self->token, token) != 0)
+  if (g_strcmp0 (self->access_token, access_token) != 0)
     {
-      g_clear_pointer (&self->token, g_free);
-      self->token   = g_strdup (token);
-      token_changed = TRUE;
+      g_clear_pointer (&self->access_token, g_free);
+      self->access_token = g_strdup (access_token);
+      token_changed      = TRUE;
     }
 
-  g_clear_pointer (&self->token_expires, g_date_time_unref);
-  if (token_expires != NULL)
-    self->token_expires = g_date_time_ref (token_expires);
+  if (access_token != NULL && expires_in_seconds > 0)
+    self->access_token_expiry = g_get_real_time () / G_USEC_PER_SEC + expires_in_seconds;
+  else
+    self->access_token_expiry = 0;
+
+  if (g_strcmp0 (self->refresh_token, refresh_token) != 0)
+    {
+      g_clear_pointer (&self->refresh_token, g_free);
+      self->refresh_token = g_strdup (refresh_token);
+      token_changed       = TRUE;
+    }
 
   if (g_strcmp0 (self->profile_icon_url, profile_icon_url) != 0)
     {
@@ -478,20 +497,18 @@ bz_auth_state_set_authenticated (BzAuthState *self,
           g_autoptr (GFile) file = g_file_new_for_uri (profile_icon_url);
           self->paintable        = bz_async_texture_new (file, NULL);
         }
-      g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_PAINTABLE]);
     }
 
   if (name_changed)
     g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_NAME]);
   if (token_changed)
-    g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_TOKEN]);
+    g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_AUTHENTICATED]);
   if (icon_changed)
     g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_PROFILE_ICON_URL]);
 
   if (!!was_authenticated != !!bz_auth_state_is_authenticated (self))
     g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_AUTHENTICATED]);
 
-  schedule_token_expiration (self);
   save_to_secrets (self);
 }
 
@@ -500,7 +517,6 @@ bz_auth_state_clear (BzAuthState *self)
 {
   g_return_if_fail (BZ_IS_AUTH_STATE (self));
 
-  g_clear_handle_id (&self->expiration_timeout_id, g_source_remove);
   clear_secrets (self);
-  bz_auth_state_set_authenticated (self, NULL, NULL, NULL, NULL);
+  bz_auth_state_set_authenticated (self, NULL, NULL, 0, NULL, NULL);
 }

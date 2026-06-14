@@ -35,6 +35,7 @@ dl_worker_deps = [
 
 dl_worker_exe = executable(dl_worker_bin_name, dl_worker_sources,
   dependencies: dl_worker_deps,
+      c_args: ['-DBZ_NO_AUTH'],
        install: true,
 )
 
