@@ -34,7 +34,7 @@
 #include "bz-util.h"
 
 #define OIDC_CLIENT_ID    "bazaar"
-#define OIDC_REDIRECT_URI "bazaar://oidc/callback"
+#define OIDC_REDIRECT_URI "https://usebazaar.org/callback"
 #define OIDC_BASE_URL     "http://localhost:8000/api/v2"
 #define OIDC_FRONTEND_URL "http://localhost:3000/api/v2"
 
