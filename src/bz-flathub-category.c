@@ -131,10 +131,10 @@ static const Subcategory network_subcategories[] = {
 };
 
 static const CategoryInfo category_info[] = {
-  {       "audiovideo",          N_ ("Audio & Video"),      N_ ("Media"),          N_ ("More Audio & Video"),  TRUE,  TRUE, "io.github.kolumni.Bazaar.Audiovideo", "applications-multimedia-symbolic", audiovideo_subcategories },
+  {       "audiovideo",          N_ ("Audio & Video"),      N_ ("Media"),          N_ ("More Audio & Video"),  TRUE,  TRUE, "io.github.kolumni.Bazaar.Audiovideo",             "video-reel2-symbolic", audiovideo_subcategories },
   {      "development",        N_ ("Developer Tools"),    N_ ("Develop"),        N_ ("More Developer Tools"),  TRUE,  TRUE,    "io.github.kolumni.Bazaar.Develop",                    "code-symbolic",                     NULL },
   {        "education",              N_ ("Education"),      N_ ("Learn"),              N_ ("More Education"),  TRUE,  TRUE,      "io.github.kolumni.Bazaar.Learn",               "open-book-symbolic",                     NULL },
-  {             "game",                 N_ ("Gaming"),       N_ ("Play"),                 N_ ("More Gaming"),  TRUE,  TRUE,       "io.github.kolumni.Bazaar.Play",      "applications-games-symbolic",       game_subcategories },
+  {             "game",                 N_ ("Gaming"),       N_ ("Play"),                 N_ ("More Gaming"),  TRUE,  TRUE,       "io.github.kolumni.Bazaar.Play",                 "gamepad-symbolic",       game_subcategories },
   {         "graphics", N_ ("Graphics & Photography"),     N_ ("Create"), N_ ("More Graphics & Photography"),  TRUE,  TRUE,     "io.github.kolumni.Bazaar.Create",              "paintbrush-symbolic",                     NULL },
   {          "network",             N_ ("Networking"),   N_ ("Internet"),             N_ ("More Networking"),  TRUE,  TRUE,    "io.github.kolumni.Bazaar.Network",                   "globe-symbolic",    network_subcategories },
   {           "office",           N_ ("Productivity"),       N_ ("Work"),           N_ ("More Productivity"),  TRUE,  TRUE,       "io.github.kolumni.Bazaar.Work",                 "meeting-symbolic",                     NULL },
@@ -152,7 +152,7 @@ static const CategoryInfo category_info[] = {
   {        "emulators",              N_ ("Emulators"),  N_ ("Emulators"),              N_ ("More Emulators"), FALSE, FALSE,                                    "",                                 "",                     NULL },
   {        "launchers",              N_ ("Launchers"),  N_ ("Launchers"),         N_ ("More Game Launchers"), FALSE, FALSE,                                    "",                                 "",                     NULL },
   {       "game-tools",             N_ ("Game Tools"), N_ ("Game Tools"),             N_ ("More Game Tools"), FALSE, FALSE,                                    "",                                 "",                     NULL },
-  {               NULL,                          NULL,            NULL,                               NULL, FALSE, FALSE,                                  NULL,                               NULL,                     NULL }
+  {               NULL,                          NULL,              NULL,                               NULL, FALSE, FALSE,                                  NULL,                               NULL,                     NULL }
 };
 
 static const CategoryInfo *
