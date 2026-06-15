@@ -321,7 +321,7 @@ get_user_sizes_fiber (char *app_id)
       cache_size = 0;
     }
 
-  return dex_future_new_for_object (
+  return dex_future_new_take_object (
       g_object_new (BZ_TYPE_SIZE_RESULT,
                     "user-data-size", user_data_size,
                     "cache-size", cache_size,
