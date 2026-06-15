@@ -4,7 +4,7 @@
 Bazaar
 </h1>
 
-<p align="center">Discover and install applications</p>
+<p align="center">Discover and install apps</p>
 
 <div align="center">
     <picture>
@@ -26,7 +26,7 @@ Bazaar
 > you!), please see the [translators introduction](/TRANSLATORS.md).
 
 Bazaar is a new app store for GNOME with a focus on discovering and installing
-applications and add-ons from Flatpak remotes, particularly
+apps and add-ons from Flatpak remotes, particularly
 [Flathub](https://flathub.org/). It emphasizes supporting the developers who
 make the Linux desktop possible. Bazaar features a "curated" tab that can be
 configured by distributors to allow for a more localized experience.
@@ -63,7 +63,7 @@ before reporting it here.
 ### Supporting
 
 If you would like to support me and the development of this
-application (Thank you!), I have a ko-fi here! <https://ko-fi.com/kolunmi>
+app (Thank you!), I have a ko-fi here! <https://ko-fi.com/kolunmi>
 
 [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/kolunmi)
 

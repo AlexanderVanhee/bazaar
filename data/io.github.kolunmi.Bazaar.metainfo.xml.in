@@ -5,11 +5,11 @@
   <project_license>GPL-3.0-or-later</project_license>
 
   <name>Bazaar</name>
-  <summary>Discover and manage applications</summary>
+  <summary>Discover and install apps</summary>
   <description>
     <p>
       A fast and modern app store for Linux with a focus on discovering
-      and installing Flatpak apps and addons, particularly from Flathub.
+      and installing Flatpak apps and add-ons, particularly from Flathub.
     </p>
     <ul>
       <li>Queue multiple installs and keep browsing</li>
@@ -297,7 +297,7 @@
           <li>Merges the task sidebar and install page into the library page</li>
           <li>Add installed version numbers of each app on the library and app pages</li>
           <li>Add donations dialog</li>
-          <li>Fix broken addon and runtime eol detection</li>
+          <li>Fix broken add-on and runtime eol detection</li>
           <li>Add `enable-bulk-install` key to curated sections</li>
           <li>Add `override-eol-markings` main config string list</li>
         </ul>
@@ -414,7 +414,7 @@
         <p>This release comes with the following improvements:</p>
         <ul>
           <li>Fix frequent disk writes; set refresh frequency to 1 day rather than 1 hour</li>
-          <li>Add "Delete User Data" option when uninstalling an application</li>
+          <li>Add "Delete User Data" option when uninstalling an app</li>
           <li>Version cache to prevent incompatibility between Bazaar versions</li>
         </ul>
       </description>
