@@ -9,7 +9,7 @@
   <shortdesc xml:lang="en">Discover and install applications</shortdesc>
   <description xml:lang="en">
     A new app store for Linux with a focus on discovering and installing
-    applications and addons from Flatpak remotes, particularly Flathub.
+    apps and add-ons from Flatpak remotes, particularly Flathub.
   </description>
 
   <homepage rdf:resource="https://usebazaar.org" />
