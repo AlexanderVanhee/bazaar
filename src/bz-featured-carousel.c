@@ -34,8 +34,9 @@ struct _BzFeaturedCarousel
 
   GListModel *model;
 
-  guint   rotation_timer_source;
-  GTimer *time_since_manual_rotate;
+  guint    rotation_timer_source;
+  GTimer  *time_since_manual_rotate;
+  gboolean has_focus;
 
   BgeCarousel        *carousel;
   GtkSingleSelection *selection;
@@ -89,6 +90,54 @@ on_style_changed (AdwStyleManager    *style_manager,
 }
 
 static void
+announce_selected_entry (BzFeaturedCarousel *self)
+{
+  guint index                    = 0;
+  g_autoptr (BzEntryGroup) group = NULL;
+  const char      *title         = NULL;
+  const char      *description   = NULL;
+  g_autofree char *message       = NULL;
+
+  index = gtk_single_selection_get_selected (self->selection);
+
+  group = g_list_model_get_item (G_LIST_MODEL (self->selection), index);
+
+  if (group == NULL)
+    return;
+
+  title       = bz_entry_group_get_title (group);
+  description = bz_entry_group_get_description (group);
+
+  message = g_strdup_printf ("%s. %s",
+                             title != NULL ? title : "",
+                             description != NULL ? description : "");
+
+  gtk_accessible_announce (GTK_ACCESSIBLE (self), message,
+                           GTK_ACCESSIBLE_ANNOUNCEMENT_PRIORITY_MEDIUM);
+}
+
+static void
+carousel_focus_cb (BgeCarousel        *self,
+                   GParamSpec         *pspec,
+                   BzFeaturedCarousel *carousel)
+{
+  if (gtk_widget_has_focus (GTK_WIDGET (self)))
+    announce_selected_entry (carousel);
+}
+
+static void
+on_focus_enter_cb (BzFeaturedCarousel *self)
+{
+  self->has_focus = TRUE;
+}
+
+static void
+on_focus_leave_cb (BzFeaturedCarousel *self)
+{
+  self->has_focus = FALSE;
+}
+
+static void
 on_notify_selected (BzFeaturedCarousel *self,
                     GParamSpec         *pspec,
                     GtkSingleSelection *selection)
@@ -117,6 +166,9 @@ show_relative_page (BzFeaturedCarousel *self,
   gtk_single_selection_set_selected (self->selection, new_page);
   g_signal_handlers_unblock_by_func (self->selection, on_notify_selected, self);
 
+  if (self->has_focus)
+    announce_selected_entry (self);
+
   update_buttons_for_tile (self);
 }
 
@@ -125,6 +177,9 @@ rotate_cb (gpointer user_data)
 {
   BzFeaturedCarousel *self    = BZ_FEATURED_CAROUSEL (user_data);
   double              elapsed = 0.0;
+
+  if (self->has_focus)
+    return G_SOURCE_CONTINUE;
 
   elapsed = g_timer_elapsed (self->time_since_manual_rotate, NULL);
   if (elapsed > MANUAL_ROTATE_RECOVER_TIME)
@@ -186,6 +241,27 @@ key_pressed_cb (GtkEventControllerKey *controller,
     {
       gtk_widget_activate (GTK_WIDGET (self->next_button));
       return GDK_EVENT_STOP;
+    }
+
+  switch (keyval)
+    {
+    case GDK_KEY_Return:
+    case GDK_KEY_KP_Enter:
+    case GDK_KEY_ISO_Enter:
+    case GDK_KEY_space:
+    case GDK_KEY_KP_Space:
+      {
+        GtkWidget *tile = NULL;
+
+        tile = bge_carousel_get_nth_page (self->carousel, gtk_single_selection_get_selected (self->selection));
+
+        if (tile != NULL)
+          g_signal_emit_by_name (tile, "clicked");
+
+        return GDK_EVENT_STOP;
+      }
+    default:
+      break;
     }
 
   return GDK_EVENT_PROPAGATE;
@@ -311,6 +387,9 @@ bz_featured_carousel_class_init (BzFeaturedCarouselClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_notify_selected);
   gtk_widget_class_bind_template_callback (widget_class, next_button_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, previous_button_clicked_cb);
+  gtk_widget_class_bind_template_callback (widget_class, carousel_focus_cb);
+  gtk_widget_class_bind_template_callback (widget_class, on_focus_enter_cb);
+  gtk_widget_class_bind_template_callback (widget_class, on_focus_leave_cb);
   gtk_widget_class_bind_template_callback (widget_class, key_pressed_cb);
 }
 
