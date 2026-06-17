@@ -250,6 +250,7 @@ create_release_row (const char *version,
 
       fallback_label = GTK_LABEL (gtk_label_new (_ ("No details for this release")));
       gtk_widget_set_margin_top (GTK_WIDGET (fallback_label), 5);
+      gtk_label_set_selectable (fallback_label, TRUE);
       gtk_widget_add_css_class (GTK_WIDGET (fallback_label), "dim-label");
       gtk_label_set_xalign (fallback_label, 0.0);
       gtk_label_set_wrap (fallback_label, TRUE);
