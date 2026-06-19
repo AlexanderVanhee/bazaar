@@ -19,8 +19,11 @@
  */
 
 #include "bz-row-view.h"
-#include "bz-curated-view.h"
-#include "bz-dynamic-list-view.h"
+#include "bz-curated-row.h"
+#include "bz-curated-featured-carousel.h"
+#include "bz-curated-section.h"
+#include "bz-entry-group.h"
+#include "bz-featured-carousel-view.h"
 #include "bz-section-view.h"
 
 struct _BzRowView
@@ -28,8 +31,6 @@ struct _BzRowView
   AdwBin parent_instance;
 
   BzCuratedRow *row;
-
-  /* Template widgets */
 };
 
 G_DEFINE_FINAL_TYPE (BzRowView, bz_row_view, ADW_TYPE_BIN)
@@ -43,6 +44,11 @@ enum
   LAST_PROP
 };
 static GParamSpec *props[LAST_PROP] = { 0 };
+
+static void
+group_activated_cb (BzRowView    *self,
+                    BzEntryGroup *group,
+                    GtkWidget    *child_view);
 
 static void
 bz_row_view_dispose (GObject *object)
@@ -90,54 +96,10 @@ bz_row_view_set_property (GObject      *object,
     }
 }
 
-static gboolean
-invert_boolean (gpointer object,
-                gboolean value)
-{
-  return !value;
-}
-
-static gboolean
-is_null (gpointer object,
-         GObject *value)
-{
-  return value == NULL;
-}
-
-static void
-group_activated_cb (GtkListItem  *list_item,
-                    BzEntryGroup *group,
-                    BzRowView    *view)
-{
-  gtk_widget_activate_action (GTK_WIDGET (view), "window.show-group", "s",
-                              bz_entry_group_get_id (group));
-}
-
-static void
-bind_section_view_cb (GtkListItem       *list_item,
-                      BzSectionView     *section_view,
-                      BzCuratedSection  *section,
-                      BzDynamicListView *view)
-{
-  g_signal_connect_swapped (section_view, "group-activated",
-                            G_CALLBACK (group_activated_cb),
-                            list_item);
-}
-
-static void
-unbind_section_view_cb (GtkListItem       *list_item,
-                        BzSectionView     *section_view,
-                        BzCuratedSection  *section,
-                        BzDynamicListView *view)
-{
-  g_signal_handlers_disconnect_by_func (section_view, group_activated_cb, list_item);
-}
-
 static void
 bz_row_view_class_init (BzRowViewClass *klass)
 {
-  GObjectClass   *object_class = G_OBJECT_CLASS (klass);
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose      = bz_row_view_dispose;
   object_class->get_property = bz_row_view_get_property;
@@ -152,20 +114,13 @@ bz_row_view_class_init (BzRowViewClass *klass)
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
-  g_type_ensure (BZ_TYPE_DYNAMIC_LIST_VIEW);
   g_type_ensure (BZ_TYPE_SECTION_VIEW);
-
-  gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-row-view.ui");
-  gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
-  gtk_widget_class_bind_template_callback (widget_class, is_null);
-  gtk_widget_class_bind_template_callback (widget_class, bind_section_view_cb);
-  gtk_widget_class_bind_template_callback (widget_class, unbind_section_view_cb);
+  g_type_ensure (BZ_TYPE_FEATURED_CAROUSEL_VIEW);
 }
 
 static void
 bz_row_view_init (BzRowView *self)
 {
-  gtk_widget_init_template (GTK_WIDGET (self));
 }
 
 GtkWidget *
@@ -181,12 +136,47 @@ void
 bz_row_view_set_row (BzRowView    *self,
                      BzCuratedRow *row)
 {
+  BzCuratedSection          *section  = NULL;
+  BzCuratedFeaturedCarousel *carousel = NULL;
+  GtkWidget                 *child    = NULL;
+
   g_return_if_fail (BZ_IS_ROW_VIEW (self));
   g_return_if_fail (row == NULL || BZ_IS_CURATED_ROW (row));
 
   g_clear_object (&self->row);
+
+  adw_bin_set_child (ADW_BIN (self), NULL);
+
   if (row != NULL)
-    self->row = g_object_ref (row);
+    {
+      self->row = g_object_ref (row);
+
+      section  = bz_curated_row_get_section (row);
+      carousel = bz_curated_row_get_featured_carousel (row);
+
+      if (section != NULL)
+        {
+          GtkWidget *section_view = NULL;
+
+          section_view = bz_section_view_new (section);
+          g_signal_connect_swapped (section_view, "group-activated",
+                                    G_CALLBACK (group_activated_cb), self);
+          child = section_view;
+        }
+      else if (carousel != NULL)
+        {
+          GtkWidget *carousel_view = NULL;
+
+          carousel_view = bz_featured_carousel_view_new (carousel);
+          g_signal_connect_swapped (carousel_view, "group-activated",
+                                    G_CALLBACK (group_activated_cb), self);
+          child = carousel_view;
+        }
+      /* else: row has no recognized child set; nothing to build */
+    }
+
+  if (child != NULL)
+    adw_bin_set_child (ADW_BIN (self), child);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ROW]);
 }
@@ -196,4 +186,13 @@ bz_row_view_get_row (BzRowView *self)
 {
   g_return_val_if_fail (BZ_IS_ROW_VIEW (self), NULL);
   return self->row;
+}
+
+static void
+group_activated_cb (BzRowView    *self,
+                    BzEntryGroup *group,
+                    GtkWidget    *child_view)
+{
+  gtk_widget_activate_action (GTK_WIDGET (self), "window.show-group", "s",
+                              bz_entry_group_get_id (group));
 }

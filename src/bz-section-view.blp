@@ -3,11 +3,7 @@ using Gio 2.0;
 using Adw 1;
 
 template $BzSectionView: Adw.Bin {
-  margin-start: 30;
-  margin-end: 30;
-  margin-top: 3;
-  margin-bottom: 3;
-
+  margin-top: 16;
   child: Box {
     hexpand: true;
     vexpand: true;
@@ -48,6 +44,7 @@ template $BzSectionView: Adw.Bin {
       orientation: vertical;
       spacing: 10;
       margin-top: 10;
+      margin-bottom: 16;
 
       $BzDynamicListView {
         hexpand: true;
@@ -69,13 +66,9 @@ template $BzSectionView: Adw.Bin {
 
         margin-start: 25;
         margin-end: 25;
-        margin-bottom: 20;
         margin-top: 12;
         halign: center;
-        visible: bind template
-          .section as <$BzCuratedSection>
-          .appids as <$BzCuratedAppidsInfo>
-          .enable-bulk-install as <bool>;
+        visible: bind template.section as <$BzCuratedSection>.appids as <$BzCuratedAppidsInfo>.enable-bulk-install as <bool>;
         label: _("Install All");
         clicked => $install_all_clicked(template);
       }

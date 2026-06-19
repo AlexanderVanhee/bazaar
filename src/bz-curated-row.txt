@@ -5,5 +5,7 @@ parent-name=object
 author=AUTOGEN
 
 include="bz-curated-section.h"
+include="bz-curated-featured-carousel.h"
 
-property=sections GListModel G_TYPE_LIST_MODEL object
+property=section BzCuratedSection BZ_TYPE_CURATED_SECTION object
+property=featured_carousel BzCuratedFeaturedCarousel BZ_TYPE_CURATED_FEATURED_CAROUSEL object
