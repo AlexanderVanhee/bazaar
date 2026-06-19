@@ -17,6 +17,7 @@
         "--socket=fallback-x11",
         "--socket=wayland",
         "--device=dri",
+        "--filesystem=home",
         "--filesystem=/var/lib/flatpak",
         "--filesystem=xdg-data/flatpak",
         "--talk-name=org.freedesktop.Flatpak",
@@ -49,13 +50,13 @@
                 "append-path": "/usr/lib/sdk/llvm20/bin",
                 "prepend-ld-library-path": "/usr/lib/sdk/llvm20/lib"
             },
-            "config-opts": [
-                "-Ddevelopment=true",
-                "-Dsandboxed_libflatpak=true",
-                "-Dhardcoded_main_config_path=/run/host/etc/bazaar/bazaar.yaml",
-                "-Dhardcoded_content_config_path=/run/host/etc/bazaar/config.yaml",
-                "-Dhardcoded_blocklist_path=/run/host/etc/bazaar/blocklist.txt"
-            ],
+"config-opts": [
+    "-Ddevelopment=true",
+    "-Dsandboxed_libflatpak=true",
+    "-Dhardcoded_main_config_path=/var/home/xander/config.yaml",
+    "-Dhardcoded_content_config_path=",
+    "-Dhardcoded_blocklist_path=/run/host/etc/bazaar/blocklist.txt"
+],
             "sources": [
                 {
                     "type": "dir",

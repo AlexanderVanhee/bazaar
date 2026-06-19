@@ -8,22 +8,46 @@ template $BzSectionView: Adw.Bin {
   margin-top: 3;
   margin-bottom: 3;
 
-  hexpand: bind template.section as <$BzCuratedSection>.expand_horizontally;
-  vexpand: bind template.section as <$BzCuratedSection>.expand_vertically;
-
   child: Box {
     hexpand: true;
     vexpand: true;
     halign: fill;
     valign: fill;
+    orientation: vertical;
+    spacing: 6;
+
+    Label {
+      visible: bind $invert_boolean($is_null_string(template.section as <$BzCuratedSection>.title as <string>) as <bool>) as <bool>;
+      label: bind template.section as <$BzCuratedSection>.title as <string>;
+      halign: start;
+      margin-bottom: 4;
+      xalign: 0;
+
+      styles [
+        "title-1",
+      ]
+    }
+
+    Box {
+      hexpand: true;
+      vexpand: true;
+      visible: bind $invert_boolean($is_null(template.section as <$BzCuratedSection>.subtitle) as <bool>) as <bool>;
+
+      $BgeMarkdownRender subtitle {
+        hexpand: true;
+        vexpand: true;
+        markdown: bind template.section as <$BzCuratedSection>.subtitle as <$BzCuratedMarkdownInfo>.string as <string>;
+        bind-inline-uri => $markdown_bind_inline_uri(template);
+      }
+    }
 
     Box {
       hexpand: true;
       vexpand: true;
       visible: bind $invert_boolean($is_null(template.section as <$BzCuratedSection>.appids) as <bool>) as <bool>;
-
       orientation: vertical;
       spacing: 10;
+      margin-top: 10;
 
       $BzDynamicListView {
         hexpand: true;
@@ -31,7 +55,9 @@ template $BzSectionView: Adw.Bin {
         noscroll-kind: flow-box;
         child-type: "BzCuratedAppTile";
         child-prop: "group";
-        model: bind $convert_to_groups(template.section as <$BzCuratedSection>.appids as <$BzCuratedAppidsInfo>.list) as <Gio.ListModel>;
+        model: bind $convert_to_groups(
+          template.section as <$BzCuratedSection>.appids as <$BzCuratedAppidsInfo>.list
+          ) as <Gio.ListModel>;
         bind-widget => $bind_widget_cb(template);
         unbind-widget => $unbind_widget_cb(template);
       }
@@ -40,39 +66,18 @@ template $BzSectionView: Adw.Bin {
         styles [
           "pill",
         ]
+
         margin-start: 25;
         margin-end: 25;
         margin-bottom: 20;
+        margin-top: 12;
         halign: center;
-        visible: bind template.section as <$BzCuratedSection>.appids as <$BzCuratedAppidsInfo>.enable-bulk-install as <bool>;
+        visible: bind template
+          .section as <$BzCuratedSection>
+          .appids as <$BzCuratedAppidsInfo>
+          .enable-bulk-install as <bool>;
         label: _("Install All");
         clicked => $install_all_clicked(template);
-      }
-    }
-
-    Box {
-      hexpand: true;
-      vexpand: true;
-      visible: bind $invert_boolean($is_null(template.section as <$BzCuratedSection>.markdown) as <bool>) as <bool>;
-
-      $BgeMarkdownRender markdown {
-        hexpand: true;
-        vexpand: true;
-        markdown: bind template.section as <$BzCuratedSection>.markdown as <$BzCuratedMarkdownInfo>.string as <string>;
-        bind-inline-uri => $markdown_bind_inline_uri(template);
-      }
-    }
-
-    Box {
-      visible: bind $invert_boolean($is_null(template.section as <$BzCuratedSection>.image) as <bool>) as <bool>;
-      width-request: bind $clamp_image_dimension(template.section as <$BzCuratedSection>.image as <$BzCuratedImageInfo>.width) as <int>;
-      height-request: bind $clamp_image_dimension(template.section as <$BzCuratedSection>.image as <$BzCuratedImageInfo>.height) as <int>;
-
-      Picture {
-        css-name: "image";
-        paintable: bind $get_image(template.section as <$BzCuratedSection>.image) as <$GdkPaintable>;
-        can-shrink: bind template.section as <$BzCuratedSection>.image as <$BzCuratedImageInfo>.can-shrink;
-        content-fit: bind template.section as <$BzCuratedSection>.image as <$BzCuratedImageInfo>.fit;
       }
     }
   };

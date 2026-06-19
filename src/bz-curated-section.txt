@@ -9,15 +9,7 @@ include=<gtk/gtk.h>
 include="bz-entry-group.h"
 include="bz-curated-appids-info.h"
 include="bz-curated-markdown-info.h"
-include="bz-curated-image-info.h"
 
-property=expand_horizontally gboolean G_TYPE_BOOLEAN boolean
-property=expand_vertically gboolean G_TYPE_BOOLEAN boolean
-
-property=classes GListModel G_TYPE_LIST_MODEL object
-property=light_classes GListModel G_TYPE_LIST_MODEL object
-property=dark_classes GListModel G_TYPE_LIST_MODEL object
-
+property=title char G_TYPE_STRING string
+property=subtitle BzCuratedMarkdownInfo BZ_TYPE_CURATED_MARKDOWN_INFO object
 property=appids BzCuratedAppidsInfo BZ_TYPE_CURATED_APPIDS_INFO object
-property=markdown BzCuratedMarkdownInfo BZ_TYPE_CURATED_MARKDOWN_INFO object
-property=image BzCuratedImageInfo BZ_TYPE_CURATED_IMAGE_INFO object
