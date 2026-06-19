@@ -2,6 +2,7 @@ using Gtk 4.0;
 
 template $BzRichAppTile: $BzListTile {
   overflow: hidden;
+  activated => $tile_clicked_cb();
 
   accessibility {
     described-by: description;

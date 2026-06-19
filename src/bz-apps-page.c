@@ -64,11 +64,6 @@ enum
 };
 static GParamSpec *props[LAST_PROP] = { 0 };
 
-
-static void
-tile_clicked (BzEntryGroup *group,
-              GtkButton    *button);
-
 static void
 bz_apps_page_dispose (GObject *object)
 {
@@ -153,24 +148,6 @@ bz_apps_page_set_property (GObject      *object,
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
-}
-
-static void
-bind_widget_cb (BzAppsPage        *self,
-                BzAppTile         *tile,
-                BzEntryGroup      *group,
-                BzDynamicListView *view)
-{
-  g_signal_connect_swapped (tile, "clicked", G_CALLBACK (tile_clicked), group);
-}
-
-static void
-unbind_widget_cb (BzAppsPage        *self,
-                  BzAppTile         *tile,
-                  BzEntryGroup      *group,
-                  BzDynamicListView *view)
-{
-  g_signal_handlers_disconnect_by_func (tile, G_CALLBACK (tile_clicked), group);
 }
 
 static gboolean
@@ -306,8 +283,6 @@ bz_apps_page_class_init (BzAppsPageClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, is_not_empty_string);
   gtk_widget_class_bind_template_callback (widget_class, is_not_empty_list);
   gtk_widget_class_bind_template_callback (widget_class, is_scrolled_down);
-  gtk_widget_class_bind_template_callback (widget_class, bind_widget_cb);
-  gtk_widget_class_bind_template_callback (widget_class, unbind_widget_cb);
   gtk_widget_class_bind_template_callback (widget_class, featured_carousel_group_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, show_all_cb);
 }
@@ -511,12 +486,4 @@ bz_apps_page_set_subtitle (BzAppsPage *self,
     self->subtitle = g_strdup (subtitle);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_PAGE_SUBTITLE]);
-}
-
-static void
-tile_clicked (BzEntryGroup *group,
-              GtkButton    *button)
-{
-  gtk_widget_activate_action (GTK_WIDGET (button), "window.show-group", "s",
-                              bz_entry_group_get_id (group));
 }

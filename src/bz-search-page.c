@@ -310,17 +310,6 @@ unbind_category_tile_cb (BzSearchPage      *self,
 }
 
 static void
-tile_activated_cb (GtkListItem   *list_item,
-                   BzRichAppTile *tile)
-{
-  BzSearchResult *result = gtk_list_item_get_item (list_item);
-  BzEntryGroup   *group  = bz_search_result_get_group (result);
-
-  gtk_widget_activate_action (GTK_WIDGET (tile), "window.show-group", "s",
-                              bz_entry_group_get_id (group));
-}
-
-static void
 reset_search_cb (BzSearchPage *self,
                  GtkButton    *button)
 {
@@ -443,7 +432,6 @@ bz_search_page_class_init (BzSearchPageClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, reset_search_cb);
   gtk_widget_class_bind_template_callback (widget_class, pill_list_cb);
   gtk_widget_class_bind_template_callback (widget_class, no_results_found_subtitle);
-  gtk_widget_class_bind_template_callback (widget_class, tile_activated_cb);
   gtk_widget_class_bind_template_callback (widget_class, copy_id_cb);
   gtk_widget_class_bind_template_callback (widget_class, debug_id_inspect_cb);
 }
