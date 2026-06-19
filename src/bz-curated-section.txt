@@ -13,3 +13,4 @@ include="bz-curated-markdown-info.h"
 property=title char G_TYPE_STRING string
 property=subtitle BzCuratedMarkdownInfo BZ_TYPE_CURATED_MARKDOWN_INFO object
 property=appids BzCuratedAppidsInfo BZ_TYPE_CURATED_APPIDS_INFO object
+property=list_type char G_TYPE_STRING string

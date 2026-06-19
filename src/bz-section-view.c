@@ -130,6 +130,15 @@ is_null_string (gpointer    object,
   return value == NULL;
 }
 
+static char *
+get_child_type (gpointer    object,
+                const char *list_type)
+{
+  if (list_type != NULL && g_strcmp0 (list_type, "rich") == 0)
+    return g_strdup ("BzRichAppTile");
+  return g_strdup ("BzCuratedAppTile");
+}
+
 static GListModel *
 convert_to_groups (gpointer    object,
                    GListModel *value)
@@ -273,6 +282,7 @@ bz_section_view_class_init (BzSectionViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
   gtk_widget_class_bind_template_callback (widget_class, is_null);
   gtk_widget_class_bind_template_callback (widget_class, is_null_string);
+  gtk_widget_class_bind_template_callback (widget_class, get_child_type);
   gtk_widget_class_bind_template_callback (widget_class, convert_to_groups);
   gtk_widget_class_bind_template_callback (widget_class, bind_widget_cb);
   gtk_widget_class_bind_template_callback (widget_class, unbind_widget_cb);

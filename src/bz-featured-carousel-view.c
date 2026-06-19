@@ -159,6 +159,7 @@ bz_featured_carousel_view_set_carousel (BzFeaturedCarouselView    *self,
           carousel_w = bz_featured_carousel_new ();
           bz_featured_carousel_set_model (carousel_w, groups);
           gtk_widget_set_margin_top (GTK_WIDGET (carousel_w), 20);
+          gtk_widget_set_margin_bottom (GTK_WIDGET (carousel_w), 12);
 
           adw_bin_set_child (ADW_BIN (self), GTK_WIDGET (carousel_w));
         }

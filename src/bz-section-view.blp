@@ -49,8 +49,9 @@ template $BzSectionView: Adw.Bin {
       $BzDynamicListView {
         hexpand: true;
         scroll: false;
+        column-spacing: 10;
         noscroll-kind: flow-box;
-        child-type: "BzCuratedAppTile";
+        child-type: bind try{$get_child_type(template.section as <$BzCuratedSection>.list-type) as <string>,"BzCuratedAppTile"};
         child-prop: "group";
         model: bind $convert_to_groups(
           template.section as <$BzCuratedSection>.appids as <$BzCuratedAppidsInfo>.list
