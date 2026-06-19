@@ -689,6 +689,10 @@ initialize_fiber (GWeakRef *wr)
   g_autoptr (DexFuture) passing_f    = NULL;
   g_autoptr (DexFuture) adwaita_f    = NULL;
   g_autoptr (DexFuture) toolkit_f    = NULL;
+  g_autoptr (DexFuture) emulators_f  = NULL;
+  g_autoptr (DexFuture) launchers_f  = NULL;
+  g_autoptr (DexFuture) game_tools_f = NULL;
+  g_autoptr (DexFuture) game_only_f  = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
 
@@ -731,6 +735,10 @@ initialize_fiber (GWeakRef *wr)
   ADD_REQUEST (popular_f, "/collection/popular?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
   ADD_REQUEST (trending_f, "/collection/trending?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
   ADD_REQUEST (mobile_f, "/collection/mobile?page=0&per_page=%d", CATEGORY_FETCH_SIZE);
+  ADD_REQUEST (game_only_f, "/collection/category/game?exclude_subcategories=emulator&exclude_subcategories=packageManager&exclude_subcategories=utility&exclude_subcategories=network&exclude_subcategories=gameTool&exclude_subcategories=launcherStore&sort_by=trending&page=0&per_page=%d", CATEGORY_FETCH_SIZE);
+  ADD_REQUEST (emulators_f, "/collection/category/game/subcategories?subcategory=emulator&sort_by=trending&page=0&per_page=%d", CATEGORY_FETCH_SIZE);
+  ADD_REQUEST (launchers_f, "/collection/category/game/subcategories?subcategory=packageManager&subcategory=launcherStore&sort_by=trending&page=0&per_page=%d", CATEGORY_FETCH_SIZE);
+  ADD_REQUEST (game_tools_f, "/collection/category/game/subcategories?subcategory=utility&subcategory=network&subcategory=gameTool&sort_by=trending&page=0&per_page=%d", CATEGORY_FETCH_SIZE);
 
 #undef ADD_REQUEST
 
@@ -784,6 +792,10 @@ initialize_fiber (GWeakRef *wr)
   add_category (self, "recently-added", GET_BOXED (added_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
   add_category (self, "recently-updated", GET_BOXED (updated_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
   add_category (self, "mobile", GET_BOXED (mobile_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
+  add_category (self, "game-only", GET_BOXED (game_only_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
+  add_category (self, "emulators", GET_BOXED (emulators_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
+  add_category (self, "launchers", GET_BOXED (launchers_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
+  add_category (self, "game-tools", GET_BOXED (game_tools_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
 
   {
     static const char *categories[] = {

@@ -61,6 +61,7 @@ struct _BzSearchPage
   GtkGridView           *grid_view;
   GtkWidget             *filter_button;
   BzSearchFilterPopover *filter_popover;
+  GtkCustomFilter       *categories_filter;
 };
 
 G_DEFINE_FINAL_TYPE (BzSearchPage, bz_search_page, ADW_TYPE_BIN)
@@ -428,6 +429,7 @@ bz_search_page_class_init (BzSearchPageClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzSearchPage, grid_view);
   gtk_widget_class_bind_template_child (widget_class, BzSearchPage, filter_button);
   gtk_widget_class_bind_template_child (widget_class, BzSearchPage, filter_popover);
+  gtk_widget_class_bind_template_child (widget_class, BzSearchPage, categories_filter);
   gtk_widget_class_bind_template_callback (widget_class, bind_category_tile_cb);
   gtk_widget_class_bind_template_callback (widget_class, unbind_category_tile_cb);
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
@@ -473,6 +475,11 @@ bz_search_page_init (BzSearchPage *self)
                             G_CALLBACK (update_filter), self);
   g_signal_connect_swapped (self->filter_popover, "notify::only-mobile",
                             G_CALLBACK (update_filter), self);
+
+  gtk_custom_filter_set_filter_func (
+    self->categories_filter,
+    (GtkCustomFilterFunc) bz_flathub_category_get_show_in_list,
+    NULL, NULL);
 }
 
 GtkWidget *
@@ -647,10 +654,8 @@ static void
 search_activate (GtkText      *text,
                  BzSearchPage *self)
 {
-  GtkSelectionModel *model          = NULL;
-  guint              n_items        = 0;
-  g_autoptr (BzSearchResult) result = NULL;
-  BzEntryGroup *group               = NULL;
+  GtkSelectionModel *model   = NULL;
+  guint              n_items = 0;
 
   model   = gtk_grid_view_get_model (self->grid_view);
   n_items = g_list_model_get_n_items (G_LIST_MODEL (model));
@@ -660,19 +665,20 @@ search_activate (GtkText      *text,
 
   if (n_items > 0)
     {
-      result = g_list_model_get_item (G_LIST_MODEL (model), 0);
-      group  = bz_search_result_get_group (result);
+      GtkWidget *cell = NULL;
+      GtkWidget *box  = NULL;
+      GtkWidget *tile = NULL;
 
-      if (bz_entry_group_get_removable_and_available (group) > 0)
-        {
-          gtk_widget_activate_action (GTK_WIDGET (self), "window.remove-group", "(sb)",
-                                      bz_entry_group_get_id (group), FALSE);
-        }
-      else if (bz_entry_group_get_installable_and_available (group) > 0)
-        {
-          gtk_widget_activate_action (GTK_WIDGET (self), "window.install-group", "(sb)",
-                                      bz_entry_group_get_id (group), FALSE);
-        }
+      gtk_widget_activate_action (GTK_WIDGET (self->grid_view), "list.scroll-to-item", "u", 0);
+
+      cell = gtk_widget_get_first_child (GTK_WIDGET (self->grid_view));
+      if (cell != NULL)
+        box = gtk_widget_get_first_child (cell);
+      if (box != NULL)
+        tile = gtk_widget_get_first_child (box);
+
+      if (BZ_IS_RICH_APP_TILE (tile))
+        bz_rich_app_tile_focus_action_button (BZ_RICH_APP_TILE (tile));
     }
 }
 

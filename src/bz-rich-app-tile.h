@@ -42,5 +42,8 @@ void
 bz_rich_app_tile_set_group (BzRichAppTile *self,
                             BzEntryGroup  *group);
 
+void
+bz_rich_app_tile_focus_action_button (BzRichAppTile *self);
+
 G_END_DECLS
 /* End of bz-rich-app-tile.h */

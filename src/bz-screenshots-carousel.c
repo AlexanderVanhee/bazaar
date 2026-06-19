@@ -52,6 +52,7 @@ struct _BzScreenshotsCarousel
   GtkSingleSelection *selection;
 
   GListModel     *model;
+  GListModel     *captions;
   gboolean        compact;
   char           *light_accent_color;
   char           *dark_accent_color;
@@ -66,6 +67,7 @@ enum
 {
   PROP_0,
   PROP_MODEL,
+  PROP_CAPTIONS,
   PROP_COMPACT,
   PROP_LIGHT_ACCENT_COLOR,
   PROP_DARK_ACCENT_COLOR,
@@ -267,10 +269,11 @@ on_create_widget (BzScreenshotsCarousel *self,
                   BzAsyncTexture        *item,
                   BgeCarousel           *carousel)
 {
-  GtkWidget       *screenshot = NULL;
-  g_autofree char *caption    = NULL;
-  guint            n_items    = 0;
-  guint            index      = 0;
+  GtkWidget       *screenshot   = NULL;
+  g_autofree char *caption      = NULL;
+  const char      *shot_caption = NULL;
+  guint            n_items      = 0;
+  guint            index        = 0;
 
   screenshot = g_object_new (BZ_TYPE_DECORATED_SCREENSHOT,
                              "async-texture", item,
@@ -279,12 +282,26 @@ on_create_widget (BzScreenshotsCarousel *self,
   n_items = g_list_model_get_n_items (self->model);
   for (index = 0; index < n_items; index++)
     {
-      g_autoptr (BzAsyncTexture) it = g_list_model_get_item (self->model, index);
+      g_autoptr (BzAsyncTexture) it = NULL;
+
+      it = g_list_model_get_item (self->model, index);
       if (it == item)
         break;
     }
 
-  caption = g_strdup_printf (_ ("Screenshot %u of %u"), index + 1, n_items);
+  if (self->captions != NULL && index < g_list_model_get_n_items (self->captions))
+    {
+      g_autoptr (GtkStringObject) caption_obj = NULL;
+      caption_obj =  g_list_model_get_item (self->captions, index);
+      if (caption_obj != NULL)
+        shot_caption = gtk_string_object_get_string (caption_obj);
+    }
+
+  if (shot_caption != NULL && *shot_caption != '\0')
+    caption = g_strdup_printf (_ ("Screenshot %u %s"), index + 1, shot_caption);
+  else
+    caption = g_strdup_printf (_ ("Screenshot %u"), index + 1);
+
   gtk_accessible_update_property (GTK_ACCESSIBLE (screenshot),
                                   GTK_ACCESSIBLE_PROPERTY_LABEL, caption,
                                   -1);
@@ -336,6 +353,7 @@ bz_screenshots_carousel_dispose (GObject *object)
     }
 
   g_clear_object (&self->model);
+  g_clear_object (&self->captions);
 
   clear_css (self);
 
@@ -364,6 +382,9 @@ bz_screenshots_carousel_get_property (GObject    *object,
     case PROP_MODEL:
       g_value_set_object (value, self->model);
       break;
+    case PROP_CAPTIONS:
+      g_value_set_object (value, self->captions);
+      break;
     case PROP_COMPACT:
       g_value_set_boolean (value, self->compact);
       break;
@@ -391,6 +412,9 @@ bz_screenshots_carousel_set_property (GObject      *object,
     case PROP_MODEL:
       bz_screenshots_carousel_set_model (self, g_value_get_object (value));
       break;
+    case PROP_CAPTIONS:
+      bz_screenshots_carousel_set_captions (self, g_value_get_object (value));
+      break;
     case PROP_COMPACT:
       bz_screenshots_carousel_set_compact (self, g_value_get_boolean (value));
       break;
@@ -417,6 +441,13 @@ bz_screenshots_carousel_class_init (BzScreenshotsCarouselClass *klass)
 
   properties[PROP_MODEL] =
       g_param_spec_object ("model",
+                           NULL,
+                           NULL,
+                           G_TYPE_LIST_MODEL,
+                           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_CAPTIONS] =
+      g_param_spec_object ("captions",
                            NULL,
                            NULL,
                            G_TYPE_LIST_MODEL,
@@ -527,6 +558,16 @@ bz_screenshots_carousel_get_model (BzScreenshotsCarousel *self)
 {
   g_return_val_if_fail (BZ_IS_SCREENSHOTS_CAROUSEL (self), NULL);
   return self->model;
+}
+
+void
+bz_screenshots_carousel_set_captions (BzScreenshotsCarousel *self, GListModel *captions)
+{
+  g_clear_object (&self->captions);
+  if (captions)
+    self->captions = g_object_ref (captions);
+
+  g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_CAPTIONS]);
 }
 
 void

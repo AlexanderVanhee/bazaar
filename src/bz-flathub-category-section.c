@@ -36,6 +36,7 @@ struct _BzFlathubCategorySection
 
   BzFlathubCategory *category;
   gboolean           compact;
+  gboolean           has_title;
   guint              min_items;
   GtkSliceListModel *slice_model;
 };
@@ -47,6 +48,7 @@ enum
   PROP_0,
   PROP_CATEGORY,
   PROP_COMPACT,
+  PROP_HAS_TITLE,
   PROP_MIN_ITEMS,
   LAST_PROP
 };
@@ -166,6 +168,9 @@ bz_flathub_category_section_get_property (GObject    *object,
     case PROP_COMPACT:
       g_value_set_boolean (value, bz_flathub_category_section_get_compact (self));
       break;
+    case PROP_HAS_TITLE:
+      g_value_set_boolean (value, self->has_title);
+      break;
     case PROP_MIN_ITEMS:
       g_value_set_uint (value, bz_flathub_category_section_get_min_items (self));
       break;
@@ -189,6 +194,10 @@ bz_flathub_category_section_set_property (GObject      *object,
       break;
     case PROP_COMPACT:
       bz_flathub_category_section_set_compact (self, g_value_get_boolean (value));
+      break;
+    case PROP_HAS_TITLE:
+      self->has_title = g_value_get_boolean (value);
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_HAS_TITLE]);
       break;
     case PROP_MIN_ITEMS:
       bz_flathub_category_section_set_min_items (self, g_value_get_uint (value));
@@ -235,6 +244,12 @@ bz_flathub_category_section_class_init (BzFlathubCategorySectionClass *klass)
           NULL, NULL, FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_HAS_TITLE] =
+      g_param_spec_boolean (
+          "has-title",
+          NULL, NULL, TRUE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
   props[PROP_MIN_ITEMS] =
       g_param_spec_uint (
           "min-items",
@@ -262,6 +277,7 @@ static void
 bz_flathub_category_section_init (BzFlathubCategorySection *self)
 {
   self->compact   = FALSE;
+  self->has_title = TRUE;
   self->min_items = 0;
 
   gtk_widget_init_template (GTK_WIDGET (self));

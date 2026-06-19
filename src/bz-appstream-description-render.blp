@@ -6,6 +6,7 @@ template $BzAppstreamDescriptionRender: Adw.Bin {
     orientation: vertical;
 
     TextView text_view {
+      notify::has-focus => $text_focus_cb();
       editable: false;
       cursor-visible: false;
       wrap-mode: word_char;

@@ -4,9 +4,10 @@ template $BzFeaturedCarousel: Box {
   orientation: vertical;
   spacing: 12;
 
-  styles [
-    "featured-carousel",
-  ]
+  EventControllerFocus {
+    enter => $on_focus_enter_cb(template);
+    leave => $on_focus_leave_cb(template);
+  }
 
   Overlay {
     [overlay]
@@ -56,7 +57,11 @@ template $BzFeaturedCarousel: Box {
     }
 
     child: $BgeCarousel carousel {
-      styles ["card"]
+      styles [
+        "card",
+        "featured-carousel"
+      ]
+      notify::has-focus => $carousel_focus_cb();
 
       allow-mouse-drag: true;
       allow-overshoot: false;
@@ -65,6 +70,7 @@ template $BzFeaturedCarousel: Box {
 
       create-widget => $on_create_widget(template);
       remove-widget => $on_remove_widget(template);
+      focusable: true;
 
       model: SingleSelection selection {
         autoselect: true;

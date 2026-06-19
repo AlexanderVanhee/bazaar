@@ -10,7 +10,7 @@ template $BzFlathubCategorySection : Box {
     styles [
       "title-1",
     ]
-    visible: bind $invert_boolean(template.category as <$BzFlathubCategory>.is-spotlight) as <bool>;
+    visible: bind template.has-title as <bool>;
     xalign: 0.0;
     hexpand: true;
     margin-start: 3;

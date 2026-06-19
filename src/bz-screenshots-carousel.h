@@ -39,6 +39,10 @@ GListModel *
 bz_screenshots_carousel_get_model (BzScreenshotsCarousel *self);
 
 void
+bz_screenshots_carousel_set_captions (BzScreenshotsCarousel *self,
+                                      GListModel            *captions);
+
+void
 bz_screenshots_carousel_set_compact (BzScreenshotsCarousel *self,
                                      gboolean               compact);
 gboolean
