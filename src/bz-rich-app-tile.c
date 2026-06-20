@@ -216,6 +216,17 @@ bz_rich_app_tile_set_property (GObject      *object,
     }
 }
 
+static void
+tile_clicked_cb (GtkButton     *button,
+                 BzRichAppTile *self)
+{
+  if (self->group == NULL)
+    return;
+
+  gtk_widget_activate_action (GTK_WIDGET (self), "window.show-group", "s",
+                              bz_entry_group_get_id (self->group));
+}
+
 static gboolean
 invert_boolean (gpointer object,
                 gboolean value)
@@ -342,6 +353,7 @@ bz_rich_app_tile_class_init (BzRichAppTileClass *klass)
   g_type_ensure (BZ_TYPE_THEMED_ENTRY_GROUP_RECT);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-rich-app-tile.ui");
+  gtk_widget_class_bind_template_callback (widget_class, tile_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
   gtk_widget_class_bind_template_callback (widget_class, is_null);
   gtk_widget_class_bind_template_callback (widget_class, is_zero);

@@ -285,6 +285,14 @@ bz_app_tile_set_group (BzAppTile    *self,
   if (group != NULL)
     self->group = g_object_ref (group);
 
+  if (group != NULL)
+    {
+      gtk_actionable_set_action_name (GTK_ACTIONABLE (self), "window.show-group");
+      gtk_actionable_set_action_target (GTK_ACTIONABLE (self), "s", bz_entry_group_get_id (group));
+    }
+  else
+      gtk_actionable_set_action_name (GTK_ACTIONABLE (self), NULL);
+
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_GROUP]);
 }
 

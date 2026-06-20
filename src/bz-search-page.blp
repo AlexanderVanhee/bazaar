@@ -285,7 +285,6 @@ template $BzSearchPage: Adw.Bin {
                         $BzRichAppTile {
                           group: bind template.item as <$BzSearchResult>.group as <$BzEntryGroup>;
                           focusable: false;
-                          activated => $tile_activated_cb(template);
                         }
 
                         Box {
