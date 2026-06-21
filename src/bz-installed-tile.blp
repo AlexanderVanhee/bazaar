@@ -75,6 +75,10 @@ template $BzInstalledTile: $BzListTile {
       visible: bind $invert_boolean($is_null(template.group as <$BzEntryGroup>.donation-url) as <bool>) as <bool>;
 
       clicked => $support_cb() swapped;
+
+      accessibility {
+        label: _("Donate Button");
+      }
     }
 
     Box {

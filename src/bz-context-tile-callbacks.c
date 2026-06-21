@@ -278,7 +278,8 @@ get_license_label (gpointer object,
   g_object_get (entry, "is-floss", &is_floss, "project-license", &license, NULL);
 
   if (is_floss)
-    return g_strdup (_ ("Free"));
+    /* TRANSLATORS: You can omit the "software" part if your translation makes it obvious we're talking about "libre" and not "gratis"*/
+    return g_strdup (_ ("Free Software"));
 
   if (license == NULL || *license == '\0')
     return g_strdup (_ ("Unknown"));

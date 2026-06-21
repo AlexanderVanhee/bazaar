@@ -135,6 +135,7 @@ template $BzAddonsDialog: Adw.Dialog {
                       max-width-chars: 25;
                       wrap: true;
                       wrap-mode: word_char;
+                      selectable: true;
 
                       styles ["title-3"]
                     }
@@ -142,6 +143,7 @@ template $BzAddonsDialog: Adw.Dialog {
                     Label {
                       label: bind $format_parent_title(template.parent-ui-entry as <$BzResult>.object as <$BzEntry>.title) as <string>;
                       justify: center;
+                      selectable: true;
 
                       styles ["dim-label"]
                     }
@@ -253,6 +255,7 @@ template $BzAddonsDialog: Adw.Dialog {
                 Label {
                   visible: bind $logical_and($invert_boolean($is_null(template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.description) as <bool>) as <bool>, $is_null(template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.long-description) as <bool>) as <bool>;
                   label: bind template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.description;
+                  selectable: true;
                   wrap: true;
                   wrap-mode: word_char;
                   justify: center;
@@ -275,6 +278,7 @@ template $BzAddonsDialog: Adw.Dialog {
                 Label {
                   visible: bind $logical_and($invert_boolean($is_null(template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.description) as <bool>) as <bool>, $invert_boolean($is_null(template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.long-description) as <bool>) as <bool>) as <bool>;
                   label: bind template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.description;
+                  selectable: true;
                   wrap: true;
                   wrap-mode: word_char;
                   xalign: 0;
