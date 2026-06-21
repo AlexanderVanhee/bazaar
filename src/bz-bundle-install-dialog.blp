@@ -95,6 +95,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
                       Label {
                         label: bind template.entry as <$BzEntry>.title;
+                        selectable: true;
                         wrap: true;
                         wrap-mode: word_char;
                         halign: bind $get_header_halign(template.runtime-repo) as <Gtk.Align>;
@@ -107,6 +108,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
                       Label {
                         label: bind template.entry as <$BzEntry>.developer;
+                        selectable: true;
                         wrap: true;
                         wrap-mode: word_char;
                         halign: bind $get_header_halign(template.runtime-repo) as <Gtk.Align>;
@@ -120,6 +122,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
                       Label {
                         label: bind $get_version(template.entry as <$BzEntry>.version-history);
+                        selectable: true;
                         visible: bind $not(
                           $is_empty_string($get_version(template.entry as <$BzEntry>.version-history) as <string>) as <bool>
                         ) as <bool>;
@@ -230,6 +233,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
                       );
                       wrap: true;
                       wrap-mode: word_char;
+                      selectable: true;
                       halign: start;
                       margin-bottom: 6;
 
@@ -341,6 +345,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
                 Label {
                   label: bind template.entry as <$BzEntry>.title;
+                  selectable: true;
                   wrap: true;
                   wrap-mode: word_char;
                   halign: center;
@@ -393,6 +398,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
                   Label {
                     label: bind template.entry as <$BzEntry>.title;
+                    selectable: true;
                     wrap: true;
                     wrap-mode: word_char;
                     halign: center;
@@ -404,6 +410,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
                   Label {
                     label: _("Successfully Installed!");
+                    selectable: true;
                     halign: center;
                     margin-bottom: 16;
                     margin-top: 8;
@@ -477,6 +484,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
               Label {
                 label: bind template.entry as <$BzEntry>.title;
+                selectable: true;
                 wrap: true;
                 wrap-mode: word_char;
                 halign: center;
@@ -488,6 +496,7 @@ template $BzBundleInstallDialog: Adw.Dialog {
 
               Label {
                 label: _("Already Installed");
+                selectable: true;
 
                 styles [
                   "dim-label",
