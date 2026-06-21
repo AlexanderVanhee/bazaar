@@ -313,9 +313,20 @@ text_focus_cb (GtkTextView                  *text_view,
   gtk_text_buffer_get_bounds (buffer, &start, &end);
 
   if (gtk_widget_has_focus (GTK_WIDGET (text_view)))
+    {
+      g_autofree char *full_text = NULL;
+
+      full_text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+
+      if (full_text != NULL && *full_text != '\0')
+        gtk_accessible_update_property (GTK_ACCESSIBLE (text_view),
+                                        GTK_ACCESSIBLE_PROPERTY_LABEL, full_text,
+                                        -1);
+
       gtk_text_buffer_select_range (buffer, &start, &end);
+    }
   else
-      gtk_text_buffer_place_cursor (buffer, &start);
+    gtk_text_buffer_place_cursor (buffer, &start);
 }
 
 BzAppstreamDescriptionRender *
