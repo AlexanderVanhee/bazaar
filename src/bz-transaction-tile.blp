@@ -319,6 +319,7 @@ template $BzTransactionTile: $BzListTile {
 
           ToggleButton toggle {
             sensitive: bind $invert_boolean($is_empty(template.tracker as <$BzTransactionEntryTracker>.finished-ops) as <bool>) as <bool>;
+            tooltip-text: _("Show Details");
 
             child: Image {
               pixel-size: 14;

@@ -196,8 +196,8 @@ pick_license_warning (gpointer object,
                       gboolean value)
 {
   return value
-             ? g_strdup (_ ("This application has a FLOSS license, meaning the source code can be audited for safety."))
-             : g_strdup (_ ("This application has a proprietary license, meaning the source code is developed privately and cannot be audited by an independent third party."));
+             ? g_strdup (_ ("This app has a FLOSS license, meaning the source code can be audited for safety."))
+             : g_strdup (_ ("This app has a proprietary license, meaning the source code is developed privately and cannot be audited by an independent third party."));
 }
 
 static char *

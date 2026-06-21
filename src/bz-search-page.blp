@@ -229,7 +229,10 @@ template $BzSearchPage: Adw.Bin {
                     noscroll-kind: flow-box;
                     child-type: "BzCategoryTile";
                     child-prop: "category";
-                    model: bind template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories;
+                    model: FilterListModel visible_categories {
+                      filter: CustomFilter categories_filter {};
+                      model: bind template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories;
+                    };
                     bind-widget => $bind_category_tile_cb(template);
                     unbind-widget => $unbind_category_tile_cb(template);
                   }
@@ -282,7 +285,6 @@ template $BzSearchPage: Adw.Bin {
                         $BzRichAppTile {
                           group: bind template.item as <$BzSearchResult>.group as <$BzEntryGroup>;
                           focusable: false;
-                          activated => $tile_activated_cb(template);
                         }
 
                         Box {

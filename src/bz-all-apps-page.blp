@@ -35,7 +35,6 @@ template $BzAllAppsPage: Adw.NavigationPage {
               template ListItem {
                 child: $BzAppTile {
                   group: bind template.item as <$BzEntryGroup>;
-                  clicked => $tile_clicked_cb(template);
                 };
               }
             };

@@ -32,7 +32,7 @@ template $BzFlathubPage: Adw.Bin {
           child: Adw.StatusPage {
             icon-name: "connected-squares-x";
             title: _("Can't Reach Flathub");
-            description: _("You can still manage and search for applications.");
+            description: _("You can still manage and search for apps.");
 
             child: Box offline_buttons {
               halign: center;
@@ -143,6 +143,7 @@ template $BzFlathubPage: Adw.Bin {
                       child: $BzFlathubCategorySection section_trending {
                         category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "trending") as <$BzFlathubCategory>;
                         min-items: 12;
+                        has-title: false;
                       };
                     }
 
@@ -153,6 +154,7 @@ template $BzFlathubPage: Adw.Bin {
                       child: $BzFlathubCategorySection section_recently_updated {
                         category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "recently-updated") as <$BzFlathubCategory>;
                         min-items: 12;
+                        has-title: false;
                       };
                     }
 
@@ -163,6 +165,7 @@ template $BzFlathubPage: Adw.Bin {
                       child: $BzFlathubCategorySection section_recently_added {
                         category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "recently-added") as <$BzFlathubCategory>;
                         min-items: 12;
+                        has-title: false;
                       };
                     }
 
@@ -173,6 +176,7 @@ template $BzFlathubPage: Adw.Bin {
                       child: $BzFlathubCategorySection section_popular {
                         category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "popular") as <$BzFlathubCategory>;
                         min-items: 12;
+                        has-title: false;
                       };
                     }
                   }
@@ -336,8 +340,10 @@ template $BzFlathubPage: Adw.Bin {
 
                   Box {
                     visible: bind $invert_boolean($is_null($get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game") as <$BzFlathubCategory>) as <bool>) as <bool>;
+                    orientation: vertical;
                     margin-top: 8;
                     margin-bottom: 20;
+                    spacing: 10;
 
                     styles [
                       "sp-section",
@@ -393,38 +399,116 @@ template $BzFlathubPage: Adw.Bin {
                         }
                       }
 
-                      $BzDynamicListView game_list {
-                        styles [
-                          "flathub-page-section",
-                        ]
+                      Box game_section_toggles_box {
+                        halign: center;
+                        width-request: 800;
+                        margin-bottom: 20;
+                        margin-top: 8;
 
-                        hexpand: true;
-                        scroll: false;
-                        noscroll-kind: flow-box;
-                        child-type: "BzAppTile";
-                        child-prop: "group";
-                        max-children-per-line: 4;
+                        Adw.ToggleGroup game_section_toggles {
+                          hexpand: true;
+                          halign: fill;
+                          homogeneous: true;
 
-                        model: SliceListModel game_slice {
-                          offset: 0;
-                          size: 12;
-                          model: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game") as <$BzFlathubCategory>.applications;
-                        };
+                          styles [
+                            "round",
+                            "huge"
+                          ]
 
-                        bind-widget => $bind_widget_cb(template);
-                        unbind-widget => $unbind_widget_cb(template);
+                          Adw.Toggle {
+                            label: _("Games");
+                            name: "game";
+                            enabled: bind $invert_boolean($is_null($get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game") as <$BzFlathubCategory>) as <bool>) as <bool>;
+                          }
+
+                          Adw.Toggle {
+                            label: _("Emulators");
+                            name: "emulators";
+                            enabled: bind $invert_boolean($is_null($get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "emulators") as <$BzFlathubCategory>) as <bool>) as <bool>;
+                          }
+
+                          Adw.Toggle {
+                            label: _("Launchers");
+                            name: "launchers";
+                            enabled: bind $invert_boolean($is_null($get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "launchers") as <$BzFlathubCategory>) as <bool>) as <bool>;
+                          }
+
+                          Adw.Toggle {
+                            label: _("Tools");
+                            name: "game-tools";
+                            enabled: bind $invert_boolean($is_null($get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game-tools") as <$BzFlathubCategory>) as <bool>) as <bool>;
+                          }
+                        }
                       }
 
-                      Button {
-                        styles [
-                          "pill",
-                        ]
-                        label: _("More Games");
-                        halign: center;
-                        valign: center;
-                        margin-top: 12;
-                        margin-bottom: 12;
-                        clicked => $show_more_gaming_cb(template);
+                      Adw.ViewStack game_sections_stack {
+                        enable-transitions: true;
+                        transition-duration: 300;
+                        visible-child-name: bind game_section_toggles.active-name bidirectional;
+
+                        Adw.ViewStackPage {
+                          name: "game";
+                          child: Box {
+                            orientation: vertical;
+                            $BzDynamicListView game_list {
+                              styles [
+                                "flathub-page-section",
+                              ]
+
+                              hexpand: true;
+                              scroll: false;
+                              noscroll-kind: flow-box;
+                              child-type: "BzAppTile";
+                              child-prop: "group";
+                              max-children-per-line: 4;
+
+                              model: SliceListModel game_slice {
+                                offset: 0;
+                                size: 12;
+                                model: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game-only") as <$BzFlathubCategory>.applications;
+                              };
+
+                              bind-widget => $bind_widget_cb(template);
+                              unbind-widget => $unbind_widget_cb(template);
+                            }
+
+                            Button {
+                              styles [
+                                "pill",
+                              ]
+                              label: _("More Games");
+                              halign: center;
+                              valign: center;
+                              margin-top: 12;
+                              margin-bottom: 12;
+                              clicked => $show_more_gaming_cb(template);
+                            }
+                          };
+                        }
+
+                        Adw.ViewStackPage {
+                          name: "emulators";
+                          child: $BzFlathubCategorySection emulators_section {
+                            has-title: false;
+                            category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "emulators") as <$BzFlathubCategory>;
+                          };
+                        }
+
+                        Adw.ViewStackPage {
+                          name: "launchers";
+                          child: $BzFlathubCategorySection launchers_section {
+                            has-title: false;
+                            category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "launchers") as <$BzFlathubCategory>;
+                          };
+                        }
+
+                        Adw.ViewStackPage {
+                          name: "game-tools";
+                          child: $BzFlathubCategorySection game_tools_section {
+                            has-title: false;
+                            category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game-tools") as <$BzFlathubCategory>;
+                          };
+                        }
                       }
                     }
                   }
@@ -474,6 +558,7 @@ template $BzFlathubPage: Adw.Bin {
           gaming_padding_box.margin-end: 6;
           gaming_padding_box.margin-bottom: 6;
           section_toggles.homogeneous: false;
+          game_section_toggles.homogeneous: false;
           section_trending.compact: true;
           section_popular.compact: true;
           section_recently_added.compact: true;
@@ -487,8 +572,12 @@ template $BzFlathubPage: Adw.Bin {
           section_science.compact: true;
           section_system.compact: true;
           section_utility.compact: true;
-          otg_slice.size: 6;
+          emulators_section.compact: true;
+          launchers_section.compact: true;
+          game_tools_section.compact: true;
+          game_list.max-children-per-line: 2;
           game_slice.size: 6;
+          otg_slice.size: 6;
         }
       }
     };
@@ -498,6 +587,7 @@ template $BzFlathubPage: Adw.Bin {
 
       setters {
         section_toggles_box.width-request: -1;
+        game_section_toggles_box.width-request: -1;
         otg_padding_box.orientation: vertical;
         otg_padding_box.spacing: 6;
         otg_title_box.halign: center;

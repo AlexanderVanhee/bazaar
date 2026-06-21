@@ -56,6 +56,7 @@ enum
   PROP_DISPLAY_NAME,
   PROP_SHORT_NAME,
   PROP_IS_XDG,
+  PROP_SHOW_IN_LIST,
   PROP_SYMBOLIC_ICON_NAME,
   PROP_ICON_NAME,
   PROP_APPLICATIONS,
@@ -78,6 +79,7 @@ typedef struct
   const char *short_name;
   const char *more_of_name;
   gboolean    is_xdg;
+  gboolean    show_in_list;
   const char *icon_name;
   const char *symbolic_icon_name;
   const void *subcategories;
@@ -129,24 +131,28 @@ static const Subcategory network_subcategories[] = {
 };
 
 static const CategoryInfo category_info[] = {
-  {       "audiovideo",          N_ ("Audio & Video"),    N_ ("Media"),          N_ ("More Audio & Video"),  TRUE, "io.github.kolumni.Bazaar.Audiovideo", "applications-multimedia-symbolic", audiovideo_subcategories },
-  {      "development",        N_ ("Developer Tools"),  N_ ("Develop"),        N_ ("More Developer Tools"),  TRUE,    "io.github.kolumni.Bazaar.Develop",                    "code-symbolic",                     NULL },
-  {        "education",              N_ ("Education"),    N_ ("Learn"),              N_ ("More Education"),  TRUE,      "io.github.kolumni.Bazaar.Learn",               "open-book-symbolic",                     NULL },
-  {             "game",                 N_ ("Gaming"),     N_ ("Play"),                 N_ ("More Gaming"),  TRUE,       "io.github.kolumni.Bazaar.Play",      "applications-games-symbolic",       game_subcategories },
-  {         "graphics", N_ ("Graphics & Photography"),   N_ ("Create"), N_ ("More Graphics & Photography"),  TRUE,     "io.github.kolumni.Bazaar.Create",              "paintbrush-symbolic",                     NULL },
-  {          "network",             N_ ("Networking"), N_ ("Internet"),             N_ ("More Networking"),  TRUE,    "io.github.kolumni.Bazaar.Network",                   "globe-symbolic",    network_subcategories },
-  {           "office",           N_ ("Productivity"),     N_ ("Work"),           N_ ("More Productivity"),  TRUE,       "io.github.kolumni.Bazaar.Work",                 "meeting-symbolic",                     NULL },
-  {          "science",                N_ ("Science"),  N_ ("Science"),                N_ ("More Science"),  TRUE,    "io.github.kolumni.Bazaar.Science",    "applications-science-symbolic",                     NULL },
-  {           "system",                 N_ ("System"),   N_ ("System"),                 N_ ("More System"),  TRUE,     "io.github.kolumni.Bazaar.System",     "applications-system-symbolic",                     NULL },
-  {          "utility",              N_ ("Utilities"),    N_ ("Tools"),              N_ ("More Utilities"),  TRUE,  "io.github.kolumni.Bazaar.Utilities",  "applications-utilities-symbolic",                     NULL },
-  {         "trending",               N_ ("Trending"), N_ ("Trending"),               N_ ("More Trending"), FALSE,   "io.github.kolumni.Bazaar.Trending",                                 "",                     NULL },
-  {          "popular",                N_ ("Popular"),  N_ ("Popular"),                N_ ("More Popular"), FALSE,    "io.github.kolumni.Bazaar.Popular",                                 "",                     NULL },
-  {   "recently-added",         N_ ("Recently Added"),      N_ ("New"),                    N_ ("More New"), FALSE,        "io.github.kolumni.Bazaar.New",                                 "",                     NULL },
-  { "recently-updated",       N_ ("Recently Updated"),  N_ ("Updated"),                N_ ("More Updated"), FALSE,    "io.github.kolumni.Bazaar.Updated",                                 "",                     NULL },
-  {           "mobile",                 N_ ("Mobile"),   N_ ("Mobile"),                 N_ ("More Mobile"), FALSE,     "io.github.kolumni.Bazaar.Mobile",                                 "",                     NULL },
-  {          "adwaita",                N_ ("Adwaita"),  N_ ("Adwaita"),                N_ ("More Adwaita"), FALSE,    "io.github.kolumni.Bazaar.Adwaita",                                 "",                     NULL },
-  {              "kde",               N_ ("KDE Apps"), N_ ("KDE Apps"),               N_ ("More KDE Apps"), FALSE,        "io.github.kolumni.Bazaar.Kde",                                 "",                     NULL },
-  {               NULL,                          NULL,            NULL,                               NULL, FALSE,                                  NULL,                               NULL,                     NULL }
+  {       "audiovideo",          N_ ("Audio & Video"),      N_ ("Media"),          N_ ("More Audio & Video"),  TRUE,  TRUE, "io.github.kolumni.Bazaar.Audiovideo",             "video-reel2-symbolic", audiovideo_subcategories },
+  {      "development",        N_ ("Developer Tools"),    N_ ("Develop"),        N_ ("More Developer Tools"),  TRUE,  TRUE,    "io.github.kolumni.Bazaar.Develop",                    "code-symbolic",                     NULL },
+  {        "education",              N_ ("Education"),      N_ ("Learn"),              N_ ("More Education"),  TRUE,  TRUE,      "io.github.kolumni.Bazaar.Learn",               "open-book-symbolic",                     NULL },
+  {             "game",                 N_ ("Gaming"),       N_ ("Play"),                 N_ ("More Gaming"),  TRUE,  TRUE,       "io.github.kolumni.Bazaar.Play",                 "gamepad-symbolic",       game_subcategories },
+  {         "graphics", N_ ("Graphics & Photography"),     N_ ("Create"), N_ ("More Graphics & Photography"),  TRUE,  TRUE,     "io.github.kolumni.Bazaar.Create",              "paintbrush-symbolic",                     NULL },
+  {          "network",             N_ ("Networking"),   N_ ("Internet"),             N_ ("More Networking"),  TRUE,  TRUE,    "io.github.kolumni.Bazaar.Network",                   "globe-symbolic",    network_subcategories },
+  {           "office",           N_ ("Productivity"),       N_ ("Work"),           N_ ("More Productivity"),  TRUE,  TRUE,       "io.github.kolumni.Bazaar.Work",                 "meeting-symbolic",                     NULL },
+  {          "science",                N_ ("Science"),    N_ ("Science"),                N_ ("More Science"),  TRUE,  TRUE,    "io.github.kolumni.Bazaar.Science",    "applications-science-symbolic",                     NULL },
+  {           "system",                 N_ ("System"),     N_ ("System"),                 N_ ("More System"),  TRUE,  TRUE,     "io.github.kolumni.Bazaar.System",     "applications-system-symbolic",                     NULL },
+  {          "utility",              N_ ("Utilities"),      N_ ("Tools"),              N_ ("More Utilities"),  TRUE,  TRUE,  "io.github.kolumni.Bazaar.Utilities",  "applications-utilities-symbolic",                     NULL },
+  {         "trending",               N_ ("Trending"),   N_ ("Trending"),               N_ ("More Trending"), FALSE,  TRUE,   "io.github.kolumni.Bazaar.Trending",                                 "",                     NULL },
+  {          "popular",                N_ ("Popular"),    N_ ("Popular"),                N_ ("More Popular"), FALSE,  TRUE,    "io.github.kolumni.Bazaar.Popular",                                 "",                     NULL },
+  {   "recently-added",         N_ ("Recently Added"),        N_ ("New"),                    N_ ("More New"), FALSE,  TRUE,        "io.github.kolumni.Bazaar.New",                                 "",                     NULL },
+  { "recently-updated",       N_ ("Recently Updated"),    N_ ("Updated"),                N_ ("More Updated"), FALSE,  TRUE,    "io.github.kolumni.Bazaar.Updated",                                 "",                     NULL },
+  {           "mobile",                 N_ ("Mobile"),     N_ ("Mobile"),                 N_ ("More Mobile"), FALSE,  TRUE,     "io.github.kolumni.Bazaar.Mobile",                                 "",                     NULL },
+  {          "adwaita",                N_ ("Adwaita"),    N_ ("Adwaita"),                N_ ("More Adwaita"), FALSE,  TRUE,    "io.github.kolumni.Bazaar.Adwaita",                                 "",                     NULL },
+  {              "kde",               N_ ("KDE Apps"),   N_ ("KDE Apps"),               N_ ("More KDE Apps"), FALSE,  TRUE,        "io.github.kolumni.Bazaar.Kde",                                 "",                     NULL },
+  {        "game-only",                  N_ ("Games"),      N_ ("Games"),                  N_ ("More Games"), FALSE, FALSE,                                    "",                                 "",                     NULL },
+  {        "emulators",              N_ ("Emulators"),  N_ ("Emulators"),              N_ ("More Emulators"), FALSE, FALSE,                                    "",                                 "",                     NULL },
+  {        "launchers",              N_ ("Launchers"),  N_ ("Launchers"),         N_ ("More Game Launchers"), FALSE, FALSE,                                    "",                                 "",                     NULL },
+  {       "game-tools",             N_ ("Game Tools"), N_ ("Game Tools"),             N_ ("More Game Tools"), FALSE, FALSE,                                    "",                                 "",                     NULL },
+  {               NULL,                          NULL,              NULL,                               NULL, FALSE, FALSE,                                  NULL,                               NULL,                     NULL }
 };
 
 static const CategoryInfo *
@@ -215,6 +221,9 @@ bz_flathub_category_get_property (GObject    *object,
       break;
     case PROP_IS_XDG:
       g_value_set_boolean (value, bz_flathub_category_get_is_xdg (self));
+      break;
+    case PROP_SHOW_IN_LIST:
+      g_value_set_boolean (value, bz_flathub_category_get_show_in_list (self));
       break;
     case PROP_SYMBOLIC_ICON_NAME:
       g_value_set_string (value, bz_flathub_category_get_symbolic_icon_name (self));
@@ -306,6 +315,13 @@ bz_flathub_category_class_init (BzFlathubCategoryClass *klass)
   props[PROP_IS_XDG] =
       g_param_spec_boolean (
           "is-xdg",
+          NULL, NULL,
+          FALSE,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+  props[PROP_SHOW_IN_LIST] =
+      g_param_spec_boolean (
+          "show-in-list",
           NULL, NULL,
           FALSE,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
@@ -696,6 +712,17 @@ bz_flathub_category_get_is_xdg (BzFlathubCategory *self)
 
   info = get_category_info (self->name);
   return info ? info->is_xdg : FALSE;
+}
+
+gboolean
+bz_flathub_category_get_show_in_list (BzFlathubCategory *self)
+{
+  const CategoryInfo *info;
+
+  g_return_val_if_fail (BZ_IS_FLATHUB_CATEGORY (self), FALSE);
+
+  info = get_category_info (self->name);
+  return info ? info->show_in_list : FALSE;
 }
 
 const char *

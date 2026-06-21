@@ -49,10 +49,6 @@ enum
 static GParamSpec *props[LAST_PROP] = { 0 };
 
 static void
-tile_clicked_cb (GtkListItem *list_item,
-                 BzAppTile   *tile);
-
-static void
 bz_all_apps_page_dispose (GObject *object)
 {
   BzAllAppsPage *self = BZ_ALL_APPS_PAGE (object);
@@ -136,7 +132,6 @@ bz_all_apps_page_class_init (BzAllAppsPageClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-all-apps-page.ui");
   gtk_widget_class_bind_template_child (widget_class, BzAllAppsPage, grid_view);
-  gtk_widget_class_bind_template_callback (widget_class, tile_clicked_cb);
 }
 
 static void
@@ -167,16 +162,3 @@ bz_all_apps_page_new (const char *title,
   return ADW_NAVIGATION_PAGE (apps_page);
 }
 
-static void
-tile_clicked_cb (GtkListItem *list_item,
-                 BzAppTile   *tile)
-{
-  BzEntryGroup *group = NULL;
-
-  group = gtk_list_item_get_item (list_item);
-  if (group == NULL)
-    return;
-
-  gtk_widget_activate_action (GTK_WIDGET (tile), "window.show-group", "s",
-                              bz_entry_group_get_id (group));
-}

@@ -481,6 +481,10 @@ button.context-tile {
 	margin-bottom: -28px;
 }
 
+.featured-carousel {
+ outline-offset: 2px;
+}
+
 .screenshot-carousel.frame {
 	border-width: 1px 0;
 }
