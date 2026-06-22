@@ -612,8 +612,10 @@ void
 bz_install_controls_set_entry_group (BzInstallControls *self,
                                      BzEntryGroup      *group)
 {
-  g_return_if_fail (BZ_IS_INSTALL_CONTROLS (self));
+  const char *title     = NULL;
+  const char *developer = NULL;
 
+  g_return_if_fail (BZ_IS_INSTALL_CONTROLS (self));
   if (self->group == group)
     return;
 
@@ -622,6 +624,25 @@ bz_install_controls_set_entry_group (BzInstallControls *self,
     self->group = g_object_ref (group);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ENTRY_GROUP]);
+
+  title     = bz_entry_group_get_title (group);
+  developer = bz_entry_group_get_developer (group);
+
+  if (self->install_button != NULL)
+    {
+      g_autofree char *label = NULL;
+
+      if (title != NULL && developer != NULL)
+        label = g_strdup_printf (_("Install %s from %s"), title, developer);
+      else if (title != NULL)
+        label = g_strdup_printf (_("Install %s"), title);
+
+      gtk_accessible_update_property (
+          GTK_ACCESSIBLE (self->install_button),
+          GTK_ACCESSIBLE_PROPERTY_LABEL,
+          label != NULL ? label : _("Install"),
+          -1);
+    }
 
   if (group != NULL)
     g_idle_add_full (
