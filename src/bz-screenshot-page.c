@@ -25,7 +25,7 @@
 
 struct _BzScreenshotPage
 {
-  AdwNavigationPage parent_instance;
+  AdwBin parent_instance;
 
   AdwCarousel     *carousel;
   AdwToastOverlay *toast_overlay;
@@ -36,9 +36,16 @@ struct _BzScreenshotPage
   guint       initial_index;
 
   gboolean is_zoomed;
+
+  GtkWidget         *source_widget;
+  GdkTexture        *source_texture;
+  graphene_rect_t    source_bounds_at_map;
+  AdwTimedAnimation *animation;
+  double             animation_progress;
+  gboolean           closing;
 };
 
-G_DEFINE_FINAL_TYPE (BzScreenshotPage, bz_screenshot_page, ADW_TYPE_NAVIGATION_PAGE)
+G_DEFINE_FINAL_TYPE (BzScreenshotPage, bz_screenshot_page, ADW_TYPE_BIN)
 
 static void on_zoom_level_changed (BzZoom           *zoom,
                                    GParamSpec       *pspec,
@@ -57,6 +64,209 @@ enum
 };
 static GParamSpec *props[LAST_PROP] = { 0 };
 
+static GdkTexture *
+render_widget_to_texture (GtkWidget *widget)
+{
+  GtkWidgetPaintable *paintable = NULL;
+  GtkSnapshot        *snapshot  = NULL;
+  GskRenderNode      *node      = NULL;
+  GtkNative          *native    = NULL;
+  GdkTexture         *texture   = NULL;
+
+  paintable = GTK_WIDGET_PAINTABLE (gtk_widget_paintable_new (widget));
+  snapshot  = gtk_snapshot_new ();
+
+  gdk_paintable_snapshot (
+      GDK_PAINTABLE (paintable),
+      snapshot,
+      gdk_paintable_get_intrinsic_width (GDK_PAINTABLE (paintable)),
+      gdk_paintable_get_intrinsic_height (GDK_PAINTABLE (paintable)));
+
+  node   = gtk_snapshot_to_node (snapshot);
+  native = gtk_widget_get_native (widget);
+
+  if (node != NULL && native != NULL)
+    texture = gsk_renderer_render_texture (
+        gtk_native_get_renderer (native), node, NULL);
+
+  g_object_unref (paintable);
+  g_object_unref (snapshot);
+  if (node != NULL)
+    gsk_render_node_unref (node);
+
+  return texture;
+}
+
+static void
+on_animation_value (AdwTimedAnimation *animation,
+                    GParamSpec        *pspec,
+                    BzScreenshotPage  *self)
+{
+  self->animation_progress = adw_animation_get_value (ADW_ANIMATION (animation));
+  gtk_widget_queue_draw (GTK_WIDGET (self));
+}
+
+static void
+on_close_animation_done (AdwAnimation     *animation,
+                         BzScreenshotPage *self)
+{
+  GtkWidget *parent = NULL;
+
+  if (self->source_widget != NULL)
+    gtk_widget_set_opacity (self->source_widget, 1.0);
+
+  parent = gtk_widget_get_parent (GTK_WIDGET (self));
+  if (parent != NULL)
+    gtk_overlay_remove_overlay (GTK_OVERLAY (parent), GTK_WIDGET (self));
+}
+
+static void
+back_clicked (BzScreenshotPage *self)
+{
+  AdwAnimationTarget *target      = NULL;
+  GtkWidget          *parent      = NULL;
+  gboolean            can_animate;
+
+  can_animate = self->source_widget != NULL;
+
+  if (can_animate)
+    {
+      self->closing = TRUE;
+
+      if (self->animation != NULL)
+        {
+          g_signal_handlers_disconnect_by_func (self->animation, on_animation_value, self);
+          g_clear_object (&self->animation);
+        }
+
+      target = adw_callback_animation_target_new (
+          (AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
+
+      self->animation = ADW_TIMED_ANIMATION (
+          adw_timed_animation_new (GTK_WIDGET (self), 1.0, 0.0, 250, target));
+
+      adw_timed_animation_set_easing (self->animation, ADW_EASE_IN_QUART);
+
+      g_signal_connect (self->animation, "notify::value",
+                        G_CALLBACK (on_animation_value), self);
+      g_signal_connect (self->animation, "done",
+                        G_CALLBACK (on_close_animation_done), self);
+
+      adw_animation_play (ADW_ANIMATION (self->animation));
+    }
+  else
+    {
+      if (self->source_widget != NULL)
+        gtk_widget_set_opacity (self->source_widget, 1.0);
+
+      parent = gtk_widget_get_parent (GTK_WIDGET (self));
+      if (parent != NULL)
+        gtk_overlay_remove_overlay (GTK_OVERLAY (parent), GTK_WIDGET (self));
+    }
+}
+
+static void
+bz_screenshot_page_map (GtkWidget *widget)
+{
+  BzScreenshotPage   *self   = BZ_SCREENSHOT_PAGE (widget);
+  AdwAnimationTarget *target = NULL;
+
+  GTK_WIDGET_CLASS (bz_screenshot_page_parent_class)->map (widget);
+
+  if (self->source_widget != NULL)
+    {
+      self->source_texture = render_widget_to_texture (self->source_widget);
+
+      if (!gtk_widget_compute_bounds (self->source_widget, widget, &self->source_bounds_at_map))
+        graphene_rect_init (&self->source_bounds_at_map, 0, 0,
+                            gtk_widget_get_width (widget),
+                            gtk_widget_get_height (widget));
+
+      gtk_widget_set_opacity (self->source_widget, 0.0);
+    }
+
+  self->animation_progress = 0.0;
+  self->closing            = FALSE;
+
+  target = adw_callback_animation_target_new (
+      (AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
+
+  self->animation = ADW_TIMED_ANIMATION (
+      adw_timed_animation_new (widget, 0.0, 1.0, 300, target));
+
+  adw_timed_animation_set_easing (self->animation, ADW_EASE_OUT_QUART);
+
+  g_signal_connect (self->animation, "notify::value",
+                    G_CALLBACK (on_animation_value), self);
+
+  adw_animation_play (ADW_ANIMATION (self->animation));
+}
+
+static void
+bz_screenshot_page_unmap (GtkWidget *widget)
+{
+  BzScreenshotPage *self = BZ_SCREENSHOT_PAGE (widget);
+
+  if (self->source_widget != NULL && !self->closing)
+    gtk_widget_set_opacity (self->source_widget, 1.0);
+
+  GTK_WIDGET_CLASS (bz_screenshot_page_parent_class)->unmap (widget);
+}
+
+static void
+bz_screenshot_page_snapshot (GtkWidget *widget, GtkSnapshot *snapshot)
+{
+  BzScreenshotPage *self     = BZ_SCREENSHOT_PAGE (widget);
+  double            progress = self->animation_progress;
+  int               width    = gtk_widget_get_width (widget);
+  int               height   = gtk_widget_get_height (widget);
+  float             rev;
+  float             x, y, w, h;
+  graphene_rect_t   lerped;
+
+  if (self->source_texture == NULL || progress >= 1.0)
+    {
+      GTK_WIDGET_CLASS (bz_screenshot_page_parent_class)->snapshot (widget, snapshot);
+      return;
+    }
+
+  rev = (float)(1.0 - progress);
+
+  x = self->source_bounds_at_map.origin.x    * rev + 0.0f          * (float) progress;
+  y = self->source_bounds_at_map.origin.y    * rev + 0.0f          * (float) progress;
+  w = self->source_bounds_at_map.size.width  * rev + (float) width  * (float) progress;
+  h = self->source_bounds_at_map.size.height * rev + (float) height * (float) progress;
+
+  graphene_rect_init (&lerped, x, y, w, h);
+
+  gtk_snapshot_push_clip (snapshot, &lerped);
+  gtk_snapshot_push_cross_fade (snapshot, progress);
+
+  gtk_snapshot_save (snapshot);
+  gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
+  gtk_snapshot_scale (snapshot,
+                      w / self->source_bounds_at_map.size.width,
+                      h / self->source_bounds_at_map.size.height);
+  gdk_paintable_snapshot (GDK_PAINTABLE (self->source_texture), snapshot,
+                          self->source_bounds_at_map.size.width,
+                          self->source_bounds_at_map.size.height);
+  gtk_snapshot_restore (snapshot);
+
+  gtk_snapshot_pop (snapshot);
+
+  gtk_snapshot_save (snapshot);
+  gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
+  gtk_snapshot_scale (snapshot,
+                      w / (float) width,
+                      h / (float) height);
+  GTK_WIDGET_CLASS (bz_screenshot_page_parent_class)->snapshot (widget, snapshot);
+  gtk_snapshot_restore (snapshot);
+
+  gtk_snapshot_pop (snapshot);
+
+  gtk_snapshot_pop (snapshot);
+}
+
 static void
 bz_screenshot_page_dispose (GObject *object)
 {
@@ -64,6 +274,8 @@ bz_screenshot_page_dispose (GObject *object)
 
   g_clear_object (&self->screenshots);
   g_clear_object (&self->captions);
+  g_clear_object (&self->source_texture);
+  g_clear_object (&self->animation);
 
   G_OBJECT_CLASS (bz_screenshot_page_parent_class)->dispose (object);
 }
@@ -344,9 +556,11 @@ on_carousel_position_changed (AdwCarousel      *carousel,
   GtkWidget *old_page = NULL;
   GtkWidget *new_page = NULL;
   BzZoom    *old_zoom = NULL;
+  guint      new_index;
+  guint      n_pages;
 
-  guint new_index = (guint) round (adw_carousel_get_position (carousel));
-  guint n_pages   = adw_carousel_get_n_pages (carousel);
+  new_index = (guint) round (adw_carousel_get_position (carousel));
+  n_pages   = adw_carousel_get_n_pages (carousel);
 
   if (new_index == self->current_index || new_index >= n_pages)
     return;
@@ -427,7 +641,6 @@ on_key_pressed (GtkEventControllerKey *controller,
       next_clicked (self);
       return TRUE;
     }
-
   return FALSE;
 }
 
@@ -466,6 +679,13 @@ bz_screenshot_page_class_init (BzScreenshotPageClass *klass)
   object_class->get_property = bz_screenshot_page_get_property;
   object_class->set_property = bz_screenshot_page_set_property;
 
+  widget_class->map      = bz_screenshot_page_map;
+  widget_class->unmap    = bz_screenshot_page_unmap;
+  widget_class->snapshot = bz_screenshot_page_snapshot;
+
+  gtk_widget_class_install_action (widget_class, "navigation.pop", NULL,
+                                   (GtkWidgetActionActivateFunc) back_clicked);
+
   props[PROP_SCREENSHOTS] =
       g_param_spec_object (
           "screenshots",
@@ -501,6 +721,7 @@ bz_screenshot_page_class_init (BzScreenshotPageClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-screenshot-page.ui");
   gtk_widget_class_bind_template_child (widget_class, BzScreenshotPage, carousel);
   gtk_widget_class_bind_template_child (widget_class, BzScreenshotPage, toast_overlay);
+  gtk_widget_class_bind_template_callback (widget_class, back_clicked);
   gtk_widget_class_bind_template_callback (widget_class, zoom_in_clicked);
   gtk_widget_class_bind_template_callback (widget_class, zoom_out_clicked);
   gtk_widget_class_bind_template_callback (widget_class, on_carousel_position_changed);
@@ -521,6 +742,7 @@ bz_screenshot_page_init (BzScreenshotPage *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   key_controller = gtk_event_controller_key_new ();
+  gtk_event_controller_set_propagation_phase (key_controller, GTK_PHASE_CAPTURE);
   g_signal_connect (key_controller, "key-pressed",
                     G_CALLBACK (on_key_pressed), self);
   gtk_widget_add_controller (GTK_WIDGET (self), key_controller);
@@ -561,10 +783,18 @@ bz_screenshot_page_set_captions (BzScreenshotPage *self,
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_CURRENT_CAPTION]);
 }
 
-AdwNavigationPage *
+void
+bz_screenshot_page_close (BzScreenshotPage *self)
+{
+  g_return_if_fail (BZ_IS_SCREENSHOT_PAGE (self));
+  back_clicked (self);
+}
+
+AdwBin *
 bz_screenshot_page_new (GListModel *screenshots,
                         GListModel *captions,
-                        guint       initial_index)
+                        guint       initial_index,
+                        GtkWidget  *source_widget)
 {
   BzScreenshotPage *page = g_object_new (
       BZ_TYPE_SCREENSHOT_PAGE,
@@ -572,8 +802,10 @@ bz_screenshot_page_new (GListModel *screenshots,
       "current-index", initial_index,
       NULL);
 
+  page->source_widget = source_widget;
+
   if (captions != NULL)
     bz_screenshot_page_set_captions (page, captions);
 
-  return ADW_NAVIGATION_PAGE (page);
+  return ADW_BIN (page);
 }

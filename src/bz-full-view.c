@@ -436,37 +436,6 @@ dl_stats_cb (BzFullView *self,
 }
 
 static void
-screenshot_clicked_cb (BzFullView            *self,
-                       guint                  index,
-                       BzScreenshotsCarousel *carousel)
-{
-  GListModel        *screenshots = NULL;
-  GListModel        *captions    = NULL;
-  AdwNavigationPage *page        = NULL;
-  GtkWidget         *nav_view    = NULL;
-  BzEntry           *entry       = NULL;
-
-  screenshots = bz_screenshots_carousel_get_model (carousel);
-  if (screenshots == NULL)
-    return;
-
-  if (self->ui_entry != NULL)
-    {
-      entry = bz_result_get_object (self->ui_entry);
-      if (entry != NULL)
-        g_object_get (entry, "screenshot-captions", &captions, NULL);
-    }
-
-  page = bz_screenshot_page_new (screenshots, captions, index);
-
-  g_clear_object (&captions);
-
-  nav_view = gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_NAVIGATION_VIEW);
-  if (nav_view != NULL)
-    adw_navigation_view_push (ADW_NAVIGATION_VIEW (nav_view), page);
-}
-
-static void
 size_cb (BzFullView *self,
          GtkButton  *button)
 {
@@ -801,7 +770,6 @@ bz_full_view_class_init (BzFullViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, open_url_cb);
   gtk_widget_class_bind_template_callback (widget_class, license_cb);
   gtk_widget_class_bind_template_callback (widget_class, dl_stats_cb);
-  gtk_widget_class_bind_template_callback (widget_class, screenshot_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, size_cb);
   gtk_widget_class_bind_template_callback (widget_class, formfactor_cb);
   gtk_widget_class_bind_template_callback (widget_class, safety_cb);
