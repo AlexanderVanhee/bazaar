@@ -5,6 +5,7 @@ rows:
         light-uri: https://www.mibatcontrol.com/wp-content/uploads/2026/04/Raccoon-Removal-Services-1.png # regular "uri" option is also available
         dark-uri: https://cdn.answeroverflow.com/1233140484017487952/image.png # you can also use file://
         fit: contain # contain, fill, cover or scale-down
+        alt: "Raccoon"
         can-shrink: true
         halign: center
       dark-color: "#2b1f3d"
