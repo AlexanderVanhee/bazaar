@@ -327,21 +327,6 @@ send (SoupMessage   *message,
 }
 
 static DexFuture *
-local_fetch_fiber (char *path)
-{
-  g_autoptr (GError) local_error = NULL;
-  g_autoptr (GFile) file         = NULL;
-  char  *contents                = NULL;
-  gsize  length                  = 0;
-
-  file = g_file_new_for_uri (path);
-  if (!g_file_load_contents (file, NULL, &contents, &length, NULL, &local_error))
-    return dex_future_new_for_error (g_steal_pointer (&local_error));
-
-  return dex_future_new_take_boxed (G_TYPE_BYTES, g_bytes_new_take (contents, length));
-}
-
-static DexFuture *
 fetch_uri_contents_then (DexFuture     *future,
                          GOutputStream *output)
 {
@@ -387,6 +372,7 @@ bz_fetch_uri_contents (const char *uri)
   else
     {
       g_autoptr (GFile) file = NULL;
+
       file = g_file_new_for_uri (uri);
       return dex_file_load_contents_bytes (file);
     }
