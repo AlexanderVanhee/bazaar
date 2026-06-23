@@ -386,13 +386,8 @@ bz_fetch_uri_contents (const char *uri)
     }
   else
     {
-      future = dex_scheduler_spawn (
-          dex_scheduler_get_default (),
-          bz_get_dex_stack_size (),
-          (DexFiberFunc) local_fetch_fiber,
-          g_strdup (uri),
-          g_free);
-
-      return g_steal_pointer (&future);
+      g_autoptr (GFile) file = NULL;
+      file = g_file_new_for_uri (uri);
+      return dex_file_load_contents_bytes (file);
     }
 }
