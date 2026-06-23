@@ -118,7 +118,8 @@ text (MD_TEXTTYPE    type,
 static const MD_PARSER parser = {
   .flags       = MD_FLAG_COLLAPSEWHITESPACE |
                  MD_FLAG_NOHTMLBLOCKS |
-                 MD_FLAG_NOHTMLSPANS,
+                 MD_FLAG_NOHTMLSPANS |
+                 MD_FLAG_STRIKETHROUGH,
   .enter_block = enter_block,
   .leave_block = leave_block,
   .enter_span  = enter_span,
