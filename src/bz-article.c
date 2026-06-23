@@ -349,13 +349,11 @@ screenshot_clicked (GtkButton *button,
 {
   BzArticle         *self     = user_data;
   guint              index    = 0;
-  GtkWidget         *root     = NULL;
   AdwNavigationPage *page     = NULL;
   GtkWidget         *nav_view = NULL;
 
   index = GPOINTER_TO_UINT (g_object_get_data (G_OBJECT (button), "bz-screenshot-index"));
 
-  root = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (button)));
   nav_view = gtk_widget_get_ancestor (GTK_WIDGET (button), ADW_TYPE_NAVIGATION_VIEW);
   if (nav_view == NULL)
     return;
