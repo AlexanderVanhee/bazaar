@@ -24,6 +24,7 @@
 #include <libdex.h>
 
 #include "bz-app-tile.h"
+#include "bz-aspect-picture.h"
 #include "bz-application-map-factory.h"
 #include "bz-application.h"
 #include "bz-article.h"
@@ -90,20 +91,6 @@ is_scrolled_down (gpointer object,
 
 static GtkWidget *
 build_appstream_wrap_box (const char *remainder);
-
-static void
-window_width_changed (GtkWidget  *window,
-                      GParamSpec *pspec,
-                      GtkWidget  *picture);
-
-static void
-picture_realize_cb (GtkWidget *picture,
-                    gpointer   user_data);
-
-static void
-texture_loaded_changed (BzAsyncTexture *texture,
-                        GParamSpec     *pspec,
-                        GtkWidget      *picture);
 
 static void
 screenshot_clicked (GtkButton *button,
@@ -357,65 +344,6 @@ build_appstream_wrap_box (const char *remainder)
 }
 
 static void
-window_width_changed (GtkWidget  *window,
-                      GParamSpec *pspec,
-                      GtkWidget  *picture)
-{
-  int           window_width  = 0;
-  int           target_width  = 0;
-  GdkPaintable *paintable     = NULL;
-  int           intrinsic_w   = 0;
-  int           intrinsic_h   = 0;
-  int           target_height = 350;
-
-  g_object_get (window, "default-width", &window_width, NULL);
-  target_width = CLAMP (window_width - 80, 200, 900);
-
-  paintable = gtk_picture_get_paintable (GTK_PICTURE (picture));
-  if (paintable != NULL)
-    {
-      intrinsic_w = gdk_paintable_get_intrinsic_width (paintable);
-      intrinsic_h = gdk_paintable_get_intrinsic_height (paintable);
-
-      if (intrinsic_w > 0 && intrinsic_h > 0)
-        target_height = (int) ((double) target_width * intrinsic_h / intrinsic_w);
-    }
-
-  gtk_widget_set_size_request (picture, -1, CLAMP (target_height, 150, 600));
-}
-
-static void
-picture_realize_cb (GtkWidget *picture,
-                    gpointer   user_data)
-{
-  GtkRoot *root = NULL;
-
-  root = gtk_widget_get_root (picture);
-
-  if (GTK_IS_WINDOW (root))
-    {
-      window_width_changed (GTK_WIDGET (root), NULL, picture);
-      g_signal_connect_object (
-          root, "notify::default-width",
-          G_CALLBACK (window_width_changed),
-          picture, 0);
-    }
-}
-
-static void
-texture_loaded_changed (BzAsyncTexture *texture,
-                        GParamSpec     *pspec,
-                        GtkWidget      *picture)
-{
-  GtkRoot *root = NULL;
-
-  root = gtk_widget_get_root (picture);
-
-  if (GTK_IS_WINDOW (root))
-    window_width_changed (GTK_WIDGET (root), NULL, picture);
-}
-
-static void
 screenshot_clicked (GtkButton *button,
                     gpointer   user_data)
 {
@@ -464,31 +392,30 @@ markdown_bind_inline_uri (BzArticle         *self,
       guint      index                   = 0;
 
       texture = bz_async_texture_new_lazy (file, NULL);
-      picture = gtk_picture_new ();
-      gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (texture));
-      gtk_picture_set_content_fit (GTK_PICTURE (picture), GTK_CONTENT_FIT_CONTAIN);
-      gtk_picture_set_can_shrink (GTK_PICTURE (picture), TRUE);
+      picture = bz_aspect_picture_new ();
+      bz_aspect_picture_set_paintable (BZ_ASPECT_PICTURE (picture), GDK_PAINTABLE (texture));
+      bz_aspect_picture_set_ratio (BZ_ASPECT_PICTURE (picture), 0.0);
+
       gtk_widget_set_hexpand (picture, TRUE);
-      gtk_widget_set_halign (picture, GTK_ALIGN_CENTER);
-      gtk_widget_set_size_request (picture, -1, 350);
-      g_signal_connect (picture, "realize", G_CALLBACK (picture_realize_cb), NULL);
-      g_signal_connect_object (texture, "notify::loaded", G_CALLBACK (texture_loaded_changed), picture, 0);
+      gtk_widget_set_halign (picture, GTK_ALIGN_FILL);
 
       if (title != NULL)
-        gtk_picture_set_alternative_text (GTK_PICTURE (picture), title);
+        gtk_accessible_update_property (GTK_ACCESSIBLE (picture),
+                                GTK_ACCESSIBLE_PROPERTY_LABEL, title, -1);
 
       index = g_list_model_get_n_items (G_LIST_MODEL (self->screenshot_textures));
       g_list_store_append (self->screenshot_textures, texture);
       {
         g_autoptr (GtkStringObject) caption_obj = NULL;
-        caption_obj                             = gtk_string_object_new (title != NULL ? title : "");
+
+        caption_obj = gtk_string_object_new (title != NULL ? title : "");
         g_list_store_append (self->screenshot_captions, caption_obj);
       }
 
       button = gtk_button_new ();
       gtk_widget_add_css_class (button, "flat");
       gtk_widget_set_hexpand (button, TRUE);
-      gtk_widget_set_halign (button, GTK_ALIGN_CENTER);
+      gtk_widget_set_halign (button, GTK_ALIGN_FILL);
       gtk_button_set_child (GTK_BUTTON (button), picture);
       g_object_set_data (G_OBJECT (button), "bz-screenshot-index", GUINT_TO_POINTER (index));
       g_signal_connect (button, "clicked", G_CALLBACK (screenshot_clicked), self);

@@ -135,13 +135,43 @@ bz_aspect_picture_measure (GtkWidget     *widget,
     }
   else
     {
-      int base = 0;
-      int h    = 0;
+      if (self->ratio == 0.0)
+        {
+          int base = (for_size > 0) ? for_size : 160;
+          int w, h = 0;
 
-      base     = (for_size > 0) ? for_size : 160;
-      h        = (int) round ((double) base / self->ratio);
-      *minimum = h;
-      *natural = h;
+          if (self->paintable != NULL)
+            {
+              w = gdk_paintable_get_intrinsic_width (self->paintable);
+              h = gdk_paintable_get_intrinsic_height (self->paintable);
+
+              if (w > 0 && h > 0)
+                {
+                  *minimum = (int) round (((double) base * h) / w);
+                  *natural = *minimum;
+                }
+              else
+                {
+                  *minimum = base;
+                  *natural = base;
+                }
+            }
+          else
+            {
+              *minimum = base;
+              *natural = base;
+            }
+        }
+      else
+        {
+          int base = 0;
+          int h    = 0;
+
+          base     = (for_size > 0) ? for_size : 160;
+          h        = (int) round ((double) base / self->ratio);
+          *minimum = h;
+          *natural = h;
+        }
     }
 }
 
@@ -224,7 +254,7 @@ bz_aspect_picture_class_init (BzAspectPictureClass *klass)
   props[PROP_RATIO] =
       g_param_spec_double ("ratio",
                            NULL, NULL,
-                           0.001, G_MAXDOUBLE, 16.0 / 9.0,
+                           0.000, G_MAXDOUBLE, 0,
                            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
@@ -233,7 +263,7 @@ bz_aspect_picture_class_init (BzAspectPictureClass *klass)
 static void
 bz_aspect_picture_init (BzAspectPicture *self)
 {
-  self->ratio = 16.0 / 9.0;
+  self->ratio = 0;
 }
 
 GtkWidget *
@@ -285,7 +315,7 @@ bz_aspect_picture_set_ratio (BzAspectPicture *self,
                              double           ratio)
 {
   g_return_if_fail (BZ_IS_ASPECT_PICTURE (self));
-  g_return_if_fail (ratio > 0.0);
+  g_return_if_fail (ratio >= 0.0);
 
   if (self->ratio == ratio)
     return;
