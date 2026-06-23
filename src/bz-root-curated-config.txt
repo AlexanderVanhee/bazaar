@@ -6,6 +6,5 @@ author=AUTOGEN
 
 include="bz-curated-row.h"
 
-property=css char G_TYPE_STRING string
 property=templates GListModel G_TYPE_LIST_MODEL object
 property=rows GListModel G_TYPE_LIST_MODEL object

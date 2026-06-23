@@ -1,6 +1,6 @@
-/* bz-row-view.h
+/* bz-article-list-view.h
  *
- * Copyright 2025 Adam Masciola
+ * Copyright 2026 Alexander Vanhee
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,23 +20,22 @@
 
 #pragma once
 
+#include "bz-curated-articles-info.h"
 #include <adwaita.h>
-
-#include "bz-curated-row.h"
 
 G_BEGIN_DECLS
 
-#define BZ_TYPE_ROW_VIEW (bz_row_view_get_type ())
-G_DECLARE_FINAL_TYPE (BzRowView, bz_row_view, BZ, ROW_VIEW, AdwBin)
+#define BZ_TYPE_ARTICLE_LIST_VIEW (bz_article_list_view_get_type ())
+G_DECLARE_FINAL_TYPE (BzArticleListView, bz_article_list_view, BZ, ARTICLE_LIST_VIEW, AdwBin)
 
 GtkWidget *
-bz_row_view_new (BzCuratedRow *row);
+bz_article_list_view_new (BzCuratedArticlesInfo *articles);
+
+BzCuratedArticlesInfo *
+bz_article_list_view_get_articles (BzArticleListView *self);
 
 void
-bz_row_view_set_row (BzRowView    *self,
-                     BzCuratedRow *row);
-
-BzCuratedRow *
-bz_row_view_get_row (BzRowView *self);
+bz_article_list_view_set_articles (BzArticleListView     *self,
+                                   BzCuratedArticlesInfo *articles);
 
 G_END_DECLS

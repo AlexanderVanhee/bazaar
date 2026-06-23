@@ -949,6 +949,9 @@ curated-list-view list {
   background: var(--bg-color);
 }
 
+.article-image-button {
+  padding: 10px;
+}
 
 .install-button-indicator {
     background: var(--flag-gradient, var(--accent-bg-color));

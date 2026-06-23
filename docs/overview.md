@@ -357,163 +357,29 @@ Curated configs are YAML files. They are constantly monitored by Bazaar for
 filesystem events, so when the config changes, Bazaar will automatically reload
 the content.
 
-Right now, curated configs are essentially composed of a list of "sections"
+Right now, curated configs are essentially composed of a vertical list of elements
 which appear stacked on top of each other inside of a scrollable viewport in the
-order they appear in the YAML. Each section has certain properties you can
-customize, like a title, an image banner URI, and of course a list of appids.
+order they appear in the YAML. Each element has certain properties you can
+customize.
 
 Bazaar maps the appids you provide to the best matching "entry group" from the
 table of applications it was able to pull from remote sources (Simply put, an
 entry group in Bazaar is a collection of applications which share the same appid
 but come from different sources or installations). The entry group has a
-designated "ui entry" which was previously determined in the refresh process to
+designated "ui entry" which was determined  to
 have the most useful content associated with it as it pertains to presenting
-things like icons, descriptions, screenshots, etc to the user.
+things like icons, descriptions, screenshots, etc to the user,
+this is usually Flathub when available.
 
-When the user selects the app in the section, they are brought to a "full view"
+When the user selects an app, they are brought to a "full view"
 where they can see a bunch of information stored inside or referenced by the ui
 entry and choose to invoke transactions on the entry group, like installation
 or removal.
 
-Additionally, curated configs allow you to define a css block from which you
-can reference classes inside sections and change the way gtk renders the
-content.
 
 ### Example
 
-Here are practical examples:
-
-- [Aurora](https://github.com/get-aurora-dev/common/tree/0d86028dd0d737d1d0eee08205c33fc91997f155/system_files/shared/etc/bazaar) - https://getaurora.dev
-- [Bluefin](https://github.com/projectbluefin/common/tree/a868eba107b91c4eae60b6d1d6d2e2cdf05eb1c8/system_files/bluefin/etc/bazaar) - https://projectbluefin.io
-- [Bazzite](https://github.com/ublue-os/bazzite/blob/4cb928b7268d0cae38592ff112e061f972caed63/system_files/desktop/shared/usr/share/ublue-os/bazaar) - https://bazzite.gg
-
-Here is a basic curated config:
-```yaml
-# Some css names at your disposal:
-# - banner
-# - banner-text
-# - banners
-# - description
-# - subtitle
-# - title
-# - app-tile
-# - app-tile-title
-# - app-tile-verified-check
-# - app-tile-description
-# - app-tile-installed-indicator
-# - app-tile-installed-pill
-css: |
-  .main-section {
-    margin: 15px;
-    border-radius: 25px;
-  }
-  .main-section banner-text {
-    margin: 15px;
-    color: white;
-  }
-  .background-1 {
-    background: linear-gradient(45deg, #170a49, #52136c);
-  }
-  .background-1 title {
-    border-bottom: 5px solid white;
-  }
-  .background-1 app-tile > button {
-    background-color: alpha(white, 0.1);
-  }
-  .background-1 app-tile > button:hover {
-    background-color: alpha(var(--accent-bg-color), 0.5);
-  }
-  .background-2 {
-    background: linear-gradient(75deg, #51263c, #7104a9);
-  }
-  .background-2 app-tile > button:focus {
-    background-color: alpha(var(--accent-bg-color), 0.5);
-  }
-  .background-2 app-tile-verified-check {
-    color: orange;
-  }
-
-rows:
-  - sections:
-    - expand-horizontally: true
-
-      category:
-        title: "My Favorite Apps"
-        subtitle: "These are really good and you should download them!"
-
-        # can be https as well
-        # If you want this to work with the Flatpak then use this path
-        # file:///run/host/etc/bazaar/banner-1.jxl
-        banner: file:///home/kolunmi/banner-1.jxl
-
-        # Dynamically switching between light/dark variants of banners
-        light-banner: file:///home/kolunmi/banner-light.png
-        dark-banner: file:///home/kolunmi/banner-dark.png
-
-        # can be "fill", "contain", "cover", or "scale-down"
-        # see https://docs.gtk.org/gtk4/enum.ContentFit.html
-        banner-fit: contain
-
-        # can be "fill", "start", "end", or "center"
-        # see https://docs.gtk.org/gtk4/enum.Align.html
-        # halign -> "horizontal alignment"
-        banner-text-halign: start
-        # valign -> "vertical alignment"
-        banner-text-valign: center
-
-        # size in pixels
-        banner-height: 400
-
-        # "The horizontal alignment of the label text inside its size
-        # allocation."
-        # see https://docs.gtk.org/gtk4/property.Label.xalign.html
-        banner-text-label-xalign: 0.0
-
-        # appid list
-        appids:
-          - com.usebottles.bottles
-          - io.mgba.mGBA
-          - net.pcsx2.PCSX2
-          - org.blender.Blender
-          - org.desmume.DeSmuME
-          - org.duckstation.DuckStation
-          - org.freecad.FreeCAD
-
-        # Show an "Install All" button
-        enable-bulk-install: true
-
-      # reference the classes we defined earlier
-      classes:
-        - main-section
-        - background-1
-
-      # The `classes` key (above) is for styling which we want to apply
-      # all the time. If you want a style class to only be active in
-      # light or dark mode, use `light-classes` or `dark-classes`:
-      light-classes:
-        - light-section
-      dark-classes:
-        - dark-section
-
-
-  - sections:
-    - category:
-        title: "Some more awesome apps!"
-        subtitle: "These are also pretty cool"
-        banner: file:///home/kolunmi/banner-2.png
-        banner-fit: contain
-        banner-text-halign: end
-        banner-text-valign: center
-        banner-text-label-xalign: 1.0
-        appids:
-          - org.gimp.GIMP
-          - org.gnome.Builder
-          - org.gnome.Loupe
-          - org.inkscape.Inkscape
-      classes:
-        - main-section
-        - background-2
-```
+An example can be found in docs/example.yaml
 
 ### Integrate the curated section + blocklist with the official Flatpak for Administrators/Vendors
 

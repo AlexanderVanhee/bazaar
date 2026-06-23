@@ -263,31 +263,6 @@ items_changed (BzCuratedView *self,
                guint          added,
                GListModel    *model)
 {
-  if (removed > 0)
-    g_ptr_array_remove_range (self->css_providers, position, removed);
-
-  for (guint i = 0; i < added; i++)
-    {
-      g_autoptr (BzRootCuratedConfig) config = NULL;
-      const char *css                        = NULL;
-      g_autoptr (GtkCssProvider) provider    = NULL;
-
-      config = g_list_model_get_item (model, position + i);
-      css    = bz_root_curated_config_get_css (config);
-
-      provider = gtk_css_provider_new ();
-      if (css != NULL)
-        gtk_css_provider_load_from_string (provider, css);
-      gtk_style_context_add_provider_for_display (
-          gdk_display_get_default (),
-          GTK_STYLE_PROVIDER (provider),
-          GTK_STYLE_PROVIDER_PRIORITY_USER);
-
-      g_ptr_array_insert (self->css_providers,
-                          position + i,
-                          g_steal_pointer (&provider));
-    }
-
   set_page (self);
 }
 

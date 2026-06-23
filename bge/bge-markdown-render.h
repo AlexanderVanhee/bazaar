@@ -46,6 +46,13 @@ void
 bge_markdown_render_set_dark (BgeMarkdownRender *self,
                               gboolean           dark);
 
+int
+bge_markdown_render_get_spacing (BgeMarkdownRender *self);
+
+void
+bge_markdown_render_set_spacing (BgeMarkdownRender *self,
+                                 int                spacing);
+
 G_END_DECLS
 
 /* End of bge-markdown-render.h */

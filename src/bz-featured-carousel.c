@@ -33,6 +33,7 @@ struct _BzFeaturedCarousel
   GtkBox parent_instance;
 
   GListModel *model;
+  gboolean    auto_rotate;
 
   guint    rotation_timer_source;
   GTimer  *time_since_manual_rotate;
@@ -50,6 +51,7 @@ enum
 {
   PROP_0,
   PROP_MODEL,
+  PROP_AUTO_ROTATE,
   LAST_PROP
 };
 
@@ -178,6 +180,9 @@ rotate_cb (gpointer user_data)
   BzFeaturedCarousel *self    = BZ_FEATURED_CAROUSEL (user_data);
   double              elapsed = 0.0;
 
+  if (!self->auto_rotate)
+    return G_SOURCE_CONTINUE;
+
   if (self->has_focus)
     return G_SOURCE_CONTINUE;
 
@@ -298,6 +303,9 @@ bz_featured_carousel_get_property (GObject    *object,
     case PROP_MODEL:
       g_value_set_object (value, bz_featured_carousel_get_model (self));
       break;
+    case PROP_AUTO_ROTATE:
+      g_value_set_boolean (value, self->auto_rotate);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -318,6 +326,9 @@ bz_featured_carousel_set_property (GObject      *object,
     {
     case PROP_MODEL:
       bz_featured_carousel_set_model (self, g_value_get_object (value));
+      break;
+    case PROP_AUTO_ROTATE:
+      self->auto_rotate = g_value_get_boolean (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -370,6 +381,11 @@ bz_featured_carousel_class_init (BzFeaturedCarouselClass *klass)
                            G_TYPE_LIST_MODEL,
                            G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
 
+  props[PROP_AUTO_ROTATE] =
+      g_param_spec_boolean ("auto-rotate", NULL, NULL,
+                            TRUE,
+                            G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
+
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-featured-carousel.ui");
@@ -397,6 +413,7 @@ static void
 bz_featured_carousel_init (BzFeaturedCarousel *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+  self->auto_rotate = TRUE;
 
   self->rotation_timer_source = g_timeout_add_seconds (
       FEATURED_ROTATE_TIME,

@@ -20,8 +20,15 @@ src/bz-application.c
 src/bz-apps-page.blp
 src/bz-apps-page.c
 src/bz-appstream-parser.c
+src/bz-article.blp
+src/bz-article.c
+src/bz-article-list-view.c
+src/bz-article-tile.blp
+src/bz-article-tile.c
 src/bz-async-texture.c
 src/bz-backend.c
+src/bz-banner-view.blp
+src/bz-banner-view.c
 src/bz-bundle-install-dialog.blp
 src/bz-bundle-install-dialog.c
 src/bz-content-provider.c
@@ -58,6 +65,7 @@ src/bz-favorites-page.c
 src/bz-favorites-tile.blp
 src/bz-favorites-tile.c
 src/bz-featured-carousel.blp
+src/bz-featured-carousel-view.c
 src/bz-featured-tile.blp
 src/bz-flathub-category-section.c
 src/bz-flathub-category.c

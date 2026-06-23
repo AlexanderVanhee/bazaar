@@ -325,3 +325,55 @@ send (SoupMessage   *message,
       http_request_data_unref);
   return g_steal_pointer (&future);
 }
+
+static DexFuture *
+fetch_uri_contents_then (DexFuture     *future,
+                         GOutputStream *output)
+{
+  return dex_future_new_take_boxed (
+      G_TYPE_BYTES,
+      g_memory_output_stream_steal_as_bytes (
+          G_MEMORY_OUTPUT_STREAM (output)));
+}
+
+DexFuture *
+bz_fetch_uri_contents (const char *uri)
+{
+  g_autoptr (SoupMessage) message  = NULL;
+  SoupMessageHeaders *headers      = NULL;
+  g_autoptr (GOutputStream) output = NULL;
+  g_autoptr (DexFuture) future     = NULL;
+
+  dex_return_error_if_fail (uri != NULL);
+
+  if (g_str_has_prefix (uri, "http://") ||
+      g_str_has_prefix (uri, "https://"))
+    {
+      message = soup_message_new (SOUP_METHOD_GET, uri);
+      if (message == NULL)
+        return dex_future_new_reject (
+            G_IO_ERROR,
+            G_IO_ERROR_INVALID_ARGUMENT,
+            "could not construct a request for uri %s",
+            uri);
+
+      headers = soup_message_get_request_headers (message);
+      soup_message_headers_append (headers, "User-Agent", "Bazaar");
+
+      output = g_memory_output_stream_new_resizable ();
+      future = bz_send_with_global_http_session_then_splice_into (message, output);
+      future = dex_future_then (
+          future,
+          (DexFutureCallback) fetch_uri_contents_then,
+          g_object_ref (output), g_object_unref);
+
+      return g_steal_pointer (&future);
+    }
+  else
+    {
+      g_autoptr (GFile) file = NULL;
+
+      file = g_file_new_for_uri (uri);
+      return dex_file_load_contents_bytes (file);
+    }
+}
