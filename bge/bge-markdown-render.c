@@ -268,7 +268,7 @@ bge_markdown_render_class_init (BgeMarkdownRenderClass *klass)
           NULL, NULL, FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
-    /**
+  /**
    * BgeMarkdownRender:spacing:
    *
    * Vertical spacing between rendered block-level elements, in pixels.
