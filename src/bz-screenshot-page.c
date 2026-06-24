@@ -629,6 +629,31 @@ on_key_pressed (GtkEventControllerKey *controller,
   return FALSE;
 }
 
+static void
+on_swipe (BzScreenshotPage *self,
+          gdouble           vel_x,
+          gdouble           vel_y)
+{
+  if (vel_y < -500.0 || vel_y > 500.0)
+    back_clicked (self);
+}
+
+static gboolean
+on_scroll (BzScreenshotPage         *self,
+           gdouble                   dx,
+           gdouble                   dy,
+           GtkEventControllerScroll *controller)
+{
+  GdkEvent      *event  = gtk_event_controller_get_current_event (GTK_EVENT_CONTROLLER (controller));
+  GdkDevice     *device = gdk_event_get_device (event);
+  GdkInputSource source = gdk_device_get_source (device);
+
+  if (source == GDK_SOURCE_TOUCHPAD && (dy < -2.0 || dy > 2.0))
+    back_clicked (self);
+
+  return GDK_EVENT_PROPAGATE;
+}
+
 static gboolean
 has_multiple_screenshots (GObject    *object,
                           GListModel *screenshots,
@@ -720,6 +745,8 @@ static void
 bz_screenshot_page_init (BzScreenshotPage *self)
 {
   GtkEventController *key_controller = NULL;
+  GtkEventController *scroll         = NULL;
+  GtkGesture         *swipe          = NULL;
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
@@ -728,6 +755,16 @@ bz_screenshot_page_init (BzScreenshotPage *self)
   g_signal_connect (key_controller, "key-pressed",
                     G_CALLBACK (on_key_pressed), self);
   gtk_widget_add_controller (GTK_WIDGET (self), key_controller);
+
+  swipe = gtk_gesture_swipe_new ();
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (swipe), GTK_PHASE_CAPTURE);
+  g_signal_connect_swapped (swipe, "swipe", G_CALLBACK (on_swipe), self);
+  gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (swipe));
+
+  scroll = gtk_event_controller_scroll_new (GTK_EVENT_CONTROLLER_SCROLL_VERTICAL);
+  gtk_event_controller_set_propagation_phase (scroll, GTK_PHASE_BUBBLE);
+  g_signal_connect_swapped (scroll, "scroll", G_CALLBACK (on_scroll), self);
+  gtk_widget_add_controller (GTK_WIDGET (self), scroll);
 }
 
 const char *
