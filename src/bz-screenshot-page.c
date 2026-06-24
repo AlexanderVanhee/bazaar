@@ -809,6 +809,12 @@ bz_screenshot_page_close (BzScreenshotPage *self)
   back_clicked (self);
 }
 
+gboolean
+bz_screenshot_page_is_closing (BzScreenshotPage *self)
+{
+  return self->closing;
+}
+
 AdwBin *
 bz_screenshot_page_new (GListModel *screenshots,
                         GListModel *captions,

@@ -45,4 +45,7 @@ bz_screenshot_page_get_current_caption (BzScreenshotPage *self);
 void
 bz_screenshot_page_close (BzScreenshotPage *self);
 
+gboolean
+bz_screenshot_page_is_closing (BzScreenshotPage *self);
+
 G_END_DECLS

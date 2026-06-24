@@ -357,8 +357,11 @@ action_escape (GtkWidget  *widget,
 
   if (self->screenshot_page != NULL)
     {
-      bz_screenshot_page_close (self->screenshot_page);
-      return;
+      if (!bz_screenshot_page_is_closing (self->screenshot_page))
+        {
+          bz_screenshot_page_close (self->screenshot_page);
+          return;
+        }
     }
 
   stack   = adw_navigation_view_get_navigation_stack (self->navigation_view);
@@ -760,6 +763,9 @@ key_pressed (BzWindow              *self,
 
   /* Ignore if this is a modifier-shortcut of some sort */
   if (state & ~(GDK_NO_MODIFIER_MASK | GDK_SHIFT_MASK))
+    return FALSE;
+
+  if (self->screenshot_page != NULL)
     return FALSE;
 
   unichar = gdk_keyval_to_unicode (keyval);
