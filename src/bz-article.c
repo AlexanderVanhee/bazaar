@@ -411,7 +411,6 @@ markdown_bind_inline_uri (BzArticle         *self,
       }
 
       button = gtk_button_new ();
-      gtk_widget_add_css_class (button, "flat");
       gtk_widget_add_css_class (button, "article-image-button");
       gtk_widget_set_hexpand (button, TRUE);
       gtk_widget_set_halign (button, GTK_ALIGN_FILL);

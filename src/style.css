@@ -951,6 +951,20 @@ curated-list-view list {
 
 .article-image-button {
   padding: 10px;
+  background-color: transparent;
+  transition: transform 350ms ease;
+}
+
+.article-image-button:hover {
+  transform: scale(1.03);
+}
+
+.code-block {
+  border-color: alpha(currentColor, 0.05);
+}
+
+.article .title-2 {
+  font-size: 1.50em;
 }
 
 .install-button-indicator {

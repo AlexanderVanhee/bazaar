@@ -66,6 +66,10 @@ template $BzArticle: Adw.NavigationPage {
                 ]
               }
               $BgeMarkdownRender render {
+                styles [
+                  "article",
+                ]
+
                 spacing: 12;
                 hexpand: true;
                 bind-inline-uri => $markdown_bind_inline_uri(template);
