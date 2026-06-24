@@ -37,6 +37,7 @@
 #include "bz-screenshot-page.h"
 #include "bz-state-info.h"
 #include "bz-util.h"
+#include "bz-window.h"
 
 struct _BzArticle
 {
@@ -347,23 +348,24 @@ static void
 screenshot_clicked (GtkButton *button,
                     gpointer   user_data)
 {
-  BzArticle         *self     = user_data;
-  guint              index    = 0;
-  AdwNavigationPage *page     = NULL;
-  GtkWidget         *nav_view = NULL;
+  BzArticle        *self  = user_data;
+  guint             index = 0;
+  GtkWidget        *root  = NULL;
+  BzScreenshotPage *page  = NULL;
 
   index = GPOINTER_TO_UINT (g_object_get_data (G_OBJECT (button), "bz-screenshot-index"));
 
-  nav_view = gtk_widget_get_ancestor (GTK_WIDGET (button), ADW_TYPE_NAVIGATION_VIEW);
-  if (nav_view == NULL)
+  root = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (button)));
+  if (!BZ_IS_WINDOW (root))
     return;
 
-  page = bz_screenshot_page_new (
+  page = BZ_SCREENSHOT_PAGE (bz_screenshot_page_new (
       G_LIST_MODEL (self->screenshot_textures),
       G_LIST_MODEL (self->screenshot_captions),
-      index);
+      index,
+      GTK_WIDGET (button)));
 
-  adw_navigation_view_push (ADW_NAVIGATION_VIEW (nav_view), page);
+  bz_window_open_screenshot_page (BZ_WINDOW (root), page);
 }
 
 static GtkWidget *
