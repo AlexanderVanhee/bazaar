@@ -357,25 +357,22 @@ Curated configs are YAML files. They are constantly monitored by Bazaar for
 filesystem events, so when the config changes, Bazaar will automatically reload
 the content.
 
-Right now, curated configs are essentially composed of a vertical list of elements
-which appear stacked on top of each other inside of a scrollable viewport in the
-order they appear in the YAML. Each element has certain properties you can
-customize.
+Right now, curated configs are essentially composed of a vertical list of
+elements which appear stacked on top of each other inside of a scrollable
+viewport in the order they appear in the YAML. Each element has certain
+properties you can customize.
 
 Bazaar maps the appids you provide to the best matching "entry group" from the
 table of applications it was able to pull from remote sources (Simply put, an
 entry group in Bazaar is a collection of applications which share the same appid
 but come from different sources or installations). The entry group has a
-designated "ui entry" which was determined  to
-have the most useful content associated with it as it pertains to presenting
-things like icons, descriptions, screenshots, etc to the user,
-this is usually Flathub when available.
+designated "ui entry" which was determined to have the most useful content
+associated with it as it pertains to presenting things like icons, descriptions,
+screenshots, etc to the user, usually from Flathub when available.
 
-When the user selects an app, they are brought to a "full view"
-where they can see a bunch of information stored inside or referenced by the ui
-entry and choose to invoke transactions on the entry group, like installation
-or removal.
-
+When the user selects an app, they are brought to a "full view" where they can
+see a bunch of information stored inside or referenced by the ui entry and
+choose to invoke transactions on the entry group, like installation or removal.
 
 ### Example
 
