@@ -635,7 +635,7 @@ on_swipe (BzScreenshotPage *self,
           gdouble           vel_y)
 {
   if (vel_y < -500.0 || vel_y > 500.0)
-    back_clicked (self);
+      back_clicked (self);
 }
 
 static gboolean
@@ -759,6 +759,7 @@ bz_screenshot_page_init (BzScreenshotPage *self)
   swipe = gtk_gesture_swipe_new ();
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (swipe), GTK_PHASE_CAPTURE);
   g_signal_connect_swapped (swipe, "swipe", G_CALLBACK (on_swipe), self);
+  gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (swipe), TRUE);
   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (swipe));
 
   scroll = gtk_event_controller_scroll_new (GTK_EVENT_CONTROLLER_SCROLL_VERTICAL);
