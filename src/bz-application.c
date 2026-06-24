@@ -3211,6 +3211,23 @@ init_service_struct (BzApplication *self,
           gtk_string_list_append (curated_configs, gtk_string_object_get_string (string));
         }
     }
+
+#ifdef DEVELOPMENT_BUILD
+  if (g_list_model_get_n_items (G_LIST_MODEL (curated_configs)) == 0)
+    {
+      g_autofree char *dest_path  = NULL;
+      g_autoptr (GFile) src       = NULL;
+      g_autoptr (GFile) dest      = NULL;
+
+      dest_path = g_build_filename (g_get_user_data_dir (), "example.yaml", NULL);
+      src       = g_file_new_for_path (DEVELOPMENT_EXAMPLE_YAML);
+      dest      = g_file_new_for_path (dest_path);
+      g_file_copy (src, dest, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);
+
+      gtk_string_list_append (curated_configs, dest_path);
+    }
+#endif
+
   self->curated_configs          = g_object_ref (curated_configs);
   self->curated_configs_to_files = gtk_map_list_model_new (
       NULL, (GtkMapListModelMapFunc) map_strings_to_files, NULL, NULL);

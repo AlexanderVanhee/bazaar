@@ -22,6 +22,8 @@
 
 #include <json-glib/json-glib.h>
 
+#include "config.h"
+
 #include "bz-entry-inspector.h"
 #include "bz-env.h"
 #include "bz-inspector.h"
@@ -236,13 +238,25 @@ open_file_externally_cb (GtkListItem *list_item,
 {
   GtkStringObject *string = NULL;
   const char      *path   = NULL;
-  g_autofree char *uri    = NULL;
 
   string = gtk_list_item_get_item (list_item);
   path   = gtk_string_object_get_string (string);
 
-  uri = g_strdup_printf ("file://%s", path);
-  g_app_info_launch_default_for_uri (uri, NULL, NULL);
+#if defined(DEVELOPMENT_BUILD) && defined(SANDBOXED_LIBFLATPAK)
+  {
+    const char *argv[] = { "flatpak-spawn", "--host", "xdg-open", NULL, NULL };
+    argv[3] = path;
+
+    g_spawn_async (NULL, (char **) argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+  }
+#else
+  {
+    g_autofree char *uri = NULL;
+
+    uri = g_strdup_printf ("file://%s", path);
+    g_app_info_launch_default_for_uri (uri, NULL, NULL);
+  }
+#endif
 }
 
 static void
