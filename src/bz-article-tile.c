@@ -20,16 +20,21 @@
 
 #include "config.h"
 
+#include "bz-article-list-view.h"
 #include "bz-article-tile.h"
 #include "bz-article.h"
-#include "bz-async-texture.h"
 #include "bz-aspect-picture.h"
+#include "bz-async-texture.h"
 #include "bz-curated-article.h"
+#include "bz-curated-articles-info.h"
 
 struct _BzArticleTile
 {
   BzListTile        parent_instance;
   BzCuratedArticle *article;
+  float             aspect_ratio;
+
+  GBinding *aspect_ratio_binding;
 
   GtkWidget *picture_box;
   GtkWidget *picture;
@@ -41,6 +46,7 @@ enum
 {
   PROP_0,
   PROP_ARTICLE,
+  PROP_ASPECT_RATIO,
   LAST_PROP
 };
 
@@ -52,6 +58,7 @@ bz_article_tile_dispose (GObject *object)
   BzArticleTile *self = BZ_ARTICLE_TILE (object);
 
   g_clear_object (&self->article);
+  g_clear_object (&self->aspect_ratio_binding);
 
   G_OBJECT_CLASS (bz_article_tile_parent_class)->dispose (object);
 }
@@ -67,6 +74,9 @@ bz_article_tile_get_property (GObject    *object,
     {
     case PROP_ARTICLE:
       g_value_set_object (value, bz_article_tile_get_article (self));
+      break;
+    case PROP_ASPECT_RATIO:
+      g_value_set_float (value, self->aspect_ratio);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -84,6 +94,10 @@ bz_article_tile_set_property (GObject      *object,
     {
     case PROP_ARTICLE:
       bz_article_tile_set_article (self, g_value_get_object (value));
+      break;
+    case PROP_ASPECT_RATIO:
+      self->aspect_ratio = g_value_get_float (value);
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ASPECT_RATIO]);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -122,6 +136,13 @@ is_null (gpointer    object,
   return value == NULL;
 }
 
+static float
+get_aspect_ratio (gpointer object,
+                  float    ratio)
+{
+  return ratio > 0.0f ? ratio : 1.77f;
+}
+
 static BzAsyncTexture *
 get_image (gpointer    object,
            const char *uri)
@@ -152,6 +173,13 @@ bz_article_tile_class_init (BzArticleTileClass *klass)
           BZ_TYPE_CURATED_ARTICLE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_ASPECT_RATIO] =
+      g_param_spec_float (
+          "aspect-ratio",
+          NULL, NULL,
+          0.0f, G_MAXFLOAT, 1.0f,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
   g_type_ensure (BZ_TYPE_LIST_TILE);
@@ -163,6 +191,7 @@ bz_article_tile_class_init (BzArticleTileClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
   gtk_widget_class_bind_template_callback (widget_class, is_null);
   gtk_widget_class_bind_template_callback (widget_class, get_image);
+  gtk_widget_class_bind_template_callback (widget_class, get_aspect_ratio);
   gtk_widget_class_bind_template_child (widget_class, BzArticleTile, picture_box);
   gtk_widget_class_bind_template_child (widget_class, BzArticleTile, picture);
 
