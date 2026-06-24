@@ -37,6 +37,7 @@ rows:
           - org.gnome.font-viewer
           - org.gnome.Logs
   - articles:
+      aspect-ratio: 1.777 # aspect ratio of the thumbnails, per articles section
       uri: https://usebazaar.org/curated/articles.yaml # Can be used as a feed.
       list: # Used only if URI fails, or is not given.
         - title: "Introducing GNOME 50, “Tokyo”" # Also used as the title on the article page
