@@ -625,8 +625,11 @@ bz_install_controls_set_entry_group (BzInstallControls *self,
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ENTRY_GROUP]);
 
-  title     = bz_entry_group_get_title (group);
-  developer = bz_entry_group_get_developer (group);
+  if (group != NULL)
+    {
+      title     = bz_entry_group_get_title (group);
+      developer = bz_entry_group_get_developer (group);
+    }
 
   if (self->install_button != NULL)
     {
