@@ -343,6 +343,36 @@ bge_carousel_size_allocate (GtkWidget *widget,
 }
 
 static void
+bge_carousel_map (GtkWidget *widget)
+{
+  BgeCarousel *self     = NULL;
+  guint        selected = 0;
+
+  self = BGE_CAROUSEL (widget);
+
+  GTK_WIDGET_CLASS (bge_carousel_parent_class)->map (widget);
+
+  if (self->model != NULL)
+    {
+      selected = gtk_single_selection_get_selected (self->model);
+      if (selected != G_MAXUINT)
+        {
+          for (guint i = 0; i < self->widgets->len; i++)
+            {
+              CarouselWidgetData *child = NULL;
+
+              child = g_ptr_array_index (self->widgets, i);
+              if (child->cancellable != NULL)
+                g_cancellable_cancel (child->cancellable);
+              child->target = child->rect;
+            }
+        }
+    }
+
+  gtk_widget_queue_allocate (GTK_WIDGET (self));
+}
+
+static void
 bge_carousel_class_init (BgeCarouselClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
@@ -466,6 +496,7 @@ bge_carousel_class_init (BgeCarouselClass *klass)
 
   widget_class->measure       = bge_carousel_measure;
   widget_class->size_allocate = bge_carousel_size_allocate;
+  widget_class->map           = bge_carousel_map;
 }
 
 static void
@@ -1378,3 +1409,4 @@ finish_horizontal_gesture (BgeCarousel *self,
 }
 
 /* End of bge-carousel.c */
+
