@@ -634,17 +634,17 @@ bz_install_controls_set_entry_group (BzInstallControls *self,
   if (self->install_button != NULL)
     {
       g_autofree char *label = NULL;
-
       if (title != NULL && developer != NULL)
         label = g_strdup_printf (_("Install %s from %s"), title, developer);
       else if (title != NULL)
         label = g_strdup_printf (_("Install %s"), title);
 
-      gtk_accessible_update_property (
-          GTK_ACCESSIBLE (self->install_button),
-          GTK_ACCESSIBLE_PROPERTY_LABEL,
-          label != NULL ? label : _("Install"),
-          -1);
+      if (label != NULL)
+        gtk_accessible_update_property (
+            GTK_ACCESSIBLE (self->install_button),
+            GTK_ACCESSIBLE_PROPERTY_LABEL,
+            label,
+            -1);
     }
 
   if (group != NULL)
