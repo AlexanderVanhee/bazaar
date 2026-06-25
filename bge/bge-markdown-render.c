@@ -1010,9 +1010,6 @@ terminate_block (MD_BLOCKTYPE type,
 
   if (child != NULL)
     {
-      if (parent != MD_BLOCK_LI)
-        gtk_widget_set_margin_start (child, 10);
-
       gtk_box_append (current_container (ctx), child);
       g_ptr_array_add (ctx->box_children, child);
     }
