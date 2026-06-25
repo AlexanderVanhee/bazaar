@@ -84,4 +84,7 @@ bz_async_texture_cancel (BzAsyncTexture *self);
 gboolean
 bz_async_texture_is_loading (BzAsyncTexture *self);
 
+gboolean
+bz_async_texture_get_transparent (BzAsyncTexture *self);
+
 G_END_DECLS

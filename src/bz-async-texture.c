@@ -97,6 +97,7 @@ struct _BzAsyncTexture
   GFile   *cache_into;
   char    *cache_into_path;
   gboolean lazy;
+  gboolean transparent;
 
   int      width;
   int      height;
@@ -128,6 +129,7 @@ enum
   PROP_SOURCE,
   PROP_CACHE_INTO,
   PROP_LOADED,
+  PROP_TRANSPARENT,
 
   LAST_PROP
 };
@@ -216,6 +218,9 @@ bz_async_texture_get_property (GObject    *object,
     case PROP_LOADED:
       g_value_set_boolean (value, bz_async_texture_get_loaded (self));
       break;
+    case PROP_TRANSPARENT:
+      g_value_set_boolean (value, self->transparent);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -269,6 +274,13 @@ bz_async_texture_class_init (BzAsyncTextureClass *klass)
           FALSE,
           G_PARAM_READABLE);
 
+  props[PROP_TRANSPARENT] =
+      g_param_spec_boolean (
+          "transparent",
+          NULL, NULL,
+          TRUE,
+          G_PARAM_READABLE);
+
   g_object_class_install_properties (object_class, LAST_PROP, props);
 }
 
@@ -278,6 +290,7 @@ bz_async_texture_init (BzAsyncTexture *self)
   self->retries        = 0;
   self->paintable      = NULL;
   self->cache_acquired = FALSE;
+  self->transparent    = TRUE;
   g_mutex_init (&self->mutex);
 
   if (!g_log_writer_default_would_drop (G_LOG_LEVEL_DEBUG, G_LOG_DOMAIN))
@@ -564,6 +577,13 @@ bz_async_texture_is_loading (BzAsyncTexture *self)
 {
   g_return_val_if_fail (BZ_IS_ASYNC_TEXTURE (self), FALSE);
   return self->task != NULL && dex_future_is_pending (self->task);
+}
+
+gboolean
+bz_async_texture_get_transparent (BzAsyncTexture *self)
+{
+  g_return_val_if_fail (BZ_IS_ASYNC_TEXTURE (self), FALSE);
+  return self->transparent;
 }
 
 static void
@@ -1007,9 +1027,15 @@ load_finally (DexFuture *future,
 
   if (dex_future_is_resolved (future))
     {
-      GdkTexture *texture = NULL;
+      GdkTexture     *texture = NULL;
+      GdkMemoryFormat fmt;
 
       texture = g_value_get_object (dex_future_get_value (future, NULL));
+
+      fmt = gdk_texture_get_format (texture);
+      self->transparent = fmt != GDK_MEMORY_R8G8B8 && fmt != GDK_MEMORY_B8G8R8 &&
+                          fmt != GDK_MEMORY_R8G8B8X8 && fmt != GDK_MEMORY_B8G8R8X8 &&
+                          fmt != GDK_MEMORY_X8R8G8B8 && fmt != GDK_MEMORY_X8B8G8R8;
 
       g_clear_object (&self->paintable);
       self->paintable = g_object_ref (GDK_PAINTABLE (texture));
@@ -1076,6 +1102,7 @@ retry_cb (DexFuture *future,
 static gboolean
 idle_notify (BzAsyncTexture *self)
 {
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_TRANSPARENT]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_LOADED]);
   gdk_paintable_invalidate_contents (GDK_PAINTABLE (self));
   gdk_paintable_invalidate_size (GDK_PAINTABLE (self));

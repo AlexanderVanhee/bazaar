@@ -42,10 +42,18 @@ enum
 };
 static GParamSpec *props[LAST_PROP] = { 0 };
 
+static void on_texture_loaded (BzAsyncTexture        *async_texture,
+                               GParamSpec            *pspec,
+                               BzDecoratedScreenshot *self);
+
 static void
 bz_decorated_screenshot_dispose (GObject *object)
 {
   BzDecoratedScreenshot *self = BZ_DECORATED_SCREENSHOT (object);
+
+  if (self->async_texture != NULL)
+    g_signal_handlers_disconnect_by_func (
+        self->async_texture, on_texture_loaded, self);
 
   g_clear_pointer (&self->async_texture, g_object_unref);
 
@@ -91,6 +99,20 @@ bz_decorated_screenshot_set_property (GObject      *object,
 }
 
 static void
+on_texture_loaded (BzAsyncTexture        *async_texture,
+                   GParamSpec            *pspec,
+                   BzDecoratedScreenshot *self)
+{
+  if (!bz_async_texture_get_loaded (async_texture))
+    return;
+
+  if (!bz_async_texture_get_transparent (async_texture))
+    gtk_widget_add_css_class (GTK_WIDGET (self), "card");
+  else
+    gtk_widget_remove_css_class (GTK_WIDGET (self), "card");
+}
+
+static void
 bz_decorated_screenshot_class_init (BzDecoratedScreenshotClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
@@ -132,6 +154,8 @@ bz_decorated_screenshot_init (BzDecoratedScreenshot *self)
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
+  gtk_widget_set_overflow (GTK_WIDGET (self), GTK_OVERFLOW_HIDDEN);
+
   g_signal_connect (enter_leave, "enter", G_CALLBACK (on_enter_notify), GTK_WIDGET (self));
   g_signal_connect (enter_leave, "leave", G_CALLBACK (on_leave_notify), GTK_WIDGET (self));
 
@@ -157,9 +181,22 @@ bz_decorated_screenshot_set_async_texture (BzDecoratedScreenshot *self,
 {
   g_return_if_fail (BZ_IS_DECORATED_SCREENSHOT (self));
 
+  if (self->async_texture != NULL)
+    g_signal_handlers_disconnect_by_func (
+        self->async_texture, on_texture_loaded, self);
+
+  gtk_widget_remove_css_class (GTK_WIDGET (self), "card");
+
   g_clear_pointer (&self->async_texture, g_object_unref);
   if (async_texture != NULL)
-    self->async_texture = g_object_ref (async_texture);
+    {
+      self->async_texture = g_object_ref (async_texture);
+      g_signal_connect (self->async_texture, "notify::loaded",
+                        G_CALLBACK (on_texture_loaded), self);
+
+      if (bz_async_texture_get_loaded (async_texture))
+        on_texture_loaded (async_texture, NULL, self);
+    }
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ASYNC_TEXTURE]);
 }
