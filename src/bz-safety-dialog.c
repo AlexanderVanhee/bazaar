@@ -180,12 +180,21 @@ on_dialog_map (BzSafetyDialog *self)
   AdwDialog *dialog        = NULL;
   int        target_width  = 0;
   int        target_height = 0;
+  guint      page_index    = self->has_sandbox_escape ? 0 : 1;
 
   dialog = ADW_DIALOG (gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_DIALOG));
   if (dialog == NULL)
     return;
 
-  get_target_size (self, self->has_sandbox_escape ? 0 : 1, &target_width, &target_height);
+  if (page_index == 1)
+    {
+      GtkWidget *page = NULL;
+
+      page = gtk_widget_get_last_child (GTK_WIDGET (self->carousel));
+      adw_carousel_scroll_to (self->carousel, page, FALSE);
+    }
+
+  get_target_size (self, page_index, &target_width, &target_height);
   adw_dialog_set_content_width (dialog, target_width);
   adw_dialog_set_content_height (dialog, target_height);
 }
@@ -304,12 +313,6 @@ update_permissions_list (BzSafetyDialog *self)
   if (permissions != NULL)
     perm_flags = bz_app_permissions_get_flags (permissions);
   self->has_sandbox_escape = (perm_flags & BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX) != 0;
-
-  if (!self->has_sandbox_escape)
-    {
-      GtkWidget *page = gtk_widget_get_last_child (GTK_WIDGET (self->carousel));
-      adw_carousel_scroll_to (self->carousel, page, FALSE);
-    }
 
   app_name   = bz_entry_get_title (self->entry);
   model      = bz_safety_calculator_analyze_entry (self->entry);
