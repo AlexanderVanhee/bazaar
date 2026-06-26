@@ -2100,8 +2100,6 @@ init_fiber_finally (DexFuture *future,
   value = dex_future_get_value (future, &local_error);
   if (value != NULL)
     {
-      g_autoptr (DexFuture) sync_future = NULL;
-
       self->flatpak_notifs = bz_backend_create_notification_channel (
           BZ_BACKEND (self->flatpak));
       self->notif_watch = dex_future_then_loop (
@@ -2110,13 +2108,33 @@ init_fiber_finally (DexFuture *future,
           bz_track_weak (self),
           bz_weak_release);
 
-      sync_future = make_sync_future (self);
-      sync_future = dex_future_finally (
-          sync_future,
-          (DexFutureCallback) init_sync_finally,
-          bz_track_weak (self),
-          bz_weak_release);
-      self->sync = g_steal_pointer (&sync_future);
+      if (!bz_state_info_get_metered_connection (self->state))
+        {
+          g_autoptr (DexFuture) sync_future = NULL;
+
+          sync_future = make_sync_future (self);
+          sync_future = dex_future_finally (
+              sync_future,
+              (DexFutureCallback) init_sync_finally,
+              bz_track_weak (self),
+              bz_weak_release);
+          self->sync = g_steal_pointer (&sync_future);
+        }
+      else
+        {
+          bz_state_info_set_allow_manual_sync (self->state, TRUE);
+          bz_state_info_set_busy (self->state, FALSE);
+          bz_state_info_set_syncing (self->state, FALSE);
+          dex_promise_resolve_boolean (self->ready_to_open_files, TRUE);
+
+          // Only check for updates if connection is limited.
+          dex_future_disown (dex_scheduler_spawn (
+              dex_scheduler_get_default (),
+              bz_get_dex_stack_size (),
+              (DexFiberFunc) check_for_updates_fiber,
+              bz_track_weak (self),
+              bz_weak_release));
+        }
 
       self->periodic_timeout_source = g_timeout_add_seconds (
           /* Check every day */
@@ -2641,6 +2659,8 @@ periodic_timeout_cb (BzApplication *self)
     /* Do not do periodic sync on metered connections. The user will have to
        manually refresh instead. */
     self->sync = make_sync_future (self);
+  else
+    bz_state_info_set_recently_synced (self->state, FALSE);
 
 done:
   return G_SOURCE_CONTINUE;
@@ -3977,6 +3997,7 @@ make_sync_future (BzApplication *self)
   bz_state_info_set_allow_manual_sync (self->state, FALSE);
 
   bz_state_info_set_syncing (self->state, TRUE);
+  bz_state_info_set_recently_synced (self->state, TRUE);
   finish_with_background_task_label (self);
 
   refresh_worker = g_subprocess_new (
