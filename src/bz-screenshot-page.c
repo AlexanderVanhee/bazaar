@@ -630,6 +630,17 @@ on_key_pressed (GtkEventControllerKey *controller,
 }
 
 static void
+on_button_pressed (GtkGestureClick  *gesture,
+                   int               n_press,
+                   double            x,
+                   double            y,
+                   BzScreenshotPage *self)
+{
+  if (gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture)) == 8)
+    back_clicked (self);
+}
+
+static void
 on_swipe (BzScreenshotPage *self,
           gdouble           vel_x,
           gdouble           vel_y)
@@ -747,6 +758,7 @@ bz_screenshot_page_init (BzScreenshotPage *self)
   GtkEventController *key_controller = NULL;
   GtkEventController *scroll         = NULL;
   GtkGesture         *swipe          = NULL;
+  GtkGesture         *click          = NULL;
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
@@ -761,6 +773,12 @@ bz_screenshot_page_init (BzScreenshotPage *self)
   g_signal_connect_swapped (swipe, "swipe", G_CALLBACK (on_swipe), self);
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (swipe), TRUE);
   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (swipe));
+
+  click = gtk_gesture_click_new ();
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (click), 0);
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (click), GTK_PHASE_CAPTURE);
+  g_signal_connect (click, "pressed", G_CALLBACK (on_button_pressed), self);
+  gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (click));
 
   scroll = gtk_event_controller_scroll_new (GTK_EVENT_CONTROLLER_SCROLL_VERTICAL);
   gtk_event_controller_set_propagation_phase (scroll, GTK_PHASE_BUBBLE);
