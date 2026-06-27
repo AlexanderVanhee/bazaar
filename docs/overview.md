@@ -107,6 +107,8 @@ curated-config-paths:
   - /path/to/another/yaml/file.yaml
   # Flatpak path with host-etc permission
   - /run/host/etc/bazaar/curated.yaml
+# Make the app start on the curated page instead of the explore page, try to only use if you have an interesting news section
+start-on-curated: true
 ```
 
 ### EOL Overrides
