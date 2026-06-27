@@ -34,7 +34,7 @@ template $BzArticleTile: $BzListTile {
 
       $BzAspectPicture picture {
         hexpand: true;
-        ratio: 1.77;
+        ratio: bind try{$get_aspect_ratio(template.aspect-ratio) as <float>, 1.77};
         paintable: bind $get_image(template.article as <$BzCuratedArticle>.image) as <$GdkPaintable>;
       }
     }

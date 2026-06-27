@@ -119,6 +119,11 @@ else
 
     if get_option('development')
       config_h.set10('DEVELOPMENT_BUILD', get_option('development'))
+      config_h.set_quoted('DEVELOPMENT_EXAMPLE_YAML', get_option('prefix') / get_option('datadir') / 'bazaar' / 'example.yaml')
+      install_data(
+        'docs/example.yaml',
+        install_dir: get_option('datadir') / 'bazaar',
+      )
     endif
 
     configure_file(output: 'config.h', configuration: config_h)

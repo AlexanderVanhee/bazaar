@@ -114,6 +114,7 @@ build_app_row (BzEntry       *entry,
   g_autoptr (GListModel) history = NULL;
   g_autofree char *installed_ver = NULL;
   const char      *new_ver       = NULL; // This will probably the same as the installed version if using cache...
+  g_autofree char *subtitle      = NULL;
 
   row = ADW_ACTION_ROW (adw_action_row_new ());
   adw_preferences_row_set_title (ADW_PREFERENCES_ROW (row),
@@ -143,9 +144,12 @@ build_app_row (BzEntry       *entry,
       g_autoptr (BzRelease) first = g_list_model_get_item (history, 0);
       new_ver                     = bz_release_get_version (first);
 
-      if (new_ver != NULL && g_strcmp0 (installed_ver, new_ver) != 0)
+      if (new_ver != NULL)
         {
-          g_autofree char *subtitle = g_strdup_printf ("%s → %s", installed_ver, new_ver);
+          if (g_strcmp0 (installed_ver, new_ver) != 0)
+            subtitle = g_strdup_printf ("%s → %s", installed_ver, new_ver);
+          else
+            subtitle = g_strdup (new_ver);
           adw_action_row_set_subtitle (row, subtitle);
         }
     }

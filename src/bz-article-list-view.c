@@ -106,6 +106,20 @@ bz_article_list_view_set_property (GObject      *object,
 }
 
 static void
+on_bind_widget (BzDynamicListView *list_view,
+                GtkWidget         *widget,
+                GObject           *object,
+                BzArticleListView *self)
+{
+  if (!BZ_IS_ARTICLE_TILE (widget) || self->articles == NULL)
+    return;
+
+  g_object_bind_property (self->articles, "aspect-ratio",
+                          BZ_ARTICLE_TILE (widget), "aspect-ratio",
+                          G_BINDING_SYNC_CREATE);
+}
+
+static void
 bz_article_list_view_class_init (BzArticleListViewClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -139,6 +153,9 @@ bz_article_list_view_init (BzArticleListView *self)
       "child-prop", "article",
       "margin-top", 12,
       NULL);
+
+  g_signal_connect (self->list_view, "bind-widget",
+                    G_CALLBACK (on_bind_widget), self);
 
   adw_bin_set_child (ADW_BIN (self), self->list_view);
 }
@@ -219,7 +236,7 @@ load_articles_fiber (BzCuratedArticlesInfo *info)
     }
 
   g_type_ensure (BZ_TYPE_CURATED_ARTICLE);
-  parser  = bz_yaml_parser_new_for_resource_schema (
+  parser = bz_yaml_parser_new_for_resource_schema (
       "/io/github/kolunmi/Bazaar/article-list-schema.xml");
   results = bz_parser_process_bytes (BZ_PARSER (parser), bytes, &local_error);
   if (results == NULL)
