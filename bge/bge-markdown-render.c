@@ -650,13 +650,13 @@ leave_span (MD_SPANTYPE type,
 
         if (ctx->alt_text != NULL)
           {
-            alt = g_string_free (ctx->alt_text, FALSE);
+            alt           = g_string_free (ctx->alt_text, FALSE);
             ctx->alt_text = NULL;
           }
         ctx->in_image = FALSE;
 
         g_signal_emit (ctx->self, signals[SIGNAL_BIND_INLINE_URI], 0,
-                      title != NULL ? title : alt, src, &widget);
+                       title != NULL ? title : alt, src, &widget);
 
         if (widget != NULL)
           {
