@@ -962,12 +962,17 @@ transact_fiber (TransactData *data)
 BzWindow *
 bz_window_new (BzStateInfo *state)
 {
-  BzWindow *window = NULL;
+  BzWindow     *window = NULL;
+  BzMainConfig *config = NULL;
 
   g_return_val_if_fail (BZ_IS_STATE_INFO (state), NULL);
 
   window        = g_object_new (BZ_TYPE_WINDOW, NULL);
   window->state = g_object_ref (state);
+
+  config = bz_state_info_get_main_config (state);
+  if (config != NULL && bz_main_config_get_start_on_curated (config))
+    adw_view_stack_set_visible_child_name (window->main_view_stack, "browse");
 
   g_signal_connect_object (state,
                            "notify::busy",

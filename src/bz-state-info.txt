@@ -47,6 +47,7 @@ property=hide_eol gboolean G_TYPE_BOOLEAN boolean
 property=internal_config BzInternalConfig BZ_TYPE_INTERNAL_CONFIG object
 property=main_config BzMainConfig BZ_TYPE_MAIN_CONFIG object
 property=metered_connection gboolean G_TYPE_BOOLEAN boolean
+property=recently_synced gboolean G_TYPE_BOOLEAN boolean
 property=online gboolean G_TYPE_BOOLEAN boolean
 property=repositories GListModel G_TYPE_LIST_MODEL object
 property=search_engine BzSearchEngine BZ_TYPE_SEARCH_ENGINE object
