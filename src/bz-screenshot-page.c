@@ -37,12 +37,12 @@ struct _BzScreenshotPage
 
   gboolean is_zoomed;
 
-  GtkWidget         *source_widget;
-  GdkTexture        *source_texture;
-  graphene_rect_t    source_bounds_at_map;
-  AdwTimedAnimation *animation;
-  double             animation_progress;
-  gboolean           closing;
+  GtkWidget          *source_widget;
+  GdkTexture         *source_texture;
+  graphene_rect_t     source_bounds_at_map;
+  AdwSpringAnimation *animation;
+  double              animation_progress;
+  gboolean            closing;
 };
 
 G_DEFINE_FINAL_TYPE (BzScreenshotPage, bz_screenshot_page, ADW_TYPE_BIN)
@@ -77,8 +77,8 @@ render_widget_to_texture (GtkWidget *widget)
   snapshot  = gtk_snapshot_new ();
 
   gdk_paintable_snapshot (GDK_PAINTABLE (paintable), snapshot,
-      gdk_paintable_get_intrinsic_width (GDK_PAINTABLE (paintable)),
-      gdk_paintable_get_intrinsic_height (GDK_PAINTABLE (paintable)));
+                          gdk_paintable_get_intrinsic_width (GDK_PAINTABLE (paintable)),
+                          gdk_paintable_get_intrinsic_height (GDK_PAINTABLE (paintable)));
 
   node   = gtk_snapshot_to_node (snapshot);
   native = gtk_widget_get_native (widget);
@@ -91,9 +91,9 @@ render_widget_to_texture (GtkWidget *widget)
 }
 
 static void
-on_animation_value (AdwTimedAnimation *animation,
-                    GParamSpec        *pspec,
-                    BzScreenshotPage  *self)
+on_animation_value (AdwSpringAnimation *animation,
+                    GParamSpec         *pspec,
+                    BzScreenshotPage   *self)
 {
   self->animation_progress = adw_animation_get_value (ADW_ANIMATION (animation));
   gtk_widget_queue_draw (GTK_WIDGET (self));
@@ -117,6 +117,7 @@ static void
 back_clicked (BzScreenshotPage *self)
 {
   AdwAnimationTarget *target = NULL;
+  AdwSpringParams    *params = NULL;
   GtkWidget          *parent = NULL;
 
   if (self->closing)
@@ -135,10 +136,12 @@ back_clicked (BzScreenshotPage *self)
       target = adw_callback_animation_target_new (
           (AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
 
-      self->animation = ADW_TIMED_ANIMATION (
-          adw_timed_animation_new (GTK_WIDGET (self), 1.0, 0.0, 250, target));
-
-      adw_timed_animation_set_easing (self->animation, ADW_EASE_IN_QUART);
+      params          = adw_spring_params_new (0.77, 0.4, 100.0);
+      self->animation = ADW_SPRING_ANIMATION (
+          adw_spring_animation_new (GTK_WIDGET (self), self->animation_progress, 0.0, params, target));
+      adw_spring_animation_set_clamp (self->animation, TRUE);
+      adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.01000);
+      adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
 
       g_signal_connect (self->animation, "notify::value", G_CALLBACK (on_animation_value), self);
       g_signal_connect (self->animation, "done", G_CALLBACK (on_close_animation_done), self);
@@ -161,6 +164,7 @@ bz_screenshot_page_map (GtkWidget *widget)
 {
   BzScreenshotPage   *self   = BZ_SCREENSHOT_PAGE (widget);
   AdwAnimationTarget *target = NULL;
+  AdwSpringParams    *params = NULL;
 
   GTK_WIDGET_CLASS (bz_screenshot_page_parent_class)->map (widget);
 
@@ -179,8 +183,13 @@ bz_screenshot_page_map (GtkWidget *widget)
   self->closing            = FALSE;
 
   target = adw_callback_animation_target_new ((AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
-  self->animation = ADW_TIMED_ANIMATION (adw_timed_animation_new (widget, 0.0, 1.0, 300, target));
-  adw_timed_animation_set_easing (self->animation, ADW_EASE_OUT_QUART);
+
+  params = adw_spring_params_new (0.77, 0.5, 100.0);
+  adw_spring_animation_set_clamp (self->animation, TRUE);
+  self->animation = ADW_SPRING_ANIMATION (
+      adw_spring_animation_new (widget, 0.0, 1.0, params, target));
+  adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.01000);
+  adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
 
   g_signal_connect (self->animation, "notify::value", G_CALLBACK (on_animation_value), self);
 
@@ -646,7 +655,7 @@ on_swipe (BzScreenshotPage *self,
           gdouble           vel_y)
 {
   if (vel_y < -500.0 || vel_y > 500.0)
-      back_clicked (self);
+    back_clicked (self);
 }
 
 static gboolean
