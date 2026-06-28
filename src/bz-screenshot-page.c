@@ -23,6 +23,8 @@
 #include "bz-zoom.h"
 #include <glib/gi18n.h>
 
+#define MOUSE_BACK_BUTTON 8
+
 struct _BzScreenshotPage
 {
   AdwBin parent_instance;
@@ -645,7 +647,7 @@ on_button_pressed (GtkGestureClick  *gesture,
                    double            y,
                    BzScreenshotPage *self)
 {
-  if (gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture)) == 8)
+  if (gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture)) == MOUSE_BACK_BUTTON)
     back_clicked (self);
 }
 
