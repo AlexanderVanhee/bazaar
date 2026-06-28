@@ -983,6 +983,7 @@ init_fiber (GWeakRef *wr)
   gboolean         has_flathub          = FALSE;
   gboolean         cache_has_flathub    = FALSE;
   gboolean         result               = FALSE;
+  g_autoptr (BzAuthState) auth_state    = NULL;
   g_autofree char *flathub_cache        = NULL;
   g_autoptr (GFile) flathub_cache_file  = NULL;
   g_autofree char *cache_version_path   = NULL;
@@ -1229,6 +1230,9 @@ init_fiber (GWeakRef *wr)
       g_warning ("Unable to ensure cache directory: %s", local_error->message);
       g_clear_error (&local_error);
     }
+
+  auth_state = bz_auth_state_new ();
+  bz_state_info_set_auth_state (self->state, auth_state);
 
   return dex_future_new_true ();
 }
@@ -2141,6 +2145,11 @@ init_fiber_finally (DexFuture *future,
           60 * 60 * 24, (GSourceFunc) periodic_timeout_cb, self);
 
       bz_malcontent_service_start (self->malcontent);
+
+      g_object_bind_property (
+        bz_state_info_get_auth_state (self->state), "authenticated",
+        g_action_map_lookup_action (G_ACTION_MAP (self), "flathub-login"), "enabled",
+        G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
     }
   else
     {
@@ -3096,7 +3105,6 @@ init_service_struct (BzApplication *self,
 #endif
   GtkCustomFilter *filter            = NULL;
   GNetworkMonitor *network           = NULL;
-  g_autoptr (BzAuthState) auth_state = NULL;
 
   g_type_ensure (BZ_TYPE_INTERNAL_CONFIG);
   internal_config_bytes = g_resources_lookup_data (
@@ -3324,14 +3332,6 @@ init_service_struct (BzApplication *self,
       "notify::disable-blocklists",
       G_CALLBACK (disable_blocklists_changed),
       self);
-
-  auth_state = bz_auth_state_new ();
-  bz_state_info_set_auth_state (self->state, auth_state);
-
-  g_object_bind_property (
-      auth_state, "authenticated",
-      g_action_map_lookup_action (G_ACTION_MAP (self), "flathub-login"), "enabled",
-      G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
 
   network = g_network_monitor_get_default ();
   if (network != NULL)
