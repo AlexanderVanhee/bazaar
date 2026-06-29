@@ -139,7 +139,7 @@ bz_screenshot_page_map (GtkWidget *widget)
   self->animation = ADW_SPRING_ANIMATION (
       adw_spring_animation_new (widget, 0.0, 1.0, params, target));
   adw_spring_animation_set_clamp (self->animation, TRUE);
-  adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.01000);
+  adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.0001);
   adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
 
   g_signal_connect (self->animation, "notify::value", G_CALLBACK (on_animation_value), self);
@@ -247,7 +247,7 @@ back_clicked (BzScreenshotPage *self)
       self->animation = ADW_SPRING_ANIMATION (
           adw_spring_animation_new (GTK_WIDGET (self), self->animation_progress, 0.0, params, target));
       adw_spring_animation_set_clamp (self->animation, TRUE);
-      adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.01000);
+      adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.0001);
       adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
 
       g_signal_connect (self->animation, "notify::value", G_CALLBACK (on_animation_value), self);
