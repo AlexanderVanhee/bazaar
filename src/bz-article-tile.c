@@ -18,6 +18,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#define BAZAAR_MODULE "article-tile"
+
 #include "config.h"
 
 #include "bz-article-list-view.h"
@@ -27,6 +29,7 @@
 #include "bz-async-texture.h"
 #include "bz-curated-article.h"
 #include "bz-curated-articles-info.h"
+#include "bz-io.h"
 
 struct _BzArticleTile
 {
@@ -147,13 +150,22 @@ static BzAsyncTexture *
 get_image (gpointer    object,
            const char *uri)
 {
-  g_autoptr (GFile) source = NULL;
+  g_autoptr (GFile) source     = NULL;
+  g_autoptr (GFile) cache_file = NULL;
+  g_autofree char *cache_dir   = NULL;
+  g_autofree char *checksum    = NULL;
+  g_autofree char *cache_path  = NULL;
 
   if (uri == NULL)
     return NULL;
 
-  source = g_file_new_for_uri (uri);
-  return bz_async_texture_new_lazy (source, NULL);
+  source     = g_file_new_for_uri (uri);
+  checksum   = g_compute_checksum_for_string (G_CHECKSUM_MD5, uri, -1);
+  cache_dir  = bz_dup_module_dir ();
+  cache_path = g_build_filename (cache_dir, checksum, NULL);
+  cache_file = g_file_new_for_path (cache_path);
+
+  return bz_async_texture_new_lazy (source, cache_file);
 }
 
 static void
