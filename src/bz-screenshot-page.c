@@ -190,10 +190,10 @@ bz_screenshot_page_map (GtkWidget *widget)
 
   target = adw_callback_animation_target_new ((AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
 
-  params = adw_spring_params_new (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
-  adw_spring_animation_set_clamp (self->animation, TRUE);
+  params          = adw_spring_params_new (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
   self->animation = ADW_SPRING_ANIMATION (
       adw_spring_animation_new (widget, 0.0, 1.0, params, target));
+  adw_spring_animation_set_clamp (self->animation, TRUE);
   adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.01000);
   adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
 
