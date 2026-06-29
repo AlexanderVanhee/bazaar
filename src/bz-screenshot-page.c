@@ -232,6 +232,8 @@ back_clicked (BzScreenshotPage *self)
     {
       self->closing = TRUE;
 
+      gtk_widget_set_can_target (GTK_WIDGET (self), FALSE);
+
       if (self->animation != NULL)
         {
           g_signal_handlers_disconnect_by_func (self->animation, on_animation_value, self);
@@ -907,4 +909,3 @@ on_scroll (BzScreenshotPage         *self,
 
   return GDK_EVENT_PROPAGATE;
 }
-
