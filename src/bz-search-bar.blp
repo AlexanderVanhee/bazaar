@@ -31,7 +31,12 @@ template $BzSearchBar: Widget {
     height-request: 16;
   }
 
-  Adw.Bin end_widget_bin {}
+  Adw.Bin end_widget_bin {
+    EventControllerFocus {
+      enter => $end_widget_focus_enter_cb(template);
+      leave => $end_widget_focus_leave_cb(template);
+    }
+  }
 
   Button clear_button {
     icon-name: "edit-clear";

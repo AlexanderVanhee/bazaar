@@ -103,6 +103,18 @@ bz_search_bar_grab_focus (GtkWidget *widget)
   return gtk_widget_grab_focus (GTK_WIDGET (self->search_text));
 }
 
+static void
+end_widget_focus_enter_cb (BzSearchBar *self)
+{
+  gtk_widget_add_css_class (GTK_WIDGET (self), "hide-focus");
+}
+
+static void
+end_widget_focus_leave_cb (BzSearchBar *self)
+{
+  gtk_widget_remove_css_class (GTK_WIDGET (self), "hide-focus");
+}
+
 BzSearchBar *
 bz_search_bar_new (void)
 {
@@ -246,6 +258,8 @@ bz_search_bar_class_init (BzSearchBarClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, text_changed_cb);
   gtk_widget_class_bind_template_callback (widget_class, has_text_cb);
   gtk_widget_class_bind_template_callback (widget_class, clear_text_cb);
+  gtk_widget_class_bind_template_callback (widget_class, end_widget_focus_enter_cb);
+  gtk_widget_class_bind_template_callback (widget_class, end_widget_focus_leave_cb);
 }
 
 static GtkEditable *

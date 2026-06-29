@@ -81,6 +81,10 @@
   outline-width: 2px;
 }
 
+.search-box.hide-focus:focus-within {
+  outline-color: transparent;
+}
+
 @media (prefers-color-scheme: light) {
   .search-box {
     background-color: var(--shade-color);
