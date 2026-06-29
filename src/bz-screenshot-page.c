@@ -25,6 +25,10 @@
 
 #define MOUSE_BACK_BUTTON 8
 
+#define SPRING_DAMPING_RATIO 1.05
+#define SPRING_MASS          1.0
+#define SPRING_STIFFNESS     1000.0
+
 struct _BzScreenshotPage
 {
   AdwBin parent_instance;
@@ -138,7 +142,7 @@ back_clicked (BzScreenshotPage *self)
       target = adw_callback_animation_target_new (
           (AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
 
-      params          = adw_spring_params_new (0.77, 0.4, 100.0);
+      params          = adw_spring_params_new (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
       self->animation = ADW_SPRING_ANIMATION (
           adw_spring_animation_new (GTK_WIDGET (self), self->animation_progress, 0.0, params, target));
       adw_spring_animation_set_clamp (self->animation, TRUE);
@@ -186,7 +190,7 @@ bz_screenshot_page_map (GtkWidget *widget)
 
   target = adw_callback_animation_target_new ((AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
 
-  params = adw_spring_params_new (0.77, 0.5, 100.0);
+  params = adw_spring_params_new (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
   adw_spring_animation_set_clamp (self->animation, TRUE);
   self->animation = ADW_SPRING_ANIMATION (
       adw_spring_animation_new (widget, 0.0, 1.0, params, target));
