@@ -19,6 +19,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "config.h"
+
 #include "bz-search-bar.h"
 
 struct _BzSearchBar
