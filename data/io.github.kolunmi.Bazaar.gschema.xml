@@ -65,5 +65,10 @@
       <summary>Show Permission Warning Banner</summary>
       <description>Show a warning banner on the permissions page</description>
     </key>
+    <key name="check-for-ubuntu" type="b">
+      <default>true</default>
+      <summary>Check For Ubuntu</summary>
+      <description>Whether to check for and warn about Ubuntu's broken apparmor permissions on startup</description>
+    </key>
   </schema>
 </schemalist>

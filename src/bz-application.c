@@ -990,6 +990,55 @@ init_fiber (GWeakRef *wr)
 
   bz_weak_get_or_return_reject (self, wr);
 
+#ifdef SANDBOXED_LIBFLATPAK
+  if (g_settings_get_boolean (self->settings, "check-for-ubuntu"))
+    {
+      /* Here until Ubuntu fixes its apparmor crap. */
+      g_autoptr (GSubprocess) os_check = NULL;
+      g_autoptr (GBytes) os_out        = NULL;
+
+      os_check = g_subprocess_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE,
+          NULL, "flatpak-spawn", "--host", "cat", "/usr/lib/os-release", NULL);
+      if (os_check != NULL)
+        g_subprocess_communicate (os_check, NULL, NULL, &os_out, NULL, NULL);
+
+      if (os_out != NULL &&
+          strstr (g_bytes_get_data (os_out, NULL), "ID=ubuntu") != NULL)
+        {
+          GtkWindow *window         = NULL;
+          AdwDialog *alert          = NULL;
+          g_autofree char *response = NULL;
+
+          dex_await (DEX_FUTURE (self->first_window_opened), NULL);
+
+          window = gtk_application_get_active_window (GTK_APPLICATION (self));
+          if (window == NULL)
+            window = new_window (self);
+
+          alert = adw_alert_dialog_new (NULL, NULL);
+          adw_alert_dialog_format_heading (ADW_ALERT_DIALOG (alert), _ ("Ubuntu Troubles!"));
+          adw_alert_dialog_format_body_markup (
+            ADW_ALERT_DIALOG (alert),
+            _ ("The more recent versions of Ubuntu have messed up default security rules, "
+               "making it <b>impossible to install apps</b> from the Flatpak version "
+               "of Bazaar, please just use the normal package for now by using\n\n"
+               "<tt>sudo apt install bazaar</tt>\n\n"
+               "You can then remove this Flatpak version with\n\n"
+               "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"));
+          adw_alert_dialog_add_response (ADW_ALERT_DIALOG (alert), "ok", _ ("Continue Anyway"));
+          adw_alert_dialog_set_default_response (ADW_ALERT_DIALOG (alert), "ok");
+          adw_alert_dialog_set_close_response (ADW_ALERT_DIALOG (alert), "ok");
+
+          adw_dialog_present (alert, GTK_WIDGET (window));
+          response = dex_await_string (bz_make_alert_dialog_future (ADW_ALERT_DIALOG (alert)), NULL);
+
+          g_settings_set_boolean (self->settings, "check-for-ubuntu", FALSE);
+        }
+      else
+        g_settings_set_boolean (self->settings, "check-for-ubuntu", FALSE);
+    }
+#endif
+
   bz_state_info_set_online (self->state, TRUE);
   bz_state_info_set_busy (self->state, TRUE);
   bz_state_info_set_background_task_label (self->state, _ ("Performing setup…"));
