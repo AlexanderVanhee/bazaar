@@ -33,7 +33,8 @@
 
 struct _BzArticleTile
 {
-  BzListTile        parent_instance;
+  BzListTile parent_instance;
+
   BzCuratedArticle *article;
   float             aspect_ratio;
 
