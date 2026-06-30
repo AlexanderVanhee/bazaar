@@ -73,6 +73,30 @@
   </screenshots>
 
   <releases>
+    <release version="0.9.0" date="2026-06-30">
+      <url type="details">https://github.com/bazaar-org/bazaar/releases/tag/v0.9.0</url>
+      <description translate="no">
+        <p>
+          <em>New Features</em>
+        </p>
+        <ul>
+          <li>Added three new tabs to the "We ❤️ Games" section</li>
+          <li>App links can now span two columns</li>
+          <li>Improved the apps startup time</li>
+          <li>Improved the image viewer opening animation</li>
+          <li>Made many accessibility improvements</li>
+        </ul>
+        <p>
+          <em>Bug Fixes</em>
+        </p>
+        <ul>
+          <li>Fixed an issue where the app page would sometimes not update when busy refreshing</li>
+        </ul>
+        <p>
+          Thanks for reading, and have a great day!
+        </p>
+      </description>
+    </release>
     <release version="0.8.2" date="2026-06-07">
       <url type="details">https://github.com/bazaar-org/bazaar/releases/tag/v0.8.2</url>
       <description translate="no">
