@@ -216,7 +216,6 @@ gobject_specs = files(
   'bz-blocklist-condition.txt',
   'bz-blocklist.txt',
   'bz-bulk-install-dialog-result.txt',
-  'bz-comet.txt',
   'bz-country-data-point.txt',
   'bz-country.txt',
   'bz-curated-appids-info.txt',

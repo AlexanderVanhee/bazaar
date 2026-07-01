@@ -88,6 +88,11 @@ typedef struct
   GPtrArray         *source_views;
   GString           *alt_text;
   gboolean           in_image;
+  GtkWidget         *grid;
+  guint              grid_rows;
+  guint              grid_columns;
+  guint              grid_row_idx;
+  guint              grid_column_idx;
 } ParseCtx;
 
 static GtkBox *
@@ -128,7 +133,8 @@ static const MD_PARSER parser = {
   .flags = MD_FLAG_COLLAPSEWHITESPACE |
            MD_FLAG_NOHTMLBLOCKS |
            MD_FLAG_NOHTMLSPANS |
-           MD_FLAG_STRIKETHROUGH,
+           MD_FLAG_STRIKETHROUGH |
+           MD_FLAG_TABLES,
   .enter_block = enter_block,
   .leave_block = leave_block,
   .enter_span  = enter_span,
@@ -505,6 +511,8 @@ regenerate (BgeMarkdownRender *self)
     g_string_free (ctx.markup, TRUE);
   if (ctx.alt_text != NULL)
     g_string_free (ctx.alt_text, TRUE);
+  if (ctx.grid != NULL)
+    g_object_unref (ctx.grid);
   g_array_unref (ctx.block_stack);
   g_ptr_array_unref (ctx.container_stack);
 
@@ -590,6 +598,18 @@ enter_block (MD_BLOCKTYPE type,
       ctx->list_index++;
 
       ctx->markup = g_string_new (NULL);
+    }
+  else if (type == MD_BLOCK_TABLE)
+    {
+      MD_BLOCK_TABLE_DETAIL *table_detail = detail;
+      g_assert (ctx->grid == NULL);
+      ctx->grid = gtk_grid_new ();
+      gtk_widget_add_css_class (ctx->grid, "markdown-table");
+      gtk_widget_set_halign (ctx->grid, GTK_ALIGN_START);
+      ctx->grid_rows       = table_detail->head_row_count + table_detail->body_row_count;
+      ctx->grid_columns    = table_detail->col_count;
+      ctx->grid_row_idx    = 0;
+      ctx->grid_column_idx = 0;
     }
   else
     ctx->markup = g_string_new (NULL);
@@ -994,15 +1014,51 @@ terminate_block (MD_BLOCKTYPE type,
       }
       break;
 
-    case MD_BLOCK_HTML:
     case MD_BLOCK_TABLE:
+      break;
+
     case MD_BLOCK_THEAD:
     case MD_BLOCK_TBODY:
     case MD_BLOCK_TR:
+      break;
+
     case MD_BLOCK_TH:
     case MD_BLOCK_TD:
+      {
+        GtkWidget *label = NULL;
+
+        g_assert (ctx->markup != NULL);
+
+        label = gtk_label_new (ctx->markup->str);
+        SET_DEFAULTS (label);
+
+        if (type == MD_BLOCK_TH)
+          gtk_widget_add_css_class (label, "heading");
+
+        if (ctx->grid_row_idx % 2 == 1)
+          gtk_widget_add_css_class (label, "row-odd");
+
+        gtk_grid_attach (
+            GTK_GRID (ctx->grid),
+            label,
+            ctx->grid_column_idx * 2, ctx->grid_row_idx,
+            1, 1);
+
+        ctx->grid_column_idx++;
+        if (ctx->grid_column_idx >= ctx->grid_columns)
+          {
+            ctx->grid_row_idx++;
+            ctx->grid_column_idx = 0;
+
+            if (ctx->grid_row_idx >= ctx->grid_rows)
+              child = g_steal_pointer (&ctx->grid);
+          }
+      }
+      break;
+
+    case MD_BLOCK_HTML:
     default:
-      g_warning ("Unsupported markdown event (Did you use html/tables?)");
+      g_warning ("Unsupported markdown event (Did you use html?)");
       return 1;
     }
 

@@ -1,9 +1,7 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $BzScreenshotPage: Adw.NavigationPage {
-  title: _("Screenshots");
-
+template $BzScreenshotPage: Adw.Bin {
   child: Adw.BreakpointBin {
     width-request: 360;
     height-request: 100;
@@ -34,7 +32,19 @@ template $BzScreenshotPage: Adw.NavigationPage {
 
           show-end-title-buttons: false;
           show-start-title-buttons: false;
+          show-back-button: false;
           show-title: false;
+
+          [start]
+          Button back_button {
+            icon-name: "go-previous-symbolic";
+            tooltip-text: _("Back");
+            clicked => $back_clicked() swapped;
+
+            styles [
+              "flat",
+            ]
+          }
         }
 
         content: Overlay {
