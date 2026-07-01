@@ -990,26 +990,43 @@ init_fiber (GWeakRef *wr)
 
   bz_weak_get_or_return_reject (self, wr);
 
+/* Here until Ubuntu fixes its apparmor crap. */
 #ifdef SANDBOXED_LIBFLATPAK
   if (g_settings_get_boolean (self->settings, "check-for-ubuntu"))
     {
-      /* Here until Ubuntu fixes its apparmor crap. */
-      g_autoptr (GSubprocess) os_check = NULL;
-      g_autoptr (GBytes) os_out        = NULL;
+      g_autoptr (GSubprocessLauncher) os_check_launcher = NULL;
+      g_autoptr (GSubprocess) os_check                  = NULL;
+      g_autoptr (GError) os_check_error                 = NULL;
+      gboolean      os_check_result                     = FALSE;
+      GInputStream *os_check_stdout_pipe                = NULL;
+      g_autoptr (GBytes) os_out                         = NULL;
 
-      os_check = g_subprocess_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE,
-          NULL, "flatpak-spawn", "--host", "cat", "/usr/lib/os-release", NULL);
+      os_check_launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE);
+      os_check          = g_subprocess_launcher_spawn (os_check_launcher, &os_check_error,
+                                                       "flatpak-spawn", "--host", "cat", "/usr/lib/os-release", NULL);
+
       if (os_check != NULL)
-        g_subprocess_communicate (os_check, NULL, NULL, &os_out, NULL, NULL);
+        {
+          os_check_result = dex_await (dex_subprocess_wait_check (os_check), &os_check_error);
+          if (os_check_result)
+            {
+              os_check_stdout_pipe = g_subprocess_get_stdout_pipe (os_check);
+              os_out               = g_input_stream_read_bytes (os_check_stdout_pipe, 4096, NULL, &os_check_error);
+            }
+          else
+            g_warning ("Ubuntu check subprocess failed: %s", os_check_error->message);
+        }
+      else
+        g_warning ("Failed to spawn ubuntu check subprocess: %s", os_check_error->message);
 
       if (os_out != NULL &&
           strstr (g_bytes_get_data (os_out, NULL), "ID=ubuntu") != NULL)
         {
-          GtkWindow *window         = NULL;
-          AdwDialog *alert          = NULL;
+          GtkWindow       *window   = NULL;
+          AdwDialog       *alert    = NULL;
           g_autofree char *response = NULL;
 
-          dex_await (DEX_FUTURE (self->first_window_opened), NULL);
+          dex_await (dex_ref (DEX_FUTURE (self->first_window_opened)), NULL);
 
           window = gtk_application_get_active_window (GTK_APPLICATION (self));
           if (window == NULL)
@@ -1018,13 +1035,13 @@ init_fiber (GWeakRef *wr)
           alert = adw_alert_dialog_new (NULL, NULL);
           adw_alert_dialog_format_heading (ADW_ALERT_DIALOG (alert), _ ("Ubuntu Troubles!"));
           adw_alert_dialog_format_body_markup (
-            ADW_ALERT_DIALOG (alert),
-            _ ("The more recent versions of Ubuntu have messed up default security rules, "
-               "making it <b>impossible to install apps</b> from the Flatpak version "
-               "of Bazaar, please just use the normal package for now by using\n\n"
-               "<tt>sudo apt install bazaar</tt>\n\n"
-               "You can then remove this Flatpak version with\n\n"
-               "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"));
+              ADW_ALERT_DIALOG (alert),
+              _ ("The more recent versions of Ubuntu have messed up default security rules, "
+                 "making it <b>impossible to install apps</b> from the Flatpak version "
+                 "of Bazaar, please just use the normal package for now by using\n\n"
+                 "<tt>sudo apt install bazaar</tt>\n\n"
+                 "You can then remove this Flatpak version with\n\n"
+                 "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"));
           adw_alert_dialog_add_response (ADW_ALERT_DIALOG (alert), "ok", _ ("Continue Anyway"));
           adw_alert_dialog_set_default_response (ADW_ALERT_DIALOG (alert), "ok");
           adw_alert_dialog_set_close_response (ADW_ALERT_DIALOG (alert), "ok");
