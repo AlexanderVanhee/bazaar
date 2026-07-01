@@ -967,6 +967,19 @@ curated-list-view list {
   font-size: 1.50em;
 }
 
+.markdown-table {
+  border-top: 1px solid alpha(currentColor, 0.15);
+  border-left: 1px solid alpha(currentColor, 0.15);
+}
+.markdown-table > label {
+  padding: 8px 14px;
+  border-right: 1px solid alpha(currentColor, 0.15);
+  border-bottom: 1px solid alpha(currentColor, 0.15);
+}
+.markdown-table > label.row-odd {
+  background-color: alpha(currentColor, 0.08);
+}
+
 .install-button-indicator {
     background: var(--flag-gradient, var(--accent-bg-color));
     border-radius: 9999px;
