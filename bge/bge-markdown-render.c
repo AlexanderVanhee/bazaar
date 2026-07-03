@@ -1126,9 +1126,7 @@ terminate_block (MD_BLOCKTYPE type,
                     child = scrolled;
                   }
                 else
-                  {
-                    child = grid;
-                  }
+                  child = grid;
               }
           }
       }
