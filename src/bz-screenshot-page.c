@@ -171,6 +171,7 @@ bz_screenshot_page_snapshot (GtkWidget *widget, GtkSnapshot *snapshot)
   float             w        = 0.0f;
   float             h        = 0.0f;
   graphene_rect_t   lerped;
+  graphene_rect_t   source_bounds;
 
   progress = self->animation_progress;
   width    = gtk_widget_get_width (widget);
@@ -182,12 +183,18 @@ bz_screenshot_page_snapshot (GtkWidget *widget, GtkSnapshot *snapshot)
       return;
     }
 
+  if (self->source_widget != NULL &&
+      !gtk_widget_compute_bounds (self->source_widget, widget, &source_bounds))
+    source_bounds = self->source_bounds_at_map;
+  else if (self->source_widget == NULL)
+    source_bounds = self->source_bounds_at_map;
+
   rev = (float) (1.0 - progress);
 
-  x = self->source_bounds_at_map.origin.x * rev + 0.0f * (float) progress;
-  y = self->source_bounds_at_map.origin.y * rev + 0.0f * (float) progress;
-  w = self->source_bounds_at_map.size.width * rev + (float) width * (float) progress;
-  h = self->source_bounds_at_map.size.height * rev + (float) height * (float) progress;
+  x = source_bounds.origin.x * rev + 0.0f * (float) progress;
+  y = source_bounds.origin.y * rev + 0.0f * (float) progress;
+  w = source_bounds.size.width * rev + (float) width * (float) progress;
+  h = source_bounds.size.height * rev + (float) height * (float) progress;
 
   graphene_rect_init (&lerped, x, y, w, h);
 
@@ -197,11 +204,11 @@ bz_screenshot_page_snapshot (GtkWidget *widget, GtkSnapshot *snapshot)
   gtk_snapshot_save (snapshot);
   gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
   gtk_snapshot_scale (snapshot,
-                      w / self->source_bounds_at_map.size.width,
-                      h / self->source_bounds_at_map.size.height);
+                      w / source_bounds.size.width,
+                      h / source_bounds.size.height);
   gdk_paintable_snapshot (GDK_PAINTABLE (self->source_texture), snapshot,
-                          self->source_bounds_at_map.size.width,
-                          self->source_bounds_at_map.size.height);
+                          source_bounds.size.width,
+                          source_bounds.size.height);
   gtk_snapshot_restore (snapshot);
 
   gtk_snapshot_pop (snapshot);
