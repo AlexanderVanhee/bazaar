@@ -30,6 +30,7 @@
 #define SPRING_DAMPING_RATIO 1.05
 #define SPRING_MASS          1.0
 #define SPRING_STIFFNESS     1000.0
+#define FADE_DURATION_MS     350
 
 struct _BzScreenshotPage
 {
@@ -44,13 +45,14 @@ struct _BzScreenshotPage
   guint       initial_index;
 
   gboolean is_zoomed;
+  gboolean reduce_motion;
 
-  GtkWidget          *source_widget;
-  GdkTexture         *source_texture;
-  graphene_rect_t     source_bounds_at_map;
-  AdwSpringAnimation *animation;
-  double              animation_progress;
-  gboolean            closing;
+  GtkWidget      *source_widget;
+  GdkTexture     *source_texture;
+  graphene_rect_t source_bounds_at_map;
+  AdwAnimation   *animation;
+  double          animation_progress;
+  gboolean        closing;
 };
 
 G_DEFINE_FINAL_TYPE (BzScreenshotPage, bz_screenshot_page, ADW_TYPE_BIN)
@@ -70,9 +72,13 @@ static GParamSpec *props[LAST_PROP] = { 0 };
 
 static GdkTexture *render_widget_to_texture (GtkWidget *widget);
 
-static void on_animation_value (AdwSpringAnimation *animation,
-                                GParamSpec         *pspec,
-                                BzScreenshotPage   *self);
+static void on_animation_value (AdwAnimation     *animation,
+                                GParamSpec       *pspec,
+                                BzScreenshotPage *self);
+
+static void on_fade_animation_value (AdwAnimation     *animation,
+                                     GParamSpec       *pspec,
+                                     BzScreenshotPage *self);
 
 static void on_close_animation_done (AdwAnimation     *animation,
                                      BzScreenshotPage *self);
@@ -113,11 +119,33 @@ static gboolean on_scroll (BzScreenshotPage         *self,
 static void
 bz_screenshot_page_map (GtkWidget *widget)
 {
-  BzScreenshotPage   *self   = BZ_SCREENSHOT_PAGE (widget);
-  AdwAnimationTarget *target = NULL;
-  AdwSpringParams    *params = NULL;
+  BzScreenshotPage   *self           = BZ_SCREENSHOT_PAGE (widget);
+  AdwAnimationTarget *target         = NULL;
+  AdwSpringParams    *params         = NULL;
+  GtkSettings        *settings       = NULL;
+  GtkReducedMotion    reduced_motion = GTK_REDUCED_MOTION_NO_PREFERENCE;
 
   GTK_WIDGET_CLASS (bz_screenshot_page_parent_class)->map (widget);
+
+  settings = gtk_widget_get_settings (widget);
+  g_object_get (settings, "gtk-interface-reduced-motion", &reduced_motion, NULL);
+
+  self->reduce_motion = reduced_motion != GTK_REDUCED_MOTION_NO_PREFERENCE;
+  self->closing       = FALSE;
+
+  if (self->reduce_motion)
+    {
+      self->animation_progress = 1.0;
+      g_clear_object (&self->source_texture);
+      gtk_widget_set_opacity (widget, 0.0);
+      target = adw_callback_animation_target_new (
+          (AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
+      self->animation = adw_timed_animation_new (widget, 0.0, 1.0, FADE_DURATION_MS, target);
+      g_signal_connect (self->animation, "notify::value",
+                        G_CALLBACK (on_fade_animation_value), self);
+      adw_animation_play (self->animation);
+      return;
+    }
 
   if (self->source_widget != NULL)
     {
@@ -131,20 +159,17 @@ bz_screenshot_page_map (GtkWidget *widget)
     }
 
   self->animation_progress = 0.0;
-  self->closing            = FALSE;
 
   target = adw_callback_animation_target_new ((AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
 
   params          = adw_spring_params_new (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
-  self->animation = ADW_SPRING_ANIMATION (
-      adw_spring_animation_new (widget, 0.0, 1.0, params, target));
-  adw_spring_animation_set_clamp (self->animation, TRUE);
+  self->animation = adw_spring_animation_new (widget, 0.0, 1.0, params, target);
+  adw_spring_animation_set_clamp (ADW_SPRING_ANIMATION (self->animation), TRUE);
   adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.0001);
+
   adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
-
   g_signal_connect (self->animation, "notify::value", G_CALLBACK (on_animation_value), self);
-
-  adw_animation_play (ADW_ANIMATION (self->animation));
+  adw_animation_play (self->animation);
 }
 
 static void
@@ -244,23 +269,35 @@ back_clicked (BzScreenshotPage *self)
       if (self->animation != NULL)
         {
           g_signal_handlers_disconnect_by_func (self->animation, on_animation_value, self);
+          g_signal_handlers_disconnect_by_func (self->animation, on_fade_animation_value, self);
           g_clear_object (&self->animation);
         }
 
       target = adw_callback_animation_target_new (
           (AdwAnimationTargetFunc) gtk_widget_queue_draw, self, NULL);
 
-      params          = adw_spring_params_new (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
-      self->animation = ADW_SPRING_ANIMATION (
-          adw_spring_animation_new (GTK_WIDGET (self), self->animation_progress, 0.0, params, target));
-      adw_spring_animation_set_clamp (self->animation, TRUE);
-      adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.0001);
-      adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
+      if (self->reduce_motion)
+        {
+          self->animation = adw_timed_animation_new (
+              GTK_WIDGET (self), gtk_widget_get_opacity (GTK_WIDGET (self)), 0.0,
+              FADE_DURATION_MS, target);
+          g_signal_connect (self->animation, "notify::value",
+                            G_CALLBACK (on_fade_animation_value), self);
+        }
+      else
+        {
+          params          = adw_spring_params_new (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
+          self->animation = adw_spring_animation_new (
+              GTK_WIDGET (self), self->animation_progress, 0.0, params, target);
+          adw_spring_animation_set_clamp (ADW_SPRING_ANIMATION (self->animation), TRUE);
+          adw_spring_animation_set_epsilon (ADW_SPRING_ANIMATION (self->animation), 0.0001);
+          adw_spring_animation_set_initial_velocity (ADW_SPRING_ANIMATION (self->animation), -1.2);
+          g_signal_connect (self->animation, "notify::value", G_CALLBACK (on_animation_value), self);
+        }
 
-      g_signal_connect (self->animation, "notify::value", G_CALLBACK (on_animation_value), self);
       g_signal_connect (self->animation, "done", G_CALLBACK (on_close_animation_done), self);
 
-      adw_animation_play (ADW_ANIMATION (self->animation));
+      adw_animation_play (self->animation);
     }
   else
     {
@@ -731,12 +768,20 @@ render_widget_to_texture (GtkWidget *widget)
 }
 
 static void
-on_animation_value (AdwSpringAnimation *animation,
-                    GParamSpec         *pspec,
-                    BzScreenshotPage   *self)
+on_animation_value (AdwAnimation     *animation,
+                    GParamSpec       *pspec,
+                    BzScreenshotPage *self)
 {
-  self->animation_progress = adw_animation_get_value (ADW_ANIMATION (animation));
+  self->animation_progress = adw_animation_get_value (animation);
   gtk_widget_queue_draw (GTK_WIDGET (self));
+}
+
+static void
+on_fade_animation_value (AdwAnimation     *animation,
+                         GParamSpec       *pspec,
+                         BzScreenshotPage *self)
+{
+  gtk_widget_set_opacity (GTK_WIDGET (self), adw_animation_get_value (animation));
 }
 
 static void
