@@ -2,7 +2,7 @@
 
 INSTR="$1"
 
-VERSION=0.8.4
+VERSION=0.9.1
 
 case "$INSTR" in
     get-version)

@@ -41,6 +41,7 @@ struct _BgeMarkdownRender
 
   char    *markdown;
   gboolean dark;
+  gboolean wrap_tables;
   int      spacing;
 
   GtkWidget *box;
@@ -56,6 +57,7 @@ enum
 
   PROP_MARKDOWN,
   PROP_DARK,
+  PROP_WRAP_TABLES,
   PROP_SPACING,
 
   LAST_PROP
@@ -180,6 +182,9 @@ bge_markdown_render_get_property (GObject    *object,
     case PROP_DARK:
       g_value_set_boolean (value, bge_markdown_render_get_dark (self));
       break;
+    case PROP_WRAP_TABLES:
+      g_value_set_boolean (value, bge_markdown_render_get_wrap_tables (self));
+      break;
     case PROP_SPACING:
       g_value_set_int (value, bge_markdown_render_get_spacing (self));
       break;
@@ -203,6 +208,9 @@ bge_markdown_render_set_property (GObject      *object,
       break;
     case PROP_DARK:
       bge_markdown_render_set_dark (self, g_value_get_boolean (value));
+      break;
+    case PROP_WRAP_TABLES:
+      bge_markdown_render_set_wrap_tables (self, g_value_get_boolean (value));
       break;
     case PROP_SPACING:
       bge_markdown_render_set_spacing (self, g_value_get_int (value));
@@ -284,6 +292,17 @@ bge_markdown_render_class_init (BgeMarkdownRenderClass *klass)
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
+   * BgeMarkdownRender:wrap-tables:
+   *
+   * Whether if table elements should scroll horizontally or wrap.
+   */
+  props[PROP_WRAP_TABLES] =
+      g_param_spec_boolean (
+          "wrap-tables",
+          NULL, NULL, TRUE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
    * BgeMarkdownRender:spacing:
    *
    * Vertical spacing between rendered block-level elements, in pixels.
@@ -335,7 +354,8 @@ bge_markdown_render_class_init (BgeMarkdownRenderClass *klass)
 static void
 bge_markdown_render_init (BgeMarkdownRender *self)
 {
-  self->spacing = 7;
+  self->spacing     = 7;
+  self->wrap_tables = TRUE;
 
   self->box = gtk_box_new (GTK_ORIENTATION_VERTICAL, self->spacing);
   gtk_widget_set_parent (self->box, GTK_WIDGET (self));
@@ -430,6 +450,44 @@ bge_markdown_render_set_dark (BgeMarkdownRender *self,
   check_dark_mode (self);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_DARK]);
+}
+
+/**
+ * bge_markdown_render_get_wrap_tables:
+ * @self: a `BgeMarkdownRender`
+ *
+ * Gets [property@Bge.MarkdownRender:wrap-tables].
+ *
+ * Returns: the value of the property
+ */
+gboolean
+bge_markdown_render_get_wrap_tables (BgeMarkdownRender *self)
+{
+  g_return_val_if_fail (BGE_IS_MARKDOWN_RENDER (self), FALSE);
+  return self->wrap_tables;
+}
+
+/**
+ * bge_markdown_render_set_wrap_tables:
+ * @self: a `BgeMarkdownRender`
+ * @wrap_tables: a boolean
+ *
+ * Sets [property@Bge.MarkdownRender:wrap-tables].
+ */
+void
+bge_markdown_render_set_wrap_tables (BgeMarkdownRender *self,
+                                     gboolean           wrap_tables)
+{
+  g_return_if_fail (BGE_IS_MARKDOWN_RENDER (self));
+
+  wrap_tables = !!wrap_tables;
+  if (self->wrap_tables == wrap_tables)
+    return;
+
+  self->wrap_tables = wrap_tables;
+  regenerate (self);
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_WRAP_TABLES]);
 }
 
 /**
@@ -1031,6 +1089,7 @@ terminate_block (MD_BLOCKTYPE type,
 
         label = gtk_label_new (ctx->markup->str);
         SET_DEFAULTS (label);
+        gtk_label_set_wrap (GTK_LABEL (label), ctx->self->wrap_tables);
 
         if (type == MD_BLOCK_TH)
           gtk_widget_add_css_class (label, "heading");
@@ -1051,7 +1110,24 @@ terminate_block (MD_BLOCKTYPE type,
             ctx->grid_column_idx = 0;
 
             if (ctx->grid_row_idx >= ctx->grid_rows)
-              child = g_steal_pointer (&ctx->grid);
+              {
+                GtkWidget *grid = g_steal_pointer (&ctx->grid);
+
+                if (!ctx->self->wrap_tables)
+                  {
+                    GtkWidget *scrolled = NULL;
+                    scrolled            = gtk_scrolled_window_new ();
+
+                    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
+                    gtk_scrolled_window_set_propagate_natural_height (
+                        GTK_SCROLLED_WINDOW (scrolled), TRUE);
+                    gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), grid);
+                    child = scrolled;
+                  }
+                else
+                  child = grid;
+              }
           }
       }
       break;

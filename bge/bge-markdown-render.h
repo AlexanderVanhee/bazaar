@@ -53,6 +53,13 @@ void
 bge_markdown_render_set_spacing (BgeMarkdownRender *self,
                                  int                spacing);
 
+gboolean
+bge_markdown_render_get_wrap_tables (BgeMarkdownRender *self);
+
+void
+bge_markdown_render_set_wrap_tables (BgeMarkdownRender *self,
+                                     gboolean           wrap_tables);
+
 G_END_DECLS
 
 /* End of bge-markdown-render.h */
