@@ -678,6 +678,21 @@ action_launch_group (GtkWidget  *widget,
 }
 
 static void
+action_activate_hook_app (GtkWidget  *widget,
+                          const char *action_name,
+                          GVariant   *parameter)
+{
+  BzWindow   *self               = BZ_WINDOW (widget);
+  const char *id                 = NULL;
+  g_autoptr (BzEntryGroup) group = NULL;
+
+  id    = g_variant_get_string (parameter, NULL);
+  group = bz_entry_group_new_manual (id, NULL, NULL);
+
+  emit_hook_disown (self, BZ_HOOK_SIGNAL_ARTICLE_APP, group);
+}
+
+static void
 bz_window_class_init (BzWindowClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
@@ -745,6 +760,7 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_install_action (widget_class, "window.addons-group", "s", action_addons_group);
   gtk_widget_class_install_action (widget_class, "window.bulk-install", NULL, action_bulk_install);
   gtk_widget_class_install_action (widget_class, "window.launch-group", "s", action_launch_group);
+  gtk_widget_class_install_action (widget_class, "window.activate-hook-app", "s", action_activate_hook_app);
 
   gtk_widget_class_add_binding_action (widget_class, GDK_KEY_d, GDK_CONTROL_MASK, "window.open-library", NULL);
   gtk_widget_class_add_binding_action (widget_class, GDK_KEY_w, GDK_CONTROL_MASK, "window.close", NULL);
