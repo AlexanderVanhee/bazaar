@@ -38,6 +38,7 @@
 #include "bz-library-page.h"
 #include "bz-progress-bar.h"
 #include "bz-screenshot-page.h"
+#include "bz-search-bar.h"
 #include "bz-search-page.h"
 #include "bz-template-callbacks.h"
 #include "bz-transaction-dialog.h"
@@ -701,6 +702,7 @@ bz_window_class_init (BzWindowClass *klass)
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
+  g_type_ensure (BZ_TYPE_SEARCH_BAR);
   g_type_ensure (BZ_TYPE_SEARCH_PAGE);
   g_type_ensure (BZ_TYPE_PROGRESS_BAR);
   g_type_ensure (BZ_TYPE_CURATED_VIEW);
