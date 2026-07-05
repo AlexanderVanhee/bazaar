@@ -984,10 +984,11 @@ bz_flatpak_repo_new_from_url (const char   *url,
   g_autoptr (GOutputStream) output = NULL;
   g_autoptr (GBytes) bytes         = NULL;
   g_autoptr (GKeyFile) key_file    = NULL;
-  BzFlatpakRepo *repo              = NULL;
+  g_autoptr (BzFlatpakRepo) repo   = NULL;
   g_autoptr (GError) local_error   = NULL;
   gboolean         result          = FALSE;
   g_autofree char *name            = NULL;
+  char            *dot             = NULL;
   g_autofree char *title           = NULL;
   g_autofree char *repo_url        = NULL;
   g_autofree char *homepage        = NULL;
@@ -1001,11 +1002,9 @@ bz_flatpak_repo_new_from_url (const char   *url,
   gboolean gpg_verify              = FALSE;
 
   name = g_path_get_basename (url);
-  {
-    char *dot = strrchr (name, '.');
-    if (dot != NULL)
-      *dot = '\0';
-  }
+  dot  = strrchr (name, '.');
+  if (dot != NULL)
+    *dot = '\0';
 
   message = soup_message_new (SOUP_METHOD_GET, url);
   output  = g_memory_output_stream_new_resizable ();
@@ -1045,19 +1044,20 @@ bz_flatpak_repo_new_from_url (const char   *url,
       g_clear_error (&bool_error);
     }
 
-  repo = g_object_new (BZ_TYPE_FLATPAK_REPO,
-                       "name", name,
-                       "title", title,
-                       "url", repo_url,
-                       "homepage", homepage,
-                       "comment", comment,
-                       "description", description,
-                       "icon", icon,
-                       "gpg-key", gpg_key,
-                       "default-branch", default_branch,
-                       "filter", filter,
-                       "gpg-verify", gpg_verify,
-                       NULL);
+  repo = g_object_new (
+      BZ_TYPE_FLATPAK_REPO,
+      "name", name,
+      "title", title,
+      "url", repo_url,
+      "homepage", homepage,
+      "comment", comment,
+      "description", description,
+      "icon", icon,
+      "gpg-key", gpg_key,
+      "default-branch", default_branch,
+      "filter", filter,
+      "gpg-verify", gpg_verify,
+      NULL);
 
   return dex_future_new_for_object (repo);
 }

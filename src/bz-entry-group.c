@@ -622,6 +622,23 @@ bz_entry_group_new_for_single_entry (BzEntry *entry)
   return group;
 }
 
+BzEntryGroup *
+bz_entry_group_new_manual (const char *id,
+                           const char *title,
+                           const char *subtitle)
+{
+  BzEntryGroup *group = g_object_new (BZ_TYPE_ENTRY_GROUP, NULL);
+
+  if (id != NULL)
+    group->id = g_strdup (id);
+  if (title != NULL)
+    group->title = g_strdup (title);
+  if (subtitle != NULL)
+    group->description = g_strdup (subtitle);
+
+  return group;
+}
+
 GMutexLocker *
 bz_entry_group_lock (BzEntryGroup *self)
 {
