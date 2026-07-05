@@ -145,6 +145,7 @@ bz_app_tile_dispose (GObject *object)
   BzAppTile *self = BZ_APP_TILE (object);
 
   g_clear_object (&self->group);
+  g_clear_object (&self->icon_override);
 
   G_OBJECT_CLASS (bz_app_tile_parent_class)->dispose (object);
 }
