@@ -396,7 +396,8 @@ Here is how they did it:
 
 ## Article markdown
 
-Curated articles support standard markdown, rendered with GTK widgets (so its not a webview). 
+Curated articles support standard markdown, rendered with GTK widgets (so its
+not a webview).
 
 **Supported:**
 - Basic markdown
@@ -409,26 +410,32 @@ Curated articles support standard markdown, rendered with GTK widgets (so its no
 
 **Not supported**:
 - Raw HTML
-- Latex 
+- Latex
 - Other weird things
 - Column alignment in tables
 
 ### Inline images & app tiles
 
-Regular image syntax (`![title](https://example.com/image.png)`) renders a normal image/screenshot.
+Regular image syntax (`![title](https://example.com/image.png)`) renders a
+normal image/screenshot.
 
 Two special URI schemes can be used instead to render app tiles inline:
 
-* `appstream://<appid>`: looks up a real app by its appid and renders like any other app button.
-* `bazaar-hook://?id=<id>&title=<title>&subtitle=<subtitle>&icon=<icon-uri>`: renders a fake tile that is not backed by a real app. Clicking it runs an `article-app` hook instead of opening a full app view.
+* `appstream://<appid>`: looks up a real app by its appid and renders like any
+  other app button.
+* `bazaar-hook://?id=<id>&title=<title>&subtitle=<subtitle>&icon=<icon-uri>`:
+  renders a fake tile that is not backed by a real app. Clicking it runs an
+  `article-app` hook instead of opening a full app view.
 
-You can mix multiple tiles of either kind into one row by comma-separating them inside a single image tag:
+You can mix multiple tiles of either kind into one row by comma-separating them
+inside a single image tag:
 
 ```markdown
 ![](appstream://org.gnome.Calculator,bazaar-hook://?id=neovim&title=Neovim&subtitle=Vim-fork%20focused%20on%20extensibility%20and%20useablitiy&icon=https://gitlab.com/uploads/-/system/project/avatar/56714943/nvim-icon.png)
 ```
 
-Every curated article already shows the title from the curated section at the top, so please do not include it in the markdown itself.
+Every curated article already shows the title from the curated section at the
+top, so please do not include it in the markdown itself.
 
 ## Hooks
 
