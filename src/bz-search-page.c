@@ -307,7 +307,7 @@ search_changed (BzSearchPage *self,
 {
   g_clear_handle_id (&self->search_update_timeout, g_source_remove);
   self->search_update_timeout = g_timeout_add_once (
-      150, (GSourceOnceFunc) update_filter, self);
+      300, (GSourceOnceFunc) update_filter, self);
   bz_search_bar_set_busy (BZ_SEARCH_BAR (editable), TRUE);
 }
 
