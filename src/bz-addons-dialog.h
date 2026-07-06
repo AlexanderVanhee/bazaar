@@ -23,6 +23,7 @@
 #include <adwaita.h>
 
 #include "bz-entry-group.h"
+#include "bz-result.h"
 
 G_BEGIN_DECLS
 
@@ -34,5 +35,8 @@ bz_addons_dialog_new (BzEntryGroup *group);
 
 AdwDialog *
 bz_addons_dialog_new_single (BzEntryGroup *group);
+
+BzResult *
+bz_addons_dialog_get_parent_ui_entry (BzAddonsDialog *self);
 
 G_END_DECLS
