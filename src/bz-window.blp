@@ -162,7 +162,7 @@ template $BzWindow: Adw.ApplicationWindow {
 
                     [start]
                     MenuButton {
-                      visible: bind template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.authenticated;
+                      visible: bind try {template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.authenticated, false};
                       menu-model: account_menu;
 
                       styles [

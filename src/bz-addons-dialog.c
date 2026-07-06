@@ -57,6 +57,8 @@ struct _BzAddonsDialog
   AdwAnimation *width_animation;
   AdwAnimation *height_animation;
 
+  gboolean has_mapped;
+
   /* Template widgets */
   AdwNavigationView *navigation_view;
   GtkToggleButton   *description_toggle;
@@ -463,6 +465,14 @@ animate_to_size (BzAddonsDialog *self)
     }
   else
     return;
+
+  if (!self->has_mapped)
+  {
+    self->has_mapped = TRUE;
+    adw_dialog_set_content_width (ADW_DIALOG (self), target_width);
+    adw_dialog_set_content_height (ADW_DIALOG (self), target_height);
+    return;
+  }
 
   cur_w   = adw_dialog_get_content_width (ADW_DIALOG (self));
   cur_h   = adw_dialog_get_content_height (ADW_DIALOG (self));
