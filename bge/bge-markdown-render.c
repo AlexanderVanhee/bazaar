@@ -41,6 +41,7 @@ struct _BgeMarkdownRender
 
   char    *markdown;
   gboolean dark;
+  gboolean wrap_tables;
   int      spacing;
 
   GtkWidget *box;
@@ -56,6 +57,7 @@ enum
 
   PROP_MARKDOWN,
   PROP_DARK,
+  PROP_WRAP_TABLES,
   PROP_SPACING,
 
   LAST_PROP
@@ -88,6 +90,11 @@ typedef struct
   GPtrArray         *source_views;
   GString           *alt_text;
   gboolean           in_image;
+  GtkWidget         *grid;
+  guint              grid_rows;
+  guint              grid_columns;
+  guint              grid_row_idx;
+  guint              grid_column_idx;
 } ParseCtx;
 
 static GtkBox *
@@ -125,10 +132,11 @@ text (MD_TEXTTYPE    type,
       void          *user_data);
 
 static const MD_PARSER parser = {
-  .flags = MD_FLAG_COLLAPSEWHITESPACE |
-           MD_FLAG_NOHTMLBLOCKS |
-           MD_FLAG_NOHTMLSPANS |
-           MD_FLAG_STRIKETHROUGH,
+  .flags       = MD_FLAG_COLLAPSEWHITESPACE |
+                 MD_FLAG_NOHTMLBLOCKS |
+                 MD_FLAG_NOHTMLSPANS |
+                 MD_FLAG_STRIKETHROUGH |
+                 MD_FLAG_TABLES,
   .enter_block = enter_block,
   .leave_block = leave_block,
   .enter_span  = enter_span,
@@ -174,6 +182,9 @@ bge_markdown_render_get_property (GObject    *object,
     case PROP_DARK:
       g_value_set_boolean (value, bge_markdown_render_get_dark (self));
       break;
+    case PROP_WRAP_TABLES:
+      g_value_set_boolean (value, bge_markdown_render_get_wrap_tables (self));
+      break;
     case PROP_SPACING:
       g_value_set_int (value, bge_markdown_render_get_spacing (self));
       break;
@@ -197,6 +208,9 @@ bge_markdown_render_set_property (GObject      *object,
       break;
     case PROP_DARK:
       bge_markdown_render_set_dark (self, g_value_get_boolean (value));
+      break;
+    case PROP_WRAP_TABLES:
+      bge_markdown_render_set_wrap_tables (self, g_value_get_boolean (value));
       break;
     case PROP_SPACING:
       bge_markdown_render_set_spacing (self, g_value_get_int (value));
@@ -278,6 +292,17 @@ bge_markdown_render_class_init (BgeMarkdownRenderClass *klass)
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
+   * BgeMarkdownRender:wrap-tables:
+   *
+   * Whether if table elements should scroll horizontally or wrap.
+   */
+  props[PROP_WRAP_TABLES] =
+      g_param_spec_boolean (
+          "wrap-tables",
+          NULL, NULL, TRUE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
    * BgeMarkdownRender:spacing:
    *
    * Vertical spacing between rendered block-level elements, in pixels.
@@ -329,7 +354,8 @@ bge_markdown_render_class_init (BgeMarkdownRenderClass *klass)
 static void
 bge_markdown_render_init (BgeMarkdownRender *self)
 {
-  self->spacing = 7;
+  self->spacing     = 7;
+  self->wrap_tables = TRUE;
 
   self->box = gtk_box_new (GTK_ORIENTATION_VERTICAL, self->spacing);
   gtk_widget_set_parent (self->box, GTK_WIDGET (self));
@@ -427,6 +453,44 @@ bge_markdown_render_set_dark (BgeMarkdownRender *self,
 }
 
 /**
+ * bge_markdown_render_get_wrap_tables:
+ * @self: a `BgeMarkdownRender`
+ *
+ * Gets [property@Bge.MarkdownRender:wrap-tables].
+ *
+ * Returns: the value of the property
+ */
+gboolean
+bge_markdown_render_get_wrap_tables (BgeMarkdownRender *self)
+{
+  g_return_val_if_fail (BGE_IS_MARKDOWN_RENDER (self), FALSE);
+  return self->wrap_tables;
+}
+
+/**
+ * bge_markdown_render_set_wrap_tables:
+ * @self: a `BgeMarkdownRender`
+ * @wrap_tables: a boolean
+ *
+ * Sets [property@Bge.MarkdownRender:wrap-tables].
+ */
+void
+bge_markdown_render_set_wrap_tables (BgeMarkdownRender *self,
+                                     gboolean           wrap_tables)
+{
+  g_return_if_fail (BGE_IS_MARKDOWN_RENDER (self));
+
+  wrap_tables = !!wrap_tables;
+  if (self->wrap_tables == wrap_tables)
+    return;
+
+  self->wrap_tables = wrap_tables;
+  regenerate (self);
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_WRAP_TABLES]);
+}
+
+/**
  * bge_markdown_render_get_spacing:
  * @self: a `BgeMarkdownRender`
  *
@@ -505,6 +569,8 @@ regenerate (BgeMarkdownRender *self)
     g_string_free (ctx.markup, TRUE);
   if (ctx.alt_text != NULL)
     g_string_free (ctx.alt_text, TRUE);
+  if (ctx.grid != NULL)
+    g_object_unref (ctx.grid);
   g_array_unref (ctx.block_stack);
   g_ptr_array_unref (ctx.container_stack);
 
@@ -590,6 +656,18 @@ enter_block (MD_BLOCKTYPE type,
       ctx->list_index++;
 
       ctx->markup = g_string_new (NULL);
+    }
+  else if (type == MD_BLOCK_TABLE)
+    {
+      MD_BLOCK_TABLE_DETAIL *table_detail = detail;
+      g_assert (ctx->grid == NULL);
+      ctx->grid = gtk_grid_new ();
+      gtk_widget_add_css_class (ctx->grid, "markdown-table");
+      gtk_widget_set_halign (ctx->grid, GTK_ALIGN_START);
+      ctx->grid_rows       = table_detail->head_row_count + table_detail->body_row_count;
+      ctx->grid_columns    = table_detail->col_count;
+      ctx->grid_row_idx    = 0;
+      ctx->grid_column_idx = 0;
     }
   else
     ctx->markup = g_string_new (NULL);
@@ -801,13 +879,10 @@ terminate_block (MD_BLOCKTYPE type,
                  void        *detail,
                  void        *user_data)
 {
-  ParseCtx  *ctx    = user_data;
-  int        parent = 0;
-  GtkWidget *child  = NULL;
+  ParseCtx  *ctx   = user_data;
+  GtkWidget *child = NULL;
 
   g_assert (ctx->block_stack->len > 0);
-  if (ctx->block_stack->len > 1)
-    parent = g_array_index (ctx->block_stack, int, ctx->block_stack->len - 2);
 
   if (ctx->markup != NULL && ctx->markup->len > 0)
     {
@@ -994,15 +1069,69 @@ terminate_block (MD_BLOCKTYPE type,
       }
       break;
 
-    case MD_BLOCK_HTML:
     case MD_BLOCK_TABLE:
+      break;
+
     case MD_BLOCK_THEAD:
     case MD_BLOCK_TBODY:
     case MD_BLOCK_TR:
+      break;
+
     case MD_BLOCK_TH:
     case MD_BLOCK_TD:
+      {
+        GtkWidget *label = NULL;
+
+        g_assert (ctx->markup != NULL);
+
+        label = gtk_label_new (ctx->markup->str);
+        SET_DEFAULTS (label);
+        gtk_label_set_wrap (GTK_LABEL (label), ctx->self->wrap_tables);
+
+        if (type == MD_BLOCK_TH)
+          gtk_widget_add_css_class (label, "heading");
+
+        if (ctx->grid_row_idx % 2 == 1)
+          gtk_widget_add_css_class (label, "row-odd");
+
+        gtk_grid_attach (
+            GTK_GRID (ctx->grid),
+            label,
+            ctx->grid_column_idx * 2, ctx->grid_row_idx,
+            1, 1);
+
+        ctx->grid_column_idx++;
+        if (ctx->grid_column_idx >= ctx->grid_columns)
+          {
+            ctx->grid_row_idx++;
+            ctx->grid_column_idx = 0;
+
+            if (ctx->grid_row_idx >= ctx->grid_rows)
+              {
+                GtkWidget *grid = g_steal_pointer (&ctx->grid);
+
+                if (!ctx->self->wrap_tables)
+                  {
+                    GtkWidget *scrolled = NULL;
+                    scrolled            = gtk_scrolled_window_new ();
+
+                    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
+                    gtk_scrolled_window_set_propagate_natural_height (
+                        GTK_SCROLLED_WINDOW (scrolled), TRUE);
+                    gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), grid);
+                    child = scrolled;
+                  }
+                else
+                  child = grid;
+              }
+          }
+      }
+      break;
+
+    case MD_BLOCK_HTML:
     default:
-      g_warning ("Unsupported markdown event (Did you use html/tables?)");
+      g_warning ("Unsupported markdown event (Did you use html?)");
       return 1;
     }
 

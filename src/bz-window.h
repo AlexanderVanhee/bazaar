@@ -23,6 +23,7 @@
 #include <adwaita.h>
 
 #include "bz-state-info.h"
+#include "bz-screenshot-page.h"
 
 G_BEGIN_DECLS
 
@@ -58,6 +59,10 @@ bz_window_push_page (BzWindow          *self,
 void
 bz_window_add_toast (BzWindow *self,
                      AdwToast *toast);
+
+void
+bz_window_open_screenshot_page (BzWindow         *self,
+                                BzScreenshotPage *page);
 
 void
 bz_window_bulk_install (BzWindow   *self,

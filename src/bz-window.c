@@ -37,6 +37,8 @@
 #include "bz-io.h"
 #include "bz-library-page.h"
 #include "bz-progress-bar.h"
+#include "bz-screenshot-page.h"
+#include "bz-search-bar.h"
 #include "bz-search-page.h"
 #include "bz-template-callbacks.h"
 #include "bz-transaction-dialog.h"
@@ -53,6 +55,8 @@ struct _BzWindow
 
   GtkEventController *key_controller;
 
+  BzScreenshotPage *screenshot_page;
+
   gboolean breakpoint_applied;
 
   /* Template widgets */
@@ -63,6 +67,7 @@ struct _BzWindow
   AdwToastOverlay   *toasts;
   AdwViewStack      *main_view_stack;
   GtkStack          *main_stack;
+  GtkOverlay        *window_overlay;
 };
 
 G_DEFINE_FINAL_TYPE (BzWindow, bz_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -350,6 +355,15 @@ action_escape (GtkWidget  *widget,
   BzWindow   *self    = BZ_WINDOW (widget);
   GListModel *stack   = NULL;
   guint       n_pages = 0;
+
+  if (self->screenshot_page != NULL)
+    {
+      if (!bz_screenshot_page_is_closing (self->screenshot_page))
+        {
+          bz_screenshot_page_close (self->screenshot_page);
+          return;
+        }
+    }
 
   stack   = adw_navigation_view_get_navigation_stack (self->navigation_view);
   n_pages = g_list_model_get_n_items (stack);
@@ -664,6 +678,21 @@ action_launch_group (GtkWidget  *widget,
 }
 
 static void
+action_activate_hook_app (GtkWidget  *widget,
+                          const char *action_name,
+                          GVariant   *parameter)
+{
+  BzWindow   *self               = BZ_WINDOW (widget);
+  const char *id                 = NULL;
+  g_autoptr (BzEntryGroup) group = NULL;
+
+  id    = g_variant_get_string (parameter, NULL);
+  group = bz_entry_group_new_manual (id, NULL, NULL);
+
+  emit_hook_disown (self, BZ_HOOK_SIGNAL_ARTICLE_APP, group);
+}
+
+static void
 bz_window_class_init (BzWindowClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
@@ -688,6 +717,7 @@ bz_window_class_init (BzWindowClass *klass)
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
+  g_type_ensure (BZ_TYPE_SEARCH_BAR);
   g_type_ensure (BZ_TYPE_SEARCH_PAGE);
   g_type_ensure (BZ_TYPE_PROGRESS_BAR);
   g_type_ensure (BZ_TYPE_CURATED_VIEW);
@@ -705,6 +735,7 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzWindow, library_page);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_view_stack);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_stack);
+  gtk_widget_class_bind_template_child (widget_class, BzWindow, window_overlay);
   gtk_widget_class_bind_template_callback (widget_class, list_length);
   gtk_widget_class_bind_template_callback (widget_class, update_cb);
   gtk_widget_class_bind_template_callback (widget_class, page_toggled_cb);
@@ -729,6 +760,7 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_install_action (widget_class, "window.addons-group", "s", action_addons_group);
   gtk_widget_class_install_action (widget_class, "window.bulk-install", NULL, action_bulk_install);
   gtk_widget_class_install_action (widget_class, "window.launch-group", "s", action_launch_group);
+  gtk_widget_class_install_action (widget_class, "window.activate-hook-app", "s", action_activate_hook_app);
 
   gtk_widget_class_add_binding_action (widget_class, GDK_KEY_d, GDK_CONTROL_MASK, "window.open-library", NULL);
   gtk_widget_class_add_binding_action (widget_class, GDK_KEY_w, GDK_CONTROL_MASK, "window.close", NULL);
@@ -749,6 +781,9 @@ key_pressed (BzWindow              *self,
 
   /* Ignore if this is a modifier-shortcut of some sort */
   if (state & ~(GDK_NO_MODIFIER_MASK | GDK_SHIFT_MASK))
+    return FALSE;
+
+  if (self->screenshot_page != NULL)
     return FALSE;
 
   unichar = gdk_keyval_to_unicode (keyval);
@@ -1061,6 +1096,23 @@ bz_window_push_page (BzWindow *self, AdwNavigationPage *page)
   g_return_if_fail (ADW_IS_NAVIGATION_PAGE (page));
 
   adw_navigation_view_push (self->navigation_view, page);
+}
+
+void
+bz_window_open_screenshot_page (BzWindow         *self,
+                                BzScreenshotPage *page)
+{
+  g_return_if_fail (BZ_IS_WINDOW (self));
+  g_return_if_fail (BZ_IS_SCREENSHOT_PAGE (page));
+
+  if (self->screenshot_page != NULL)
+    return;
+
+  self->screenshot_page = page;
+  g_signal_connect_swapped (page, "destroy",
+                            G_CALLBACK (g_nullify_pointer),
+                            &self->screenshot_page);
+  gtk_overlay_add_overlay (self->window_overlay, GTK_WIDGET (page));
 }
 
 void

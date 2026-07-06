@@ -495,7 +495,7 @@ tick_cb (GtkWidget     *widget,
         break;
 
       UPDATE (data, value, finished, cancelled);
-      if (!cancelled)
+      if (!cancelled || cancel)
         data->cb (widget, key, value, data->user_data);
 
       if (finished)
@@ -513,7 +513,7 @@ tick_cb (GtkWidget     *widget,
       data = g_ptr_array_index (self->anonymous, i);
 
       UPDATE (data, value, finished, cancelled);
-      if (!cancelled)
+      if (!cancelled || cancel)
         data->cb (widget, NULL, value, data->user_data);
 
       if (finished)

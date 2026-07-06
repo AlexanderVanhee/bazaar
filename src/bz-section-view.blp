@@ -31,6 +31,7 @@ template $BzSectionView: Adw.Bin {
       $BgeMarkdownRender subtitle {
         hexpand: true;
         vexpand: true;
+        wrap-tables: false;
         markdown: bind template.section as <$BzCuratedSection>.subtitle as <$BzCuratedMarkdownInfo>.string as <string>;
       }
     }

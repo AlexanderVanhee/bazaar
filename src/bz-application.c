@@ -127,6 +127,7 @@ struct _BzApplication
   GtkStringList              *txt_blocklists;
   gboolean                    flathub_remote_initialized;
   gboolean                    running;
+  gboolean                    had_cache_on_init;
   guint                       periodic_timeout_source;
   int                         n_entries_incoming;
   int                         n_remotes_syncing;
@@ -980,9 +981,10 @@ init_fiber (GWeakRef *wr)
   g_autofree char *root_cache_dir       = NULL;
   g_autoptr (GFile) root_cache_dir_file = NULL;
   g_autoptr (GListModel) repos          = NULL;
-  gboolean         has_flathub          = FALSE;
-  gboolean         cache_has_flathub    = FALSE;
-  gboolean         result               = FALSE;
+  gboolean has_flathub                  = FALSE;
+  gboolean cache_has_flathub            = FALSE;
+  gboolean result                       = FALSE;
+  g_autoptr (BzAuthState) auth_state    = NULL;
   g_autofree char *flathub_cache        = NULL;
   g_autoptr (GFile) flathub_cache_file  = NULL;
   g_autofree char *cache_version_path   = NULL;
@@ -990,14 +992,80 @@ init_fiber (GWeakRef *wr)
 
   bz_weak_get_or_return_reject (self, wr);
 
+/* Here until Ubuntu fixes its apparmor crap. */
+#ifdef SANDBOXED_LIBFLATPAK
+  if (g_settings_get_boolean (self->settings, "check-for-ubuntu"))
+    {
+      g_autoptr (GSubprocessLauncher) os_check_launcher = NULL;
+      g_autoptr (GSubprocess) os_check                  = NULL;
+      g_autoptr (GError) os_check_error                 = NULL;
+      gboolean      os_check_result                     = FALSE;
+      GInputStream *os_check_stdout_pipe                = NULL;
+      g_autoptr (GBytes) os_out                         = NULL;
+
+      os_check_launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE);
+      os_check          = g_subprocess_launcher_spawn (os_check_launcher, &os_check_error,
+                                                       "flatpak-spawn", "--host", "cat", "/usr/lib/os-release", NULL);
+
+      if (os_check != NULL)
+        {
+          os_check_result = dex_await (dex_subprocess_wait_check (os_check), &os_check_error);
+          if (os_check_result)
+            {
+              os_check_stdout_pipe = g_subprocess_get_stdout_pipe (os_check);
+              os_out               = g_input_stream_read_bytes (os_check_stdout_pipe, 4096, NULL, &os_check_error);
+            }
+          else
+            g_warning ("Ubuntu check subprocess failed: %s", os_check_error->message);
+        }
+      else
+        g_warning ("Failed to spawn ubuntu check subprocess: %s", os_check_error->message);
+
+      if (os_out != NULL &&
+          strstr (g_bytes_get_data (os_out, NULL), "ID=ubuntu") != NULL)
+        {
+          GtkWindow       *window   = NULL;
+          AdwDialog       *alert    = NULL;
+          g_autofree char *response = NULL;
+
+          dex_await (dex_ref (DEX_FUTURE (self->first_window_opened)), NULL);
+
+          window = gtk_application_get_active_window (GTK_APPLICATION (self));
+          if (window == NULL)
+            window = new_window (self);
+
+          alert = adw_alert_dialog_new (NULL, NULL);
+          adw_alert_dialog_format_heading (ADW_ALERT_DIALOG (alert), _ ("Ubuntu Troubles!"));
+          adw_alert_dialog_format_body_markup (
+              ADW_ALERT_DIALOG (alert),
+              _ ("The more recent versions of Ubuntu have messed up default security rules, "
+                 "making it <b>impossible to install apps</b> from the Flatpak version "
+                 "of Bazaar, please just use the normal package for now by using\n\n"
+                 "<tt>sudo apt install bazaar</tt>\n\n"
+                 "You can then remove this Flatpak version with\n\n"
+                 "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"));
+          adw_alert_dialog_add_response (ADW_ALERT_DIALOG (alert), "ok", _ ("Continue Anyway"));
+          adw_alert_dialog_set_default_response (ADW_ALERT_DIALOG (alert), "ok");
+          adw_alert_dialog_set_close_response (ADW_ALERT_DIALOG (alert), "ok");
+
+          adw_dialog_present (alert, GTK_WIDGET (window));
+          response = dex_await_string (bz_make_alert_dialog_future (ADW_ALERT_DIALOG (alert)), NULL);
+
+          g_settings_set_boolean (self->settings, "check-for-ubuntu", FALSE);
+        }
+      else
+        g_settings_set_boolean (self->settings, "check-for-ubuntu", FALSE);
+    }
+#endif
+
   bz_state_info_set_online (self->state, TRUE);
   bz_state_info_set_busy (self->state, TRUE);
   bz_state_info_set_background_task_label (self->state, _ ("Performing setup…"));
 
   root_cache_dir      = bz_dup_root_cache_dir ();
   root_cache_dir_file = g_file_new_for_path (root_cache_dir);
-  cache_version_path = g_build_filename (root_cache_dir, "cache-version", NULL);
-  cache_version_file = g_file_new_for_path (cache_version_path);
+  cache_version_path  = g_build_filename (root_cache_dir, "cache-version", NULL);
+  cache_version_file  = g_file_new_for_path (cache_version_path);
 
   if (dex_await (dex_file_query_exists (root_cache_dir_file), NULL))
     {
@@ -1073,7 +1141,7 @@ init_fiber (GWeakRef *wr)
       g_autofree char *response = NULL;
       AdwDialog       *alert    = NULL;
 
-      dex_await (DEX_FUTURE (self->first_window_opened), NULL);
+      dex_await (dex_ref (DEX_FUTURE (self->first_window_opened)), NULL);
 
       window = gtk_application_get_active_window (GTK_APPLICATION (self));
       if (window == NULL)
@@ -1171,6 +1239,8 @@ init_fiber (GWeakRef *wr)
           bz_weak_release),
       NULL);
 
+  self->had_cache_on_init = g_list_model_get_n_items (G_LIST_MODEL (self->groups)) > 0;
+
   flathub_cache_file = fiber_dup_cache_file ("flathub-cache", &flathub_cache, &local_error);
   if (flathub_cache_file != NULL)
     {
@@ -1229,6 +1299,9 @@ init_fiber (GWeakRef *wr)
       g_warning ("Unable to ensure cache directory: %s", local_error->message);
       g_clear_error (&local_error);
     }
+
+  auth_state = bz_auth_state_new ();
+  bz_state_info_set_auth_state (self->state, auth_state);
 
   return dex_future_new_true ();
 }
@@ -2100,8 +2173,6 @@ init_fiber_finally (DexFuture *future,
   value = dex_future_get_value (future, &local_error);
   if (value != NULL)
     {
-      g_autoptr (DexFuture) sync_future = NULL;
-
       self->flatpak_notifs = bz_backend_create_notification_channel (
           BZ_BACKEND (self->flatpak));
       self->notif_watch = dex_future_then_loop (
@@ -2110,19 +2181,44 @@ init_fiber_finally (DexFuture *future,
           bz_track_weak (self),
           bz_weak_release);
 
-      sync_future = make_sync_future (self);
-      sync_future = dex_future_finally (
-          sync_future,
-          (DexFutureCallback) init_sync_finally,
-          bz_track_weak (self),
-          bz_weak_release);
-      self->sync = g_steal_pointer (&sync_future);
+      if (!bz_state_info_get_metered_connection (self->state) || !self->had_cache_on_init)
+        {
+          g_autoptr (DexFuture) sync_future = NULL;
+
+          sync_future = make_sync_future (self);
+          sync_future = dex_future_finally (
+              sync_future,
+              (DexFutureCallback) init_sync_finally,
+              bz_track_weak (self),
+              bz_weak_release);
+          self->sync = g_steal_pointer (&sync_future);
+        }
+      else
+        {
+          bz_state_info_set_allow_manual_sync (self->state, TRUE);
+          bz_state_info_set_busy (self->state, FALSE);
+          bz_state_info_set_syncing (self->state, FALSE);
+          dex_promise_resolve_boolean (self->ready_to_open_files, TRUE);
+
+          // Only check for updates if connection is limited.
+          dex_future_disown (dex_scheduler_spawn (
+              dex_scheduler_get_default (),
+              bz_get_dex_stack_size (),
+              (DexFiberFunc) check_for_updates_fiber,
+              bz_track_weak (self),
+              bz_weak_release));
+        }
 
       self->periodic_timeout_source = g_timeout_add_seconds (
           /* Check every day */
           60 * 60 * 24, (GSourceFunc) periodic_timeout_cb, self);
 
       bz_malcontent_service_start (self->malcontent);
+
+      g_object_bind_property (
+          bz_state_info_get_auth_state (self->state), "authenticated",
+          g_action_map_lookup_action (G_ACTION_MAP (self), "flathub-login"), "enabled",
+          G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
     }
   else
     {
@@ -2641,6 +2737,8 @@ periodic_timeout_cb (BzApplication *self)
     /* Do not do periodic sync on metered connections. The user will have to
        manually refresh instead. */
     self->sync = make_sync_future (self);
+  else
+    bz_state_info_set_recently_synced (self->state, FALSE);
 
 done:
   return G_SOURCE_CONTINUE;
@@ -3074,9 +3172,8 @@ init_service_struct (BzApplication *self,
   g_autoptr (GFile) config_file   = NULL;
   g_autoptr (GBytes) config_bytes = NULL;
 #endif
-  GtkCustomFilter *filter            = NULL;
-  GNetworkMonitor *network           = NULL;
-  g_autoptr (BzAuthState) auth_state = NULL;
+  GtkCustomFilter *filter  = NULL;
+  GNetworkMonitor *network = NULL;
 
   g_type_ensure (BZ_TYPE_INTERNAL_CONFIG);
   internal_config_bytes = g_resources_lookup_data (
@@ -3215,9 +3312,9 @@ init_service_struct (BzApplication *self,
 #ifdef DEVELOPMENT_BUILD
   if (g_list_model_get_n_items (G_LIST_MODEL (curated_configs)) == 0)
     {
-      g_autofree char *dest_path  = NULL;
-      g_autoptr (GFile) src       = NULL;
-      g_autoptr (GFile) dest      = NULL;
+      g_autofree char *dest_path = NULL;
+      g_autoptr (GFile) src      = NULL;
+      g_autoptr (GFile) dest     = NULL;
 
       dest_path = g_build_filename (g_get_user_data_dir (), "example.yaml", NULL);
       src       = g_file_new_for_path (DEVELOPMENT_EXAMPLE_YAML);
@@ -3304,14 +3401,6 @@ init_service_struct (BzApplication *self,
       "notify::disable-blocklists",
       G_CALLBACK (disable_blocklists_changed),
       self);
-
-  auth_state = bz_auth_state_new ();
-  bz_state_info_set_auth_state (self->state, auth_state);
-
-  g_object_bind_property (
-      auth_state, "authenticated",
-      g_action_map_lookup_action (G_ACTION_MAP (self), "flathub-login"), "enabled",
-      G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
 
   network = g_network_monitor_get_default ();
   if (network != NULL)
@@ -3977,6 +4066,7 @@ make_sync_future (BzApplication *self)
   bz_state_info_set_allow_manual_sync (self->state, FALSE);
 
   bz_state_info_set_syncing (self->state, TRUE);
+  bz_state_info_set_recently_synced (self->state, TRUE);
   finish_with_background_task_label (self);
 
   refresh_worker = g_subprocess_new (

@@ -32,7 +32,9 @@
 
 #include "bz-decorated-screenshot.h"
 #include "bz-screenshots-carousel.h"
+#include "bz-screenshot-page.h"
 #include "bz-template-callbacks.h"
+#include "bz-window.h"
 
 #define LIGHT_CLASS          "screenshot-carousel-light"
 #define DARK_CLASS           "screenshot-carousel-dark"
@@ -75,14 +77,6 @@ enum
 };
 
 static GParamSpec *properties[N_PROPS];
-
-enum
-{
-  SIGNAL_CLICKED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS];
 
 static void refresh_css (BzScreenshotsCarousel *self);
 static void clear_css (BzScreenshotsCarousel *self);
@@ -165,7 +159,11 @@ on_notify_model (BzScreenshotsCarousel *self)
 static void
 open_screenshot_at_index (BzScreenshotsCarousel *self, guint index)
 {
-  guint n_items;
+  BzScreenshotPage *page    = NULL;
+  GtkWidget        *picture = NULL;
+  GtkWidget        *child   = NULL;
+  GtkWidget        *root    = NULL;
+  guint             n_items;
 
   if (!self->model)
     return;
@@ -174,7 +172,16 @@ open_screenshot_at_index (BzScreenshotsCarousel *self, guint index)
   if (index >= n_items)
     return;
 
-  g_signal_emit (self, signals[SIGNAL_CLICKED], 0, index);
+  child = bge_carousel_get_nth_page (self->carousel, index);
+  if (child != NULL)
+    picture = gtk_widget_get_first_child (child);
+
+  root = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (self)));
+  if (!BZ_IS_WINDOW (root))
+    return;
+
+  page = BZ_SCREENSHOT_PAGE (bz_screenshot_page_new (self->model, self->captions, index, picture));
+  bz_window_open_screenshot_page (BZ_WINDOW (root), page);
 }
 
 static void
@@ -475,17 +482,6 @@ bz_screenshots_carousel_class_init (BzScreenshotsCarouselClass *klass)
                            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
-
-  signals[SIGNAL_CLICKED] =
-      g_signal_new ("clicked",
-                    G_TYPE_FROM_CLASS (klass),
-                    G_SIGNAL_RUN_LAST,
-                    0,
-                    NULL, NULL,
-                    NULL,
-                    G_TYPE_NONE,
-                    1,
-                    G_TYPE_UINT);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-screenshots-carousel.ui");
   bz_widget_class_bind_all_util_callbacks (widget_class);

@@ -127,7 +127,7 @@ get_child_type (gpointer    object,
   return g_strdup ("BzAppTile");
 }
 
-guint
+static guint
 get_slice_length (gpointer object,
                   guint    overflow_count,
                   gboolean install_all_visible)
@@ -138,7 +138,7 @@ get_slice_length (gpointer object,
   return MIN (overflow_count, 20);
 }
 
-gboolean
+static gboolean
 show_more_visible (gpointer    object,
                    gboolean    enable_bulk_install,
                    GListModel *full_model,

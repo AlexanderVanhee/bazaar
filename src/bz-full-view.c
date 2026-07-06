@@ -275,14 +275,6 @@ get_developer_apps_entries (gpointer object, GtkStringList *app_ids, BzEntry *en
   return bz_application_map_factory_generate (factory, G_LIST_MODEL (filtered));
 }
 
-static int
-get_dev_apps_max_children_per_line (gpointer object, GListModel *model)
-{
-  if (!model)
-    return 3;
-  return g_list_model_get_n_items (model) > 2 ? 3 : 2;
-}
-
 static void
 more_apps_button_clicked_cb (BzFullView *self,
                              GtkButton  *button)
@@ -433,37 +425,6 @@ dl_stats_cb (BzFullView *self,
 
   adw_dialog_present (dialog, GTK_WIDGET (self));
   bz_stats_dialog_animate_open (BZ_STATS_DIALOG (bin));
-}
-
-static void
-screenshot_clicked_cb (BzFullView            *self,
-                       guint                  index,
-                       BzScreenshotsCarousel *carousel)
-{
-  GListModel        *screenshots = NULL;
-  GListModel        *captions    = NULL;
-  AdwNavigationPage *page        = NULL;
-  GtkWidget         *nav_view    = NULL;
-  BzEntry           *entry       = NULL;
-
-  screenshots = bz_screenshots_carousel_get_model (carousel);
-  if (screenshots == NULL)
-    return;
-
-  if (self->ui_entry != NULL)
-    {
-      entry = bz_result_get_object (self->ui_entry);
-      if (entry != NULL)
-        g_object_get (entry, "screenshot-captions", &captions, NULL);
-    }
-
-  page = bz_screenshot_page_new (screenshots, captions, index);
-
-  g_clear_object (&captions);
-
-  nav_view = gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_NAVIGATION_VIEW);
-  if (nav_view != NULL)
-    adw_navigation_view_push (ADW_NAVIGATION_VIEW (nav_view), page);
 }
 
 static void
@@ -796,12 +757,10 @@ bz_full_view_class_init (BzFullViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, format_other_apps_label);
   gtk_widget_class_bind_template_callback (widget_class, format_more_other_apps_label);
   gtk_widget_class_bind_template_callback (widget_class, get_developer_apps_entries);
-  gtk_widget_class_bind_template_callback (widget_class, get_dev_apps_max_children_per_line);
   gtk_widget_class_bind_template_callback (widget_class, more_apps_button_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, open_url_cb);
   gtk_widget_class_bind_template_callback (widget_class, license_cb);
   gtk_widget_class_bind_template_callback (widget_class, dl_stats_cb);
-  gtk_widget_class_bind_template_callback (widget_class, screenshot_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, size_cb);
   gtk_widget_class_bind_template_callback (widget_class, formfactor_cb);
   gtk_widget_class_bind_template_callback (widget_class, safety_cb);

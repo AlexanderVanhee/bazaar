@@ -41,10 +41,8 @@ main (int   argc,
       return 0;
     }
 
-  g_debug ("Initializing libdex...");
   dex_init ();
 
-  g_debug ("Configuring textdomain...");
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
@@ -52,7 +50,6 @@ main (int   argc,
   /* Init Bazaar GTK Extensions */
   bge_init ();
 
-  g_debug ("Constructing main application object...");
   app = g_object_new (
       BZ_TYPE_APPLICATION,
       "application-id", "io.github.kolunmi.Bazaar",
@@ -60,7 +57,6 @@ main (int   argc,
       "resource-base-path", "/io/github/kolunmi/Bazaar",
       NULL);
 
-  g_debug ("Running!");
   result = g_application_run (G_APPLICATION (app), argc, argv);
 
   return result;

@@ -27,11 +27,13 @@ G_BEGIN_DECLS
 
 #define BZ_TYPE_SCREENSHOT_PAGE (bz_screenshot_page_get_type ())
 
-G_DECLARE_FINAL_TYPE (BzScreenshotPage, bz_screenshot_page, BZ, SCREENSHOT_PAGE, AdwNavigationPage)
+G_DECLARE_FINAL_TYPE (BzScreenshotPage, bz_screenshot_page, BZ, SCREENSHOT_PAGE, AdwBin)
 
-AdwNavigationPage *bz_screenshot_page_new (GListModel *screenshots,
-                                           GListModel *captions,
-                                           guint       initial_index);
+AdwBin *
+bz_screenshot_page_new (GListModel   *screenshots,
+                        GListModel   *captions,
+                        guint         initial_index,
+                        GtkWidget    *source_widget);
 
 void
 bz_screenshot_page_set_captions (BzScreenshotPage *self,
@@ -39,5 +41,11 @@ bz_screenshot_page_set_captions (BzScreenshotPage *self,
 
 const char *
 bz_screenshot_page_get_current_caption (BzScreenshotPage *self);
+
+void
+bz_screenshot_page_close (BzScreenshotPage *self);
+
+gboolean
+bz_screenshot_page_is_closing (BzScreenshotPage *self);
 
 G_END_DECLS
