@@ -18,6 +18,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "config.h"
+
 #include <glib/gi18n.h>
 
 #include "bz-entry-group.h"
@@ -34,11 +36,6 @@ struct _BzUserDataTile
   BzListTile parent_instance;
 
   BzEntryGroup *group;
-
-  GtkPicture *icon_picture;
-  GtkImage   *fallback_icon;
-  GtkLabel   *title_label;
-  GtkButton  *remove_button;
 };
 
 G_DEFINE_FINAL_TYPE (BzUserDataTile, bz_user_data_tile, ADW_TYPE_BIN)
@@ -158,6 +155,13 @@ reap_user_data_done (DexFuture *future,
 }
 
 static void
+folder_cb (BzUserDataTile *self,
+           GtkButton      *button)
+{
+  gtk_widget_activate_action (GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (self))), "window.open-user-data-folder", "s", bz_entry_group_get_id (self->group));
+}
+
+static void
 remove_cb (BzUserDataTile *self,
            GtkButton      *button)
 {
@@ -198,14 +202,11 @@ bz_user_data_tile_class_init (BzUserDataTileClass *klass)
   g_type_ensure (BZ_TYPE_ENTRY_GROUP);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-user-data-tile.ui");
-  gtk_widget_class_bind_template_child (widget_class, BzUserDataTile, icon_picture);
-  gtk_widget_class_bind_template_child (widget_class, BzUserDataTile, fallback_icon);
-  gtk_widget_class_bind_template_child (widget_class, BzUserDataTile, title_label);
-  gtk_widget_class_bind_template_child (widget_class, BzUserDataTile, remove_button);
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
   gtk_widget_class_bind_template_callback (widget_class, is_null);
   gtk_widget_class_bind_template_callback (widget_class, is_zero);
   gtk_widget_class_bind_template_callback (widget_class, format_size);
+  gtk_widget_class_bind_template_callback (widget_class, folder_cb);
   gtk_widget_class_bind_template_callback (widget_class, remove_cb);
 
   gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);

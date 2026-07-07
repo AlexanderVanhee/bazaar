@@ -693,6 +693,27 @@ action_activate_hook_app (GtkWidget  *widget,
 }
 
 static void
+action_open_user_data_folder (GtkWidget  *widget,
+                              const char *action_name,
+                              GVariant   *parameter)
+{
+  const char      *id                  = NULL;
+  g_autofree char *path                = NULL;
+  g_autoptr (GFile) file               = NULL;
+  g_autoptr (GtkFileLauncher) launcher = NULL;
+
+  id = g_variant_get_string (parameter, NULL);
+  if (id == NULL)
+    return;
+
+  path     = bz_dup_user_data_path (id);
+  file     = g_file_new_for_path (path);
+  launcher = gtk_file_launcher_new (file);
+
+  gtk_file_launcher_launch (launcher, GTK_WINDOW (widget), NULL, NULL, NULL);
+}
+
+static void
 bz_window_class_init (BzWindowClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
@@ -761,6 +782,7 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_install_action (widget_class, "window.bulk-install", NULL, action_bulk_install);
   gtk_widget_class_install_action (widget_class, "window.launch-group", "s", action_launch_group);
   gtk_widget_class_install_action (widget_class, "window.activate-hook-app", "s", action_activate_hook_app);
+  gtk_widget_class_install_action (widget_class, "window.open-user-data-folder", "s", action_open_user_data_folder);
 
   gtk_widget_class_add_binding_action (widget_class, GDK_KEY_d, GDK_CONTROL_MASK, "window.open-library", NULL);
   gtk_widget_class_add_binding_action (widget_class, GDK_KEY_w, GDK_CONTROL_MASK, "window.close", NULL);
