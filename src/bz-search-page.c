@@ -305,9 +305,15 @@ static void
 search_changed (BzSearchPage *self,
                 GtkEditable  *editable)
 {
+  const char *text       = NULL;
+  guint       timeout_ms = 0;
+
+  text       = gtk_editable_get_text (editable);
+  timeout_ms = (text == NULL || *text == '\0') ? 0 : 300;
+
   g_clear_handle_id (&self->search_update_timeout, g_source_remove);
   self->search_update_timeout = g_timeout_add_once (
-      300, (GSourceOnceFunc) update_filter, self);
+      timeout_ms, (GSourceOnceFunc) update_filter, self);
   bz_search_bar_set_busy (BZ_SEARCH_BAR (editable), TRUE);
 }
 
