@@ -1029,7 +1029,14 @@ bz_window_new (BzStateInfo *state)
 
   config = bz_state_info_get_main_config (state);
   if (config != NULL && bz_main_config_get_start_on_curated (config))
-    adw_view_stack_set_visible_child_name (window->main_view_stack, "browse");
+    {
+      BzContentProvider *curated_provider = NULL;
+
+      curated_provider = bz_state_info_get_curated_provider (state);
+      if (curated_provider != NULL &&
+          g_list_model_get_n_items (G_LIST_MODEL (curated_provider)) > 0)
+        adw_view_stack_set_visible_child_name (window->main_view_stack, "browse");
+    }
 
   g_signal_connect_object (state,
                            "notify::busy",
