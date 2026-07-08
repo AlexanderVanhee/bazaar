@@ -30,7 +30,7 @@ static DexFuture *
 reap_app_dir_fiber (char *path);
 
 static DexFuture *
-get_directory_size_fiber (GFile *file);
+file_measure_disk_usage_dex (GFile *file);
 static DexFuture *
 get_user_sizes_fiber (char *app_id);
 static DexFuture *
@@ -299,8 +299,8 @@ get_user_sizes_fiber (char *app_id)
   cache_file      = g_file_new_for_path (user_cache_path);
 
   futures = g_ptr_array_new_with_free_func (dex_unref);
-  g_ptr_array_add (futures, get_directory_size_fiber (data_file));
-  g_ptr_array_add (futures, get_directory_size_fiber (cache_file));
+  g_ptr_array_add (futures, file_measure_disk_usage_dex (data_file));
+  g_ptr_array_add (futures, file_measure_disk_usage_dex (cache_file));
 
   dex_await (dex_future_allv (
                  (DexFuture *const *) futures->pdata,
@@ -346,7 +346,7 @@ measure_disk_usage_callback (GObject      *object,
 }
 
 static DexFuture *
-get_directory_size_fiber (GFile *file)
+file_measure_disk_usage_dex (GFile *file)
 {
   DexPromise *promise = NULL;
   promise             = dex_promise_new_cancellable ();

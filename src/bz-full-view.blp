@@ -591,7 +591,7 @@ template $BzFullView: Adw.Bin {
 
                         Box {
                           orientation: vertical;
-                          spacing: bind $choose(addons_more_btn.visible, 15, 3) as <int>;
+                          spacing: bind $choose_int(addons_more_btn.visible, 15, 3) as <int>;
                           Box {
                             orientation: vertical;
                             visible: bind $invert_boolean($is_zero(addon_model.n-items) as <int>) as <bool>;

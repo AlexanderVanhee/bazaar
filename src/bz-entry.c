@@ -2731,6 +2731,8 @@ maybe_save_paintable (BzEntryPrivate  *priv,
   g_autoptr (GError) local_error = NULL;
   const char *source_uri         = NULL;
   const char *cache_into_path    = NULL;
+  int         width              = 0;
+  int         height             = 0;
   g_autoptr (GdkTexture) texture = NULL;
   g_autoptr (GFile) save_file    = NULL;
   gboolean result                = FALSE;
@@ -2742,6 +2744,9 @@ maybe_save_paintable (BzEntryPrivate  *priv,
 
   source_uri      = bz_async_texture_get_source_uri (BZ_ASYNC_TEXTURE (paintable));
   cache_into_path = bz_async_texture_get_cache_into_path (BZ_ASYNC_TEXTURE (paintable));
+  width           = bz_async_texture_get_width (BZ_ASYNC_TEXTURE (paintable));
+  height          = bz_async_texture_get_height (BZ_ASYNC_TEXTURE (paintable));
+
   if (cache_into_path == NULL)
     goto done;
 
@@ -2810,7 +2815,8 @@ maybe_save_paintable (BzEntryPrivate  *priv,
     }
 
 done:
-  g_variant_builder_add (builder, "{sv}", key, g_variant_new ("(sms)", source_uri, cache_into_path));
+  g_variant_builder_add (builder, "{sv}", key,
+                         g_variant_new ("(smsii)", source_uri, cache_into_path, width, height));
   return TRUE;
 }
 
@@ -2819,16 +2825,22 @@ make_async_texture (GVariant *parse)
 {
   g_autofree char *source            = NULL;
   g_autofree char *cache_into        = NULL;
+  int              width             = 0;
+  int              height            = 0;
   g_autoptr (GFile) source_file      = NULL;
   g_autoptr (GFile) cache_into_file  = NULL;
   g_autoptr (BzAsyncTexture) texture = NULL;
 
-  g_variant_get (parse, "(sms)", &source, &cache_into);
+  g_variant_get (parse, "(smsii)", &source, &cache_into, &width, &height);
   source_file = g_file_new_for_uri (source);
   if (cache_into != NULL)
     cache_into_file = g_file_new_for_path (cache_into);
 
-  texture = bz_async_texture_new_lazy (source_file, cache_into_file);
+  if (width > 0 && height > 0)
+    texture = bz_async_texture_new_lazy_with_size (source_file, cache_into_file, width, height);
+  else
+    texture = bz_async_texture_new_lazy (source_file, cache_into_file);
+
   return GDK_PAINTABLE (g_steal_pointer (&texture));
 }
 

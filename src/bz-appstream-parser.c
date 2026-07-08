@@ -120,6 +120,8 @@ find_screenshot (GPtrArray  *images,
   const char *best_url      = NULL;
   gint        best_diff     = G_MAXINT;
   guint       best_res      = 0;
+  guint       best_width    = 0;
+  guint       best_height   = 0;
   guint       target_pixels = target_width * target_height;
 
   if (images == NULL)
@@ -143,8 +145,10 @@ find_screenshot (GPtrArray  *images,
         {
           if (best_url == NULL || pixels > best_res)
             {
-              best_url = url;
-              best_res = pixels;
+              best_url    = url;
+              best_res    = pixels;
+              best_width  = width;
+              best_height = height;
             }
         }
       else
@@ -152,8 +156,10 @@ find_screenshot (GPtrArray  *images,
           gint diff = ABS ((gint) pixels - (gint) target_pixels);
           if (best_url == NULL || diff < best_diff)
             {
-              best_url  = url;
-              best_diff = diff;
+              best_url    = url;
+              best_diff   = diff;
+              best_width  = width;
+              best_height = height;
             }
         }
     }
@@ -170,7 +176,10 @@ find_screenshot (GPtrArray  *images,
       cache_file      = g_file_new_build_filename (
           module_dir, unique_id_checksum, cache_filename, NULL);
 
-      texture = bz_async_texture_new_lazy (screenshot_file, cache_file);
+      if (best_width > 0 && best_height > 0)
+        texture = bz_async_texture_new_lazy_with_size (screenshot_file, cache_file, best_width, best_height);
+      else
+        texture = bz_async_texture_new_lazy (screenshot_file, cache_file);
 
       if (out_caption != NULL)
         *out_caption = g_strdup (caption ? caption : "");
