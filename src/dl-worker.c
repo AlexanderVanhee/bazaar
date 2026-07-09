@@ -151,6 +151,7 @@ download_fiber (DownloadData *data)
   g_autoptr (GFile) dest_file               = NULL;
   g_autoptr (GFileOutputStream) dest_output = NULL;
   g_autoptr (SoupMessage) message           = NULL;
+  SoupMessageHeaders *headers               = NULL;
   g_autoptr (GVariant) variant              = NULL;
   g_autofree char *output                   = NULL;
   g_autofree char *output_plus_nl           = NULL;
@@ -167,6 +168,11 @@ download_fiber (DownloadData *data)
     }
 
   message = soup_message_new (SOUP_METHOD_GET, data->src);
+
+  headers = soup_message_get_request_headers (message);
+  soup_message_headers_append (headers, "Accept", "*/*");
+  soup_message_headers_append (headers, "User-Agent", "Bazaar");
+
   success = dex_await (bz_send_with_global_http_session_then_splice_into (
                            message, G_OUTPUT_STREAM (dest_output)),
                        &local_error);
