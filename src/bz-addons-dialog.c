@@ -328,6 +328,7 @@ bz_addons_dialog_new_single (BzEntryGroup *group)
 BzEntry *
 bz_addons_dialog_get_parent_entry (BzAddonsDialog *self)
 {
+  g_return_val_if_fail (BZ_IS_ADDONS_DIALOG (self), NULL);
 
   if (self->parent_ui_entry == NULL || !bz_result_get_resolved (self->parent_ui_entry))
     return NULL;
