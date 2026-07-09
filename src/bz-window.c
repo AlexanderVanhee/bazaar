@@ -478,6 +478,27 @@ action_cancel_group (GtkWidget  *widget,
 }
 
 static void
+parent_ui_entry_show_group_cb (BzAddonsDialog *dialog,
+                               GParamSpec     *pspec,
+                               BzWindow       *self)
+{
+  BzEntry                 *entry = NULL;
+  g_autoptr (BzEntryGroup) group = NULL;
+
+  entry = bz_addons_dialog_get_parent_entry (dialog);
+  if (entry == NULL)
+    return;
+
+  group = bz_application_map_factory_convert_one (
+      bz_state_info_get_application_factory (bz_window_get_state_info (self)),
+      gtk_string_object_new (bz_entry_get_id (entry)));
+  if (group == NULL)
+    return;
+
+  bz_window_show_group (self, group);
+}
+
+static void
 action_show_group (GtkWidget  *widget,
                    const char *action_name,
                    GVariant   *parameter)
@@ -499,6 +520,10 @@ action_show_group (GtkWidget  *widget,
       AdwDialog *dialog = NULL;
 
       dialog = bz_addons_dialog_new_single (group);
+      g_signal_connect_object (dialog, "notify::parent-ui-entry",
+                               G_CALLBACK (parent_ui_entry_show_group_cb),
+                               self, 0);
+      parent_ui_entry_show_group_cb (BZ_ADDONS_DIALOG (dialog), NULL, self);
       adw_dialog_present (dialog, GTK_WIDGET (self));
     }
   else

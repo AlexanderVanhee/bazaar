@@ -325,6 +325,16 @@ bz_addons_dialog_new_single (BzEntryGroup *group)
   return ADW_DIALOG (self);
 }
 
+BzEntry *
+bz_addons_dialog_get_parent_entry (BzAddonsDialog *self)
+{
+
+  if (self->parent_ui_entry == NULL || !bz_result_get_resolved (self->parent_ui_entry))
+    return NULL;
+
+  return bz_result_get_object (self->parent_ui_entry);
+}
+
 static char *
 format_parent_title (gpointer    object,
                      const char *title)
