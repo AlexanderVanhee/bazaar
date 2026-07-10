@@ -105,6 +105,13 @@ else
     dl_worker_bin_name = 'bazaar-dl-worker'
     config_h.set_quoted('DL_WORKER_BIN_NAME', dl_worker_bin_name)
 
+    daemon_bin_name = 'bazaar-daemon'
+    config_h.set_quoted('DAEMON_BIN_NAME', daemon_bin_name)
+
+    bazaar_bin_name = 'bazaar'
+    config_h.set_quoted('BAZAAR_BIN_NAME', bazaar_bin_name)
+    config_h.set_quoted('BAZAAR_BIN_PATH', get_option('prefix') / get_option('bindir') / bazaar_bin_name)
+
     if get_option('hardcoded_main_config_path') != ''
       config_h.set_quoted('HARDCODED_MAIN_CONFIG', get_option('hardcoded_main_config_path'))
     endif
