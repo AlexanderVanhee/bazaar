@@ -9,7 +9,7 @@ rows:
         can-shrink: true
         halign: center
       dark-color: "#2b1f3d"
-      light-color: "#778cf7"
+      light-color: "linear-gradient(135deg, #2b1f3d 0%, #778cf7 100%)" # Can also be a type of gradient
   - section:
       title: "Welcome to Bazaar"
       subtitle:
