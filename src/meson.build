@@ -17,6 +17,7 @@ libsecret_dep        = dependency('libsecret-1', version: '>= 0.20')
 libproxy_dep         = dependency('libproxy-1.0', version: '>= 0.5')
 malcontent_dep 	     = dependency('malcontent-0', version: '>= 0.12.0')
 gtksourceview_dep    = dependency('gtksourceview-5', version: '>= 5.17')
+libsystemd_dep       = dependency('libsystemd', version: '>= 245')
 
 
 dl_worker_sources = [
@@ -39,17 +40,20 @@ dl_worker_exe = executable(dl_worker_bin_name, dl_worker_sources,
 )
 
 
+daemon_sources = [
+  'bazaar-daemon.c',
+  'search-index.c',
+]
+
+daemon_exe = executable(daemon_bin_name, daemon_sources,
+  dependencies: [libsystemd_dep],
+       install: true,
+)
+
 marshalers = gnome.genmarshal('bz-marshalers',
   sources: 'bz-marshalers.list',
   prefix: 'bz_marshal',
   valist_marshallers: true,
-)
-
-gdbus_src = gnome.gdbus_codegen(
-  'gs-shell-search-provider-generated',
-  'shell-search-provider-dbus-interfaces.xml',
-  interface_prefix : 'org.gnome.',
-  namespace : 'Bz',
 )
 
 bz_sources = files(
@@ -108,7 +112,6 @@ bz_sources = files(
   'bz-flatpak-entry.c',
   'bz-flatpak-instance.c',
   'bz-full-view.c',
-  'bz-gnome-shell-search-provider.c',
   'bz-group-tile-css-watcher.c',
   'bz-hardware-support-dialog.c',
   'bz-inspector.c',
@@ -138,6 +141,7 @@ bz_sources = files(
   'bz-search-bar.c',
   'bz-search-engine.c',
   'bz-search-filter-popover.c',
+  'bz-search-index-writer.c',
   'bz-search-page.c',
   'bz-search-pill-list.c',
   'bz-section-view.c',
@@ -376,7 +380,7 @@ bz_sources += gnome.compile_resources('bz-resources',
   dependencies: [blueprints, release_notes, countries_gvariant],
 )
 
-executable(bazaar_bin_name, bz_sources + ['main.c'], gdbus_src, marshalers,
+executable(bazaar_bin_name, bz_sources + ['main.c'], marshalers,
            dependencies: bz_deps,
            install: true,
 )
