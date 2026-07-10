@@ -3814,6 +3814,9 @@ open_generic_id (BzApplication *self,
 
   window = get_or_create_window (self);
 
+  if (adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (window)) != NULL)
+    window = new_window (self);
+
   if (group != NULL)
     {
       gtk_widget_activate_action (GTK_WIDGET (window), "window.show-group", "s", matched_id);
