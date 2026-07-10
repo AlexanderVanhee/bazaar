@@ -374,11 +374,6 @@ cmp_group (BzEntryGroup *a,
            BzEntryGroup *b,
            gpointer      user_data);
 
-static gint
-cmp_entry (BzEntry *a,
-           BzEntry *b,
-           gpointer user_data);
-
 static gboolean
 validate_group_for_ui (BzApplication *self,
                        BzEntryGroup  *group);
@@ -3958,33 +3953,6 @@ cmp_group (BzEntryGroup *a,
     return -1;
 
   return strcasecmp (title_a, title_b);
-}
-
-static gint
-cmp_entry (BzEntry *a,
-           BzEntry *b,
-           gpointer user_data)
-{
-  gboolean a_is_runtime = FALSE;
-  gboolean b_is_runtime = FALSE;
-  gboolean a_is_addon   = FALSE;
-  gboolean b_is_addon   = FALSE;
-
-  a_is_runtime = bz_entry_is_of_kinds (a, BZ_ENTRY_KIND_RUNTIME);
-  b_is_runtime = bz_entry_is_of_kinds (b, BZ_ENTRY_KIND_RUNTIME);
-  if (a_is_runtime && !b_is_runtime)
-    return -1;
-  if (!a_is_runtime && b_is_runtime)
-    return 1;
-
-  a_is_addon = bz_entry_is_of_kinds (a, BZ_ENTRY_KIND_ADDON);
-  b_is_addon = bz_entry_is_of_kinds (b, BZ_ENTRY_KIND_ADDON);
-  if (a_is_addon && !b_is_addon)
-    return -1;
-  if (!a_is_addon && b_is_addon)
-    return 1;
-
-  return 0;
 }
 
 static gboolean
