@@ -1,4 +1,4 @@
-/* bz-search-index-writer.h
+/* search-index-write.h
  *
  * Copyright 2026 Alexander Vanhee
  *

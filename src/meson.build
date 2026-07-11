@@ -141,7 +141,6 @@ bz_sources = files(
   'bz-search-bar.c',
   'bz-search-engine.c',
   'bz-search-filter-popover.c',
-  'bz-search-index-writer.c',
   'bz-search-page.c',
   'bz-search-pill-list.c',
   'bz-section-view.c',
@@ -172,6 +171,7 @@ bz_sources = files(
   'io.c',
   'refresh-worker.c',
   'safety-calculator.c',
+  'search-index-write.c',
   'spdx.c',
   'template-callbacks.c',
 )

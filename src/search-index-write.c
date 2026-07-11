@@ -1,4 +1,4 @@
-/* bz-search-index-writer.c
+/* search-index-write.c
  *
  * Copyright 2026 Alexander Vanhee
  *
@@ -20,11 +20,11 @@
 
 #include "config.h"
 
-#define G_LOG_DOMAIN  "BAZAAR::SEARCH-INDEX-WRITER"
+#define G_LOG_DOMAIN  "BAZAAR::SEARCH-INDEX-WRITE"
 #define BAZAAR_MODULE "search-index-writer"
 
 #include "bz-entry-group.h"
-#include "bz-search-index-writer.h"
+#include "search-index-write.h"
 
 #define INDEX_MAGIC         "BZSI"
 #define INDEX_VERSION       1

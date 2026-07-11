@@ -59,7 +59,7 @@
 #include "bz-root-blocklist.h"
 #include "bz-root-curated-config.h"
 #include "bz-serializable.h"
-#include "bz-search-index-writer.h"
+#include "search-index-write.h"
 #include "bz-state-info.h"
 #include "bz-transaction-manager.h"
 #include "bz-window.h"
