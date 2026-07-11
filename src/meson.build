@@ -166,6 +166,7 @@ bz_sources = files(
   'global-net.c',
   'hooks.c',
   'io.c',
+  'refresh-worker.c',
   'safety-calculator.c',
   'spdx.c',
   'template-callbacks.c',
@@ -375,14 +376,7 @@ bz_sources += gnome.compile_resources('bz-resources',
   dependencies: [blueprints, release_notes, countries_gvariant],
 )
 
-executable('bazaar', bz_sources + ['main.c'], gdbus_src, marshalers,
-           dependencies: bz_deps,
-           install: true,
-)
-
-executable(refresh_worker_bin_name,
-           bz_sources + ['refresh-worker.c'],
-           gdbus_src, marshalers,
+executable(bazaar_bin_name, bz_sources + ['main.c'], gdbus_src, marshalers,
            dependencies: bz_deps,
            install: true,
 )

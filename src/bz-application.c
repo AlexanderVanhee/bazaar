@@ -41,8 +41,6 @@
 #include "bz-download-worker.h"
 #include "bz-entry-cache-manager.h"
 #include "bz-entry-group.h"
-#include "env.h"
-#include "error.h"
 #include "bz-favorites-page.h"
 #include "bz-flathub-state.h"
 #include "bz-flatpak-bundle-result.h"
@@ -52,7 +50,6 @@
 #include "bz-hash-table-object.h"
 #include "bz-inspector.h"
 #include "bz-internal-config.h"
-#include "io.h"
 #include "bz-login-page.h"
 #include "bz-malcontent-service.h"
 #include "bz-metainfo-preview.h"
@@ -65,10 +62,13 @@
 #include "bz-serializable.h"
 #include "bz-state-info.h"
 #include "bz-transaction-manager.h"
-#include "util.h"
 #include "bz-window.h"
 #include "bz-yaml-parser.h"
+#include "env.h"
+#include "error.h"
+#include "io.h"
 #include "progress-bar-designs/common.h"
+#include "util.h"
 
 struct _BzApplication
 {
@@ -373,11 +373,6 @@ static gint
 cmp_group (BzEntryGroup *a,
            BzEntryGroup *b,
            gpointer      user_data);
-
-static gint
-cmp_entry (BzEntry *a,
-           BzEntry *b,
-           gpointer user_data);
 
 static gboolean
 validate_group_for_ui (BzApplication *self,
@@ -3960,33 +3955,6 @@ cmp_group (BzEntryGroup *a,
   return strcasecmp (title_a, title_b);
 }
 
-static gint
-cmp_entry (BzEntry *a,
-           BzEntry *b,
-           gpointer user_data)
-{
-  gboolean a_is_runtime = FALSE;
-  gboolean b_is_runtime = FALSE;
-  gboolean a_is_addon   = FALSE;
-  gboolean b_is_addon   = FALSE;
-
-  a_is_runtime = bz_entry_is_of_kinds (a, BZ_ENTRY_KIND_RUNTIME);
-  b_is_runtime = bz_entry_is_of_kinds (b, BZ_ENTRY_KIND_RUNTIME);
-  if (a_is_runtime && !b_is_runtime)
-    return -1;
-  if (!a_is_runtime && b_is_runtime)
-    return 1;
-
-  a_is_addon = bz_entry_is_of_kinds (a, BZ_ENTRY_KIND_ADDON);
-  b_is_addon = bz_entry_is_of_kinds (b, BZ_ENTRY_KIND_ADDON);
-  if (a_is_addon && !b_is_addon)
-    return -1;
-  if (!a_is_addon && b_is_addon)
-    return 1;
-
-  return 0;
-}
-
 static gboolean
 validate_group_for_ui (BzApplication *self,
                        BzEntryGroup  *group)
@@ -4075,7 +4043,8 @@ make_sync_future (BzApplication *self)
   refresh_worker = g_subprocess_new (
       G_SUBPROCESS_FLAGS_NONE,
       &local_error,
-      REFRESH_WORKER_BIN_NAME,
+      BAZAAR_BIN_NAME,
+      REFRESH_WORKER_CLI_OPTION,
       NULL);
   if (refresh_worker == NULL)
     g_critical ("FATAL!!! The refresh worker could not be spawned: %s",
