@@ -23,15 +23,14 @@
 #define G_LOG_DOMAIN  "BAZAAR::SEARCH-INDEX-WRITER"
 #define BAZAAR_MODULE "search-index-writer"
 
-#include "bz-search-index-writer.h"
 #include "bz-entry-group.h"
+#include "bz-search-index-writer.h"
 
 #define INDEX_MAGIC         "BZSI"
 #define INDEX_VERSION       1
 #define DESCRIPTION_MAX_LEN 200
 
-static gboolean    write_u32 (GOutputStream *out, guint32 value, GError **error);
-static gboolean    write_string (GOutputStream *out, const char *str, gsize max_len, GError **error);
+static gboolean    write_string (GDataOutputStream *out, const char *str, gsize max_len, GError **error);
 static gboolean    entry_group_is_eligible (BzEntryGroup *group);
 static const char *entry_group_icon_path (BzEntryGroup *group);
 
@@ -40,13 +39,14 @@ bz_write_search_index (GListModel *groups,
                        const char *out_path,
                        GError    **error)
 {
-  g_autofree char *tmp_path     = NULL;
-  g_autoptr (GFile) tmp_file    = NULL;
-  g_autoptr (GFile) final_file  = NULL;
-  g_autoptr (GOutputStream) out = NULL;
-  guint    n_groups             = 0;
-  guint32  count                = 0;
-  gboolean result               = FALSE;
+  g_autofree char *tmp_path          = NULL;
+  g_autoptr (GFile) tmp_file         = NULL;
+  g_autoptr (GFile) final_file       = NULL;
+  g_autoptr (GOutputStream) base_out = NULL;
+  g_autoptr (GDataOutputStream) out  = NULL;
+  guint    n_groups                  = 0;
+  guint32  count                     = 0;
+  gboolean result                    = FALSE;
 
   g_return_val_if_fail (G_IS_LIST_MODEL (groups), FALSE);
   g_return_val_if_fail (out_path != NULL, FALSE);
@@ -54,15 +54,18 @@ bz_write_search_index (GListModel *groups,
   tmp_path = g_strdup_printf ("%s.tmp", out_path);
   tmp_file = g_file_new_for_path (tmp_path);
 
-  out = G_OUTPUT_STREAM (g_file_replace (
+  base_out = G_OUTPUT_STREAM (g_file_replace (
       tmp_file, NULL, FALSE,
       G_FILE_CREATE_REPLACE_DESTINATION, NULL, error));
-  if (out == NULL)
+  if (base_out == NULL)
     return FALSE;
 
-  if (!g_output_stream_write_all (out, INDEX_MAGIC, 4, NULL, NULL, error))
+  out = g_data_output_stream_new (base_out);
+  g_data_output_stream_set_byte_order (out, G_DATA_STREAM_BYTE_ORDER_LITTLE_ENDIAN);
+
+  if (!g_output_stream_write_all (G_OUTPUT_STREAM (out), INDEX_MAGIC, 4, NULL, NULL, error))
     return FALSE;
-  if (!write_u32 (out, INDEX_VERSION, error))
+  if (!g_data_output_stream_put_uint32 (out, INDEX_VERSION, NULL, error))
     return FALSE;
 
   n_groups = g_list_model_get_n_items (groups);
@@ -73,7 +76,7 @@ bz_write_search_index (GListModel *groups,
         count++;
     }
 
-  if (!write_u32 (out, count, error))
+  if (!g_data_output_stream_put_uint32 (out, count, NULL, error))
     return FALSE;
 
   for (guint i = 0; i < n_groups; i++)
@@ -95,7 +98,7 @@ bz_write_search_index (GListModel *groups,
         return FALSE;
     }
 
-  if (!g_output_stream_close (out, NULL, error))
+  if (!g_output_stream_close (G_OUTPUT_STREAM (out), NULL, error))
     return FALSE;
 
   final_file = g_file_new_for_path (out_path);
@@ -108,19 +111,10 @@ bz_write_search_index (GListModel *groups,
 }
 
 static gboolean
-write_u32 (GOutputStream *out,
-           guint32        value,
-           GError       **error)
-{
-  guint32 le = GUINT32_TO_LE (value);
-  return g_output_stream_write_all (out, &le, sizeof (le), NULL, NULL, error);
-}
-
-static gboolean
-write_string (GOutputStream *out,
-              const char    *str,
-              gsize          max_len,
-              GError       **error)
+write_string (GDataOutputStream *out,
+              const char        *str,
+              gsize              max_len,
+              GError           **error)
 {
   gsize len = 0;
 
@@ -131,11 +125,11 @@ write_string (GOutputStream *out,
         len = max_len;
     }
 
-  if (!write_u32 (out, (guint32) len, error))
+  if (!g_data_output_stream_put_uint32 (out, (guint32) len, NULL, error))
     return FALSE;
 
   if (len > 0)
-    return g_output_stream_write_all (out, str, len, NULL, NULL, error);
+    return g_output_stream_write_all (G_OUTPUT_STREAM (out), str, len, NULL, NULL, error);
 
   return TRUE;
 }
