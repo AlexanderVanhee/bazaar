@@ -1,6 +1,6 @@
-/* bz-spdx.h
+/* template-callbacks.h
  *
- * Copyright 2025 Alexander Vanhee
+ * Copyright 2026 Eva M
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,20 +20,7 @@
 
 #pragma once
 
-#include <glib.h>
+#include <gtk/gtk.h>
 
-G_BEGIN_DECLS
-
-gboolean
-bz_spdx_is_valid (const char *license_id);
-
-char *
-bz_spdx_get_url (const char *license_id);
-
-char *
-bz_spdx_get_name (const char *license_id);
-
-gboolean
-bz_spdx_is_proprietary (const char *license_id);
-
-G_END_DECLS
+void
+bz_widget_class_bind_all_util_callbacks (GtkWidgetClass *widget_class);

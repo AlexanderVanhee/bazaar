@@ -18,9 +18,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "bz-zoom.h"
 #include <adwaita.h>
 #include <math.h>
+
+#include "bz-zoom.h"
 
 #define OVERPAN_FACTOR 0.5
 
@@ -223,7 +224,7 @@ on_drag_begin (BzZoom     *self,
                double      start_y,
                GtkGesture *gesture)
 {
-  if (!bz_zoom_is_transformed(self))
+  if (!bz_zoom_is_transformed (self))
     {
       gtk_gesture_set_state (gesture, GTK_EVENT_SEQUENCE_DENIED);
       return;

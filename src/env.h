@@ -1,4 +1,4 @@
-/* bz-addons-dialog.h
+/* env.h
  *
  * Copyright 2025 Adam Masciola
  *
@@ -20,22 +20,17 @@
 
 #pragma once
 
-#include <adwaita.h>
-
-#include "bz-entry-group.h"
+#include <glib.h>
 
 G_BEGIN_DECLS
 
-#define BZ_TYPE_ADDONS_DIALOG (bz_addons_dialog_get_type ())
-G_DECLARE_FINAL_TYPE (BzAddonsDialog, bz_addons_dialog, BZ, ADDONS_DIALOG, AdwDialog)
+gsize
+bz_get_dex_stack_size (void);
 
-AdwDialog *
-bz_addons_dialog_new (BzEntryGroup *group);
+guint64
+bz_get_n_download_workers (void);
 
-AdwDialog *
-bz_addons_dialog_new_single (BzEntryGroup *group);
-
-BzEntry *
-bz_addons_dialog_get_parent_entry (BzAddonsDialog *self);
+guint
+bz_get_desktop_search_provider_icon_size (void);
 
 G_END_DECLS

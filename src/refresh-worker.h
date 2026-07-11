@@ -1,6 +1,6 @@
-/* bz-context-tile-callbacks.h
+/* refresh-worker.h
  *
- * Copyright 2026 Eva M, Alexander Vanhee
+ * Copyright 2026 Eva M
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,12 @@
 
 #pragma once
 
-#include <gtk/gtk.h>
-#include "bz-safety-calculator.h"
+#include <glib.h>
 
-void
-bz_widget_class_bind_all_context_tile_callbacks (GtkWidgetClass *widget_class);
+G_BEGIN_DECLS
 
-const char *
-bz_safety_style_for_importance (BzImportance importance);
+int
+run_refresh_worker (int   argc,
+                    char *argv[]);
+
+G_END_DECLS

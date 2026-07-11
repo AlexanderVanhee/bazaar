@@ -28,7 +28,7 @@
 #include "bz-application-map-factory.h"
 #include "bz-application.h"
 #include "bz-appstream-description-render.h"
-#include "bz-context-tile-callbacks.h"
+#include "context-tile-callbacks.h"
 #include "bz-context-tile.h"
 #include "bz-entry-group.h"
 #include "bz-fading-clamp.h"
@@ -39,8 +39,8 @@
 #include "bz-share-list.h"
 #include "bz-state-info.h"
 #include "bz-stats-dialog.h"
-#include "bz-template-callbacks.h"
-#include "bz-util.h"
+#include "template-callbacks.h"
+#include "util.h"
 
 struct _BzAddonsDialog
 {
@@ -323,6 +323,17 @@ bz_addons_dialog_new_single (BzEntryGroup *group)
   adw_navigation_view_replace (self->navigation_view, &full_view, 1);
 
   return ADW_DIALOG (self);
+}
+
+BzEntry *
+bz_addons_dialog_get_parent_entry (BzAddonsDialog *self)
+{
+  g_return_val_if_fail (BZ_IS_ADDONS_DIALOG (self), NULL);
+
+  if (self->parent_ui_entry == NULL || !bz_result_get_resolved (self->parent_ui_entry))
+    return NULL;
+
+  return bz_result_get_object (self->parent_ui_entry);
 }
 
 static char *
