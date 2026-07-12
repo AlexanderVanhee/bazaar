@@ -530,9 +530,48 @@ method_activate_result (sd_bus_message *m,
 static int
 method_launch_search (sd_bus_message *m, void *userdata, sd_bus_error *ret_error)
 {
-  _cleanup_ (strv_freep) char **terms = NULL;
-  // TODO: Actually open search in app with the terms
-  launch_app (NULL, 0);
+  _cleanup_ (strv_freep) char   **terms     = NULL;
+  _cleanup_ (generic_freep) char *joined    = NULL;
+  _cleanup_ (generic_freep) char *arg       = NULL;
+  char                            *args[1]   = { NULL };
+  uint32_t                        timestamp = 0;
+  size_t                          len       = 0;
+  int                             n_terms   = 0;
+  int                             i         = 0;
+  int                             r         = 0;
+
+  r = sd_bus_message_read_strv (m, &terms);
+  if (r < 0)
+    return r;
+
+  r = sd_bus_message_read (m, "u", &timestamp);
+  if (r < 0)
+    return r;
+
+  n_terms = strv_count_local (terms);
+  if (n_terms == 0)
+    {
+      launch_app (NULL, 0);
+      return sd_bus_reply_method_return (m, NULL);
+    }
+
+  for (i = 0; i < n_terms; i++)
+    len += strlen (terms[i]) + 1;
+
+  joined    = malloc (len);
+  joined[0] = '\0';
+  for (i = 0; i < n_terms; i++)
+    {
+      strcat (joined, terms[i]);
+      if (i + 1 < n_terms)
+        strcat (joined, " ");
+    }
+
+  arg = malloc (strlen ("--search-for=") + strlen (joined) + 1);
+  sprintf (arg, "--search-for=%s", joined);
+
+  args[0] = arg;
+  launch_app (args, 1);
 
   return sd_bus_reply_method_return (m, NULL);
 }
