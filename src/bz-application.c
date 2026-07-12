@@ -46,7 +46,6 @@
 #include "bz-flatpak-bundle-result.h"
 #include "bz-flatpak-entry.h"
 #include "bz-flatpak-instance.h"
-#include "bz-gnome-shell-search-provider.h"
 #include "bz-hash-table-object.h"
 #include "bz-inspector.h"
 #include "bz-internal-config.h"
@@ -60,6 +59,7 @@
 #include "bz-root-blocklist.h"
 #include "bz-root-curated-config.h"
 #include "bz-serializable.h"
+#include "search-index-write.h"
 #include "bz-state-info.h"
 #include "bz-transaction-manager.h"
 #include "bz-window.h"
@@ -83,7 +83,6 @@ struct _BzApplication
   BzFlathubState             *flathub;
   BzFlathubState             *tmp_flathub;
   BzFlatpakInstance          *flatpak;
-  BzGnomeShellSearchProvider *gs_search;
   BzInternalConfig           *internal_config;
   BzMainConfig               *config;
   BzMalcontentService        *malcontent;
@@ -415,7 +414,6 @@ bz_application_dispose (GObject *object)
   g_clear_object (&self->group_filter);
   g_clear_object (&self->group_filter_model);
   g_clear_object (&self->groups);
-  g_clear_object (&self->gs_search);
   g_clear_object (&self->installed_apps);
   g_clear_object (&self->malcontent);
   g_clear_object (&self->internal_config);
@@ -464,7 +462,6 @@ bz_application_command_line (GApplication            *app,
   gint argc                           = 0;
   g_auto (GStrv) argv                 = NULL;
   gboolean help                       = FALSE;
-  gboolean no_window                  = FALSE;
   g_auto (GStrv) blocklists_strv      = NULL;
   g_auto (GStrv) content_configs_strv = NULL;
   g_auto (GStrv) locations            = NULL;
@@ -472,7 +469,7 @@ bz_application_command_line (GApplication            *app,
 
   GOptionEntry main_entries[] = {
     { "help", 0, 0, G_OPTION_ARG_NONE, &help, "Print help" },
-    { "no-window", 0, 0, G_OPTION_ARG_NONE, &no_window, "Ensure the service is running without creating a new window" },
+    { "no-window", 0, 0, G_OPTION_ARG_NONE, NULL, "Ensure the service is running without creating a new window (daemon)" },
     { "extra-blocklist", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &blocklists_strv, "Add an extra blocklist to read from" },
     { "extra-curated-config", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &content_configs_strv, "Add an extra yaml file with which to configure the app browser" },
     /* Here for backwards compat */
@@ -527,8 +524,6 @@ bz_application_command_line (GApplication            *app,
       g_autoptr (GtkStringList) content_configs = NULL;
       g_autoptr (DexFuture) init                = NULL;
 
-      g_debug ("Starting daemon!");
-      g_application_hold (G_APPLICATION (self));
       self->running = TRUE;
 
       blocklists      = gtk_string_list_new (NULL);
@@ -575,7 +570,7 @@ bz_application_command_line (GApplication            *app,
       dex_future_disown (g_steal_pointer (&init));
     }
 
-  if (!no_window && !preview_metainfo)
+  if (!preview_metainfo)
     {
       if (locations == NULL || *locations == NULL)
         new_window (self);
@@ -610,25 +605,6 @@ bz_application_local_command_line (GApplication *application,
   return FALSE;
 }
 
-static gboolean
-bz_application_dbus_register (GApplication    *application,
-                              GDBusConnection *connection,
-                              const gchar     *object_path,
-                              GError         **error)
-{
-  BzApplication *self = BZ_APPLICATION (application);
-  return bz_gnome_shell_search_provider_set_connection (self->gs_search, connection, error);
-}
-
-static void
-bz_application_dbus_unregister (GApplication    *application,
-                                GDBusConnection *connection,
-                                const gchar     *object_path)
-{
-  BzApplication *self = BZ_APPLICATION (application);
-  bz_gnome_shell_search_provider_set_connection (self->gs_search, NULL, NULL);
-}
-
 static void
 bz_application_class_init (BzApplicationClass *klass)
 {
@@ -640,8 +616,6 @@ bz_application_class_init (BzApplicationClass *klass)
   app_class->activate           = bz_application_activate;
   app_class->command_line       = bz_application_command_line;
   app_class->local_command_line = bz_application_local_command_line;
-  app_class->dbus_register      = bz_application_dbus_register;
-  app_class->dbus_unregister    = bz_application_dbus_unregister;
 
   g_type_ensure (BZ_TYPE_RESULT);
 }
@@ -875,9 +849,23 @@ bz_application_quit_action (GSimpleAction *action,
                             GVariant      *parameter,
                             gpointer       user_data)
 {
-  BzApplication *self = user_data;
+  BzApplication              *self  = user_data;
+  g_autoptr (GDBusConnection) conn  = NULL;
+  g_autoptr (GError)          error = NULL;
 
-  g_assert (BZ_IS_APPLICATION (self));
+  conn = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+  if (conn != NULL)
+    {
+      g_dbus_connection_call_sync (
+          conn, "io.github.kolunmi.Bazaar.SearchProvider",
+          "/io/github/kolunmi/Bazaar/SearchProvider",
+          "io.github.kolunmi.Bazaar.Daemon",
+          "Quit", NULL, NULL, G_DBUS_CALL_FLAGS_NONE,
+          -1, NULL, &error);
+    }
+
+  if (error != NULL)
+    g_warning ("Failed to quit daemon: %s", error->message);
 
   g_application_quit (G_APPLICATION (self));
 }
@@ -902,8 +890,6 @@ bz_application_init (BzApplication *self)
 {
   self->running = FALSE;
   g_weak_ref_init (&self->main_window, NULL);
-
-  self->gs_search = bz_gnome_shell_search_provider_new ();
 
   g_action_map_add_action_entries (
       G_ACTION_MAP (self),
@@ -1583,6 +1569,9 @@ cache_groups_fiber (GWeakRef *wr)
   g_autoptr (GVariant) variant        = NULL;
   g_autoptr (GBytes) bytes            = NULL;
   guint n_groups                      = 0;
+  g_autoptr (GError) index_error      = NULL;
+  g_autofree char *module_dir         = NULL;
+  g_autofree char *index_path         = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
 
@@ -1619,6 +1608,12 @@ cache_groups_fiber (GWeakRef *wr)
       &local_error);
   if (!result)
     g_warning ("Failed to cache groups to %s: %s", groups_cache, local_error->message);
+
+  module_dir = bz_dup_module_dir ();
+  index_path = g_build_filename (module_dir, "search-index", NULL);
+
+  if (!bz_write_search_index (G_LIST_MODEL (self->groups), index_path, &index_error))
+    g_warning ("Failed to write search index to %s: %s", index_path, index_error->message);
 
   return dex_future_new_true ();
 }
@@ -3518,7 +3513,6 @@ init_service_struct (BzApplication *self,
   self->search_engine = bz_search_engine_new ();
   bz_search_engine_set_model (self->search_engine, G_LIST_MODEL (self->group_filter_model));
   bz_search_engine_set_biases (self->search_engine, G_LIST_MODEL (self->search_biases));
-  bz_gnome_shell_search_provider_set_engine (self->gs_search, self->search_engine);
 
   self->curated_provider = bz_content_provider_new ();
   bz_content_provider_set_input_files (
