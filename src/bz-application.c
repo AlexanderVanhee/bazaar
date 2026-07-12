@@ -466,6 +466,7 @@ bz_application_command_line (GApplication            *app,
   g_auto (GStrv) content_configs_strv = NULL;
   g_auto (GStrv) locations            = NULL;
   gboolean preview_metainfo           = FALSE;
+  g_autofree char *search_term        = NULL;
 
   GOptionEntry main_entries[] = {
     { "help", 0, 0, G_OPTION_ARG_NONE, &help, "Print help" },
@@ -475,6 +476,7 @@ bz_application_command_line (GApplication            *app,
     /* Here for backwards compat */
     { "extra-content-config", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &content_configs_strv, "Add an extra yaml file with which to configure the app browser (backwards compat)" },
     { "preview-metainfo", 0, 0, G_OPTION_ARG_NONE, &preview_metainfo, "Preview a metainfo file by selecting it via file dialog" },
+    { "search-for", 0, 0, G_OPTION_ARG_STRING, &search_term, "Open search with this term" },
     { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &locations, "flatpakref file to open" },
     { NULL }
   };
@@ -572,7 +574,7 @@ bz_application_command_line (GApplication            *app,
 
   if (!preview_metainfo)
     {
-      if (locations == NULL || *locations == NULL)
+      if ((locations == NULL || *locations == NULL) && search_term == NULL)
         new_window (self);
       else
         get_or_create_window (self);
@@ -592,6 +594,17 @@ bz_application_command_line (GApplication            *app,
           bz_track_weak (self),
           bz_weak_release);
       dex_future_disown (g_steal_pointer (&future));
+    }
+
+  if (search_term != NULL)
+    {
+      GtkWindow *window = NULL;
+
+      window = get_or_create_window (self);
+      if (adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (window)) != NULL)
+        window = new_window (self);
+
+      bz_window_search (BZ_WINDOW (window), search_term);
     }
 
   return EXIT_SUCCESS;
