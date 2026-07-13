@@ -59,7 +59,6 @@
 #include "bz-root-blocklist.h"
 #include "bz-root-curated-config.h"
 #include "bz-serializable.h"
-#include "search-index-write.h"
 #include "bz-state-info.h"
 #include "bz-transaction-manager.h"
 #include "bz-window.h"
@@ -68,68 +67,69 @@
 #include "error.h"
 #include "io.h"
 #include "progress-bar-designs/common.h"
+#include "search-index-write.h"
 #include "util.h"
 
 struct _BzApplication
 {
   AdwApplication parent_instance;
 
-  BzApplicationMapFactory    *application_factory;
-  BzApplicationMapFactory    *entry_factory;
-  BzContentProvider          *blocklists_provider;
-  BzContentProvider          *curated_provider;
-  BzContentProvider          *txt_blocklists_provider;
-  BzEntryCacheManager        *cache;
-  BzFlathubState             *flathub;
-  BzFlathubState             *tmp_flathub;
-  BzFlatpakInstance          *flatpak;
-  BzInternalConfig           *internal_config;
-  BzMainConfig               *config;
-  BzMalcontentService        *malcontent;
-  BzNewlineParser            *txt_blocklist_parser;
-  BzSearchEngine             *search_engine;
-  BzStateInfo                *state;
-  BzTransactionManager       *transactions;
-  BzYamlParser               *blocklist_parser;
-  BzYamlParser               *curated_parser;
-  DexChannel                 *flatpak_notifs;
-  DexFuture                  *notif_watch;
-  DexFuture                  *sync;
-  DexPromise                 *first_window_opened;
-  DexPromise                 *ready_to_open_files;
-  GHashTable                 *eol_runtimes;
-  GHashTable                 *ids_to_groups;
-  GHashTable                 *ignore_eol_set;
-  GHashTable                 *installed_set;
-  GHashTable                 *sys_name_to_addons;
-  GHashTable                 *sys_ref_to_addon_group_ids;
-  GHashTable                 *usr_name_to_addons;
-  GHashTable                 *usr_ref_to_addon_group_ids;
-  GListStore                 *groups;
-  GListStore                 *installed_apps;
-  GListStore                 *search_biases_backing;
-  GNetworkMonitor            *network;
-  GPtrArray                  *blocklist_regexes;
-  GPtrArray                  *txt_blocked_id_sets;
-  GSettings                  *settings;
-  GTimer                     *init_timer;
-  GWeakRef                    main_window;
-  GtkCustomFilter            *appid_filter;
-  GtkCustomFilter            *group_filter;
-  GtkFilterListModel         *group_filter_model;
-  GtkFlattenListModel        *search_biases;
-  GtkMapListModel            *blocklists_to_files;
-  GtkMapListModel            *curated_configs_to_files;
-  GtkMapListModel            *txt_blocklists_to_files;
-  GtkStringList              *blocklists;
-  GtkStringList              *curated_configs;
-  GtkStringList              *txt_blocklists;
-  gboolean                    flathub_remote_initialized;
-  gboolean                    running;
-  gboolean                    had_cache_on_init;
-  guint                       periodic_timeout_source;
-  int                         n_entries_incoming;
-  int                         n_remotes_syncing;
+  BzApplicationMapFactory *application_factory;
+  BzApplicationMapFactory *entry_factory;
+  BzContentProvider       *blocklists_provider;
+  BzContentProvider       *curated_provider;
+  BzContentProvider       *txt_blocklists_provider;
+  BzEntryCacheManager     *cache;
+  BzFlathubState          *flathub;
+  BzFlathubState          *tmp_flathub;
+  BzFlatpakInstance       *flatpak;
+  BzInternalConfig        *internal_config;
+  BzMainConfig            *config;
+  BzMalcontentService     *malcontent;
+  BzNewlineParser         *txt_blocklist_parser;
+  BzSearchEngine          *search_engine;
+  BzStateInfo             *state;
+  BzTransactionManager    *transactions;
+  BzYamlParser            *blocklist_parser;
+  BzYamlParser            *curated_parser;
+  DexChannel              *flatpak_notifs;
+  DexFuture               *notif_watch;
+  DexFuture               *sync;
+  DexPromise              *first_window_opened;
+  DexPromise              *ready_to_open_files;
+  GHashTable              *eol_runtimes;
+  GHashTable              *ids_to_groups;
+  GHashTable              *ignore_eol_set;
+  GHashTable              *installed_set;
+  GHashTable              *sys_name_to_addons;
+  GHashTable              *sys_ref_to_addon_group_ids;
+  GHashTable              *usr_name_to_addons;
+  GHashTable              *usr_ref_to_addon_group_ids;
+  GListStore              *groups;
+  GListStore              *installed_apps;
+  GListStore              *search_biases_backing;
+  GNetworkMonitor         *network;
+  GPtrArray               *blocklist_regexes;
+  GPtrArray               *txt_blocked_id_sets;
+  GSettings               *settings;
+  GTimer                  *init_timer;
+  GWeakRef                 main_window;
+  GtkCustomFilter         *appid_filter;
+  GtkCustomFilter         *group_filter;
+  GtkFilterListModel      *group_filter_model;
+  GtkFlattenListModel     *search_biases;
+  GtkMapListModel         *blocklists_to_files;
+  GtkMapListModel         *curated_configs_to_files;
+  GtkMapListModel         *txt_blocklists_to_files;
+  GtkStringList           *blocklists;
+  GtkStringList           *curated_configs;
+  GtkStringList           *txt_blocklists;
+  gboolean                 flathub_remote_initialized;
+  gboolean                 running;
+  gboolean                 had_cache_on_init;
+  guint                    periodic_timeout_source;
+  int                      n_entries_incoming;
+  int                      n_remotes_syncing;
 };
 
 G_DEFINE_FINAL_TYPE (BzApplication, bz_application, ADW_TYPE_APPLICATION)
@@ -465,7 +465,7 @@ bz_application_command_line (GApplication            *app,
   g_auto (GStrv) blocklists_strv      = NULL;
   g_auto (GStrv) content_configs_strv = NULL;
   g_auto (GStrv) locations            = NULL;
-  gboolean preview_metainfo           = FALSE;
+  gboolean         preview_metainfo   = FALSE;
   g_autofree char *search_term        = NULL;
 
   GOptionEntry main_entries[] = {
@@ -862,20 +862,18 @@ bz_application_quit_action (GSimpleAction *action,
                             GVariant      *parameter,
                             gpointer       user_data)
 {
-  BzApplication              *self  = user_data;
-  g_autoptr (GDBusConnection) conn  = NULL;
-  g_autoptr (GError)          error = NULL;
+  BzApplication *self              = user_data;
+  g_autoptr (GDBusConnection) conn = NULL;
+  g_autoptr (GError) error         = NULL;
 
   conn = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
   if (conn != NULL)
-    {
-      g_dbus_connection_call_sync (
-          conn, "io.github.kolunmi.Bazaar.SearchProvider",
-          "/io/github/kolunmi/Bazaar/SearchProvider",
-          "io.github.kolunmi.Bazaar.Daemon",
-          "Quit", NULL, NULL, G_DBUS_CALL_FLAGS_NONE,
-          -1, NULL, &error);
-    }
+    g_dbus_connection_call_sync (
+        conn, "io.github.kolunmi.Bazaar.SearchProvider",
+        "/io/github/kolunmi/Bazaar/SearchProvider",
+        "io.github.kolunmi.Bazaar.Daemon",
+        "Quit", NULL, NULL, G_DBUS_CALL_FLAGS_NONE,
+        -1, NULL, &error);
 
   if (error != NULL)
     g_warning ("Failed to quit daemon: %s", error->message);
