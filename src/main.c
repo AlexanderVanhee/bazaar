@@ -28,6 +28,7 @@
 
 #include "bz-application.h"
 #include "refresh-worker.h"
+#include "update-worker.h"
 
 int
 main (int   argc,
@@ -52,13 +53,15 @@ main (int   argc,
 
   if (argc > 1 && g_strcmp0 (argv[1], REFRESH_WORKER_CLI_OPTION) == 0)
     result = run_refresh_worker (argc, argv);
+  else if (argc > 1 && g_strcmp0 (argv[1], UPDATE_WORKER_CLI_OPTION) == 0)
+    result = run_update_worker (argc, argv);
   else
     {
       g_autoptr (BzApplication) app = NULL;
 
       app = g_object_new (
           BZ_TYPE_APPLICATION,
-          "application-id", "io.github.kolunmi.Bazaar",
+          "application-id", APPLICATION_ID,
           "flags", G_APPLICATION_HANDLES_COMMAND_LINE,
           "resource-base-path", "/io/github/kolunmi/Bazaar",
           NULL);
