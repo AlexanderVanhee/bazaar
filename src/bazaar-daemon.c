@@ -39,6 +39,8 @@
 #define MAX_SEARCH_RESULTS  25
 #define ACTIVATE_TIMEOUT_US 2000000
 
+#define UPDATE_CHECK_INTERVAL_USEC (60ULL * 60ULL * 1000000ULL) /* 1 hour */
+
 #define _cleanup_(x) __attribute__ ((cleanup (x)))
 
 #define SD_BUS_CHECK(expr) \
@@ -50,11 +52,12 @@
     }                      \
   while (0)
 
-static sd_event    *event        = NULL;
-static sd_bus      *bus          = NULL;
-static pid_t        child_pid    = -1;
-static SearchIndex *g_index      = NULL;
-static char        *g_index_path = NULL;
+static sd_event        *event               = NULL;
+static sd_bus          *bus                 = NULL;
+static pid_t            child_pid           = -1;
+static SearchIndex     *g_index             = NULL;
+static char            *g_index_path        = NULL;
+static sd_event_source *update_timer_source = NULL;
 
 static void  log_msg (const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 static void *malloc_or_bail (size_t n_bytes);
@@ -66,6 +69,10 @@ static void  strv_freep (char ***strv);
 static void  generic_freep (void *p);
 static int   on_child_exit (sd_event_source *s, const siginfo_t *si, void *userdata);
 static void  launch_app (char **extra_args, int n_extra_args);
+static void  run_update_worker_once (void);
+static int   on_update_worker_exit (sd_event_source *s, const siginfo_t *si, void *userdata);
+static int   on_update_timer (sd_event_source *s, uint64_t usec, void *userdata);
+static int   schedule_next_update_check (void);
 static int   build_and_send_search_reply (sd_bus_message *call, char **terms);
 static int   method_get_result_set (sd_bus_message *m, void *userdata, sd_bus_error *ret_error);
 static int   method_get_result_metas (sd_bus_message *m, void *userdata, sd_bus_error *ret_error);
@@ -156,6 +163,7 @@ main (int argc, char *argv[])
     log_msg ("Failed to attach bus to event loop: %s", strerror (-r));
 
   ensure_index_loaded ();
+  schedule_next_update_check ();
 
   fwd_args = malloc_or_bail (sizeof (char *) * (size_t) (argc > 0 ? argc : 1));
   for (i = 1; i < argc; i++)
@@ -176,6 +184,9 @@ main (int argc, char *argv[])
     launch_app (fwd_args, n_fwd_args);
 
   sd_event_loop (event);
+
+  if (update_timer_source != NULL)
+    sd_event_source_unref (update_timer_source);
 
   search_index_close (g_index);
   free (g_index_path);
@@ -411,6 +422,81 @@ launch_app (char **extra_args,
     child_pid = pid;
 
   sd_event_add_child (event, NULL, pid, WEXITED, on_child_exit, NULL);
+}
+
+static void
+run_update_worker_once (void)
+{
+  pid_t    pid     = -1;
+  char    *argv[3] = { NULL };
+  sigset_t mask    = { 0 };
+
+  argv[0] = (char *) BAZAAR_BIN_PATH;
+  argv[1] = (char *) UPDATE_WORKER_CLI_OPTION;
+  argv[2] = NULL;
+
+  pid = fork ();
+  if (pid == 0)
+    {
+      sigemptyset (&mask);
+      sigprocmask (SIG_SETMASK, &mask, NULL);
+
+      execvp (argv[0], argv);
+      perror ("execvp");
+      _exit (127);
+    }
+
+  if (pid < 0)
+    {
+      log_msg ("Failed to spawn update worker: %s", strerror (errno));
+      return;
+    }
+
+  sd_event_add_child (event, NULL, pid, WEXITED, on_update_worker_exit, NULL);
+}
+
+static int
+on_update_worker_exit (sd_event_source *s,
+                       const siginfo_t *si,
+                       void            *userdata)
+{
+  sd_event_source_unref (s);
+  return 0;
+}
+
+static int
+on_update_timer (sd_event_source *s,
+                 uint64_t         usec,
+                 void            *userdata)
+{
+  run_update_worker_once ();
+  schedule_next_update_check ();
+  return 0;
+}
+
+static int
+schedule_next_update_check (void)
+{
+  uint64_t now = 0;
+  int      r   = 0;
+
+  if (update_timer_source != NULL)
+    {
+      sd_event_source_unref (update_timer_source);
+      update_timer_source = NULL;
+    }
+
+  r = sd_event_now (event, CLOCK_BOOTTIME, &now);
+  if (r < 0)
+    return r;
+
+  r = sd_event_add_time (event, &update_timer_source, CLOCK_BOOTTIME,
+                         now + UPDATE_CHECK_INTERVAL_USEC, 0,
+                         on_update_timer, NULL);
+  if (r < 0)
+    log_msg ("failed to schedule update: %s", strerror (-r));
+
+  return r;
 }
 
 static int

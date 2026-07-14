@@ -25,6 +25,8 @@
 
 #define CACHE_ENUM_BATCH_SIZE 64
 
+#define MIN_STARTUP_REFRESH_INTERVAL_SECONDS (3 * 60 * 60)
+
 #include "config.h"
 
 #include <glib/gi18n.h>
@@ -2168,6 +2170,9 @@ init_fiber_finally (DexFuture *future,
   g_autoptr (BzApplication) self = NULL;
   g_autoptr (GError) local_error = NULL;
   const GValue *value            = NULL;
+  gint64 last_refresh            = 0;
+  gint64 now                     = 0;
+  gint64 seconds_since_refresh   = 0;
 
   bz_weak_get_or_return_reject (self, wr);
 
@@ -2182,7 +2187,12 @@ init_fiber_finally (DexFuture *future,
           bz_track_weak (self),
           bz_weak_release);
 
-      if (!bz_state_info_get_metered_connection (self->state) || !self->had_cache_on_init)
+      last_refresh          = g_settings_get_int64 (self->settings, "last-refresh-time");
+      now                   = g_get_real_time () / G_USEC_PER_SEC;
+      seconds_since_refresh = now - last_refresh;
+
+      if ((!bz_state_info_get_metered_connection (self->state) || !self->had_cache_on_init) &&
+          seconds_since_refresh >= MIN_STARTUP_REFRESH_INTERVAL_SECONDS)
         {
           g_autoptr (DexFuture) sync_future = NULL;
 
@@ -2201,7 +2211,7 @@ init_fiber_finally (DexFuture *future,
           bz_state_info_set_syncing (self->state, FALSE);
           dex_promise_resolve_boolean (self->ready_to_open_files, TRUE);
 
-          // Only check for updates if connection is limited.
+          // Only check for updates if we skipped a full sync.
           dex_future_disown (dex_scheduler_spawn (
               dex_scheduler_get_default (),
               bz_get_dex_stack_size (),
@@ -2372,6 +2382,11 @@ sync_finally (DexFuture *future,
   bz_state_info_set_busy (self->state, FALSE);
   bz_state_info_set_syncing (self->state, FALSE);
   finish_with_background_task_label (self);
+
+  if (dex_future_is_resolved (future))
+    g_settings_set_int64 (
+        self->settings, "last-refresh-time",
+        g_get_real_time () / G_USEC_PER_SEC);
 
   dex_promise_resolve_boolean (self->ready_to_open_files, TRUE);
 
