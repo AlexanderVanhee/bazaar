@@ -102,7 +102,6 @@ else
     bazaar_bin_name = 'bazaar'
     config_h.set_quoted('BAZAAR_BIN_NAME', bazaar_bin_name)
     config_h.set_quoted('REFRESH_WORKER_CLI_OPTION', '--run-refresh-worker')
-
     config_h.set_quoted('UPDATE_WORKER_CLI_OPTION', '--run-update-worker')
 
     dl_worker_bin_name = 'bazaar-dl-worker'
