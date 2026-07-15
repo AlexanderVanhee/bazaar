@@ -25,6 +25,8 @@
 
 #define CACHE_ENUM_BATCH_SIZE 64
 
+#define MIN_STARTUP_REFRESH_INTERVAL_SECONDS (3 * 60 * 60)
+
 #include "config.h"
 
 #include <glib/gi18n.h>
@@ -46,7 +48,6 @@
 #include "bz-flatpak-bundle-result.h"
 #include "bz-flatpak-entry.h"
 #include "bz-flatpak-instance.h"
-#include "bz-gnome-shell-search-provider.h"
 #include "bz-hash-table-object.h"
 #include "bz-inspector.h"
 #include "bz-internal-config.h"
@@ -68,69 +69,69 @@
 #include "error.h"
 #include "io.h"
 #include "progress-bar-designs/common.h"
+#include "search-index-write.h"
 #include "util.h"
 
 struct _BzApplication
 {
   AdwApplication parent_instance;
 
-  BzApplicationMapFactory    *application_factory;
-  BzApplicationMapFactory    *entry_factory;
-  BzContentProvider          *blocklists_provider;
-  BzContentProvider          *curated_provider;
-  BzContentProvider          *txt_blocklists_provider;
-  BzEntryCacheManager        *cache;
-  BzFlathubState             *flathub;
-  BzFlathubState             *tmp_flathub;
-  BzFlatpakInstance          *flatpak;
-  BzGnomeShellSearchProvider *gs_search;
-  BzInternalConfig           *internal_config;
-  BzMainConfig               *config;
-  BzMalcontentService        *malcontent;
-  BzNewlineParser            *txt_blocklist_parser;
-  BzSearchEngine             *search_engine;
-  BzStateInfo                *state;
-  BzTransactionManager       *transactions;
-  BzYamlParser               *blocklist_parser;
-  BzYamlParser               *curated_parser;
-  DexChannel                 *flatpak_notifs;
-  DexFuture                  *notif_watch;
-  DexFuture                  *sync;
-  DexPromise                 *first_window_opened;
-  DexPromise                 *ready_to_open_files;
-  GHashTable                 *eol_runtimes;
-  GHashTable                 *ids_to_groups;
-  GHashTable                 *ignore_eol_set;
-  GHashTable                 *installed_set;
-  GHashTable                 *sys_name_to_addons;
-  GHashTable                 *sys_ref_to_addon_group_ids;
-  GHashTable                 *usr_name_to_addons;
-  GHashTable                 *usr_ref_to_addon_group_ids;
-  GListStore                 *groups;
-  GListStore                 *installed_apps;
-  GListStore                 *search_biases_backing;
-  GNetworkMonitor            *network;
-  GPtrArray                  *blocklist_regexes;
-  GPtrArray                  *txt_blocked_id_sets;
-  GSettings                  *settings;
-  GTimer                     *init_timer;
-  GWeakRef                    main_window;
-  GtkCustomFilter            *appid_filter;
-  GtkCustomFilter            *group_filter;
-  GtkFilterListModel         *group_filter_model;
-  GtkFlattenListModel        *search_biases;
-  GtkMapListModel            *blocklists_to_files;
-  GtkMapListModel            *curated_configs_to_files;
-  GtkMapListModel            *txt_blocklists_to_files;
-  GtkStringList              *blocklists;
-  GtkStringList              *curated_configs;
-  GtkStringList              *txt_blocklists;
-  gboolean                    flathub_remote_initialized;
-  gboolean                    running;
-  gboolean                    had_cache_on_init;
-  guint                       periodic_timeout_source;
-  int                         n_entries_incoming;
-  int                         n_remotes_syncing;
+  BzApplicationMapFactory *application_factory;
+  BzApplicationMapFactory *entry_factory;
+  BzContentProvider       *blocklists_provider;
+  BzContentProvider       *curated_provider;
+  BzContentProvider       *txt_blocklists_provider;
+  BzEntryCacheManager     *cache;
+  BzFlathubState          *flathub;
+  BzFlathubState          *tmp_flathub;
+  BzFlatpakInstance       *flatpak;
+  BzInternalConfig        *internal_config;
+  BzMainConfig            *config;
+  BzMalcontentService     *malcontent;
+  BzNewlineParser         *txt_blocklist_parser;
+  BzSearchEngine          *search_engine;
+  BzStateInfo             *state;
+  BzTransactionManager    *transactions;
+  BzYamlParser            *blocklist_parser;
+  BzYamlParser            *curated_parser;
+  DexChannel              *flatpak_notifs;
+  DexFuture               *notif_watch;
+  DexFuture               *sync;
+  DexPromise              *first_window_opened;
+  DexPromise              *ready_to_open_files;
+  GHashTable              *eol_runtimes;
+  GHashTable              *ids_to_groups;
+  GHashTable              *ignore_eol_set;
+  GHashTable              *installed_set;
+  GHashTable              *sys_name_to_addons;
+  GHashTable              *sys_ref_to_addon_group_ids;
+  GHashTable              *usr_name_to_addons;
+  GHashTable              *usr_ref_to_addon_group_ids;
+  GListStore              *groups;
+  GListStore              *installed_apps;
+  GListStore              *search_biases_backing;
+  GNetworkMonitor         *network;
+  GPtrArray               *blocklist_regexes;
+  GPtrArray               *txt_blocked_id_sets;
+  GSettings               *settings;
+  GTimer                  *init_timer;
+  GWeakRef                 main_window;
+  GtkCustomFilter         *appid_filter;
+  GtkCustomFilter         *group_filter;
+  GtkFilterListModel      *group_filter_model;
+  GtkFlattenListModel     *search_biases;
+  GtkMapListModel         *blocklists_to_files;
+  GtkMapListModel         *curated_configs_to_files;
+  GtkMapListModel         *txt_blocklists_to_files;
+  GtkStringList           *blocklists;
+  GtkStringList           *curated_configs;
+  GtkStringList           *txt_blocklists;
+  gboolean                 flathub_remote_initialized;
+  gboolean                 running;
+  gboolean                 had_cache_on_init;
+  guint                    periodic_timeout_source;
+  int                      n_entries_incoming;
+  int                      n_remotes_syncing;
 };
 
 G_DEFINE_FINAL_TYPE (BzApplication, bz_application, ADW_TYPE_APPLICATION)
@@ -415,7 +416,6 @@ bz_application_dispose (GObject *object)
   g_clear_object (&self->group_filter);
   g_clear_object (&self->group_filter_model);
   g_clear_object (&self->groups);
-  g_clear_object (&self->gs_search);
   g_clear_object (&self->installed_apps);
   g_clear_object (&self->malcontent);
   g_clear_object (&self->internal_config);
@@ -464,20 +464,21 @@ bz_application_command_line (GApplication            *app,
   gint argc                           = 0;
   g_auto (GStrv) argv                 = NULL;
   gboolean help                       = FALSE;
-  gboolean no_window                  = FALSE;
   g_auto (GStrv) blocklists_strv      = NULL;
   g_auto (GStrv) content_configs_strv = NULL;
   g_auto (GStrv) locations            = NULL;
-  gboolean preview_metainfo           = FALSE;
+  gboolean         preview_metainfo   = FALSE;
+  g_autofree char *search_term        = NULL;
 
   GOptionEntry main_entries[] = {
     { "help", 0, 0, G_OPTION_ARG_NONE, &help, "Print help" },
-    { "no-window", 0, 0, G_OPTION_ARG_NONE, &no_window, "Ensure the service is running without creating a new window" },
+    { "no-window", 0, 0, G_OPTION_ARG_NONE, NULL, "Ensure the service is running without creating a new window (daemon)" },
     { "extra-blocklist", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &blocklists_strv, "Add an extra blocklist to read from" },
     { "extra-curated-config", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &content_configs_strv, "Add an extra yaml file with which to configure the app browser" },
     /* Here for backwards compat */
     { "extra-content-config", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &content_configs_strv, "Add an extra yaml file with which to configure the app browser (backwards compat)" },
     { "preview-metainfo", 0, 0, G_OPTION_ARG_NONE, &preview_metainfo, "Preview a metainfo file by selecting it via file dialog" },
+    { "search-for", 0, 0, G_OPTION_ARG_STRING, &search_term, "Open search with this term" },
     { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &locations, "flatpakref file to open" },
     { NULL }
   };
@@ -527,8 +528,6 @@ bz_application_command_line (GApplication            *app,
       g_autoptr (GtkStringList) content_configs = NULL;
       g_autoptr (DexFuture) init                = NULL;
 
-      g_debug ("Starting daemon!");
-      g_application_hold (G_APPLICATION (self));
       self->running = TRUE;
 
       blocklists      = gtk_string_list_new (NULL);
@@ -575,9 +574,9 @@ bz_application_command_line (GApplication            *app,
       dex_future_disown (g_steal_pointer (&init));
     }
 
-  if (!no_window && !preview_metainfo)
+  if (!preview_metainfo)
     {
-      if (locations == NULL || *locations == NULL)
+      if ((locations == NULL || *locations == NULL) && search_term == NULL)
         new_window (self);
       else
         get_or_create_window (self);
@@ -599,6 +598,17 @@ bz_application_command_line (GApplication            *app,
       dex_future_disown (g_steal_pointer (&future));
     }
 
+  if (search_term != NULL)
+    {
+      GtkWindow *window = NULL;
+
+      window = get_or_create_window (self);
+      if (adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (window)) != NULL)
+        window = new_window (self);
+
+      bz_window_search (BZ_WINDOW (window), search_term);
+    }
+
   return EXIT_SUCCESS;
 }
 
@@ -608,25 +618,6 @@ bz_application_local_command_line (GApplication *application,
                                    int          *exit_status)
 {
   return FALSE;
-}
-
-static gboolean
-bz_application_dbus_register (GApplication    *application,
-                              GDBusConnection *connection,
-                              const gchar     *object_path,
-                              GError         **error)
-{
-  BzApplication *self = BZ_APPLICATION (application);
-  return bz_gnome_shell_search_provider_set_connection (self->gs_search, connection, error);
-}
-
-static void
-bz_application_dbus_unregister (GApplication    *application,
-                                GDBusConnection *connection,
-                                const gchar     *object_path)
-{
-  BzApplication *self = BZ_APPLICATION (application);
-  bz_gnome_shell_search_provider_set_connection (self->gs_search, NULL, NULL);
 }
 
 static void
@@ -640,8 +631,6 @@ bz_application_class_init (BzApplicationClass *klass)
   app_class->activate           = bz_application_activate;
   app_class->command_line       = bz_application_command_line;
   app_class->local_command_line = bz_application_local_command_line;
-  app_class->dbus_register      = bz_application_dbus_register;
-  app_class->dbus_unregister    = bz_application_dbus_unregister;
 
   g_type_ensure (BZ_TYPE_RESULT);
 }
@@ -875,9 +864,21 @@ bz_application_quit_action (GSimpleAction *action,
                             GVariant      *parameter,
                             gpointer       user_data)
 {
-  BzApplication *self = user_data;
+  BzApplication *self              = user_data;
+  g_autoptr (GDBusConnection) conn = NULL;
+  g_autoptr (GError) error         = NULL;
 
-  g_assert (BZ_IS_APPLICATION (self));
+  conn = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+  if (conn != NULL)
+    g_dbus_connection_call_sync (
+        conn, "io.github.kolunmi.Bazaar.SearchProvider",
+        "/io/github/kolunmi/Bazaar/SearchProvider",
+        "io.github.kolunmi.Bazaar.Daemon",
+        "Quit", NULL, NULL, G_DBUS_CALL_FLAGS_NONE,
+        -1, NULL, &error);
+
+  if (error != NULL)
+    g_warning ("Failed to quit daemon: %s", error->message);
 
   g_application_quit (G_APPLICATION (self));
 }
@@ -902,8 +903,6 @@ bz_application_init (BzApplication *self)
 {
   self->running = FALSE;
   g_weak_ref_init (&self->main_window, NULL);
-
-  self->gs_search = bz_gnome_shell_search_provider_new ();
 
   g_action_map_add_action_entries (
       G_ACTION_MAP (self),
@@ -1583,6 +1582,9 @@ cache_groups_fiber (GWeakRef *wr)
   g_autoptr (GVariant) variant        = NULL;
   g_autoptr (GBytes) bytes            = NULL;
   guint n_groups                      = 0;
+  g_autoptr (GError) index_error      = NULL;
+  g_autofree char *module_dir         = NULL;
+  g_autofree char *index_path         = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
 
@@ -1619,6 +1621,12 @@ cache_groups_fiber (GWeakRef *wr)
       &local_error);
   if (!result)
     g_warning ("Failed to cache groups to %s: %s", groups_cache, local_error->message);
+
+  module_dir = bz_dup_module_dir ();
+  index_path = g_build_filename (module_dir, "search-index", NULL);
+
+  if (!bz_write_search_index (G_LIST_MODEL (self->groups), index_path, &index_error))
+    g_warning ("Failed to write search index to %s: %s", index_path, index_error->message);
 
   return dex_future_new_true ();
 }
@@ -2162,6 +2170,9 @@ init_fiber_finally (DexFuture *future,
   g_autoptr (BzApplication) self = NULL;
   g_autoptr (GError) local_error = NULL;
   const GValue *value            = NULL;
+  gint64 last_refresh            = 0;
+  gint64 now                     = 0;
+  gint64 seconds_since_refresh   = 0;
 
   bz_weak_get_or_return_reject (self, wr);
 
@@ -2176,7 +2187,12 @@ init_fiber_finally (DexFuture *future,
           bz_track_weak (self),
           bz_weak_release);
 
-      if (!bz_state_info_get_metered_connection (self->state) || !self->had_cache_on_init)
+      last_refresh          = g_settings_get_int64 (self->settings, "last-refresh-time");
+      now                   = g_get_real_time () / G_USEC_PER_SEC;
+      seconds_since_refresh = now - last_refresh;
+
+      if ((!bz_state_info_get_metered_connection (self->state) || !self->had_cache_on_init) &&
+          seconds_since_refresh >= MIN_STARTUP_REFRESH_INTERVAL_SECONDS)
         {
           g_autoptr (DexFuture) sync_future = NULL;
 
@@ -2195,7 +2211,7 @@ init_fiber_finally (DexFuture *future,
           bz_state_info_set_syncing (self->state, FALSE);
           dex_promise_resolve_boolean (self->ready_to_open_files, TRUE);
 
-          // Only check for updates if connection is limited.
+          // Only check for updates if we skipped a full sync.
           dex_future_disown (dex_scheduler_spawn (
               dex_scheduler_get_default (),
               bz_get_dex_stack_size (),
@@ -2366,6 +2382,11 @@ sync_finally (DexFuture *future,
   bz_state_info_set_busy (self->state, FALSE);
   bz_state_info_set_syncing (self->state, FALSE);
   finish_with_background_task_label (self);
+
+  if (dex_future_is_resolved (future))
+    g_settings_set_int64 (
+        self->settings, "last-refresh-time",
+        g_get_real_time () / G_USEC_PER_SEC);
 
   dex_promise_resolve_boolean (self->ready_to_open_files, TRUE);
 
@@ -3518,7 +3539,6 @@ init_service_struct (BzApplication *self,
   self->search_engine = bz_search_engine_new ();
   bz_search_engine_set_model (self->search_engine, G_LIST_MODEL (self->group_filter_model));
   bz_search_engine_set_biases (self->search_engine, G_LIST_MODEL (self->search_biases));
-  bz_gnome_shell_search_provider_set_engine (self->gs_search, self->search_engine);
 
   self->curated_provider = bz_content_provider_new ();
   bz_content_provider_set_input_files (
