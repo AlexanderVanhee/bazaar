@@ -40,6 +40,7 @@
 #define ACTIVATE_TIMEOUT_US 2000000
 
 #define UPDATE_CHECK_INTERVAL_USEC (60ULL * 60ULL * 1000000ULL) /* 1 hour */
+#define IDLE_EXIT_TIMEOUT_USEC     (5ULL * 1000000ULL)
 
 #define _cleanup_(x) __attribute__ ((cleanup (x)))
 
@@ -58,6 +59,7 @@ static pid_t            child_pid           = -1;
 static SearchIndex     *g_index             = NULL;
 static char            *g_index_path        = NULL;
 static sd_event_source *update_timer_source = NULL;
+static sd_event_source *idle_timer_source   = NULL;
 
 static void  log_msg (const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 static void *malloc_or_bail (size_t n_bytes);
@@ -67,6 +69,10 @@ static int   strv_count_local (char **strv);
 static void  strv_free_local (char **strv);
 static void  strv_freep (char ***strv);
 static void  generic_freep (void *p);
+static int   auto_update_enabled (void);
+static void  cancel_idle_timer (void);
+static void  arm_idle_timer (void);
+static int   on_idle_timeout (sd_event_source *s, uint64_t usec, void *userdata);
 static int   on_child_exit (sd_event_source *s, const siginfo_t *si, void *userdata);
 static void  launch_app (char **extra_args, int n_extra_args);
 static void  run_update_worker_once (void);
@@ -183,7 +189,9 @@ main (int argc, char *argv[])
   else
     launch_app (fwd_args, n_fwd_args);
 
+  arm_idle_timer ();
   sd_event_loop (event);
+  cancel_idle_timer ();
 
   if (update_timer_source != NULL)
     sd_event_source_unref (update_timer_source);
@@ -194,6 +202,74 @@ main (int argc, char *argv[])
   sd_bus_flush_close_unref (bus);
   sd_event_unref (event);
 
+  return 0;
+}
+
+static int
+auto_update_enabled (void)
+{
+  FILE *fp      = NULL;
+  char  buf[8]  = { 0 };
+  int   enabled = 0;
+
+  fp = popen ("gsettings get io.github.kolunmi.Bazaar auto-update", "r");
+  if (fp == NULL)
+    return 0;
+
+  if (fgets (buf, sizeof (buf), fp) != NULL)
+    enabled = (strncmp (buf, "true", 4) == 0);
+
+  pclose (fp);
+
+  return enabled;
+}
+
+static void
+cancel_idle_timer (void)
+{
+  if (idle_timer_source != NULL)
+    {
+      sd_event_source_unref (idle_timer_source);
+      idle_timer_source = NULL;
+    }
+}
+
+static void
+arm_idle_timer (void)
+{
+  uint64_t now = 0;
+
+  cancel_idle_timer ();
+
+  if (child_pid > 0)
+    return;
+
+  if (sd_event_now (event, CLOCK_BOOTTIME, &now) < 0)
+    return;
+
+  sd_event_add_time (event, &idle_timer_source, CLOCK_BOOTTIME,
+                     now + IDLE_EXIT_TIMEOUT_USEC, 0,
+                     on_idle_timeout, NULL);
+}
+
+static int
+on_idle_timeout (sd_event_source *s,
+                 uint64_t         usec,
+                 void            *userdata)
+{
+  idle_timer_source = NULL;
+
+  if (child_pid > 0)
+    return 0;
+
+  if (auto_update_enabled ())
+    {
+      log_msg ("Idle, but auto update is on so staying alive");
+      return 0;
+    }
+
+  log_msg ("Idle timeout reached, closing down");
+  sd_event_exit (event, 0);
   return 0;
 }
 
@@ -234,6 +310,7 @@ method_relaunch (sd_bus_message *m, void *userdata, sd_bus_error *ret_error)
 
   log_msg ("Relaunch requested via D-Bus");
 
+  arm_idle_timer ();
   launch_app (terms, strv_count_local (terms));
 
   return sd_bus_reply_method_return (m, NULL);
@@ -381,6 +458,8 @@ on_child_exit (sd_event_source *s,
   sd_event_source_unref (s);
   ensure_index_loaded ();
 
+  arm_idle_timer ();
+
   return 0;
 }
 
@@ -401,6 +480,8 @@ launch_app (char **extra_args,
 
   log_msg ("Application starting");
 
+  cancel_idle_timer ();
+
   pid = fork ();
   if (pid == 0)
     {
@@ -415,6 +496,7 @@ launch_app (char **extra_args,
   if (pid < 0)
     {
       log_msg ("Failed to spawn application: %s", strerror (errno));
+      arm_idle_timer ();
       return;
     }
 
@@ -539,6 +621,8 @@ method_get_result_set (sd_bus_message *m,
   const char                   *sig   = NULL;
   int                           r     = 0;
 
+  arm_idle_timer ();
+
   sig = sd_bus_message_get_signature (m, 1);
 
   if (sig != NULL && strcmp (sig, "asas") == 0)
@@ -566,6 +650,8 @@ method_get_result_metas (sd_bus_message *m,
   _cleanup_ (strv_freep) char                     **ids   = NULL;
   char                                            **p     = NULL;
   int                                               r     = 0;
+
+  arm_idle_timer ();
 
   r = sd_bus_message_read_strv (m, &ids);
   if (r < 0)
@@ -616,6 +702,8 @@ method_activate_result (sd_bus_message *m,
   char                           *args[1] = { NULL };
   int                             r       = 0;
 
+  arm_idle_timer ();
+
   r = sd_bus_message_read (m, "s", &id);
   if (r < 0)
     return r;
@@ -641,6 +729,8 @@ method_launch_search (sd_bus_message *m, void *userdata, sd_bus_error *ret_error
   int                             n_terms   = 0;
   int                             i         = 0;
   int                             r         = 0;
+
+  arm_idle_timer ();
 
   r = sd_bus_message_read_strv (m, &terms);
   if (r < 0)
