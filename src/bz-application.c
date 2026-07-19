@@ -96,6 +96,7 @@ struct _BzApplication
   BzYamlParser            *curated_parser;
   DexChannel              *flatpak_notifs;
   DexFuture               *notif_watch;
+  DexFuture               *preview_metainfo;
   DexFuture               *sync;
   DexPromise              *first_window_opened;
   DexPromise              *ready_to_open_files;
@@ -127,8 +128,8 @@ struct _BzApplication
   GtkStringList           *curated_configs;
   GtkStringList           *txt_blocklists;
   gboolean                 flathub_remote_initialized;
-  gboolean                 running;
   gboolean                 had_cache_on_init;
+  gboolean                 running;
   guint                    periodic_timeout_source;
   int                      n_entries_incoming;
   int                      n_remotes_syncing;
@@ -350,6 +351,10 @@ static DexFuture *
 preview_metainfo_then (DexFuture *future,
                        GWeakRef  *wr);
 
+static DexFuture *
+preview_metainfo_finally (DexFuture *future,
+                          GWeakRef  *wr);
+
 static gpointer
 map_strings_to_files (GtkStringObject *string,
                       gpointer         data);
@@ -382,6 +387,9 @@ validate_group_for_ui (BzApplication *self,
 static DexFuture *
 make_sync_future (BzApplication *self);
 
+static DexFuture *
+make_preview_metainfo_future (BzApplication *self);
+
 static void
 finish_with_background_task_label (BzApplication *self);
 
@@ -393,10 +401,11 @@ bz_application_dispose (GObject *object)
 {
   BzApplication *self = BZ_APPLICATION (object);
 
+  dex_clear (&self->first_window_opened);
   dex_clear (&self->flatpak_notifs);
   dex_clear (&self->notif_watch);
+  dex_clear (&self->preview_metainfo);
   dex_clear (&self->ready_to_open_files);
-  dex_clear (&self->first_window_opened);
   dex_clear (&self->sync);
   g_clear_handle_id (&self->periodic_timeout_source, g_source_remove);
   g_clear_object (&self->appid_filter);
@@ -586,17 +595,7 @@ bz_application_command_line (GApplication            *app,
     command_line_open_location (self, cmdline, locations[0]);
 
   if (preview_metainfo)
-    {
-      g_autoptr (DexFuture) future = NULL;
-
-      future = bz_metainfo_preview_pick_files ();
-      future = dex_future_then (
-          g_steal_pointer (&future),
-          (DexFutureCallback) preview_metainfo_then,
-          bz_track_weak (self),
-          bz_weak_release);
-      dex_future_disown (g_steal_pointer (&future));
-    }
+    dex_future_disown (make_preview_metainfo_future (self));
 
   if (search_term != NULL)
     {
@@ -633,6 +632,16 @@ bz_application_class_init (BzApplicationClass *klass)
   app_class->local_command_line = bz_application_local_command_line;
 
   g_type_ensure (BZ_TYPE_RESULT);
+}
+
+static void
+bz_application_preview_metainfo_action (GSimpleAction *action,
+                                        GVariant      *parameter,
+                                        gpointer       user_data)
+{
+  BzApplication *self = user_data;
+
+  dex_future_disown (make_preview_metainfo_future (self));
 }
 
 static void
@@ -896,6 +905,7 @@ static const GActionEntry app_actions[] = {
   {            "donate",            bz_application_donate_action, NULL },
   {  "bazaar-inspector",  bz_application_bazaar_inspector_action, NULL },
   { "toggle-debug-mode", bz_application_toggle_debug_mode_action, NULL },
+  {  "preview-metainfo",  bz_application_preview_metainfo_action, NULL },
 };
 
 static void
@@ -2167,12 +2177,12 @@ static DexFuture *
 init_fiber_finally (DexFuture *future,
                     GWeakRef  *wr)
 {
-  g_autoptr (BzApplication) self = NULL;
-  g_autoptr (GError) local_error = NULL;
-  const GValue *value            = NULL;
-  gint64 last_refresh            = 0;
-  gint64 now                     = 0;
-  gint64 seconds_since_refresh   = 0;
+  g_autoptr (BzApplication) self      = NULL;
+  g_autoptr (GError) local_error      = NULL;
+  const GValue *value                 = NULL;
+  gint64        last_refresh          = 0;
+  gint64        now                   = 0;
+  gint64        seconds_since_refresh = 0;
 
   bz_weak_get_or_return_reject (self, wr);
 
@@ -3889,6 +3899,18 @@ preview_metainfo_then (DexFuture *future,
   return dex_future_new_true ();
 }
 
+static DexFuture *
+preview_metainfo_finally (DexFuture *future,
+                          GWeakRef  *wr)
+{
+  g_autoptr (BzApplication) self = NULL;
+
+  bz_weak_get_or_return_reject (self, wr);
+
+  dex_clear (&self->preview_metainfo);
+  return dex_future_new_true ();
+}
+
 static gpointer
 map_strings_to_files (GtkStringObject *string,
                       gpointer         data)
@@ -4094,6 +4116,28 @@ make_sync_future (BzApplication *self)
       (DexFutureCallback) sync_finally,
       bz_track_weak (self), bz_weak_release);
   return g_steal_pointer (&ret_future);
+}
+
+static DexFuture *
+make_preview_metainfo_future (BzApplication *self)
+{
+  g_autoptr (DexFuture) future = NULL;
+
+  if (self->preview_metainfo != NULL)
+    return dex_ref (self->preview_metainfo);
+
+  future = bz_metainfo_preview_pick_files ();
+  future = dex_future_then (
+      g_steal_pointer (&future),
+      (DexFutureCallback) preview_metainfo_then,
+      bz_track_weak (self), bz_weak_release);
+  future = dex_future_finally (
+      g_steal_pointer (&future),
+      (DexFutureCallback) preview_metainfo_finally,
+      bz_track_weak (self), bz_weak_release);
+
+  self->preview_metainfo = dex_ref (future);
+  return g_steal_pointer (&future);
 }
 
 static void

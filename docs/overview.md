@@ -44,17 +44,17 @@ managing software through the GUI:
 You can start the bazaar daemon like this:
 
 ```
-bazaar [ARGS] [PACKAGE PATH/URI]
-```
-
-To avoid spawning an initial window, use:
-
-```
-bazaar --no-window [ARGS] [PACKAGE PATH/URI]
+bazaar-daemon [ARGS] [PACKAGE PATH/URI]
 ```
 
 `[PACKAGE PATH/URI]` could be a `.flatpakref` file. flatpak+https and regular
 https is supported.
+
+To avoid spawning an initial window, use:
+
+```
+bazaar-daemon --no-window
+```
 
 ## Comptime Configuration
 

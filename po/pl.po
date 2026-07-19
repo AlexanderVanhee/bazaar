@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 10:22+0200\n"
-"PO-Revision-Date: 2026-07-10 12:01+0200\n"
+"POT-Creation-Date: 2026-07-16 15:53+0200\n"
+"PO-Revision-Date: 2026-07-17 14:13+0200\n"
 "Last-Translator: Marcel Mrówka <micro.mail88@gmail.com>\n"
 "Language-Team: Polish <>\n"
 "Language: pl\n"
@@ -71,7 +71,7 @@ msgstr "Zaloguj się do konta Flathub, aby zarządzać ulubionymi"
 msgid "Search apps directly from GNOME Shell"
 msgstr "Wyszukuj aplikacje prościutko z GNOME Shell"
 
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:30 src/bz-application.c:787
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:30 src/bz-application.c:780
 msgid "The Bazaar Contributors"
 msgstr "Kontrybutorzy Bazaaru"
 
@@ -742,23 +742,23 @@ msgid "Installed"
 msgstr "Zainstalowano"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:790
+#: src/bz-application.c:783
 msgid "translator-credits"
 msgstr "Marcel Mrówka (Microwave) <micro.mail88@gmail.com>, 2025, 2026"
 
-#: src/bz-application.c:800
+#: src/bz-application.c:793
 msgid "Special Thanks"
 msgstr "Specjalne podziękowania"
 
-#: src/bz-application.c:858
+#: src/bz-application.c:851
 msgid "Logged Out Successfully!"
 msgstr "Wylogowano pomyślnie!"
 
-#: src/bz-application.c:1038
+#: src/bz-application.c:1042
 msgid "Ubuntu Troubles!"
 msgstr "Kłopoty Ubuntu!"
 
-#: src/bz-application.c:1041
+#: src/bz-application.c:1045
 msgid ""
 "The more recent versions of Ubuntu have messed up default security rules, "
 "making it <b>impossible to install apps</b> from the Flatpak version of "
@@ -781,19 +781,19 @@ msgstr ""
 "\n"
 "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"
 
-#: src/bz-application.c:1047
+#: src/bz-application.c:1051
 msgid "Continue Anyway"
 msgstr "Kontynuuj mimo to"
 
-#: src/bz-application.c:1063
+#: src/bz-application.c:1067
 msgid "Performing setup…"
 msgstr "Konfigurowanie…"
 
-#: src/bz-application.c:1155
+#: src/bz-application.c:1159
 msgid "Set Up System Flathub?"
 msgstr "Skonfigurować Flathub systemowo?"
 
-#: src/bz-application.c:1158
+#: src/bz-application.c:1162
 msgid ""
 "The system Flathub remote is not set up. Bazaar requires Flathub to be "
 "configured on the system Flatpak installation to browse and install "
@@ -808,11 +808,11 @@ msgstr ""
 "Nadal możesz używać Bazaaru do przeglądania i usuwania już zainstalowanych "
 "aplikacji."
 
-#: src/bz-application.c:1165
+#: src/bz-application.c:1169
 msgid "Set Up Flathub?"
 msgstr "Skonfigurować Flathub?"
 
-#: src/bz-application.c:1168
+#: src/bz-application.c:1172
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -825,48 +825,48 @@ msgstr ""
 "Nadal możesz używać Bazaaru do przeglądania i usuwania już zainstalowanych "
 "aplikacji."
 
-#: src/bz-application.c:1174
+#: src/bz-application.c:1178
 msgid "Later"
 msgstr "Później"
 
-#: src/bz-application.c:1175
+#: src/bz-application.c:1179
 msgid "Set Up Flathub"
 msgstr "Skonfiguruj Flathub"
 
-#: src/bz-application.c:1699
+#: src/bz-application.c:1712
 msgid "A backend error occurred"
 msgstr "Wystąpił błąd w backendzie"
 
-#: src/bz-application.c:1899 src/bz-application.c:4117
+#: src/bz-application.c:1912 src/bz-application.c:4150
 msgid "Refreshing…"
 msgstr "Odświeżanie…"
 
-#: src/bz-application.c:2063 src/bz-application.c:4115
+#: src/bz-application.c:2076 src/bz-application.c:4148
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Ładowanie %d aplikacji…"
 
-#: src/bz-application.c:2116
+#: src/bz-application.c:2129
 msgid "Failed to open file"
 msgstr "Otwieranie pliku nie powiodło się"
 
-#: src/bz-application.c:2237
+#: src/bz-application.c:2258
 msgid "An initialization error occurred"
 msgstr "Wystąpił błąd inicjalizacji"
 
-#: src/bz-application.c:2631
+#: src/bz-application.c:2657
 msgid "Checking for updates…"
 msgstr "Sprawdzanie dostępności aktualizacji…"
 
-#: src/bz-application.c:2687
+#: src/bz-application.c:2713
 msgid "Failed to check for updates"
 msgstr "Sprawdzanie dostępności aktualizacji nie powiodło się"
 
-#: src/bz-application.c:3827
+#: src/bz-application.c:3852
 msgid "Malformed Link"
 msgstr "Zniekształcone złącze"
 
-#: src/bz-application.c:3828
+#: src/bz-application.c:3853
 msgid ""
 "The link used to open this app has incorrect capitalization and may stop "
 "working in the future.\n"
@@ -879,15 +879,15 @@ msgstr ""
 "Jest to prawdopodobnie spowodowane KRunnerem nie dającym poprawnych "
 "identyfikatorów"
 
-#: src/bz-application.c:3836
+#: src/bz-application.c:3861
 msgid "Could not find app"
 msgstr "Nie można znaleźć aplikacji"
 
-#: src/bz-application.c:3867
+#: src/bz-application.c:3892
 msgid "Failed to load metainfo"
 msgstr "Ładowanie metainfo nie powiodło się"
 
-#: src/bz-application.c:4119
+#: src/bz-application.c:4152
 msgid "Writing to cache…"
 msgstr "Zapisywanie do pamięci podręcznej…"
 
@@ -1113,7 +1113,7 @@ msgstr "Szczegóły"
 msgid "Copy"
 msgstr "Kopiuj"
 
-#: src/bz-error-dialog.c:56 src/bz-screenshot-page.c:452
+#: src/bz-error-dialog.c:56 src/bz-screenshot-page.c:446
 #: src/bz-share-list.c:364
 msgid "Copied!"
 msgstr "Skopiowano!"
@@ -1759,6 +1759,10 @@ msgstr "Aplikacja %s działa najlepiej na konkretnym sprzęcie"
 msgid "%s works on most devices"
 msgstr "Aplikacja %s działa na większości urządzeń"
 
+#: src/bz-inspector.blp:23
+msgid "Inspector Menu"
+msgstr "Menu inspektora"
+
 #: src/bz-install-controls.blp:58
 msgid "_Open"
 msgstr "_Otwórz"
@@ -2024,44 +2028,83 @@ msgid "Refresh Manually"
 msgstr "Odśwież ręcznie"
 
 #: src/bz-preferences-dialog.blp:31
+msgid "App Updates"
+msgstr "Aktualizacje aplikacje"
+
+#: src/bz-preferences-dialog.blp:46
+msgid ""
+"Checking for and downloading app updates uses data and power. Automatic app "
+"update features are therefore paused when on metered network connections and "
+"when power saver is on."
+msgstr ""
+"Sprawdzanie dostępności i pobieranie aktualizacji zużywa dane oraz energię. "
+"Automatyczne aktualizowanie zatem jest wyłączone, gdy włączone jest "
+"oszczędzanie i/lub wykryto taryfowe połączenie internetowe."
+
+#: src/bz-preferences-dialog.blp:52
+msgid "_Automatic"
+msgstr "_Automatycznie"
+
+#: src/bz-preferences-dialog.blp:53
+msgid "Automatically check for and download app updates"
+msgstr "Automatycznie sprawdzaj dostępność i pobieraj aktualizacje"
+
+#: src/bz-preferences-dialog.blp:62
+msgid "_Manual"
+msgstr "_Ręcznie"
+
+#: src/bz-preferences-dialog.blp:63
+msgid "Checking for and downloading app updates must be done manually"
+msgstr ""
+"Sprawdzanie dostępności oraz pobieranie aktualizacji musi być zrobione ręcznie"
+
+#: src/bz-preferences-dialog.blp:78
+msgid "Automatic Update _Notifications"
+msgstr "Powiadomienia o automatycz_nych aktualizacjach"
+
+#: src/bz-preferences-dialog.blp:79
+msgid "Notify when updates have been automatically installed"
+msgstr "Powiadom o automatycznym zainstalowaniu aktualizacji"
+
+#: src/bz-preferences-dialog.blp:84
 msgid "Content Filters"
 msgstr "Filtry zawartości"
 
-#: src/bz-preferences-dialog.blp:34
-msgid "Free Software Only"
-msgstr "Tylko wolne oprogramowanie"
+#: src/bz-preferences-dialog.blp:87
+msgid "_Free Software Only"
+msgstr "Tylko _wolne oprogramowanie"
 
-#: src/bz-preferences-dialog.blp:35
+#: src/bz-preferences-dialog.blp:88
 msgid "Hide proprietary apps when browsing and searching"
 msgstr "Ukrywaj aplikacje własnościowe podczas przeglądania i wyszukiwania"
 
-#: src/bz-preferences-dialog.blp:39
-msgid "Flathub Results Only"
-msgstr "Tylko wyniki z Flathuba"
+#: src/bz-preferences-dialog.blp:93
+msgid "F_lathub Results Only"
+msgstr "Tylko wyniki z F_lathuba"
 
-#: src/bz-preferences-dialog.blp:40
+#: src/bz-preferences-dialog.blp:94
 msgid "Limit search and browse results to apps only available on Flathub"
 msgstr ""
 "Limituj wyniki wyszukiwania i przeglądania, tak aby pokazywać tylko "
 "aplikacje dostępne na Flathubie"
 
-#: src/bz-preferences-dialog.blp:44
-msgid "Verified Results Only"
-msgstr "Tylko zweryfikowane wyniki"
+#: src/bz-preferences-dialog.blp:99
+msgid "_Verified Results Only"
+msgstr "Tylko _zweryfikowane wyniki"
 
-#: src/bz-preferences-dialog.blp:45
+#: src/bz-preferences-dialog.blp:100
 msgid "Hide results that are not verified on Flathub"
 msgstr "Ukrywaj niezweryfikowane aplikacje"
 
-#: src/bz-preferences-dialog.blp:49
-msgid "Hide End-of-Life Apps"
-msgstr "Ukrywaj aplikacje z brakiem wsparcia"
+#: src/bz-preferences-dialog.blp:105
+msgid "Hide _End-of-Life Apps"
+msgstr "Ukrywaj aplikacj_e z brakiem wsparcia"
 
-#: src/bz-preferences-dialog.blp:50
+#: src/bz-preferences-dialog.blp:106
 msgid "Hide apps which are no longer supported by their developers"
 msgstr "Ukrywaj aplikacje nie otrzymujące już aktualizacji od swoich twórców"
 
-#: src/bz-preferences-dialog.blp:55
+#: src/bz-preferences-dialog.blp:112
 msgid "Progress Bar Theme"
 msgstr "Motyw paska postępu"
 
@@ -2864,8 +2907,7 @@ msgstr ""
 #: src/bz-window.blp:246
 msgid "Network connection is metered — automatic refreshes disabled"
 msgstr ""
-"Wykryto taryfowe połączenie internetowe — zatrzymano automatyczne "
-"odświeżanie"
+"Wykryto taryfowe połączenie internetowe — zatrzymano automatyczne odświeżanie"
 
 #: src/bz-window.blp:292
 msgid "_Donate to Bazaar"
@@ -3415,6 +3457,29 @@ msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "Zamknij Bazaar"
 
+#: src/update-worker.c:358
+#, c-format
+msgid "%u App Updated"
+msgid_plural "%u Apps Updated"
+msgstr[0] "%u aplikacja zaktualizowana"
+msgstr[1] "%u aplikacje zaktualizowane"
+msgstr[2] "%u aplikacji zaktualizowanych"
+
+#: src/update-worker.c:361
+#, c-format
+msgid "%s has been updated."
+msgstr "Zaktualizowano aplikcję %s."
+
+#: src/update-worker.c:364
+#, c-format
+msgid "%s and %s have been updated."
+msgstr "Zaktualizowano aplikacje %s and %s."
+
+#: src/update-worker.c:368
+#, c-format
+msgid "Includes %s, %s and %s."
+msgstr "Obejmuje aplikacje %s, %s oraz %s."
+
 #~ msgid "Clear search"
 #~ msgstr "Wyczyść wyszukiwanie"
 
@@ -3764,9 +3829,6 @@ msgstr "Zamknij Bazaar"
 #~ msgstr ""
 #~ "Ta funkcja jest na ten moment wyłączona. Zalecamy, abyś zainstalował "
 #~ "Flatseal, aby zarządzać uprawnieniami twoich aplikacji."
-
-#~ msgid "Entry Inspector"
-#~ msgstr "Inspektor wystąpień"
 
 #~ msgid "Serialize"
 #~ msgstr "Serializuj"
