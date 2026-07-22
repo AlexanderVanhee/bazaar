@@ -96,7 +96,6 @@ struct _BzApplication
   BzYamlParser            *curated_parser;
   DexChannel              *flatpak_notifs;
   DexFuture               *notif_watch;
-  DexFuture               *preview_metainfo;
   DexFuture               *sync;
   DexPromise              *first_window_opened;
   DexPromise              *ready_to_open_files;
@@ -180,6 +179,16 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (file, g_object_unref))
 
 BZ_DEFINE_DATA (
+    open_metainfo,
+    OpenMetainfo,
+    {
+      GWeakRef *self;
+      GFile    *file;
+    },
+    BZ_RELEASE_DATA (self, bz_weak_release);
+    BZ_RELEASE_DATA (file, g_object_unref))
+
+BZ_DEFINE_DATA (
     open_appstream,
     OpenAppstream,
     {
@@ -226,6 +235,13 @@ open_appstream_fiber (OpenAppstreamData *data);
 
 static DexFuture *
 open_flatpakref_fiber (OpenFlatpakrefData *data);
+
+static DexFuture *
+open_metainfo_fiber (OpenMetainfoData *data);
+
+static void
+open_metainfo_take (BzApplication *self,
+                    GFile         *file);
 
 static DexFuture *
 backend_sync_finally (DexFuture *future,
@@ -347,14 +363,6 @@ static void
 open_generic_id (BzApplication *self,
                  const char    *generic_id);
 
-static DexFuture *
-preview_metainfo_then (DexFuture *future,
-                       GWeakRef  *wr);
-
-static DexFuture *
-preview_metainfo_finally (DexFuture *future,
-                          GWeakRef  *wr);
-
 static gpointer
 map_strings_to_files (GtkStringObject *string,
                       gpointer         data);
@@ -387,9 +395,6 @@ validate_group_for_ui (BzApplication *self,
 static DexFuture *
 make_sync_future (BzApplication *self);
 
-static DexFuture *
-make_preview_metainfo_future (BzApplication *self);
-
 static void
 finish_with_background_task_label (BzApplication *self);
 
@@ -404,7 +409,6 @@ bz_application_dispose (GObject *object)
   dex_clear (&self->first_window_opened);
   dex_clear (&self->flatpak_notifs);
   dex_clear (&self->notif_watch);
-  dex_clear (&self->preview_metainfo);
   dex_clear (&self->ready_to_open_files);
   dex_clear (&self->sync);
   g_clear_handle_id (&self->periodic_timeout_source, g_source_remove);
@@ -476,7 +480,6 @@ bz_application_command_line (GApplication            *app,
   g_auto (GStrv) blocklists_strv      = NULL;
   g_auto (GStrv) content_configs_strv = NULL;
   g_auto (GStrv) locations            = NULL;
-  gboolean         preview_metainfo   = FALSE;
   g_autofree char *search_term        = NULL;
 
   GOptionEntry main_entries[] = {
@@ -486,7 +489,6 @@ bz_application_command_line (GApplication            *app,
     { "extra-curated-config", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &content_configs_strv, "Add an extra yaml file with which to configure the app browser" },
     /* Here for backwards compat */
     { "extra-content-config", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &content_configs_strv, "Add an extra yaml file with which to configure the app browser (backwards compat)" },
-    { "preview-metainfo", 0, 0, G_OPTION_ARG_NONE, &preview_metainfo, "Preview a metainfo file by selecting it via file dialog" },
     { "search-for", 0, 0, G_OPTION_ARG_STRING, &search_term, "Open search with this term" },
     { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &locations, "flatpakref file to open" },
     { NULL }
@@ -583,19 +585,13 @@ bz_application_command_line (GApplication            *app,
       dex_future_disown (g_steal_pointer (&init));
     }
 
-  if (!preview_metainfo)
-    {
-      if ((locations == NULL || *locations == NULL) && search_term == NULL)
-        new_window (self);
-      else
-        get_or_create_window (self);
-    }
+  if ((locations == NULL || *locations == NULL) && search_term == NULL)
+    new_window (self);
+  else
+    get_or_create_window (self);
 
   if (locations != NULL && *locations != NULL)
     command_line_open_location (self, cmdline, locations[0]);
-
-  if (preview_metainfo)
-    dex_future_disown (make_preview_metainfo_future (self));
 
   if (search_term != NULL)
     {
@@ -632,16 +628,6 @@ bz_application_class_init (BzApplicationClass *klass)
   app_class->local_command_line = bz_application_local_command_line;
 
   g_type_ensure (BZ_TYPE_RESULT);
-}
-
-static void
-bz_application_preview_metainfo_action (GSimpleAction *action,
-                                        GVariant      *parameter,
-                                        gpointer       user_data)
-{
-  BzApplication *self = user_data;
-
-  dex_future_disown (make_preview_metainfo_future (self));
 }
 
 static void
@@ -905,7 +891,6 @@ static const GActionEntry app_actions[] = {
   {            "donate",            bz_application_donate_action, NULL },
   {  "bazaar-inspector",  bz_application_bazaar_inspector_action, NULL },
   { "toggle-debug-mode", bz_application_toggle_debug_mode_action, NULL },
-  {  "preview-metainfo",  bz_application_preview_metainfo_action, NULL },
 };
 
 static void
@@ -1844,32 +1829,40 @@ respond_to_flatpak_fiber (RespondToFlatpakData *data)
                 }
                 break;
               case BZ_BACKEND_NOTIFICATION_KIND_UPDATE_DONE:
-                {
-                  const char *version = NULL;
-
-                  version = bz_backend_notification_get_version (notif);
-                  g_hash_table_replace (self->installed_set, g_strdup (unique_id), g_strdup (version));
-                }
-                break;
               case BZ_BACKEND_NOTIFICATION_KIND_REMOVE_DONE:
                 {
-                  bz_entry_set_installed_version (entry, NULL);
-                  bz_entry_set_installed (entry, FALSE);
-                  g_hash_table_remove (self->installed_set, unique_id);
+                  gboolean was_rebased = FALSE;
 
-                  if (bz_entry_is_of_kinds (entry, BZ_ENTRY_KIND_APPLICATION))
+                  was_rebased = bz_backend_notification_get_was_rebased (notif);
+                  if (kind == BZ_BACKEND_NOTIFICATION_KIND_UPDATE_DONE)
                     {
-                      BzEntryGroup *group = NULL;
+                      const char *version = NULL;
 
-                      group = g_hash_table_lookup (self->ids_to_groups, bz_entry_get_id (entry));
-                      if (group != NULL && !bz_entry_group_get_removable (group))
+                      version = bz_backend_notification_get_version (notif);
+                      g_hash_table_replace (self->installed_set, g_strdup (unique_id), g_strdup (version));
+                    }
+
+                  if (kind == BZ_BACKEND_NOTIFICATION_KIND_REMOVE_DONE || was_rebased)
+                    {
+                      bz_entry_set_installed_version (entry, NULL);
+                      bz_entry_set_installed (entry, FALSE);
+                      g_hash_table_remove (self->installed_set, unique_id);
+
+                      if (bz_entry_is_of_kinds (entry, BZ_ENTRY_KIND_APPLICATION))
                         {
-                          gboolean found    = FALSE;
-                          guint    position = 0;
+                          BzEntryGroup *group = NULL;
 
-                          found = g_list_store_find (self->installed_apps, group, &position);
-                          if (found)
-                            g_list_store_remove (self->installed_apps, position);
+                          group = g_hash_table_lookup (self->ids_to_groups, bz_entry_get_id (entry));
+                          if (group != NULL &&
+                              (was_rebased || !bz_entry_group_get_removable (group)))
+                            {
+                              gboolean found    = FALSE;
+                              guint    position = 0;
+
+                              found = g_list_store_find (self->installed_apps, group, &position);
+                              if (found)
+                                g_list_store_remove (self->installed_apps, position);
+                            }
                         }
                     }
                 }
@@ -2169,6 +2162,59 @@ open_flatpakref_fiber (OpenFlatpakrefData *data)
           NULL);
       adw_dialog_present (ADW_DIALOG (dialog), GTK_WIDGET (window));
     }
+
+  return dex_future_new_true ();
+}
+
+static DexFuture *
+open_metainfo_fiber (OpenMetainfoData *data)
+{
+  g_autoptr (BzApplication) self    = NULL;
+  GFile *file                       = data->file;
+  g_autoptr (GError) local_error    = NULL;
+  g_autoptr (DexFuture) pick_future = NULL;
+  const GValue *value               = NULL;
+  BzMetainfoPickResult *result      = NULL;
+  g_autoptr (BzEntry) entry         = NULL;
+  GtkWindow *window                 = NULL;
+
+  bz_weak_get_or_return_reject (self, data->self);
+  dex_await (dex_ref (self->ready_to_open_files), NULL);
+
+  window = get_or_create_window (self);
+  if (adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (window)) != NULL)
+    window = new_window (self);
+
+  pick_future = bz_metainfo_preview_open_file (file, window);
+  dex_await (dex_ref (pick_future), NULL);
+
+  value = dex_future_get_value (pick_future, &local_error);
+  if (value == NULL)
+    {
+      bz_show_error_for_widget (
+          GTK_WIDGET (window),
+          _ ("Failed to open file"),
+          local_error->message);
+
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
+
+  result = g_value_get_boxed (value);
+
+  entry = bz_appstream_parser_entry_from_metainfo (
+      result->metainfo_file, result->icon_file, &local_error);
+  if (entry == NULL)
+    {
+      bz_show_error_for_widget (
+          GTK_WIDGET (window),
+          _ ("Failed to load metainfo"),
+          local_error->message);
+
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
+
+  g_object_set (entry, "id", "preview", NULL);
+  bz_window_show_entry (BZ_WINDOW (window), entry);
 
   return dex_future_new_true ();
 }
@@ -3736,29 +3782,56 @@ open_flatpakref_take (BzApplication *self,
 }
 
 static void
+open_metainfo_take (BzApplication *self,
+                    GFile         *file)
+{
+  g_autoptr (OpenMetainfoData) data = NULL;
+
+  data       = open_metainfo_data_new ();
+  data->self = bz_track_weak (self);
+  data->file = g_steal_pointer (&file);
+
+  dex_future_disown (dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      (DexFiberFunc) open_metainfo_fiber,
+      open_metainfo_data_ref (data),
+      open_metainfo_data_unref));
+}
+
+static void
 command_line_open_location (BzApplication           *self,
                             GApplicationCommandLine *cmdline,
                             const char              *location)
 {
-  if (g_uri_is_valid (location, G_URI_FLAGS_NONE, NULL))
+  g_autoptr (GFile) file = NULL;
+
+  if (g_uri_is_valid (location, G_URI_FLAGS_NONE, NULL) &&
+      g_str_has_prefix (location, "appstream:"))
     {
-      if (g_str_has_prefix (location, "appstream:"))
-        open_appstream_take (self, g_strdup (location));
-      else
-        open_flatpakref_take (self, g_file_new_for_uri (location));
+      open_appstream_take (self, g_strdup (location));
+      return;
     }
+
+  if (g_uri_is_valid (location, G_URI_FLAGS_NONE, NULL))
+    file = g_file_new_for_uri (location);
   else if (g_path_is_absolute (location))
-    open_flatpakref_take (self, g_file_new_for_path (location));
+    file = g_file_new_for_path (location);
   else
     {
       const char *cwd = NULL;
-
       cwd = g_application_command_line_get_cwd (cmdline);
-      if (cwd != NULL)
-        open_flatpakref_take (self, g_file_new_build_filename (cwd, location, NULL));
-      else
-        open_flatpakref_take (self, g_file_new_for_path (location));
+
+      file = cwd != NULL
+                 ? g_file_new_build_filename (cwd, location, NULL)
+                 : g_file_new_for_path (location);
     }
+
+  if (g_str_has_suffix (location, ".metainfo.xml") ||
+      g_str_has_suffix (location, ".appdata.xml"))
+    open_metainfo_take (self, g_steal_pointer (&file));
+  else
+    open_flatpakref_take (self, g_steal_pointer (&file));
 }
 
 static void
@@ -3860,55 +3933,6 @@ open_generic_id (BzApplication *self,
       message = g_strdup_printf ("ID '%s' was not found", original_id);
       bz_show_error_for_widget (GTK_WIDGET (window), _ ("Could not find app"), message);
     }
-}
-
-static DexFuture *
-preview_metainfo_then (DexFuture *future,
-                       GWeakRef  *wr)
-{
-  g_autoptr (BzApplication) self = NULL;
-  g_autoptr (GError) local_error = NULL;
-  const GValue         *value    = NULL;
-  BzMetainfoPickResult *result   = NULL;
-  g_autoptr (BzEntry) entry      = NULL;
-  GtkWindow *window              = NULL;
-
-  bz_weak_get_or_return_reject (self, wr);
-
-  value = dex_future_get_value (future, &local_error);
-  if (value == NULL)
-    return dex_future_new_true ();
-
-  result = g_value_get_boxed (value);
-  window = get_or_create_window (self);
-
-  entry = bz_appstream_parser_entry_from_metainfo (
-      result->metainfo_file,
-      result->icon_file,
-      &local_error);
-  if (entry == NULL)
-    {
-      bz_show_error_for_widget (GTK_WIDGET (window),
-                                _ ("Failed to load metainfo"),
-                                local_error->message);
-      return dex_future_new_true ();
-    }
-
-  bz_window_show_entry (BZ_WINDOW (window), entry);
-
-  return dex_future_new_true ();
-}
-
-static DexFuture *
-preview_metainfo_finally (DexFuture *future,
-                          GWeakRef  *wr)
-{
-  g_autoptr (BzApplication) self = NULL;
-
-  bz_weak_get_or_return_reject (self, wr);
-
-  dex_clear (&self->preview_metainfo);
-  return dex_future_new_true ();
 }
 
 static gpointer
@@ -4116,28 +4140,6 @@ make_sync_future (BzApplication *self)
       (DexFutureCallback) sync_finally,
       bz_track_weak (self), bz_weak_release);
   return g_steal_pointer (&ret_future);
-}
-
-static DexFuture *
-make_preview_metainfo_future (BzApplication *self)
-{
-  g_autoptr (DexFuture) future = NULL;
-
-  if (self->preview_metainfo != NULL)
-    return dex_ref (self->preview_metainfo);
-
-  future = bz_metainfo_preview_pick_files ();
-  future = dex_future_then (
-      g_steal_pointer (&future),
-      (DexFutureCallback) preview_metainfo_then,
-      bz_track_weak (self), bz_weak_release);
-  future = dex_future_finally (
-      g_steal_pointer (&future),
-      (DexFutureCallback) preview_metainfo_finally,
-      bz_track_weak (self), bz_weak_release);
-
-  self->preview_metainfo = dex_ref (future);
-  return g_steal_pointer (&future);
 }
 
 static void
