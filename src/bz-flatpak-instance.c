@@ -222,7 +222,7 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (send_futures, g_ptr_array_unref);
     BZ_RELEASE_DATA (ref_to_entry_hash, g_hash_table_unref);
     BZ_RELEASE_DATA (op_to_progress_hash, g_hash_table_unref)
-        BZ_RELEASE_DATA (rebased_refs, g_hash_table_unref));
+    BZ_RELEASE_DATA (rebased_refs, g_hash_table_unref));
 static DexFuture *
 transaction_fiber (TransactionData *data);
 
