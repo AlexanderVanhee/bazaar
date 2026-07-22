@@ -1844,32 +1844,40 @@ respond_to_flatpak_fiber (RespondToFlatpakData *data)
                 }
                 break;
               case BZ_BACKEND_NOTIFICATION_KIND_UPDATE_DONE:
-                {
-                  const char *version = NULL;
-
-                  version = bz_backend_notification_get_version (notif);
-                  g_hash_table_replace (self->installed_set, g_strdup (unique_id), g_strdup (version));
-                }
-                break;
               case BZ_BACKEND_NOTIFICATION_KIND_REMOVE_DONE:
                 {
-                  bz_entry_set_installed_version (entry, NULL);
-                  bz_entry_set_installed (entry, FALSE);
-                  g_hash_table_remove (self->installed_set, unique_id);
+                  gboolean was_rebased = FALSE;
 
-                  if (bz_entry_is_of_kinds (entry, BZ_ENTRY_KIND_APPLICATION))
+                  was_rebased = bz_backend_notification_get_was_rebased (notif);
+                  if (kind == BZ_BACKEND_NOTIFICATION_KIND_UPDATE_DONE)
                     {
-                      BzEntryGroup *group = NULL;
+                      const char *version = NULL;
 
-                      group = g_hash_table_lookup (self->ids_to_groups, bz_entry_get_id (entry));
-                      if (group != NULL && !bz_entry_group_get_removable (group))
+                      version = bz_backend_notification_get_version (notif);
+                      g_hash_table_replace (self->installed_set, g_strdup (unique_id), g_strdup (version));
+                    }
+
+                  if (kind == BZ_BACKEND_NOTIFICATION_KIND_REMOVE_DONE || was_rebased)
+                    {
+                      bz_entry_set_installed_version (entry, NULL);
+                      bz_entry_set_installed (entry, FALSE);
+                      g_hash_table_remove (self->installed_set, unique_id);
+
+                      if (bz_entry_is_of_kinds (entry, BZ_ENTRY_KIND_APPLICATION))
                         {
-                          gboolean found    = FALSE;
-                          guint    position = 0;
+                          BzEntryGroup *group = NULL;
 
-                          found = g_list_store_find (self->installed_apps, group, &position);
-                          if (found)
-                            g_list_store_remove (self->installed_apps, position);
+                          group = g_hash_table_lookup (self->ids_to_groups, bz_entry_get_id (entry));
+                          if (group != NULL &&
+                              (was_rebased || !bz_entry_group_get_removable (group)))
+                            {
+                              gboolean found    = FALSE;
+                              guint    position = 0;
+
+                              found = g_list_store_find (self->installed_apps, group, &position);
+                              if (found)
+                                g_list_store_remove (self->installed_apps, position);
+                            }
                         }
                     }
                 }
