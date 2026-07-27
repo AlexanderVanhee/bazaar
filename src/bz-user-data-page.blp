@@ -14,7 +14,6 @@ template $BzUserDataPage: Adw.NavigationPage {
 
       Adw.ViewStackPage {
         name: "loading";
-        title: _("Loading");
 
         child: Adw.Spinner {
           halign: fill;
@@ -27,7 +26,6 @@ template $BzUserDataPage: Adw.NavigationPage {
 
       Adw.ViewStackPage {
         name: "empty";
-        title: _("Empty");
 
         child: Adw.StatusPage {
           icon-name: "folder-documents-symbolic";
@@ -37,7 +35,6 @@ template $BzUserDataPage: Adw.NavigationPage {
 
       Adw.ViewStackPage {
         name: "content";
-        title: _("User Data");
 
         child: ScrolledWindow {
           hscrollbar-policy: never;
