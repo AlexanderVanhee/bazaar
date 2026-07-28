@@ -23,19 +23,20 @@
 #include <glib/gi18n.h>
 
 #include "bz-entry-group.h"
-#include "env.h"
-#include "error.h"
 #include "bz-state-info.h"
 #include "bz-user-data-page.h"
 #include "bz-user-data-tile.h"
+#include "env.h"
+#include "error.h"
 #include "util.h"
-#include "bz-window.h"
 
 struct _BzUserDataTile
 {
   BzListTile parent_instance;
 
   BzEntryGroup *group;
+
+  GtkRevealer *revealer;
 };
 
 G_DEFINE_FINAL_TYPE (BzUserDataTile, bz_user_data_tile, ADW_TYPE_BIN)
@@ -122,6 +123,24 @@ format_size (gpointer object, guint64 value)
   return g_format_size (value);
 }
 
+static void
+revealed_cb (GtkRevealer    *revealer,
+             GParamSpec     *pspec,
+             BzUserDataTile *self)
+{
+  BzUserDataPage *page;
+
+  if (gtk_revealer_get_child_revealed (revealer))
+    return;
+
+  page = BZ_USER_DATA_PAGE (
+      gtk_widget_get_ancestor (GTK_WIDGET (self), BZ_TYPE_USER_DATA_PAGE));
+  if (page != NULL)
+    bz_user_data_page_remove_group (page, self->group);
+
+  g_signal_handlers_disconnect_by_func (revealer, revealed_cb, self);
+}
+
 static DexFuture *
 reap_user_data_done (DexFuture *future,
                      GWeakRef  *wr)
@@ -142,13 +161,9 @@ reap_user_data_done (DexFuture *future,
         local_error->message);
   else
     {
-      g_autofree char *message = NULL;
-
-      message = g_strdup_printf (_ ("Trashed User Data for %s"),
-                                 bz_entry_group_get_title (self->group));
-      bz_window_add_toast (
-          BZ_WINDOW (gtk_widget_get_root (GTK_WIDGET (self))),
-          adw_toast_new (message));
+      g_signal_connect (self->revealer, "notify::child-revealed",
+                        G_CALLBACK (revealed_cb), self);
+      gtk_revealer_set_reveal_child (self->revealer, FALSE);
     }
 
   return dex_future_new_true ();
@@ -208,6 +223,8 @@ bz_user_data_tile_class_init (BzUserDataTileClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, format_size);
   gtk_widget_class_bind_template_callback (widget_class, folder_cb);
   gtk_widget_class_bind_template_callback (widget_class, remove_cb);
+
+  gtk_widget_class_bind_template_child (widget_class, BzUserDataTile, revealer);
 
   gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);
 }

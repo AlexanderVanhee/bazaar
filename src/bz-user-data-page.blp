@@ -28,8 +28,9 @@ template $BzUserDataPage: Adw.NavigationPage {
         name: "empty";
 
         child: Adw.StatusPage {
-          icon-name: "folder-documents-symbolic";
-          title: _("No User Data Found");
+          icon-name: "user-trash-symbolic";
+          title: _("No Leftover User Data Found");
+          description: _("Personal data left behind by apps that were removed will show up here");
         };
       }
 

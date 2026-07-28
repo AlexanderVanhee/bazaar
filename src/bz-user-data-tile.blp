@@ -2,9 +2,9 @@ using Gtk 4.0;
 using Adw 1;
 
 template $BzUserDataTile: Adw.Bin {
-  child: Revealer {
+  child: Revealer revealer {
     transition-type: slide_down;
-    reveal-child: bind $invert_boolean($is_zero(template.group as <$BzEntryGroup>.user-data-size) as <bool>) as <bool>;
+    reveal-child: true;
 
     child: Adw.Bin {
       accessibility {
@@ -12,10 +12,10 @@ template $BzUserDataTile: Adw.Bin {
         described-by: description_label;
       }
 
-      margin-bottom: 4;
+      margin-bottom: 5;
       margin-start: 4;
       margin-end: 4;
-      margin-top: 4;
+      margin-top: 5;
 
       styles [
         "card",
@@ -29,8 +29,8 @@ template $BzUserDataTile: Adw.Bin {
           margin-start: 10;
           margin-top: 10;
           margin-bottom: 10;
-          height-request: 48;
-          width-request: 48;
+          height-request: 64;
+          width-request: 64;
           paintable: bind template.group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
           visible: bind try {$invert_boolean($is_null(template.group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable) as <bool>) as <bool>, false};
 
@@ -43,9 +43,9 @@ template $BzUserDataTile: Adw.Bin {
           margin-start: 10;
           margin-top: 10;
           margin-bottom: 10;
-          height-request: 48;
-          width-request: 48;
-          pixel-size: 48;
+          height-request: 64;
+          width-request: 64;
+          pixel-size: 64;
           icon-name: "application-x-executable";
           visible: bind icon_picture.visible inverted;
 
