@@ -27,7 +27,6 @@ template $BzFullView: Adw.Bin {
 
       Adw.ViewStackPage {
         name: "empty";
-        title: _("Empty");
 
         child: Adw.StatusPage {
           icon-name: "sad-computer-symbolic";
@@ -38,13 +37,11 @@ template $BzFullView: Adw.Bin {
 
       Adw.ViewStackPage {
         name: "loading";
-        title: _("Empty");
         child: Adw.Bin {};
       }
 
       Adw.ViewStackPage {
         name: "content";
-        title: _("Content");
 
         child: Adw.BreakpointBin {
           width-request: 360;

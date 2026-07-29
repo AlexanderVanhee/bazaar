@@ -14,7 +14,6 @@ template $BzUserDataPage: Adw.NavigationPage {
 
       Adw.ViewStackPage {
         name: "loading";
-        title: _("Loading");
 
         child: Adw.Spinner {
           halign: fill;
@@ -27,17 +26,16 @@ template $BzUserDataPage: Adw.NavigationPage {
 
       Adw.ViewStackPage {
         name: "empty";
-        title: _("Empty");
 
         child: Adw.StatusPage {
-          icon-name: "folder-documents-symbolic";
-          title: _("No User Data Found");
+          icon-name: "user-trash-symbolic";
+          title: _("No Leftover User Data Found");
+          description: _("Personal data left behind by apps that were removed will show up here");
         };
       }
 
       Adw.ViewStackPage {
         name: "content";
-        title: _("User Data");
 
         child: ScrolledWindow {
           hscrollbar-policy: never;
