@@ -163,7 +163,10 @@ bz_query_flathub_v2_json_authenticated (const char *request,
 
   dex_return_error_if_fail (request != NULL);
 
-  uri = g_strdup_printf ("https://flathub.org/api/v2%s", request);
+  uri = g_strdup_printf ("https://flathub.org/api/v2%s%c_=%" G_GINT64_FORMAT,
+                          request, strchr (request, '?') != NULL ? '&' : '?',
+                          g_get_real_time ());
+
   return query_uri_json_with_method (uri, SOUP_METHOD_GET, token);
 }
 
