@@ -79,10 +79,14 @@ compile (BzAppstreamDescriptionRender *self,
          GtkTextIter                  *iter,
          int                           parent_kind,
          int                           idx,
-         gboolean                      is_last_sibling);
+         gboolean                      is_last_sibling,
+         gboolean                     *in_space,
+         gboolean                     *at_start);
 
 static char *
-normalize_whitespace (const char *text);
+normalize_whitespace (const char *text,
+                      gboolean   *in_space,
+                      gboolean   *at_start);
 
 static void
 on_map (GtkWidget                    *widget,
@@ -366,6 +370,8 @@ regenerate (BzAppstreamDescriptionRender *self)
   GtkTextBuffer *buffer          = NULL;
   GtkTextIter    iter            = { 0 };
   int            node_count      = 0;
+  gboolean       in_space        = FALSE;
+  gboolean       at_start        = TRUE;
 
   buffer = gtk_text_view_get_buffer (self->text_view);
   gtk_text_buffer_set_text (buffer, "", 0);
@@ -399,7 +405,7 @@ regenerate (BzAppstreamDescriptionRender *self)
       g_autoptr (XbNode) next = NULL;
       gboolean is_last        = (i == node_count - 1);
 
-      compile (self, root, buffer, &iter, NO_ELEMENT, i, is_last);
+      compile (self, root, buffer, &iter, NO_ELEMENT, i, is_last, &in_space, &at_start);
 
       next = xb_node_get_next (root);
       g_object_unref (root);
@@ -506,14 +512,18 @@ compile (BzAppstreamDescriptionRender *self,
          GtkTextIter                  *iter,
          int                           parent_kind,
          int                           idx,
-         gboolean                      is_last_sibling)
+         gboolean                      is_last_sibling,
+         gboolean                     *in_space,
+         gboolean                     *at_start)
 {
-  const char  *element     = NULL;
-  const char  *text        = NULL;
-  XbNode      *child       = NULL;
-  int          kind        = NO_ELEMENT;
-  GtkTextMark *start_mark  = NULL;
-  int          child_count = 0;
+  const char  *element        = NULL;
+  const char  *text           = NULL;
+  XbNode      *child          = NULL;
+  int          kind           = NO_ELEMENT;
+  GtkTextMark *start_mark     = NULL;
+  int          child_count    = 0;
+  gboolean     local_in_space = FALSE;
+  gboolean     local_at_start = TRUE;
 
   element    = xb_node_get_element (node);
   text       = xb_node_get_text (node);
@@ -566,11 +576,17 @@ compile (BzAppstreamDescriptionRender *self,
         }
     }
 
+  if (kind == PARAGRAPH || kind == LIST_ITEM)
+    {
+      in_space = &local_in_space;
+      at_start = &local_at_start;
+    }
+
   if (text != NULL)
     {
       g_autofree char *normalized = NULL;
 
-      normalized = normalize_whitespace (text);
+      normalized = normalize_whitespace (text, in_space, at_start);
       if (normalized != NULL && *normalized != '\0')
         insert (self, buffer, iter, normalized);
     }
@@ -581,14 +597,14 @@ compile (BzAppstreamDescriptionRender *self,
       XbNode     *next = NULL;
 
       next = xb_node_get_next (child);
-      compile (self, child, buffer, iter, kind, i, next == NULL);
+      compile (self, child, buffer, iter, kind, i, next == NULL, in_space, at_start);
 
       tail = xb_node_get_tail (child);
       if (tail != NULL)
         {
           g_autofree char *normalized = NULL;
 
-          normalized = normalize_whitespace (tail);
+          normalized = normalize_whitespace (tail, in_space, at_start);
           if (normalized != NULL && *normalized != '\0')
             insert (self, buffer, iter, normalized);
         }
@@ -636,11 +652,11 @@ on_map (GtkWidget                    *widget,
 }
 
 static char *
-normalize_whitespace (const char *text)
+normalize_whitespace (const char *text,
+                      gboolean   *in_space,
+                      gboolean   *at_start)
 {
   g_autoptr (GString) result = NULL;
-  gboolean in_space          = FALSE;
-  gboolean at_start          = TRUE;
 
   if (text == NULL)
     return NULL;
@@ -656,17 +672,17 @@ normalize_whitespace (const char *text)
       ch = g_utf8_get_char (p);
       if (g_unichar_isspace (ch))
         {
-          if (!at_start && !in_space)
-            in_space = TRUE;
+          if (!*at_start)
+            *in_space = TRUE;
         }
       else
         {
-          if (!at_start && in_space)
+          if (!*at_start && *in_space)
             g_string_append_c (result, ' ');
           g_string_append_unichar (result, ch);
 
-          in_space = FALSE;
-          at_start = FALSE;
+          *in_space = FALSE;
+          *at_start = FALSE;
         }
     }
 
