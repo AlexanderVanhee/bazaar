@@ -130,7 +130,7 @@ get_size_label (gpointer object,
     {
       g_autofree char *size_str = g_format_size (runtime_size);
       // TRANSLATORS: %s is a formatted file size, for example: "128 MB"
-      return g_strdup_printf (_ ("+%s runtime"), size_str);
+      return g_strdup_printf (_ ("+%s Runtime"), size_str);
     }
 
   return g_strdup (is_installable ? _ ("Download") : _ ("Installed"));
