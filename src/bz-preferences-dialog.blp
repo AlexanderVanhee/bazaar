@@ -27,8 +27,9 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
       action-name: "app.sync-remotes";
     };
 
-    Adw.PreferencesGroup {
+    Adw.PreferencesGroup auto_updates_group {
       title: _("App Updates");
+      visible: bind try {$logical_or($invert_boolean(template.state as <$BzStateInfo>.main-config as <$BzMainConfig>.hide-auto-update-options) as <bool>, automatic_updates_check.active), true};
 
       [header-suffix]
       MenuButton {
@@ -73,6 +74,7 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
     }
 
     Adw.PreferencesGroup {
+      visible: bind auto_updates_group.visible;
       Adw.SwitchRow auto_notif_switch {
         use-underline: true;
         title: _("Automatic Update _Notifications");

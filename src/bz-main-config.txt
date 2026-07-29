@@ -27,3 +27,4 @@ property=hooks GListModel G_TYPE_LIST_MODEL object
 property=search_biases GListModel G_TYPE_LIST_MODEL object
 
 property=start_on_curated gboolean G_TYPE_BOOLEAN boolean
+property=hide_auto_update_options gboolean G_TYPE_BOOLEAN boolean

@@ -109,6 +109,8 @@ curated-config-paths:
   - /run/host/etc/bazaar/curated.yaml
 # Make the app start on the curated page instead of the explore page, try to only use if you have an interesting news section
 start-on-curated: true
+# Hide the auto update options in the preferences dialog, useful when you want to avoid confusion if your distro handles auto-updates of Flatpaks already.
+hide-auto-update-options: true
 ```
 
 ### EOL Overrides

@@ -19,6 +19,7 @@
  */
 
 #include "bz-preferences-dialog.h"
+#include "template-callbacks.h"
 #include <glib/gi18n.h>
 
 typedef struct
@@ -241,13 +242,6 @@ bz_preferences_dialog_set_property (GObject      *object,
     }
 }
 
-static gboolean
-invert_boolean (gpointer object,
-                gboolean value)
-{
-  return !value;
-}
-
 static void
 bz_preferences_dialog_class_init (BzPreferencesDialogClass *klass)
 {
@@ -269,6 +263,8 @@ bz_preferences_dialog_class_init (BzPreferencesDialogClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-preferences-dialog.ui");
 
+  bz_widget_class_bind_all_util_callbacks (widget_class);
+
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, only_foss_switch);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, only_flathub_switch);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, only_verified_switch);
@@ -276,7 +272,6 @@ bz_preferences_dialog_class_init (BzPreferencesDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, hide_eol_switch);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, automatic_updates_check);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, auto_notif_switch);
-  gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
 }
 
 static void
@@ -298,5 +293,6 @@ bz_preferences_dialog_new (BzStateInfo *state)
   g_object_get (state, "settings", &dialog->settings, NULL);
   bind_settings (dialog);
 
+  g_object_notify_by_pspec (G_OBJECT (dialog), props[PROP_STATE]);
   return ADW_DIALOG (dialog);
 }
