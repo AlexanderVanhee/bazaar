@@ -1075,7 +1075,7 @@ init_fiber (GWeakRef *wr)
                   const char *version = NULL;
 
                   version    = g_variant_get_string (variant, NULL);
-                  wipe_cache = g_strcmp0 (version, PACKAGE_VERSION) != 0;
+                  wipe_cache = g_strcmp0 (version, CACHE_VERSION) != 0;
                 }
             }
         }
@@ -1083,6 +1083,7 @@ init_fiber (GWeakRef *wr)
       if (wipe_cache)
         {
           bz_state_info_set_donation_prompt_dismissed (self->state, FALSE);
+          g_settings_set_int64 (self->settings, "last-refresh-time", 0);
 
           g_info ("Version incompatibility detected: clearing cache");
           dex_await (bz_reap_file_dex (root_cache_dir_file), NULL);
@@ -1100,7 +1101,7 @@ init_fiber (GWeakRef *wr)
         g_autoptr (GVariant) variant = NULL;
         g_autoptr (GBytes) bytes     = NULL;
 
-        variant = g_variant_new_string (PACKAGE_VERSION);
+        variant = g_variant_new_string (CACHE_VERSION);
         bytes   = g_variant_get_data_as_bytes (variant);
         dex_await (dex_file_replace_contents_bytes (
                        cache_version_file, bytes, NULL, FALSE,
