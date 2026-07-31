@@ -19,8 +19,11 @@
  */
 
 #include "bz-preferences-dialog.h"
-#include "template-callbacks.h"
+
+#include <gio/gio.h>
 #include <glib/gi18n.h>
+
+#include "template-callbacks.h"
 
 typedef struct
 {
@@ -30,28 +33,28 @@ typedef struct
 } BarTheme;
 
 static const BarTheme bar_themes[] = {
-  {                  "accent-color",                  "accent-color-theme",                              N_ ("Accent Color") },
-  {            "pride-rainbow-flag",            "pride-rainbow-flag-theme",                              N_ ("Pride Colors") },
-  {            "lesbian-pride-flag",            "lesbian-pride-flag-theme",                      N_ ("Lesbian Pride Colors") },
-  {                "gay-pride-flag",                "gay-pride-flag-theme",              N_ ("Male Homosexual Pride Colors") },
-  {              "transgender-flag",              "transgender-flag-theme",                  N_ ("Transgender Pride Colors") },
-  {                "nonbinary-flag",                "nonbinary-flag-theme",                    N_ ("Nonbinary Pride Colors") },
-  {                 "bisexual-flag",                 "bisexual-flag-theme",                     N_ ("Bisexual Pride Colors") },
-  {                  "asexual-flag",                  "asexual-flag-theme",                      N_ ("Asexual Pride Colors") },
-  {                "pansexual-flag",                "pansexual-flag-theme",                    N_ ("Pansexual Pride Colors") },
-  {                "aromantic-flag",                "aromantic-flag-theme",                    N_ ("Aromantic Pride Colors") },
-  {              "genderfluid-flag",              "genderfluid-flag-theme",                  N_ ("Genderfluid Pride Colors") },
-  {               "polysexual-flag",               "polysexual-flag-theme",                   N_ ("Polysexual Pride Colors") },
-  {               "omnisexual-flag",               "omnisexual-flag-theme",                   N_ ("Omnisexual Pride Colors") },
-  {                   "aroace-flag",                   "aroace-flag-theme",                       N_ ("Aroace Pride Colors") },
-  {                  "agender-flag",                  "agender-flag-theme",                      N_ ("Agender Pride Colors") },
-  {              "genderqueer-flag",              "genderqueer-flag-theme",                  N_ ("Genderqueer Pride Colors") },
-  {                 "intersex-flag",                 "intersex-flag-theme",                     N_ ("Intersex Pride Colors") },
-  {               "demigender-flag",               "demigender-flag-theme",                   N_ ("Demigender Pride Colors") },
-  {               "biromantic-flag",               "biromantic-flag-theme",                   N_ ("Biromantic Pride Colors") },
-  {               "disability-flag",               "disability-flag-theme",                   N_ ("Disability Pride Colors") },
-  {                   "femboy-flag",                   "femboy-flag-theme",                       N_ ("Femboy Pride Colors") },
-  {                 "neutrois-flag",                 "neutrois-flag-theme",                     N_ ("Neutrois Pride Colors") },
+  {       "accent-color",       "accent-color-theme",                 N_ ("Accent Color") },
+  { "pride-rainbow-flag", "pride-rainbow-flag-theme",                 N_ ("Pride Colors") },
+  { "lesbian-pride-flag", "lesbian-pride-flag-theme",         N_ ("Lesbian Pride Colors") },
+  {     "gay-pride-flag",     "gay-pride-flag-theme", N_ ("Male Homosexual Pride Colors") },
+  {   "transgender-flag",   "transgender-flag-theme",     N_ ("Transgender Pride Colors") },
+  {     "nonbinary-flag",     "nonbinary-flag-theme",       N_ ("Nonbinary Pride Colors") },
+  {      "bisexual-flag",      "bisexual-flag-theme",        N_ ("Bisexual Pride Colors") },
+  {       "asexual-flag",       "asexual-flag-theme",         N_ ("Asexual Pride Colors") },
+  {     "pansexual-flag",     "pansexual-flag-theme",       N_ ("Pansexual Pride Colors") },
+  {     "aromantic-flag",     "aromantic-flag-theme",       N_ ("Aromantic Pride Colors") },
+  {   "genderfluid-flag",   "genderfluid-flag-theme",     N_ ("Genderfluid Pride Colors") },
+  {    "polysexual-flag",    "polysexual-flag-theme",      N_ ("Polysexual Pride Colors") },
+  {    "omnisexual-flag",    "omnisexual-flag-theme",      N_ ("Omnisexual Pride Colors") },
+  {        "aroace-flag",        "aroace-flag-theme",          N_ ("Aroace Pride Colors") },
+  {       "agender-flag",       "agender-flag-theme",         N_ ("Agender Pride Colors") },
+  {   "genderqueer-flag",   "genderqueer-flag-theme",     N_ ("Genderqueer Pride Colors") },
+  {      "intersex-flag",      "intersex-flag-theme",        N_ ("Intersex Pride Colors") },
+  {    "demigender-flag",    "demigender-flag-theme",      N_ ("Demigender Pride Colors") },
+  {    "biromantic-flag",    "biromantic-flag-theme",      N_ ("Biromantic Pride Colors") },
+  {    "disability-flag",    "disability-flag-theme",      N_ ("Disability Pride Colors") },
+  {        "femboy-flag",        "femboy-flag-theme",          N_ ("Femboy Pride Colors") },
+  {      "neutrois-flag",      "neutrois-flag-theme",        N_ ("Neutrois Pride Colors") },
 };
 
 struct _BzPreferencesDialog
@@ -87,6 +90,7 @@ static GParamSpec *props[LAST_PROP] = { 0 };
 
 static void bind_settings (BzPreferencesDialog *self);
 static void create_flag_buttons (BzPreferencesDialog *self);
+static void request_autostart (gboolean enable);
 
 static void
 bz_preferences_dialog_dispose (GObject *object)
@@ -195,8 +199,8 @@ bind_settings (BzPreferencesDialog *self)
                    G_SETTINGS_BIND_DEFAULT);
 
   g_settings_bind (self->settings, "auto-update",
-                 self->automatic_updates_check, "active",
-                 G_SETTINGS_BIND_DEFAULT);
+                   self->automatic_updates_check, "active",
+                   G_SETTINGS_BIND_DEFAULT);
 
   g_settings_bind (self->settings, "auto-update-notifications",
                    self->auto_notif_switch, "active",
@@ -243,6 +247,62 @@ bz_preferences_dialog_set_property (GObject      *object,
 }
 
 static void
+background_portal_request_cb (GObject      *source,
+                              GAsyncResult *result,
+                              gpointer      user_data)
+{
+  GDBusConnection *bus       = G_DBUS_CONNECTION (source);
+  g_autoptr (GVariant) reply = NULL;
+  g_autoptr (GError) error   = NULL;
+
+  reply = g_dbus_connection_call_finish (bus, result, &error);
+  if (reply == NULL)
+    g_warning ("Failed to call RequestBackground: %s", error->message);
+}
+
+static void
+request_autostart (gboolean enable)
+{
+  g_autoptr (GDBusConnection) bus = NULL;
+  g_autoptr (GError) error        = NULL;
+  g_autofree char *token          = NULL;
+  GVariant        *options        = NULL;
+  static guint     request_count  = 0;
+
+  bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+  if (bus == NULL)
+    {
+      g_warning ("Could not connect to session bus: %s", error->message);
+      return;
+    }
+
+  token = g_strdup_printf ("bazaar_autostart_%u", request_count++);
+
+  options = g_variant_new_parsed (
+      "{'handle_token': <%s>, 'reason': <%s>, "
+      "'autostart': <%b>, 'dbus-activatable': <false>, "
+      "'commandline': <['bazaar-daemon', '--no-window']>}",
+      token,
+      _ ("Bazaar needs to run in the background to check for app updates"),
+      enable);
+
+  g_dbus_connection_call (
+      bus, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
+      "org.freedesktop.portal.Background", "RequestBackground",
+      g_variant_new ("(s@a{sv})", "", options),
+      NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL,
+      background_portal_request_cb,
+      NULL);
+}
+
+static void
+auto_updates_toggled_cb (GtkCheckButton      *button,
+                         BzPreferencesDialog *self)
+{
+  request_autostart (gtk_check_button_get_active (self->automatic_updates_check));
+}
+
+static void
 bz_preferences_dialog_class_init (BzPreferencesDialogClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
@@ -272,6 +332,7 @@ bz_preferences_dialog_class_init (BzPreferencesDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, hide_eol_switch);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, automatic_updates_check);
   gtk_widget_class_bind_template_child (widget_class, BzPreferencesDialog, auto_notif_switch);
+  gtk_widget_class_bind_template_callback (widget_class, auto_updates_toggled_cb);
 }
 
 static void
