@@ -23,7 +23,7 @@ Bazaar
 
 > [!NOTE]
 > If you are interested in contributing translations to Bazaar (Thank
-> you!), please see the [translators introduction](/TRANSLATORS.md).
+> you!), please see the [Damned Lies Module](https://l10n.gnome.org/module/bazaar/).
 
 Bazaar is a new app store for GNOME with a focus on discovering and installing
 apps and add-ons from Flatpak remotes, particularly
