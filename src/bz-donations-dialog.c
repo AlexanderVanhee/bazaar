@@ -175,7 +175,7 @@ bz_donations_dialog_init (BzDonationsDialog *self)
   adw_breakpoint_add_setter (self->breakpoint,
                              G_OBJECT (self),
                              "width-request",
-                             &(GValue) { G_TYPE_INT, { { .v_int = 350 } } });
+                             &(GValue){ G_TYPE_INT, { { .v_int = 350 } } });
 
   g_signal_connect (self, "map", G_CALLBACK (on_map), NULL);
 

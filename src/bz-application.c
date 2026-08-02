@@ -2174,7 +2174,7 @@ open_metainfo_fiber (OpenMetainfoData *data)
   GFile *file                       = data->file;
   g_autoptr (GError) local_error    = NULL;
   g_autoptr (DexFuture) pick_future = NULL;
-  const GValue *value               = NULL;
+  const GValue         *value       = NULL;
   BzMetainfoPickResult *result      = NULL;
   g_autoptr (BzEntry) entry         = NULL;
   GtkWindow *window                 = NULL;
@@ -3821,8 +3821,8 @@ command_line_open_location (BzApplication           *self,
   else
     {
       const char *cwd = NULL;
-      cwd = g_application_command_line_get_cwd (cmdline);
 
+      cwd  = g_application_command_line_get_cwd (cmdline);
       file = cwd != NULL
                  ? g_file_new_build_filename (cwd, location, NULL)
                  : g_file_new_for_path (location);
