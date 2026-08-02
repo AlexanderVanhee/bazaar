@@ -22,8 +22,11 @@
 
 #include <gio/gio.h>
 #include <glib/gi18n.h>
+#include <libdex.h>
 
+#include "env.h"
 #include "template-callbacks.h"
+#include "util.h"
 
 typedef struct
 {
@@ -91,6 +94,9 @@ static GParamSpec *props[LAST_PROP] = { 0 };
 static void bind_settings (BzPreferencesDialog *self);
 static void create_flag_buttons (BzPreferencesDialog *self);
 static void request_autostart (gboolean enable);
+
+static DexFuture *
+request_autostart_fiber (gpointer user_data);
 
 static void
 bz_preferences_dialog_dispose (GObject *object)
@@ -246,34 +252,22 @@ bz_preferences_dialog_set_property (GObject      *object,
     }
 }
 
-static void
-background_portal_request_cb (GObject      *source,
-                              GAsyncResult *result,
-                              gpointer      user_data)
+static DexFuture *
+request_autostart_fiber (gpointer user_data)
 {
-  GDBusConnection *bus       = G_DBUS_CONNECTION (source);
-  g_autoptr (GVariant) reply = NULL;
-  g_autoptr (GError) error   = NULL;
-
-  reply = g_dbus_connection_call_finish (bus, result, &error);
-  if (reply == NULL)
-    g_warning ("Failed to call RequestBackground: %s", error->message);
-}
-
-static void
-request_autostart (gboolean enable)
-{
+  gboolean enable                 = GPOINTER_TO_INT (user_data);
   g_autoptr (GDBusConnection) bus = NULL;
   g_autoptr (GError) error        = NULL;
+  g_autoptr (GVariant) reply      = NULL;
   g_autofree char *token          = NULL;
   GVariant        *options        = NULL;
   static guint     request_count  = 0;
 
-  bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+  bus = dex_await_object (dex_bus_get (G_BUS_TYPE_SESSION), &error);
   if (bus == NULL)
     {
       g_warning ("Could not connect to session bus: %s", error->message);
-      return;
+      return dex_future_new_for_error (g_steal_pointer (&error));
     }
 
   token = g_strdup_printf ("bazaar_autostart_%u", request_count++);
@@ -286,13 +280,32 @@ request_autostart (gboolean enable)
       _ ("Bazaar needs to run in the background to check for app updates"),
       enable);
 
-  g_dbus_connection_call (
-      bus, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
-      "org.freedesktop.portal.Background", "RequestBackground",
-      g_variant_new ("(s@a{sv})", "", options),
-      NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL,
-      background_portal_request_cb,
-      NULL);
+  reply = dex_await_variant (
+      dex_dbus_connection_call (
+          bus, "org.freedesktop.portal.Desktop",
+          "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Background",
+          "RequestBackground", g_variant_new ("(s@a{sv})", "", options), NULL,
+          G_DBUS_CALL_FLAGS_NONE, -1),
+      &error);
+  if (reply == NULL)
+    {
+      g_warning ("Failed to call RequestBackground: %s", error->message);
+      return dex_future_new_for_error (g_steal_pointer (&error));
+    }
+
+  return dex_future_new_true ();
+}
+
+static void
+request_autostart (gboolean enable)
+{
+  dex_future_disown (
+      dex_scheduler_spawn (
+          dex_scheduler_get_default (),
+          bz_get_dex_stack_size (),
+          request_autostart_fiber,
+          GINT_TO_POINTER (enable),
+          NULL));
 }
 
 static void
