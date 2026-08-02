@@ -108,8 +108,9 @@ on_map (BzDonationsDialog *self,
 {
   GtkRoot *root = NULL;
 
-  root = gtk_widget_get_root (GTK_WIDGET (self));
+  gtk_widget_grab_focus (GTK_WIDGET (self->release_button));
 
+  root = gtk_widget_get_root (GTK_WIDGET (self));
   if (root == NULL || self->breakpoint == NULL)
     return;
 
