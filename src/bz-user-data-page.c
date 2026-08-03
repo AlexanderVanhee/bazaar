@@ -226,7 +226,10 @@ bz_user_data_page_remove_group (BzUserDataPage *self,
   self->toast_count++;
 
   message = self->toast_count > 1
-                ? g_strdup_printf (_ ("Trashed User Data for %u Apps"), self->toast_count)
+                ? g_strdup_printf (ngettext ("Trashed User Data for %u App",
+                                             "Trashed User Data for %u Apps",
+                                             self->toast_count),
+                                   self->toast_count)
                 : g_strdup_printf (_ ("Trashed User Data for %s"), title);
 
   if (self->toast == NULL)

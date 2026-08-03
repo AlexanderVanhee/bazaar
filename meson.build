@@ -11,6 +11,7 @@ project('bazaar', 'c',
 # can't have statements before `project` ...
 bz_vcs_version = run_command('version.sh', 'get-vcs').stdout().strip()
 bz_version = run_command('version.sh', 'get-version').stdout().strip()
+bz_cache_version = run_command('version.sh', 'get-cache').stdout().strip()
 
 python3 = find_program('python3')
 i18n = import('i18n')
@@ -93,6 +94,7 @@ else
 
     config_h.set_quoted('PACKAGE_VERSION', bz_version)
     config_h.set_quoted('PACKAGE_VCS_VERSION', bz_vcs_version)
+    config_h.set_quoted('CACHE_VERSION', bz_cache_version)
     config_h.set_quoted('GETTEXT_PACKAGE', 'bazaar')
     config_h.set_quoted('APPLICATION_ID', 'io.github.kolunmi.Bazaar')
     config_h.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))

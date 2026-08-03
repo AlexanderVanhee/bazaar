@@ -3,6 +3,7 @@
 INSTR="$1"
 
 VERSION=0.9.2
+CACHE_VERSION=1
 
 case "$INSTR" in
     get-version)
@@ -19,6 +20,9 @@ case "$INSTR" in
     get-gh-release)
         TAG="v${VERSION}"
         echo "https://github.com/bazaar-org/bazaar/releases/tag/${TAG}"
+        ;;
+    get-cache)
+        echo "${CACHE_VERSION}"
         ;;
     *)
         echo invalid arguments 1>&2
