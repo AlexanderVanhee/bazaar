@@ -98,8 +98,8 @@ struct _BzAsyncTexture
   char    *cache_into_path;
   gboolean lazy;
 
-  int      width;
-  int      height;
+  int width;
+  int height;
 
   DexFuture    *task;
   GCancellable *cancellable;

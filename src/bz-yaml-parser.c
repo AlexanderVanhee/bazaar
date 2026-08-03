@@ -27,8 +27,8 @@
 #include <yaml.h>
 
 #include "bz-parser.h"
-#include "util.h"
 #include "bz-yaml-parser.h"
+#include "util.h"
 
 /* clang-format off */
 G_DEFINE_QUARK (bz-yaml-error-quark, bz_yaml_error);

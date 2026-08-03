@@ -56,7 +56,9 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
         activatable-widget: automatic_updates_check;
 
         [prefix]
-        CheckButton automatic_updates_check {}
+        CheckButton automatic_updates_check {
+          toggled => $auto_updates_toggled_cb();
+        }
       }
 
       Adw.ActionRow manual_updates_row {
@@ -69,6 +71,7 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
         CheckButton manual_updates_check {
           active: bind automatic_updates_check.active inverted;
           group: automatic_updates_check;
+          toggled => $auto_updates_toggled_cb();
         }
       }
     }

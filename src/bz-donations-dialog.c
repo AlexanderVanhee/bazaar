@@ -108,8 +108,9 @@ on_map (BzDonationsDialog *self,
 {
   GtkRoot *root = NULL;
 
-  root = gtk_widget_get_root (GTK_WIDGET (self));
+  gtk_widget_grab_focus (GTK_WIDGET (self->release_button));
 
+  root = gtk_widget_get_root (GTK_WIDGET (self));
   if (root == NULL || self->breakpoint == NULL)
     return;
 
@@ -175,7 +176,7 @@ bz_donations_dialog_init (BzDonationsDialog *self)
   adw_breakpoint_add_setter (self->breakpoint,
                              G_OBJECT (self),
                              "width-request",
-                             &(GValue) { G_TYPE_INT, { { .v_int = 350 } } });
+                             &(GValue){ G_TYPE_INT, { { .v_int = 350 } } });
 
   g_signal_connect (self, "map", G_CALLBACK (on_map), NULL);
 
