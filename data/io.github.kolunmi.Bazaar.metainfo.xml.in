@@ -73,6 +73,30 @@
   </screenshots>
 
   <releases>
+    <release version="0.9.2" date="2026-08-03">
+      <url type="details">https://github.com/bazaar-org/bazaar/releases/tag/v0.9.2</url>
+        <description translate="no">
+          <p>
+            <em>New Features</em>
+          </p>
+          <ul>
+            <li>Added an optional auto-update system</li>
+            <li>Greatly reduced memory usage when the app is running in the background</li>
+            <li>Metainfo files can now be opened in Bazaar directly from the file manager</li>
+            <li>Added scrollbars to the screenshot viewer</li>
+          </ul>
+          <p>
+            <em>Bug Fixes</em>
+          </p>
+          <ul>
+            <li>Fixed an issue where EOL rebases were not handled properly</li>
+            <li>Reduced the clunkiness of the "Leftover User Data" page</li>
+          </ul>
+          <p>
+            Thanks for reading, and have a great day!
+          </p>
+        </description>
+    </release>
     <release version="0.9.1" date="2026-07-08">
       <url type="details">https://github.com/bazaar-org/bazaar/releases/tag/v0.9.1</url>
         <description translate="no">
