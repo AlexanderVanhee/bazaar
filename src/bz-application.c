@@ -678,6 +678,16 @@ bz_application_donate_action (GSimpleAction *action,
 }
 
 static void
+bz_application_donate_close_action (GSimpleAction *action,
+                                    GVariant      *parameter,
+                                    gpointer       user_data)
+{
+  BzApplication *self = user_data;
+
+  bz_state_info_set_donation_prompt_dismissed (self->state, TRUE);
+}
+
+static void
 bz_application_search_action (GSimpleAction *action,
                               GVariant      *parameter,
                               gpointer       user_data)
@@ -889,6 +899,7 @@ static const GActionEntry app_actions[] = {
   {            "search",            bz_application_search_action,  "s" },
   {       "show-app-id",       bz_application_show_app_id_action,  "s" },
   {            "donate",            bz_application_donate_action, NULL },
+  {      "donate-close",      bz_application_donate_close_action, NULL },
   {  "bazaar-inspector",  bz_application_bazaar_inspector_action, NULL },
   { "toggle-debug-mode", bz_application_toggle_debug_mode_action, NULL },
 };

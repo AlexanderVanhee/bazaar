@@ -52,6 +52,12 @@
     --banner-color: var(--accent-bg-color);
 }
 
+.banner-close {
+  min-width: 16px;
+  min-height: 16px;
+  padding: 4px;
+}
+
 .updates-amount {
 	background-color: white;
 	color: var(--accent-bg-color);

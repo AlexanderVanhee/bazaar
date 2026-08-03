@@ -218,15 +218,64 @@ template $BzWindow: Adw.ApplicationWindow {
                     }
                   }
 
-                  Adw.Banner {
+                  Adw.Bin {
+                    css-name: "banner";
                     styles [
                       "bz-donations-banner",
                     ]
 
-                    revealed: bind $invert_boolean(template.state as <$BzStateInfo>.donation-prompt-dismissed as <bool>) as <bool>;
-                    title: _("You are running a new version of Bazaar!");
-                    button-label: _("See What's New");
-                    action-name: "app.donate";
+                    child: Revealer {
+                      transition-type: slide_down;
+                      reveal-child: bind $invert_boolean(template.state as <$BzStateInfo>.donation-prompt-dismissed as <bool>) as <bool>;
+
+                      child: Box {
+                        css-name: "widget";
+                        hexpand: true;
+                        spacing: 6;
+
+                        CenterBox {
+                          hexpand: true;
+                          center-widget: Label {
+                            margin-end: 8;
+                            justify: center;
+                            ellipsize: end;
+                            lines: 3;
+                            wrap: true;
+                            wrap-mode: word_char;
+                            label: _("You are running a new version of Bazaar!");
+
+                            styles [
+                              "heading",
+                            ]
+                          };
+
+                          end-widget: Box {
+                            spacing: 6;
+
+                            Button {
+                              valign: center;
+                              focus-on-click: false;
+                              label: _("See What's New");
+                              action-name: "app.donate";
+                            }
+
+                            Button {
+                              icon-name: "window-close-symbolic";
+                              action-name: "app.donate-close";
+                              valign: center;
+                              halign: center;
+                              margin-start: 6;
+                              margin-end: 5;
+
+                              styles [
+                                "circular",
+                                "banner-close",
+                              ]
+                            }
+                          };
+                        }
+                      };
+                    };
                   }
 
                   Adw.Banner {
