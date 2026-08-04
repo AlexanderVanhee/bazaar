@@ -678,6 +678,20 @@ bz_flatpak_ref_parts_format_unique (const char *origin,
 }
 
 char *
+bz_flatpak_unique_id_get_generic_app_id (const char *unique_id)
+{
+  const char *ref   = NULL;
+  const char *start = NULL;
+  const char *end   = NULL;
+
+  ref   = g_strrstr (unique_id, "::");
+  start = ref != NULL ? strchr (ref + 2, '/') : NULL;
+  end   = start != NULL ? strchr (start + 1, '/') : NULL;
+
+  return end != NULL ? g_strndup (start + 1, end - start - 1) : NULL;
+}
+
+char *
 bz_flatpak_ref_format_unique (FlatpakRef *ref,
                               gboolean    user)
 {

@@ -33,6 +33,9 @@ char *
 bz_flatpak_id_format_unique (const char *flatpak_id,
                              gboolean    user);
 
+char *
+bz_flatpak_unique_id_get_generic_app_id (const char *unique_id);
+
 gboolean
 bz_flatpak_entry_is_user (BzFlatpakEntry *self);
 

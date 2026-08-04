@@ -1366,13 +1366,34 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
                 self->ids_to_groups,
                 g_strdup (id),
                 g_object_ref (group));
-
-          if (bz_entry_group_get_removable (group) > 0)
-            g_list_store_insert_sorted (
-                self->installed_apps, group,
-                (GCompareDataFunc) cmp_group, NULL);
         }
     }
+
+  {
+    GHashTableIter set_iter  = { 0 };
+    char          *unique_id = NULL;
+
+    g_list_store_remove_all (self->installed_apps);
+
+    g_hash_table_iter_init (&set_iter, self->installed_set);
+    while (g_hash_table_iter_next (&set_iter, (gpointer *) &unique_id, NULL))
+      {
+        g_autofree char *id                = NULL;
+        g_autoptr (GtkStringObject) id_obj = NULL;
+        g_autoptr (BzEntryGroup) group     = NULL;
+
+        id = bz_flatpak_unique_id_get_generic_app_id (unique_id);
+        if (id == NULL)
+          continue;
+
+        id_obj = gtk_string_object_new (id);
+        group  = map_generic_ids_to_groups (g_object_ref (id_obj), self);
+
+        if (group != NULL &&
+            !g_list_store_find (self->installed_apps, group, NULL))
+          g_list_store_append (self->installed_apps, group);
+      }
+  }
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_LESS_STRICT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_LESS_STRICT);
