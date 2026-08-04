@@ -179,7 +179,7 @@ gboolean
 bz_entry_group_deserialize (BzEntryGroup *self,
                             GVariant     *import);
 
-void
+gboolean
 bz_entry_group_reconcile_with_installed_set (BzEntryGroup *self,
                                              GHashTable   *installed_set);
 

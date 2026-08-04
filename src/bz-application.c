@@ -1350,9 +1350,10 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
       group = bz_entry_group_new (self->entry_factory);
       if (bz_entry_group_deserialize (group, group_variant))
         {
-          const char *id = NULL;
+          const char *id           = NULL;
+          gboolean    is_installed = FALSE;
 
-          bz_entry_group_reconcile_with_installed_set (group, self->installed_set);
+          is_installed = bz_entry_group_reconcile_with_installed_set (group, self->installed_set);
 
           if (!has_flathub_group &&
               bz_entry_group_get_is_flathub (group))
@@ -1367,7 +1368,7 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
                 g_strdup (id),
                 g_object_ref (group));
 
-          if (bz_entry_group_get_removable (group) > 0)
+          if (is_installed)
             g_list_store_insert_sorted (
                 self->installed_apps, group,
                 (GCompareDataFunc) cmp_group, NULL);
