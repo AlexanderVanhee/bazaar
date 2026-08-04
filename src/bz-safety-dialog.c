@@ -48,6 +48,7 @@ struct _BzSafetyDialog
   GtkListBox  *permissions_list;
   AdwCarousel *carousel;
   GtkBox      *global_box;
+  GtkButton   *other_permissions_button;
 };
 
 G_DEFINE_FINAL_TYPE (BzSafetyDialog, bz_safety_dialog, ADW_TYPE_BIN)
@@ -193,6 +194,8 @@ on_dialog_map (BzSafetyDialog *self)
       page = gtk_widget_get_last_child (GTK_WIDGET (self->carousel));
       adw_carousel_scroll_to (self->carousel, page, FALSE);
     }
+  else
+    gtk_widget_grab_focus (GTK_WIDGET (self->other_permissions_button));
 
   get_target_size (self, page_index, &target_width, &target_height);
   adw_dialog_set_content_width (dialog, target_width);
@@ -208,6 +211,15 @@ next_page (BzSafetyDialog *self,
   page = gtk_widget_get_last_child (GTK_WIDGET (self->carousel));
   adw_carousel_scroll_to (self->carousel, page, TRUE);
   animate_to_page (self, 1);
+}
+
+static gboolean
+is_page (gpointer object,
+         gdouble  position,
+         gint     target)
+{
+  return fabs (position - (gdouble) target) < 0.5 ||
+        fabs (position - round (position)) > 0.01;
 }
 
 static void
@@ -241,7 +253,9 @@ bz_safety_dialog_class_init (BzSafetyDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, permissions_list);
   gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, carousel);
   gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, global_box);
+  gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, other_permissions_button);
   gtk_widget_class_bind_template_callback (widget_class, next_page);
+  gtk_widget_class_bind_template_callback (widget_class, is_page);
 }
 
 static void
