@@ -991,6 +991,7 @@ init_fiber (GWeakRef *wr)
       gboolean      os_check_result                     = FALSE;
       GInputStream *os_check_stdout_pipe                = NULL;
       g_autoptr (GBytes) os_out                         = NULL;
+      gboolean      affected_ubuntu                     = FALSE;
 
       os_check_launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE);
       os_check          = g_subprocess_launcher_spawn (os_check_launcher, &os_check_error,
@@ -1010,8 +1011,23 @@ init_fiber (GWeakRef *wr)
       else
         g_warning ("Failed to spawn ubuntu check subprocess: %s", os_check_error->message);
 
-      if (os_out != NULL &&
-          strstr (g_bytes_get_data (os_out, NULL), "ID=ubuntu") != NULL)
+      if (os_out != NULL)
+        {
+          const char *data  = NULL;
+          const char *ver   = NULL;
+          int         major = 0;
+          int         minor = 0;
+
+          data = g_bytes_get_data (os_out, NULL);
+          ver  = strstr (data, "VERSION_ID=\"");
+
+          if (strstr (data, "ID=ubuntu") != NULL &&
+              ver != NULL &&
+              sscanf (ver + strlen ("VERSION_ID=\""), "%d.%d", &major, &minor) == 2)
+            affected_ubuntu = major > 25 || (major == 25 && minor >= 10);
+        }
+
+      if (affected_ubuntu)
         {
           GtkWindow       *window   = NULL;
           AdwDialog       *alert    = NULL;
