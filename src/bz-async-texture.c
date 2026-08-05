@@ -536,6 +536,26 @@ bz_async_texture_dup_future (BzAsyncTexture *self)
         "texture is in an invalid state");
 }
 
+GIcon *
+bz_async_texture_dup_icon (BzAsyncTexture *self)
+{
+  g_autoptr (GError) local_error = NULL;
+  g_autoptr (GBytes) bytes       = NULL;
+  GFile *file                    = NULL;
+
+  g_return_val_if_fail (BZ_IS_ASYNC_TEXTURE (self), NULL);
+
+  file = self->cache_into != NULL ? self->cache_into : self->source;
+  if (file == NULL)
+    return NULL;
+
+  bytes = g_file_load_bytes (file, NULL, NULL, &local_error);
+  if (bytes == NULL)
+    return NULL;
+
+  return g_bytes_icon_new (bytes);
+}
+
 void
 bz_async_texture_ensure (BzAsyncTexture *self)
 {
