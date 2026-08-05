@@ -203,13 +203,13 @@ bz_user_data_page_remove_group (BzUserDataPage *self,
                                 BzEntryGroup   *group)
 {
   guint            n_items, i;
-  const char      *title   = NULL;
+  g_autofree char *title   = NULL;
   g_autofree char *message = NULL;
 
   if (self->model == NULL)
     return;
 
-  title = bz_entry_group_get_title (group);
+  title = g_strdup (bz_entry_group_get_title (group));
 
   n_items = g_list_model_get_n_items (self->model);
   for (i = 0; i < n_items; i++)

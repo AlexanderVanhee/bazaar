@@ -1872,15 +1872,16 @@ bz_entry_group_deserialize (BzEntryGroup *self,
   return self->id != NULL;
 }
 
-void
+gboolean
 bz_entry_group_reconcile_with_installed_set (BzEntryGroup *self,
                                              GHashTable   *installed_set)
 {
   g_autoptr (GMutexLocker) locker = NULL;
   guint n_ids                     = 0;
+  gboolean any_installed          = FALSE;
 
-  g_return_if_fail (BZ_IS_ENTRY_GROUP (self));
-  g_return_if_fail (installed_set != NULL);
+  g_return_val_if_fail (BZ_IS_ENTRY_GROUP (self), FALSE);
+  g_return_val_if_fail (installed_set != NULL, FALSE);
 
   locker = g_mutex_locker_new (&self->mutex);
 
@@ -1904,6 +1905,7 @@ bz_entry_group_reconcile_with_installed_set (BzEntryGroup *self,
           flags |= ENTRY_REMOVABLE | ENTRY_REMOVABLE_AVAILABLE;
           self->removable++;
           self->removable_available++;
+          any_installed = TRUE;
         }
       else
         {
@@ -1919,4 +1921,6 @@ bz_entry_group_reconcile_with_installed_set (BzEntryGroup *self,
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_REMOVABLE_AND_AVAILABLE]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_INSTALLABLE]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_INSTALLABLE_AND_AVAILABLE]);
+
+  return any_installed;
 }
