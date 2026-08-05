@@ -4148,7 +4148,9 @@ finish_with_background_task_label (BzApplication *self)
 {
   if (self->n_entries_incoming > 0)
     bz_state_info_set_background_task_label_take_printf (
-        self->state, _ ("Loading %d apps…"), self->n_entries_incoming);
+        self->state,
+        ngettext ("Loading %d app…", "Loading %d apps…", self->n_entries_incoming),
+        self->n_entries_incoming);
   else if (bz_state_info_get_syncing (self->state))
     bz_state_info_set_background_task_label (self->state, _ ("Refreshing…"));
   else if (bz_state_info_get_busy (self->state))
