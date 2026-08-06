@@ -83,7 +83,7 @@
     <key name="last-update-check" type="x">
       <default>0</default>
       <summary>Last Update Check</summary>
-      <description>Unix timestamp of the last automatic update check</description>
+      <description>Unix timestamp of the last update check</description>
     </key>
     <key name="update-check-hour-offset" type="i">
       <default>-1</default>
@@ -94,6 +94,10 @@
       <default>0</default>
       <summary>Last Refresh Time</summary>
       <description>timestamp of the last successful refresh</description>
+    </key>
+    <key name="last-stale-notification" type="x">
+      <default>0</default>
+      <summary>timestamp of the last "updates out of date" notification</summary>
     </key>
   </schema>
 </schemalist>
