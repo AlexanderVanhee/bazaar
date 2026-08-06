@@ -1074,7 +1074,8 @@ init_fiber (GWeakRef *wr)
 
   if (dex_await (dex_file_query_exists (root_cache_dir_file), NULL))
     {
-      gboolean wipe_cache = TRUE;
+      gboolean wipe_cache       = TRUE;
+      gboolean package_upgraded = TRUE;
 
       if (dex_await (dex_file_query_exists (cache_version_file), NULL))
         {
@@ -1085,20 +1086,25 @@ init_fiber (GWeakRef *wr)
             {
               g_autoptr (GVariant) variant = NULL;
 
-              variant = g_variant_new_from_bytes (G_VARIANT_TYPE_STRING, bytes, FALSE);
+              variant = g_variant_new_from_bytes (G_VARIANT_TYPE ("(ss)"), bytes, FALSE);
               if (variant != NULL)
                 {
-                  const char *version = NULL;
+                  const char *stored_package_version = NULL;
+                  const char *stored_cache_version    = NULL;
 
-                  version    = g_variant_get_string (variant, NULL);
-                  wipe_cache = g_strcmp0 (version, CACHE_VERSION) != 0;
+                  g_variant_get (variant, "(&s&s)", &stored_package_version, &stored_cache_version);
+
+                  wipe_cache       = g_strcmp0 (stored_cache_version, CACHE_VERSION) != 0;
+                  package_upgraded = g_strcmp0 (stored_package_version, PACKAGE_VERSION) != 0;
                 }
             }
         }
 
+      if (package_upgraded)
+        bz_state_info_set_donation_prompt_dismissed (self->state, FALSE);
+
       if (wipe_cache)
         {
-          bz_state_info_set_donation_prompt_dismissed (self->state, FALSE);
           g_settings_set_int64 (self->settings, "last-refresh-time", 0);
 
           g_info ("Version incompatibility detected: clearing cache");
@@ -1117,7 +1123,7 @@ init_fiber (GWeakRef *wr)
         g_autoptr (GVariant) variant = NULL;
         g_autoptr (GBytes) bytes     = NULL;
 
-        variant = g_variant_new_string (CACHE_VERSION);
+        variant = g_variant_new ("(ss)", PACKAGE_VERSION, CACHE_VERSION);
         bytes   = g_variant_get_data_as_bytes (variant);
         dex_await (dex_file_replace_contents_bytes (
                        cache_version_file, bytes, NULL, FALSE,
