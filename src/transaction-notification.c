@@ -26,26 +26,78 @@
 #include "bz-async-texture.h"
 #include "bz-entry.h"
 #include "bz-transaction-entry-tracker.h"
+#include "env.h"
 #include "transaction-notification.h"
+#include "util.h"
+
+BZ_DEFINE_DATA (
+    notify_finished,
+    NotifyFinished,
+    {
+      BzTransaction *transaction;
+      gboolean       success;
+    },
+    BZ_RELEASE_DATA (transaction, g_object_unref))
+
+static DexFuture *
+notify_finished_release_hold (DexFuture    *future,
+                              GApplication *app);
+
+static DexFuture *
+notify_finished_fiber (NotifyFinishedData *data);
 
 void
 bz_transaction_notify_finished (BzTransaction *transaction,
                                 gboolean       success)
 {
-  GApplication *app        = NULL;
-  GList        *windows    = NULL;
-  GListModel   *trackers   = NULL;
-  guint         n_trackers = 0;
+  g_autoptr (NotifyFinishedData) data = NULL;
+  GApplication *app                   = NULL;
 
   g_return_if_fail (BZ_IS_TRANSACTION (transaction));
 
-  app     = g_application_get_default ();
+  app = g_application_get_default ();
+  g_application_hold (app);
+
+  data              = notify_finished_data_new ();
+  data->transaction = g_object_ref (transaction);
+  data->success     = success;
+
+  dex_future_disown (dex_future_finally (
+      dex_scheduler_spawn (
+          dex_scheduler_get_default (),
+          bz_get_dex_stack_size (),
+          (DexFiberFunc) notify_finished_fiber,
+          notify_finished_data_ref (data),
+          notify_finished_data_unref),
+      (DexFutureCallback) notify_finished_release_hold,
+      app, NULL));
+}
+
+static DexFuture *
+notify_finished_release_hold (DexFuture    *future,
+                              GApplication *app)
+{
+  g_application_release (app);
+  return dex_ref (future);
+}
+
+static DexFuture *
+notify_finished_fiber (NotifyFinishedData *data)
+{
+  BzTransaction *transaction = data->transaction;
+  GApplication  *app         = NULL;
+  GList         *windows     = NULL;
+  GListModel    *trackers    = NULL;
+  guint          n_trackers  = 0;
+
+  if (!data->success)
+    return dex_future_new_true ();
+
+  app = g_application_get_default ();
+
   windows = gtk_application_get_windows (GTK_APPLICATION (app));
   if (windows != NULL)
-    return;
-
-  if (!success)
-    return;
+    return dex_future_new_true ();
 
   trackers = bz_transaction_get_trackers (transaction);
   if (trackers != NULL)
@@ -94,4 +146,6 @@ bz_transaction_notify_finished (BzTransaction *transaction,
       notif_id = g_strdup_printf ("app-installed-%s", bz_entry_get_unique_id (entry));
       g_application_send_notification (app, notif_id, notification);
     }
+
+  return dex_future_new_true ();
 }
