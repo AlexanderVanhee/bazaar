@@ -214,6 +214,10 @@ update_header (BzHardwareSupportDialog *self)
   bz_lozenge_set_icon_names (self->lozenge, icon_names);
   bz_lozenge_set_title (self->lozenge, title_text);
   bz_lozenge_set_importance (self->lozenge, importance);
+
+  gtk_accessible_update_property (GTK_ACCESSIBLE (self),
+                                  GTK_ACCESSIBLE_PROPERTY_DESCRIPTION, title_text,
+                                  -1);
 }
 
 static void
