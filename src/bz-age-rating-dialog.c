@@ -695,6 +695,7 @@ update_lozenge (BzAgeRatingDialog *self,
   guint                 age        = G_MAXUINT;
   g_autofree gchar     *age_text   = NULL;
   g_autofree gchar     *title_text = NULL;
+  g_autofree gchar     *a11y_desc  = NULL;
   BzImportance          importance = BZ_IMPORTANCE_NEUTRAL;
   gboolean              is_unknown = FALSE;
 
@@ -774,6 +775,11 @@ update_lozenge (BzAgeRatingDialog *self,
   bz_lozenge_set_label (self->lozenge, age_text);
   bz_lozenge_set_title (self->lozenge, title_text);
   bz_lozenge_set_importance (self->lozenge, importance);
+
+  a11y_desc = g_strdup_printf ("%s. %s", age_text, title_text);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (self),
+                                  GTK_ACCESSIBLE_PROPERTY_DESCRIPTION, a11y_desc,
+                                  -1);
 }
 
 static void

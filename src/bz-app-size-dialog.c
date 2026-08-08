@@ -192,6 +192,7 @@ bz_app_size_dialog_new (BzEntryGroup *group)
 
   dialog = adw_dialog_new ();
   adw_dialog_set_content_width (dialog, 600);
+  adw_dialog_set_title (dialog, _("Storage"));
   adw_dialog_set_child (dialog, GTK_WIDGET (widget));
 
   return dialog;
@@ -204,7 +205,7 @@ bz_app_size_page_new (BzEntryGroup *group)
   AdwNavigationPage *page   = NULL;
 
   widget = g_object_new (BZ_TYPE_APP_SIZE_DIALOG, "group", group, NULL);
-  page   = adw_navigation_page_new (GTK_WIDGET (widget), _ ("App Size"));
+  page   = adw_navigation_page_new (GTK_WIDGET (widget), _ ("Storage"));
   adw_navigation_page_set_tag (page, "app-size");
 
   return page;

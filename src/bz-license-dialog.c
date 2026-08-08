@@ -334,14 +334,21 @@ bz_license_dialog_init (BzLicenseDialog *self)
 AdwDialog *
 bz_license_dialog_new (BzEntry *entry)
 {
-  BzLicenseDialog *widget = NULL;
-  AdwDialog       *dialog = NULL;
+  BzLicenseDialog *widget      = NULL;
+  AdwDialog       *dialog      = NULL;
+  g_autofree char *description = NULL;
 
   widget = g_object_new (BZ_TYPE_LICENSE_DIALOG, "entry", entry, NULL);
 
   dialog = adw_dialog_new ();
   adw_dialog_set_content_width (dialog, 425);
+  adw_dialog_set_title (dialog, _ ("License"));
   adw_dialog_set_child (dialog, GTK_WIDGET (widget));
+
+  description = get_label_cb (NULL, entry);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (dialog),
+                                   GTK_ACCESSIBLE_PROPERTY_DESCRIPTION, description,
+                                   -1);
 
   return dialog;
 }
@@ -349,12 +356,18 @@ bz_license_dialog_new (BzEntry *entry)
 AdwNavigationPage *
 bz_license_page_new (BzEntry *entry)
 {
-  BzLicenseDialog   *widget = NULL;
-  AdwNavigationPage *page   = NULL;
+  BzLicenseDialog   *widget      = NULL;
+  AdwNavigationPage *page        = NULL;
+  g_autofree char   *description = NULL;
 
   widget = g_object_new (BZ_TYPE_LICENSE_DIALOG, "entry", entry, NULL);
   page   = adw_navigation_page_new (GTK_WIDGET (widget), _ ("License"));
   adw_navigation_page_set_tag (page, "license");
+
+  description = get_label_cb (NULL, entry);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (page),
+                                  GTK_ACCESSIBLE_PROPERTY_DESCRIPTION, description,
+                                  -1);
 
   return page;
 }

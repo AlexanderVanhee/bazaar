@@ -39,14 +39,13 @@ template $BzSafetyDialog: Adw.Bin {
             margin-bottom: 8;
           }
 
-          Label {
+          Label arbitrary_description {
             wrap: true;
             xalign: 0;
             use-markup: true;
             margin-bottom: 18;
             margin-start: 18;
             margin-end: 18;
-            selectable: true;
             label: _("This app has a permission that indirectly allows it to grant itself <b>any other permission it wants</b>, bypassing the Flatpak sandbox.\n\nIt can therefore do anything a privileged, non-sandboxed application can do, such as accessing all your files and connecting to the internet.\n\nViewing the other permissions may still give a better idea of what the app is likely to do.");
           }
 
