@@ -29,20 +29,29 @@
 
 #include "update-worker.h"
 
-#define DAILY_WINDOW_START_HOUR   6
-#define DAILY_WINDOW_SPREAD_HOURS 6
+#define DAILY_WINDOW_START_HOUR    6
+#define DAILY_WINDOW_SPREAD_HOURS  6
+#define STALE_CHECK_THRESHOLD_DAYS 7
+#define STALE_NOTIFY_THROTTLE_DAYS 1
 
-static gboolean network_is_metered (void);
+static gboolean network_is_restricted (void);
 static gboolean power_saver_is_enabled (void);
 static gboolean due_for_daily_check (GSettings *settings);
+static gboolean timestamp_more_than_days_ago (GSettings  *settings,
+                                              const char *key,
+                                              guint       days);
+static void     maybe_notify_stale (GSettings *settings);
 static gboolean should_skip_extension_ref (FlatpakInstalledRef *iref);
 static gboolean on_operation_error (FlatpakTransaction          *transaction,
                                     FlatpakTransactionOperation *operation,
                                     GError                      *error,
                                     int                          details,
                                     gpointer                     user_data);
-static void     update_installation (FlatpakInstallation *installation,
+static gboolean update_installation (FlatpakInstallation *installation,
                                      GHashTable          *titles_out);
+static void     send_portal_notification (const char *id,
+                                          const char *title,
+                                          const char *body);
 static void     send_update_notification (GHashTable *titles);
 
 int
@@ -55,6 +64,7 @@ run_update_worker (int   argc,
   g_autoptr (GHashTable) titles               = NULL;
   gboolean auto_update                        = FALSE;
   gboolean auto_update_notifications          = FALSE;
+  gboolean had_error                          = FALSE;
   g_autoptr (GDateTime) now                   = NULL;
 
   settings                  = g_settings_new (APPLICATION_ID);
@@ -70,15 +80,17 @@ run_update_worker (int   argc,
   if (!due_for_daily_check (settings))
     return EXIT_SUCCESS;
 
-  if (network_is_metered ())
+  if (network_is_restricted ())
     {
-      g_debug ("Skipping update check: network is metered\n");
+      g_debug ("Skipping update check: no network or network is metered\n");
+      maybe_notify_stale (settings);
       return EXIT_SUCCESS;
     }
 
   if (power_saver_is_enabled ())
     {
       g_debug ("Skipping update check: power saver is enabled\n");
+      maybe_notify_stale (settings);
       return EXIT_SUCCESS;
     }
 
@@ -89,11 +101,13 @@ run_update_worker (int   argc,
     {
       g_warning ("Failed to open system installation: %s", local_error->message);
       g_clear_error (&local_error);
+      had_error = TRUE;
     }
   else
     {
       flatpak_installation_set_no_interaction (system_inst, TRUE);
-      update_installation (system_inst, titles);
+      if (!update_installation (system_inst, titles))
+        had_error = TRUE;
     }
 
 #ifndef SANDBOXED_LIBFLATPAK
@@ -105,14 +119,23 @@ run_update_worker (int   argc,
       {
         g_warning ("Failed to open user installation: %s", local_error->message);
         g_clear_error (&local_error);
+        had_error = TRUE;
       }
     else
       {
         flatpak_installation_set_no_interaction (user_inst, TRUE);
-        update_installation (user_inst, titles);
+        if (!update_installation (user_inst, titles))
+          had_error = TRUE;
       }
   }
 #endif
+
+  if (had_error)
+    {
+      g_debug ("Update process encountered errors\n");
+      maybe_notify_stale (settings);
+      return EXIT_SUCCESS;
+    }
 
   now = g_date_time_new_now_local ();
   g_settings_set_int64 (settings, "last-update-check", g_date_time_to_unix (now));
@@ -205,7 +228,46 @@ due_for_daily_check (GSettings *settings)
 }
 
 static gboolean
-network_is_metered (void)
+timestamp_more_than_days_ago (GSettings  *settings,
+                              const char *key,
+                              guint       days)
+{
+  gint64 ts                  = 0;
+  g_autoptr (GDateTime) then = NULL;
+  g_autoptr (GDateTime) now  = NULL;
+
+  ts = g_settings_get_int64 (settings, key);
+
+  if (ts == 0)
+    return TRUE;
+
+  then = g_date_time_new_from_unix_local (ts);
+  if (then == NULL)
+    return TRUE;
+
+  now = g_date_time_new_now_local ();
+
+  return g_date_time_difference (now, then) / G_TIME_SPAN_DAY >= days;
+}
+
+static void
+maybe_notify_stale (GSettings *settings)
+{
+  if (!timestamp_more_than_days_ago (settings, "last-update-check", STALE_CHECK_THRESHOLD_DAYS))
+    return;
+
+  if (!timestamp_more_than_days_ago (settings, "last-stale-notification", STALE_NOTIFY_THROTTLE_DAYS))
+    return;
+
+  send_portal_notification ("bazaar-update-stale",
+                            _ ("Updates Are Out of Date"),
+                            _ ("Please check for available updates"));
+
+  g_settings_set_int64 (settings, "last-stale-notification", g_date_time_to_unix (g_date_time_new_now_local ()));
+}
+
+static gboolean
+network_is_restricted (void)
 {
   GNetworkMonitor *monitor = NULL;
 
@@ -213,7 +275,8 @@ network_is_metered (void)
   if (monitor == NULL)
     return FALSE;
 
-  return g_network_monitor_get_network_metered (monitor);
+  return !g_network_monitor_get_network_available (monitor) ||
+         g_network_monitor_get_network_metered (monitor);
 }
 
 static gboolean
@@ -256,7 +319,7 @@ on_operation_error (FlatpakTransaction          *transaction,
   return TRUE;
 }
 
-static void
+static gboolean
 update_installation (FlatpakInstallation *installation,
                      GHashTable          *titles_out)
 {
@@ -265,23 +328,24 @@ update_installation (FlatpakInstallation *installation,
   g_autoptr (FlatpakTransaction) transaction = NULL;
   gboolean added_any                         = FALSE;
   gboolean ran                               = FALSE;
+  gboolean success                           = TRUE;
 
   update_refs = flatpak_installation_list_installed_refs_for_update (
       installation, NULL, &local_error);
   if (update_refs == NULL)
     {
       g_warning ("Failed to list updates: %s", local_error->message);
-      return;
+      return FALSE;
     }
 
   if (update_refs->len == 0)
-    return;
+    return TRUE;
 
   transaction = flatpak_transaction_new_for_installation (installation, NULL, &local_error);
   if (transaction == NULL)
     {
       g_warning ("Failed to create transaction: %s", local_error->message);
-      return;
+      return FALSE;
     }
 
   g_signal_connect (transaction, "operation-error", G_CALLBACK (on_operation_error), NULL);
@@ -310,30 +374,65 @@ update_installation (FlatpakInstallation *installation,
         {
           g_warning ("Failed to queue update for %s: %s", ref_fmt, local_error->message);
           g_clear_error (&local_error);
+          success = FALSE;
         }
     }
 
   if (!added_any)
-    return;
+    return success;
 
   ran = flatpak_transaction_run (transaction, NULL, &local_error);
   if (!ran && local_error != NULL)
-    g_warning ("Transaction did not complete cleanly: %s", local_error->message);
+    {
+      g_warning ("Transaction did not complete cleanly: %s", local_error->message);
+      success = FALSE;
+    }
+
+  return success;
+}
+
+static void
+send_portal_notification (const char *id,
+                          const char *title,
+                          const char *body)
+{
+  g_autoptr (GDBusConnection) conn = NULL;
+  g_autoptr (GError) error         = NULL;
+  GVariantBuilder notification     = { 0 };
+
+  conn = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+  if (conn == NULL)
+    {
+      g_warning ("Unable to reach session bus for notification: %s",
+                 error->message);
+      return;
+    }
+
+  g_variant_builder_init (&notification, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&notification, "{sv}", "title", g_variant_new_string (title));
+  g_variant_builder_add (&notification, "{sv}", "body", g_variant_new_string (body));
+  g_variant_builder_add (&notification, "{sv}", "priority", g_variant_new_string ("normal"));
+
+  g_dbus_connection_call_sync (
+      conn, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
+      "org.freedesktop.portal.Notification", "AddNotification",
+      g_variant_new ("(sa{sv})", id, &notification),
+      NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+
+  if (error != NULL)
+    g_warning ("Failed to send notification: %s", error->message);
 }
 
 static void
 send_update_notification (GHashTable *titles)
 {
-  g_autoptr (GDBusConnection) conn = NULL;
-  g_autoptr (GError) error         = NULL;
-  g_autoptr (GString) body         = NULL;
-  g_autoptr (GPtrArray) updated    = NULL;
-  g_autofree char *summary         = NULL;
-  GVariantBuilder  notification    = { 0 };
-  GHashTableIter   iter            = { 0 };
-  gpointer         ref_key         = NULL;
-  gpointer         title_val       = NULL;
-  guint            n_updated       = 0;
+  g_autoptr (GString) body      = NULL;
+  g_autoptr (GPtrArray) updated = NULL;
+  g_autofree char *summary      = NULL;
+  GHashTableIter   iter         = { 0 };
+  gpointer         ref_key      = NULL;
+  gpointer         title_val    = NULL;
+  guint            n_updated    = 0;
 
   body    = g_string_new (NULL);
   updated = g_ptr_array_new ();
@@ -345,14 +444,6 @@ send_update_notification (GHashTable *titles)
   n_updated = updated->len;
   if (n_updated == 0)
     return;
-
-  conn = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
-  if (conn == NULL)
-    {
-      g_warning ("Unable to reach session bus for update notification: %s",
-                 error->message);
-      return;
-    }
 
   summary = g_strdup_printf (
       ngettext ("%u App Updated", "%u Apps Updated", n_updated), n_updated);
@@ -370,17 +461,5 @@ send_update_notification (GHashTable *titles)
                             (const char *) g_ptr_array_index (updated, 1),
                             (const char *) g_ptr_array_index (updated, 2));
 
-  g_variant_builder_init (&notification, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_add (&notification, "{sv}", "title", g_variant_new_string (summary));
-  g_variant_builder_add (&notification, "{sv}", "body", g_variant_new_string (body->str));
-  g_variant_builder_add (&notification, "{sv}", "priority", g_variant_new_string ("normal"));
-
-  g_dbus_connection_call_sync (
-      conn, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
-      "org.freedesktop.portal.Notification", "AddNotification",
-      g_variant_new ("(sa{sv})", "bazaar-update", &notification),
-      NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
-
-  if (error != NULL)
-    g_warning ("Failed to send update notification: %s", error->message);
+  send_portal_notification ("bazaar-update", summary, body->str);
 }
