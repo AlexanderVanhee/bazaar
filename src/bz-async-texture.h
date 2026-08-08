@@ -73,11 +73,11 @@ bz_async_texture_get_loaded (BzAsyncTexture *self);
 GdkTexture *
 bz_async_texture_dup_texture (BzAsyncTexture *self);
 
-GIcon *
-bz_async_texture_dup_icon (BzAsyncTexture *self);
-
 DexFuture *
 bz_async_texture_dup_future (BzAsyncTexture *self);
+
+DexFuture *
+bz_async_texture_dup_icon_future (BzAsyncTexture *self);
 
 void
 bz_async_texture_ensure (BzAsyncTexture *self);

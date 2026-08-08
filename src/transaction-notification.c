@@ -136,7 +136,9 @@ notify_finished_fiber (NotifyFinishedData *data)
 
       paintable = bz_entry_get_icon_paintable (entry);
       if (paintable != NULL && BZ_IS_ASYNC_TEXTURE (paintable))
-        icon = bz_async_texture_dup_icon (BZ_ASYNC_TEXTURE (paintable));
+        icon = (GIcon *) dex_await_object (
+            bz_async_texture_dup_icon_future (BZ_ASYNC_TEXTURE (paintable)),
+            NULL);
 
       if (icon != NULL)
         g_notification_set_icon (notification, icon);

@@ -536,24 +536,32 @@ bz_async_texture_dup_future (BzAsyncTexture *self)
         "texture is in an invalid state");
 }
 
-GIcon *
-bz_async_texture_dup_icon (BzAsyncTexture *self)
+static DexFuture *
+icon_from_bytes_then (DexFuture *future,
+                      gpointer   user_data)
 {
-  g_autoptr (GError) local_error = NULL;
-  g_autoptr (GBytes) bytes       = NULL;
-  GFile *file                    = NULL;
+  g_autoptr (GIcon) icon = NULL;
+
+  icon = g_bytes_icon_new (g_value_get_boxed (dex_future_get_value (future, NULL)));
+  return dex_future_new_for_object (icon);
+}
+
+DexFuture *
+bz_async_texture_dup_icon_future (BzAsyncTexture *self)
+{
+  GFile *file = NULL;
 
   g_return_val_if_fail (BZ_IS_ASYNC_TEXTURE (self), NULL);
 
   file = self->cache_into != NULL ? self->cache_into : self->source;
   if (file == NULL)
-    return NULL;
+    return dex_future_new_reject (
+        G_IO_ERROR, G_IO_ERROR_FAILED, "no source file to load icon from");
 
-  bytes = g_file_load_bytes (file, NULL, NULL, &local_error);
-  if (bytes == NULL)
-    return NULL;
-
-  return g_bytes_icon_new (bytes);
+  return dex_future_then (
+      dex_file_load_contents_bytes (file),
+      icon_from_bytes_then,
+      NULL, NULL);
 }
 
 void
