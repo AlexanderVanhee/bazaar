@@ -2783,6 +2783,11 @@ fiber_check_for_updates (BzApplication *self)
         bz_show_error_for_widget (GTK_WIDGET (window), _ ("Failed to check for updates"), local_error->message);
     }
 
+  if (update_ids != NULL || local_error == NULL)
+    g_settings_set_int64 (
+        self->settings, "last-update-check",
+        g_get_real_time () / G_USEC_PER_SEC);
+
   bz_state_info_set_checking_for_updates (self->state, FALSE);
 }
 
