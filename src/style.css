@@ -518,6 +518,18 @@ toggle-group.huge * {
   background: linear-gradient(to right, #821756, #136673);
 }
 
+.after-hero {
+  background: linear-gradient(to right, #11243a, #28215e, #4a2735);
+}
+
+.after-top-apps {
+  background: linear-gradient(to right, #263914, #123d31, #11324c);
+}
+
+.after-first-category-block {
+  background: linear-gradient(to right, #4a2f10, #4d1832, #2d2863);
+}
+
 .sp-section .card:not(:hover):not(:active) {
   background: transparent;
 }
@@ -533,6 +545,18 @@ toggle-group.huge * {
 
   .wlg {
     background: linear-gradient(to right, #fdcde0, #b0e5f0);
+  }
+
+  .after-hero {
+    background: linear-gradient(to right, #d7f7ff, #eee1ff, #ffe2c8);
+  }
+
+  .after-top-apps {
+    background: linear-gradient(to right, #f4ffb8, #cdf7dc, #bfe9ff);
+  }
+
+  .after-first-category-block {
+    background: linear-gradient(to right, #ffe3a3, #ffc3d8, #d8d2ff);
   }
 
   .sp-section .card:hover {

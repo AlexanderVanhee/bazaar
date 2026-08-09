@@ -59,6 +59,9 @@ bz_flathub_state_dup_apps_of_the_week (BzFlathubState *self);
 GListModel *
 bz_flathub_state_get_categories (BzFlathubState *self);
 
+GListModel *
+bz_flathub_state_get_curated_selections (BzFlathubState *self);
+
 gboolean
 bz_flathub_state_get_has_connection_error (BzFlathubState *self);
 
