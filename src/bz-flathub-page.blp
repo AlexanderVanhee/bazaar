@@ -88,6 +88,11 @@ template $BzFlathubPage: Adw.Bin {
                     model: bind template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.apps_of_the_week;
                   }
 
+                  $BzFlathubCuratedSection after_hero {
+                    visible: bind $invert_boolean($is_null(after_hero.selection as <$BzFlathubCuratedSelection>) as <bool>) as <bool>;
+                    selection: bind $get_curated_selection_by_slot(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.curated_selections, "after-hero") as <$BzFlathubCuratedSelection>;
+                  }
+
                   Box section_toggles_box {
                     halign: center;
                     width-request: 800;
@@ -518,8 +523,20 @@ template $BzFlathubPage: Adw.Bin {
                     category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "science") as <$BzFlathubCategory>;
                   }
 
+                  $BzFlathubCuratedSection after_top_apps {
+                    visible: bind $invert_boolean($is_null(after_top_apps.selection as <$BzFlathubCuratedSelection>) as <bool>) as <bool>;
+                    selection: bind $get_curated_selection_by_slot(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.curated_selections, "after-top-apps") as <$BzFlathubCuratedSelection>;
+                    margin-bottom: 20;
+                  }
+
                   $BzFlathubCategorySection section_system {
                     category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "system") as <$BzFlathubCategory>;
+                  }
+
+                  $BzFlathubCuratedSection after_first_category_block {
+                    visible: bind $invert_boolean($is_null(after_first_category_block.selection as <$BzFlathubCuratedSelection>) as <bool>) as <bool>;
+                    selection: bind $get_curated_selection_by_slot(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.curated_selections, "after-first-category-block") as <$BzFlathubCuratedSelection>;
+                    margin-bottom: 20;
                   }
 
                   $BzFlathubCategorySection section_utility {
@@ -538,6 +555,9 @@ template $BzFlathubPage: Adw.Bin {
         setters {
           otg_list.max-children-per-line: 2;
           otg_slice.size: 6;
+          after_hero.max-length: 6;
+          after_top_apps.max-length: 6;
+          after_first_category_block.max-length: 6;
         }
       }
 

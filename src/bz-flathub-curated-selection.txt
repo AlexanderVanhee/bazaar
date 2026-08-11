@@ -1,0 +1,13 @@
+prefix=bz
+name=flathub_curated_selection
+
+parent-prefix=g
+parent-name=object
+author=AUTOGEN
+
+include="bz-application-map-factory.h"
+
+property=theme_key char G_TYPE_STRING string
+property=slot char G_TYPE_STRING string
+property=apps GtkStringList GTK_TYPE_STRING_LIST object
+property=map_factory BzApplicationMapFactory BZ_TYPE_APPLICATION_MAP_FACTORY object

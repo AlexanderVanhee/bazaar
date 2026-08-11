@@ -996,7 +996,7 @@ init_fiber (GWeakRef *wr)
       gboolean      os_check_result                     = FALSE;
       GInputStream *os_check_stdout_pipe                = NULL;
       g_autoptr (GBytes) os_out                         = NULL;
-      gboolean      affected_ubuntu                     = FALSE;
+      gboolean affected_ubuntu                          = FALSE;
 
       os_check_launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE);
       os_check          = g_subprocess_launcher_spawn (os_check_launcher, &os_check_error,
@@ -1095,7 +1095,7 @@ init_fiber (GWeakRef *wr)
               if (variant != NULL)
                 {
                   const char *stored_package_version = NULL;
-                  const char *stored_cache_version    = NULL;
+                  const char *stored_cache_version   = NULL;
 
                   g_variant_get (variant, "(&s&s)", &stored_package_version, &stored_cache_version);
 
@@ -2914,11 +2914,10 @@ disable_blocklists_changed (BzApplication *self,
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
 }
 
-
 static void
 transactions_active_changed (BzApplication        *self,
-                              GParamSpec           *pspec,
-                              BzTransactionManager *transactions)
+                             GParamSpec           *pspec,
+                             BzTransactionManager *transactions)
 {
   if (bz_transaction_manager_get_active (transactions))
     g_application_hold (G_APPLICATION (self));
@@ -3651,9 +3650,9 @@ init_service_struct (BzApplication *self,
   bz_transaction_manager_set_config (self->transactions, self->config);
 
   g_signal_connect_swapped (
-    self->transactions, "notify::active",
-    G_CALLBACK (transactions_active_changed),
-    self);
+      self->transactions, "notify::active",
+      G_CALLBACK (transactions_active_changed),
+      self);
 
   bz_state_info_set_all_entry_groups (self->state, G_LIST_MODEL (self->groups));
   bz_state_info_set_all_installed_entry_groups (self->state, G_LIST_MODEL (self->installed_apps));

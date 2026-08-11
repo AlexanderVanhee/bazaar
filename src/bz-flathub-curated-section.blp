@@ -1,0 +1,56 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $BzFlathubCuratedSection: Adw.Bin {
+  child: Box root_box {
+    styles [
+      "sp-section",
+      "card",
+    ]
+
+    Box padding_box {
+      orientation: vertical;
+      spacing: 8;
+      margin-start: 24;
+      margin-end: 24;
+      margin-top: 24;
+      margin-bottom: 24;
+
+      Label title_label {
+        styles [
+          "title-1",
+          "sp-section-title",
+        ]
+        xalign: 0.0;
+        hexpand: true;
+        margin-start: 3;
+        margin-end: 3;
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      Label subtitle_label {
+        xalign: 0.0;
+        hexpand: true;
+        margin-start: 3;
+        margin-end: 3;
+        margin-bottom: 8;
+        wrap: true;
+        wrap-mode: word_char;
+      }
+
+      $BzDynamicListView list {
+        styles [
+          "flathub-page-section",
+        ]
+
+        hexpand: true;
+        scroll: false;
+        noscroll-kind: flow-box;
+        child-type: "BzAppTile";
+        child-prop: "group";
+        max-children-per-line: 4;
+      }
+    }
+  };
+}

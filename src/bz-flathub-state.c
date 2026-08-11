@@ -28,12 +28,13 @@
 #include <json-glib/json-glib.h>
 #include <libdex.h>
 
-#include "env.h"
 #include "bz-flathub-category.h"
+#include "bz-flathub-curated-selection.h"
 #include "bz-flathub-state.h"
+#include "bz-serializable.h"
+#include "env.h"
 #include "global-net.h"
 #include "io.h"
-#include "bz-serializable.h"
 #include "util.h"
 
 struct _BzFlathubState
@@ -45,6 +46,7 @@ struct _BzFlathubState
   char                    *app_of_the_day;
   GtkStringList           *apps_of_the_week;
   GListStore              *categories;
+  GListStore              *curated_selections;
 
   DexFuture *initializing;
 };
@@ -74,10 +76,10 @@ enum
   PROP_FOR_DAY,
   PROP_MAP_FACTORY,
   PROP_APP_OF_THE_DAY,
-  PROP_APP_OF_THE_DAY_GROUP,
   PROP_APPS_OF_THE_WEEK,
   PROP_APPS_OF_THE_DAY_WEEK,
   PROP_CATEGORIES,
+  PROP_CURATED_SELECTIONS,
 
   LAST_PROP
 };
@@ -126,9 +128,6 @@ bz_flathub_state_get_property (GObject    *object,
     case PROP_APP_OF_THE_DAY:
       g_value_set_string (value, bz_flathub_state_get_app_of_the_day (self));
       break;
-    case PROP_APP_OF_THE_DAY_GROUP:
-      g_value_take_object (value, bz_flathub_state_dup_app_of_the_day_group (self));
-      break;
     case PROP_APPS_OF_THE_WEEK:
       g_value_take_object (value, bz_flathub_state_dup_apps_of_the_week (self));
       break;
@@ -137,6 +136,9 @@ bz_flathub_state_get_property (GObject    *object,
       break;
     case PROP_CATEGORIES:
       g_value_set_object (value, bz_flathub_state_get_categories (self));
+      break;
+    case PROP_CURATED_SELECTIONS:
+      g_value_set_object (value, bz_flathub_state_get_curated_selections (self));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -160,10 +162,10 @@ bz_flathub_state_set_property (GObject      *object,
       bz_flathub_state_set_map_factory (self, g_value_get_object (value));
       break;
     case PROP_APP_OF_THE_DAY:
-    case PROP_APP_OF_THE_DAY_GROUP:
     case PROP_APPS_OF_THE_WEEK:
     case PROP_APPS_OF_THE_DAY_WEEK:
     case PROP_CATEGORIES:
+    case PROP_CURATED_SELECTIONS:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -197,13 +199,6 @@ bz_flathub_state_class_init (BzFlathubStateClass *klass)
           NULL, NULL, NULL,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
-  props[PROP_APP_OF_THE_DAY_GROUP] =
-      g_param_spec_object (
-          "app-of-the-day-group",
-          NULL, NULL,
-          BZ_TYPE_ENTRY_GROUP,
-          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
-
   props[PROP_APPS_OF_THE_WEEK] =
       g_param_spec_object (
           "apps-of-the-week",
@@ -221,6 +216,13 @@ bz_flathub_state_class_init (BzFlathubStateClass *klass)
   props[PROP_CATEGORIES] =
       g_param_spec_object (
           "categories",
+          NULL, NULL,
+          G_TYPE_LIST_MODEL,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  props[PROP_CURATED_SELECTIONS] =
+      g_param_spec_object (
+          "curated-selections",
           NULL, NULL,
           G_TYPE_LIST_MODEL,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
@@ -291,6 +293,64 @@ bz_flathub_state_real_serialize (BzSerializable  *serializable,
             }
 
           g_variant_builder_add (builder, "{sv}", "categories", g_variant_builder_end (sub_builder));
+        }
+    }
+  if (self->curated_selections != NULL)
+    {
+      guint n_items = 0;
+
+      n_items = g_list_model_get_n_items (G_LIST_MODEL (self->curated_selections));
+      if (n_items > 0)
+        {
+          g_autoptr (GVariantBuilder) sub_builder = NULL;
+
+          sub_builder = g_variant_builder_new (G_VARIANT_TYPE ("av"));
+          for (guint i = 0; i < n_items; i++)
+            {
+              g_autoptr (BzFlathubCuratedSelection) selection = NULL;
+              g_autoptr (GVariantBuilder) selection_builder   = NULL;
+              const char    *theme_key                        = NULL;
+              const char    *slot                             = NULL;
+              GtkStringList *apps                             = NULL;
+
+              selection = g_list_model_get_item (G_LIST_MODEL (self->curated_selections), i);
+
+              theme_key = bz_flathub_curated_selection_get_theme_key (selection);
+              slot      = bz_flathub_curated_selection_get_slot (selection);
+              apps      = bz_flathub_curated_selection_get_apps (selection);
+
+              selection_builder = g_variant_builder_new (G_VARIANT_TYPE_VARDICT);
+
+              if (theme_key != NULL)
+                g_variant_builder_add (selection_builder, "{sv}", "theme-key", g_variant_new_string (theme_key));
+              if (slot != NULL)
+                g_variant_builder_add (selection_builder, "{sv}", "slot", g_variant_new_string (slot));
+              if (apps != NULL)
+                {
+                  guint n_apps = 0;
+
+                  n_apps = g_list_model_get_n_items (G_LIST_MODEL (apps));
+                  if (n_apps > 0)
+                    {
+                      g_autoptr (GVariantBuilder) apps_builder = NULL;
+
+                      apps_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+                      for (guint j = 0; j < n_apps; j++)
+                        {
+                          const char *app_id = NULL;
+
+                          app_id = gtk_string_list_get_string (apps, j);
+                          g_variant_builder_add (apps_builder, "s", app_id);
+                        }
+
+                      g_variant_builder_add (selection_builder, "{sv}", "apps", g_variant_builder_end (apps_builder));
+                    }
+                }
+
+              g_variant_builder_add (sub_builder, "v", g_variant_builder_end (selection_builder));
+            }
+
+          g_variant_builder_add (builder, "{sv}", "curated-selections", g_variant_builder_end (sub_builder));
         }
     }
 }
@@ -374,6 +434,70 @@ bz_flathub_state_real_deserialize (BzSerializable *serializable,
             }
 
           self->categories = g_steal_pointer (&categories);
+        }
+      else if (g_strcmp0 (key, "curated-selections") == 0)
+        {
+          g_autoptr (GListStore) curated_selections        = NULL;
+          g_autoptr (GVariantIter) curated_selections_iter = NULL;
+
+          curated_selections = g_list_store_new (BZ_TYPE_FLATHUB_CURATED_SELECTION);
+
+          curated_selections_iter = g_variant_iter_new (value);
+          for (;;)
+            {
+              g_autoptr (GVariant) selection_import           = NULL;
+              g_autoptr (BzFlathubCuratedSelection) selection = NULL;
+              g_autoptr (GVariantIter) selection_iter         = NULL;
+              g_autoptr (GtkStringList) apps                  = NULL;
+              g_autofree char *theme_key                      = NULL;
+              g_autofree char *slot                           = NULL;
+
+              if (!g_variant_iter_next (curated_selections_iter, "v", &selection_import))
+                break;
+
+              selection_iter = g_variant_iter_new (selection_import);
+              for (;;)
+                {
+                  g_autofree char *sel_key     = NULL;
+                  g_autoptr (GVariant) sel_val = NULL;
+
+                  if (!g_variant_iter_next (selection_iter, "{sv}", &sel_key, &sel_val))
+                    break;
+
+                  if (g_strcmp0 (sel_key, "theme-key") == 0)
+                    theme_key = g_variant_dup_string (sel_val, NULL);
+                  else if (g_strcmp0 (sel_key, "slot") == 0)
+                    slot = g_variant_dup_string (sel_val, NULL);
+                  else if (g_strcmp0 (sel_key, "apps") == 0)
+                    {
+                      g_autoptr (GVariantIter) apps_iter = NULL;
+
+                      apps      = gtk_string_list_new (NULL);
+                      apps_iter = g_variant_iter_new (sel_val);
+                      for (;;)
+                        {
+                          g_autofree char *app_id = NULL;
+
+                          if (!g_variant_iter_next (apps_iter, "s", &app_id))
+                            break;
+                          gtk_string_list_append (apps, app_id);
+                        }
+                    }
+                }
+
+              selection = bz_flathub_curated_selection_new ();
+              if (theme_key != NULL)
+                bz_flathub_curated_selection_set_theme_key (selection, theme_key);
+              if (slot != NULL)
+                bz_flathub_curated_selection_set_slot (selection, slot);
+              if (apps != NULL)
+                bz_flathub_curated_selection_set_apps (selection, apps);
+
+              g_object_bind_property (self, "map-factory", selection, "map-factory", G_BINDING_SYNC_CREATE);
+              g_list_store_append (curated_selections, selection);
+            }
+
+          self->curated_selections = g_steal_pointer (&curated_selections);
         }
     }
 
@@ -494,6 +618,16 @@ bz_flathub_state_get_categories (BzFlathubState *self)
   return G_LIST_MODEL (self->categories);
 }
 
+GListModel *
+bz_flathub_state_get_curated_selections (BzFlathubState *self)
+{
+  g_return_val_if_fail (BZ_IS_FLATHUB_STATE (self), NULL);
+  if (self->initializing != NULL &&
+      dex_future_is_pending (self->initializing))
+    return NULL;
+  return G_LIST_MODEL (self->curated_selections);
+}
+
 DexFuture *
 bz_flathub_state_set_for_day (BzFlathubState *self,
                               const char     *for_day)
@@ -506,9 +640,10 @@ bz_flathub_state_set_for_day (BzFlathubState *self,
     {
       g_autoptr (DexFuture) future = NULL;
 
-      self->for_day          = g_strdup (for_day);
-      self->apps_of_the_week = gtk_string_list_new (NULL);
-      self->categories       = g_list_store_new (BZ_TYPE_FLATHUB_CATEGORY);
+      self->for_day            = g_strdup (for_day);
+      self->apps_of_the_week   = gtk_string_list_new (NULL);
+      self->categories         = g_list_store_new (BZ_TYPE_FLATHUB_CATEGORY);
+      self->curated_selections = g_list_store_new (BZ_TYPE_FLATHUB_CURATED_SELECTION);
 
       future = dex_scheduler_spawn (
           bz_get_io_scheduler (),
@@ -669,6 +804,39 @@ add_category (BzFlathubState *self,
   g_list_store_append (self->categories, category);
 }
 
+static void
+add_curated_selection (BzFlathubState *self,
+                       JsonObject     *object)
+{
+  g_autoptr (BzFlathubCuratedSelection) selection = NULL;
+  g_autoptr (GtkStringList) apps                  = NULL;
+  JsonArray *apps_array                           = NULL;
+  guint      length                               = 0;
+
+  selection = bz_flathub_curated_selection_new ();
+  apps      = gtk_string_list_new (NULL);
+
+  bz_flathub_curated_selection_set_theme_key (selection, json_object_get_string_member (object, "theme_key"));
+  bz_flathub_curated_selection_set_slot (selection, json_object_get_string_member (object, "slot"));
+
+  apps_array = json_object_get_array_member (object, "apps");
+  length     = apps_array != NULL ? json_array_get_length (apps_array) : 0;
+
+  for (guint i = 0; i < length; i++)
+    {
+      JsonObject *element = NULL;
+      const char *app_id  = NULL;
+
+      element = json_array_get_object_element (apps_array, i);
+      app_id  = json_object_get_string_member (element, "app_id");
+
+      gtk_string_list_append (apps, app_id);
+    }
+
+  bz_flathub_curated_selection_set_apps (selection, apps);
+  g_list_store_append (self->curated_selections, selection);
+}
+
 static DexFuture *
 initialize_fiber (GWeakRef *wr)
 {
@@ -680,6 +848,7 @@ initialize_fiber (GWeakRef *wr)
 
   g_autoptr (DexFuture) aotd_f       = NULL;
   g_autoptr (DexFuture) aotw_f       = NULL;
+  g_autoptr (DexFuture) curated_f    = NULL;
   g_autoptr (DexFuture) categories_f = NULL;
   g_autoptr (DexFuture) updated_f    = NULL;
   g_autoptr (DexFuture) added_f      = NULL;
@@ -729,6 +898,7 @@ initialize_fiber (GWeakRef *wr)
   ADD_REQUEST (passing_f, "/quality-moderation/passing-apps?page=1&page_size=%d", QUALITY_MODERATION_PAGE_SIZE);
   ADD_REQUEST (aotd_f, "/app-picks/app-of-the-day/%s", self->for_day);
   ADD_REQUEST (aotw_f, "/app-picks/apps-of-the-week/%s", self->for_day);
+  ADD_REQUEST (curated_f, "/app-picks/curated-app-selections/%s", self->for_day);
   ADD_REQUEST (categories_f, "/collection/category");
   ADD_REQUEST (updated_f, "/collection/recently-updated?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
   ADD_REQUEST (added_f, "/collection/recently-added?page=0&per_page=%d", COLLECTION_FETCH_SIZE);
@@ -766,6 +936,18 @@ initialize_fiber (GWeakRef *wr)
 
     object               = json_node_get_object (GET_BOXED (aotd_f));
     self->app_of_the_day = g_strdup (json_object_get_string_member (object, "app_id"));
+  }
+  {
+    JsonObject *root   = NULL;
+    JsonArray  *array  = NULL;
+    guint       length = 0;
+
+    root   = json_node_get_object (GET_BOXED (curated_f));
+    array  = json_object_get_array_member (root, "selections");
+    length = json_array_get_length (array);
+
+    for (guint i = 0; i < length; i++)
+      add_curated_selection (self, json_array_get_object_element (array, i));
   }
   {
     JsonObject *object = NULL;
@@ -856,6 +1038,7 @@ initialize_finally (DexFuture *future,
   if (dex_future_is_resolved (future))
     {
       guint n_categories = 0;
+      guint n_selections = 0;
 
       n_categories = g_list_model_get_n_items (G_LIST_MODEL (self->categories));
       for (guint i = 0; i < n_categories; i++)
@@ -864,6 +1047,15 @@ initialize_finally (DexFuture *future,
 
           category = g_list_model_get_item (G_LIST_MODEL (self->categories), i);
           g_object_bind_property (self, "map-factory", category, "map-factory", G_BINDING_SYNC_CREATE);
+        }
+
+      n_selections = g_list_model_get_n_items (G_LIST_MODEL (self->curated_selections));
+      for (guint i = 0; i < n_selections; i++)
+        {
+          g_autoptr (BzFlathubCuratedSelection) selection = NULL;
+
+          selection = g_list_model_get_item (G_LIST_MODEL (self->curated_selections), i);
+          g_object_bind_property (self, "map-factory", selection, "map-factory", G_BINDING_SYNC_CREATE);
         }
 
       g_debug ("Done syncing flathub state; notifying property listeners...");
@@ -965,10 +1157,10 @@ notify_all (BzFlathubState *self)
 {
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_FOR_DAY]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_APP_OF_THE_DAY]);
-  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_APP_OF_THE_DAY_GROUP]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_APPS_OF_THE_WEEK]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_APPS_OF_THE_DAY_WEEK]);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_CATEGORIES]);
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_CURATED_SELECTIONS]);
 }
 
 static void
@@ -978,6 +1170,7 @@ clear (BzFlathubState *self)
   g_clear_pointer (&self->app_of_the_day, g_free);
   g_clear_pointer (&self->apps_of_the_week, g_object_unref);
   g_clear_pointer (&self->categories, g_object_unref);
+  g_clear_pointer (&self->curated_selections, g_object_unref);
 }
 
 /* End of bz-flathub-state.c */
