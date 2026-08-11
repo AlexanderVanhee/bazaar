@@ -482,6 +482,7 @@ bz_application_command_line (GApplication            *app,
   gint argc                           = 0;
   g_auto (GStrv) argv                 = NULL;
   gboolean help                       = FALSE;
+  gboolean no_window                  = FALSE;
   g_auto (GStrv) blocklists_strv      = NULL;
   g_auto (GStrv) content_configs_strv = NULL;
   g_auto (GStrv) locations            = NULL;
@@ -489,7 +490,7 @@ bz_application_command_line (GApplication            *app,
 
   GOptionEntry main_entries[] = {
     { "help", 0, 0, G_OPTION_ARG_NONE, &help, "Print help" },
-    { "no-window", 0, 0, G_OPTION_ARG_NONE, NULL, "Ensure the service is running without creating a new window (daemon)" },
+    { "no-window", 0, 0, G_OPTION_ARG_NONE, &no_window, "Ensure the service is running without creating a new window (daemon)" },
     { "extra-blocklist", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &blocklists_strv, "Add an extra blocklist to read from" },
     { "extra-curated-config", 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &content_configs_strv, "Add an extra yaml file with which to configure the app browser" },
     /* Here for backwards compat */
@@ -535,6 +536,8 @@ bz_application_command_line (GApplication            *app,
           g_application_command_line_printerr (cmdline, "%s\n", help_text);
           return EXIT_SUCCESS;
         }
+      if (no_window)
+        g_print ("--no-window only works with bazaar-daemon\n");
     }
 
   if (!self->running)
