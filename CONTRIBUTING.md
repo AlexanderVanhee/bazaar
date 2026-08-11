@@ -1,101 +1,60 @@
 # Contributing Guide
 
-Thank you for contributing to Bazaar! Here are some instructions to get you started.
-
-* [New Contributor Guide](#contributing-guide)
-  * [Ways to Contribute](#ways-to-contribute)
-  * [Find an Issue](#find-an-issue)
-  * [Ask for Help](#ask-for-help)
-  * [Pull Request Lifecycle](#pull-request-lifecycle)
-  * [Development Environment Setup](#development-environment-setup)
-  * [Sign Your Commits](#sign-your-commits)
-  * [Pull Request Checklist](#pull-request-checklist)
-
 Welcome! We are glad that you are here! 💖
 
-As you get started, you are in the best position to give us feedback on areas of
-our project that we need help with including:
+If you are here to contribute translations, please refer to the [Damned Lies
+Module](https://l10n.gnome.org/module/bazaar/).
 
-* Problems found during setting up a new developer environment
-* Documentation
-* Bugs in our automation scripts and actions
+For code, first make sure to read the [style rules](/CODESTYLE.md).
 
-If anything doesn't make sense, or doesn't work when you run it, please open a
-bug report and let us know!
+The easiest way to run Bazaar from source is to use the
+[foundry](https://gitlab.gnome.org/GNOME/foundry) cli:
 
-## Ways to Contribute
+```sh
+foundry run
+```
 
-We welcome many different types of contributions including:
-
-* New features
-* Builds, CI/CD
-* Bug fixes
-* Documentation
-* Issue Triage
-* Answering questions in Discussions
-* Release management
-* [Translations](https://github.com/bazaar-org/bazaar/blob/master/TRANSLATORS.md) - follow the dedicated instructions in that document
-
-## Find an Issue
-
-These are the issues that need the most amount of attention and would be an effective way to get started:
-
-- [Help Wanted issues](https://github.com/bazaar-org/bazaar/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22help%20wanted%22)
-- [Good first issues](https://github.com/bazaar-org/bazaar/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)
-
-Sometimes there won’t be any issues with these labels. That’s ok! There is
-likely still something for you to work on. If you want to contribute but you
-don’t know where to start or can't find a suitable issue then feel free to post on the [discussion forum](https://github.com/bazaar-org/bazaar/discussions)
-
-Once you see an issue that you'd like to work on, please post a comment saying
-that you want to work on it. Something like "I want to work on this" is fine.
-
-## Ask for Help
-
-The best way to reach us with a question when contributing is to ask on:
-
-* The original github issue you want to contribute to
-* The [discussions](https://github.com/bazaar-org/bazaar/discussions) area
-
-## Building
-
-GNOME Builder or
+Alternatively, you can do:
 
 ```sh
 just build-flatpak
 ```
 
-See [Flatpak Docs](https://docs.flatpak.org/en/latest/flatpak-builder.html)
-
-### Find out which version is installed for bug reports
+Or without flatpak, if your system permits it:
 
 ```sh
-flatpak info io.github.kolunmi.Bazaar
+meson setup build --prefix=/usr --libdir=/usr/lib64
+ninja -C build
+sudo ninja -C build install
+bazaar
 ```
 
-### Verbose output
-```sh
-G_MESSAGES_DEBUG=all flatpak run io.github.kolunmi.Bazaar
-```
+You will need the following dependencies installed, along with a C compiler, meson, and ninja:
+| Dep Name                                                          | `pkg-config` Name | Min Version | Justification                                       |
+|-------------------------------------------------------------------|-------------------|-------------|-----------------------------------------------------|
+| [gtk4](https://gitlab.gnome.org/GNOME/gtk/)                       | `gtk4`            | `4.22.1`    | GUI                                                 |
+| [libadwaita](https://gitlab.gnome.org/GNOME/libadwaita)           | `libadwaita-1`    | `1.8`       | GNOME styling                                       |
+| [libdex](https://gitlab.gnome.org/GNOME/libdex)                   | `libdex-1`        | `1.0`       | Async helpers                                       |
+| [flatpak](https://github.com/flatpak/flatpak)                     | `flatpak`         | `1.9`       | Flatpak installation management                     |
+| [appstream](https://github.com/ximion/appstream)                  | `appstream`       | `1.0`       | Interpret application metadata                      |
+| [xmlb](https://github.com/hughsie/libxmlb)                        | `xmlb`            | `0.3.4`     | Handle binary xml appstream bundles/Parse plain xml |
+| [glycin](https://gitlab.gnome.org/GNOME/glycin)                   | `glycin-2`        | `2.0`       | Decode image URIs                                   |
+| [glycin-gtk4](https://gitlab.gnome.org/GNOME/glycin)              | `glycin-gtk4-2`   | `2.0`       | Convert glycin frames to texture representations    |
+| [libyaml](https://github.com/yaml/libyaml)                        | `yaml-0.1`        | `0.2.5`     | Parse YAML configs                                  |
+| [libsoup](https://gitlab.gnome.org/GNOME/libsoup)                 | `libsoup-3.0`     | `3.6.0`     | HTTP operations                                     |
+| [json-glib](https://gitlab.gnome.org/GNOME/json-glib)             | `json-glib-1.0`   | `1.10.0`    | Parse some HTTP replies                             |
+| [md4c](https://github.com/mity/md4c)                              | `md4c`            | `0.5.1`     | Parse markdown (.md)                                |
+| [gtksourceview](https://gitlab.gnome.org/GNOME/gtksourceview)     | `gtksourceview-5` | `5.17`      | Render markdown code blocks                         |
+| [webkitgtk](https://webkitgtk.org/)                               | `webkitgtk-6.0`   | `2.50.2`    | Render web views                                    |
+| [libsecret](https://gitlab.gnome.org/GNOME/libsecret)             | `libsecret-1`     | `0.20`      | Store Flathub account information                   |
+| [libproxy](https://github.com/libproxy/libproxy)                  | `libproxy-1.0`    | `0.5`       | Parse proxies for networking operations             |
+| [malcontent](https://gitlab.freedesktop.org/pwithnall/malcontent) | `malcontent-0`    | `0.12.0`    | Adhere to system parental controls settings         |
+| [libsystemd](https://github.com/systemd/systemd)                  | `libsystemd'`     | `245`       | Utilities for bazaar-daemon                         |
 
-## Pull Request Lifecycle
+There is a [script](/scripts/install-deps/fedora-rawhide.sh) for installing all
+of these on fedora.
 
-[Instructions](https://contribute.cncf.io/maintainers/github/templates/required/contributing/#pull-request-lifecycle)
+Right now there is no hard rules on commit messages. Just be descriptive.
 
-⚠️ **Explain your pull request process**
-
-## Sign Your Commits
-
-[Instructions](https://contribute.cncf.io/maintainers/github/templates/required/contributing/#sign-your-commits)
-
-## Pull Request Checklist
-
-When you submit your pull request, or you push new commits to it, our automated
-systems will run some checks on your new code. We require that your pull request
-passes these checks, but we also have more criteria than just that before we can
-accept and merge it. We recommend that you check the following things locally
-before you submit your code:
-
-- [ ] Use the GNU Style Guide
-- [ ] Format your commits using `clang-format`; see [.clang-format](/.clang-format)
-- [ ] Follow the [GNOME Commit Style](https://handbook.gnome.org/development/commit-messages.html)
+If anything is confusing here, please do not be afraid to open an issue. We are
+more than happy to answer questions.
