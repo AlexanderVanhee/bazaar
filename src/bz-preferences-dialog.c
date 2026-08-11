@@ -28,6 +28,9 @@
 #include "template-callbacks.h"
 #include "util.h"
 
+#define AUTOSTART_DESKTOP_FILE_NAME     "bazaar.desktop"
+#define AUTOSTART_DESKTOP_RESOURCE_PATH "/io/github/kolunmi/Bazaar/bazaar.desktop"
+
 typedef struct
 {
   const char *id;
@@ -255,19 +258,21 @@ bz_preferences_dialog_set_property (GObject      *object,
 static DexFuture *
 request_autostart_fiber (gpointer user_data)
 {
-  gboolean enable                 = GPOINTER_TO_INT (user_data);
+  gboolean enable = GPOINTER_TO_INT (user_data);
+
+#ifdef SANDBOXED_LIBFLATPAK
   g_autoptr (GDBusConnection) bus = NULL;
-  g_autoptr (GError) error        = NULL;
+  g_autoptr (GError) local_error  = NULL;
   g_autoptr (GVariant) reply      = NULL;
   g_autofree char *token          = NULL;
   GVariant        *options        = NULL;
   static guint     request_count  = 0;
 
-  bus = dex_await_object (dex_bus_get (G_BUS_TYPE_SESSION), &error);
+  bus = dex_await_object (dex_bus_get (G_BUS_TYPE_SESSION), &local_error);
   if (bus == NULL)
     {
-      g_warning ("Could not connect to session bus: %s", error->message);
-      return dex_future_new_for_error (g_steal_pointer (&error));
+      g_warning ("Could not connect to session bus: %s", local_error->message);
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
     }
 
   token = g_strdup_printf ("bazaar_autostart_%u", request_count++);
@@ -286,14 +291,57 @@ request_autostart_fiber (gpointer user_data)
           "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Background",
           "RequestBackground", g_variant_new ("(s@a{sv})", "", options), NULL,
           G_DBUS_CALL_FLAGS_NONE, -1),
-      &error);
+      &local_error);
   if (reply == NULL)
     {
-      g_warning ("Failed to call RequestBackground: %s", error->message);
-      return dex_future_new_for_error (g_steal_pointer (&error));
+      g_warning ("Failed to call RequestBackground: %s", local_error->message);
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
     }
 
   return dex_future_new_true ();
+#else
+  g_autoptr (GError) local_error = NULL;
+  g_autofree char *autostart_dir = NULL;
+  g_autofree char *dest_path     = NULL;
+  g_autoptr (GFile) dir          = NULL;
+  g_autoptr (GFile) dst          = NULL;
+
+  autostart_dir = g_build_filename (g_get_user_config_dir (), "autostart", NULL);
+  dest_path     = g_build_filename (autostart_dir, AUTOSTART_DESKTOP_FILE_NAME, NULL);
+
+  dir = g_file_new_for_path (autostart_dir);
+  dst = g_file_new_for_path (dest_path);
+
+  if (!dex_await (dex_file_make_directory_with_parents (dir), &local_error) &&
+      !g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_EXISTS))
+    {
+      g_warning ("Could not create autostart dir: %s", local_error->message);
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
+  g_clear_error (&local_error);
+  if (enable)
+    {
+      g_autoptr (GFile) src = NULL;
+
+      src = g_file_new_for_uri ("resource://" AUTOSTART_DESKTOP_RESOURCE_PATH);
+      if (!dex_await (dex_file_copy (src, dst, G_FILE_COPY_OVERWRITE, G_PRIORITY_DEFAULT), &local_error))
+        {
+          g_warning ("Failed to install autostart file: %s", local_error->message);
+          return dex_future_new_for_error (g_steal_pointer (&local_error));
+        }
+    }
+  else
+    {
+      if (!dex_await (dex_file_delete (dst, G_PRIORITY_DEFAULT), &local_error) &&
+          !g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))
+        {
+          g_warning ("Failed to remove autostart file: %s", local_error->message);
+          return dex_future_new_for_error (g_steal_pointer (&local_error));
+        }
+    }
+
+  return dex_future_new_true ();
+#endif
 }
 
 static void
