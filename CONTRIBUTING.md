@@ -49,7 +49,7 @@ You will need the following dependencies installed, along with a C compiler, mes
 | [libsecret](https://gitlab.gnome.org/GNOME/libsecret)             | `libsecret-1`     | `0.20`      | Store Flathub account information                   |
 | [libproxy](https://github.com/libproxy/libproxy)                  | `libproxy-1.0`    | `0.5`       | Parse proxies for networking operations             |
 | [malcontent](https://gitlab.freedesktop.org/pwithnall/malcontent) | `malcontent-0`    | `0.12.0`    | Adhere to system parental controls settings         |
-| [libsystemd](https://github.com/systemd/systemd)                  | `libsystemd'`     | `245`       | Utilities for bazaar-daemon                         |
+| [libsystemd](https://github.com/systemd/systemd)                  | `libsystemd`      | `245`       | Utilities for bazaar-daemon                         |
 
 There is a [script](/scripts/install-deps/fedora-rawhide.sh) for installing all
 of these on fedora.
