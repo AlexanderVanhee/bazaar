@@ -536,8 +536,9 @@ bz_application_command_line (GApplication            *app,
           g_application_command_line_printerr (cmdline, "%s\n", help_text);
           return EXIT_SUCCESS;
         }
+
       if (no_window)
-        g_print ("--no-window only works with bazaar-daemon\n");
+        g_application_command_line_printerr (cmdline, "--no-window only works with bazaar-daemon\n");
     }
 
   if (!self->running)
