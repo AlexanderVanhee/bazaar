@@ -148,16 +148,6 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (allow, g_regex_unref))
 
 BZ_DEFINE_DATA (
-    respond_to_flatpak,
-    RespondToFlatpak,
-    {
-      GWeakRef              *self;
-      BzBackendNotification *notif;
-    },
-    BZ_RELEASE_DATA (self, bz_weak_release);
-    BZ_RELEASE_DATA (notif, g_object_unref))
-
-BZ_DEFINE_DATA (
     cache_write_back,
     CacheWriteBack,
     {
@@ -207,28 +197,29 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (cache, g_object_unref))
 
 static DexFuture *
-init_fiber (GWeakRef *wr);
+init_fiber (BzWeakRef *wr);
 
 static DexFuture *
-enumerate_disk_groups_fiber (GWeakRef *wr);
+enumerate_disk_groups_fiber (BzWeakRef *wr);
 
 static DexFuture *
 enumerate_disk_io_fiber (EnumerateDiskIoData *data);
 
 static DexFuture *
-enumerate_disk_entries_fiber (GWeakRef *wr);
+enumerate_disk_entries_fiber (BzWeakRef *wr);
 
 static DexFuture *
-check_for_updates_fiber (GWeakRef *wr);
+check_for_updates_fiber (BzWeakRef *wr);
 
 static DexFuture *
-cache_flathub_fiber (GWeakRef *wr);
+cache_flathub_fiber (BzWeakRef *wr);
 
 static DexFuture *
-cache_groups_fiber (GWeakRef *wr);
+cache_groups_fiber (BzWeakRef *wr);
 
 static DexFuture *
-respond_to_flatpak_fiber (RespondToFlatpakData *data);
+respond_to_flatpak_fiber (BzWeakRef             *wr,
+                          BzBackendNotification *notif);
 
 static DexFuture *
 open_appstream_fiber (OpenAppstreamData *data);
@@ -245,23 +236,23 @@ open_metainfo_take (BzApplication *self,
 
 static DexFuture *
 backend_sync_finally (DexFuture *future,
-                      GWeakRef  *wr);
+                      BzWeakRef *wr);
 
 static DexFuture *
 backend_sync_save_groups_finally (DexFuture *future,
-                                  GWeakRef  *wr);
+                                  BzWeakRef *wr);
 
 static DexFuture *
 init_fiber_finally (DexFuture *future,
-                    GWeakRef  *wr);
+                    BzWeakRef *wr);
 
 static DexFuture *
 init_sync_finally (DexFuture *future,
-                   GWeakRef  *wr);
+                   BzWeakRef *wr);
 
 static DexFuture *
 flathub_update_finally (DexFuture *future,
-                        GWeakRef  *wr);
+                        BzWeakRef *wr);
 
 static DexFuture *
 cache_write_back_finally (DexFuture          *future,
@@ -269,11 +260,11 @@ cache_write_back_finally (DexFuture          *future,
 
 static DexFuture *
 sync_finally (DexFuture *future,
-              GWeakRef  *wr);
+              BzWeakRef *wr);
 
 static DexFuture *
 watch_backend_notifs_then_loop_cb (DexFuture *future,
-                                   GWeakRef  *wr);
+                                   BzWeakRef *wr);
 
 static BzEntryGroup *
 ensure_group_and_add (BzApplication *self,
@@ -299,7 +290,7 @@ static gboolean
 periodic_timeout_cb (BzApplication *self);
 
 static gboolean
-scheduled_timeout_cb (GWeakRef *wr);
+scheduled_timeout_cb (BzWeakRef *wr);
 
 static void
 network_status_changed (BzApplication   *self,
@@ -584,13 +575,13 @@ bz_application_command_line (GApplication            *app,
           dex_scheduler_get_default (),
           bz_get_dex_stack_size (),
           (DexFiberFunc) init_fiber,
-          bz_track_weak (self),
-          bz_weak_release);
+          bz_weak_ref_new (self),
+          (GDestroyNotify) bz_weak_ref_unref);
       init = dex_future_finally (
           init,
           (DexFutureCallback) init_fiber_finally,
-          bz_track_weak (self),
-          bz_weak_release);
+          bz_weak_ref_new (self),
+          (GDestroyNotify) bz_weak_ref_unref);
       dex_future_disown (g_steal_pointer (&init));
     }
 
@@ -972,7 +963,7 @@ bz_state_info_get_default (void)
 }
 
 static DexFuture *
-init_fiber (GWeakRef *wr)
+init_fiber (BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self        = NULL;
   g_autoptr (GError) local_error        = NULL;
@@ -988,7 +979,7 @@ init_fiber (GWeakRef *wr)
   g_autofree char *cache_version_path   = NULL;
   g_autoptr (GFile) cache_version_file  = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
 /* Here until Ubuntu fixes its apparmor crap. */
 #ifdef SANDBOXED_LIBFLATPAK
@@ -1256,8 +1247,8 @@ init_fiber (GWeakRef *wr)
           dex_scheduler_get_default (),
           bz_get_dex_stack_size (),
           (DexFiberFunc) enumerate_disk_groups_fiber,
-          bz_track_weak (self),
-          bz_weak_release),
+          bz_weak_ref_ref (wr),
+          (GDestroyNotify) bz_weak_ref_unref),
       NULL);
 
   self->had_cache_on_init = g_list_model_get_n_items (G_LIST_MODEL (self->groups)) > 0;
@@ -1328,7 +1319,7 @@ init_fiber (GWeakRef *wr)
 }
 
 static DexFuture *
-enumerate_disk_groups_fiber (GWeakRef *wr)
+enumerate_disk_groups_fiber (BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self      = NULL;
   g_autoptr (GError) local_error      = NULL;
@@ -1339,7 +1330,7 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
   g_autoptr (GVariantIter) iter       = NULL;
   gboolean has_flathub_group          = FALSE;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   groups_cache_file = fiber_dup_cache_file ("groups-cache", &groups_cache, &local_error);
   if (groups_cache_file == NULL)
@@ -1413,8 +1404,8 @@ enumerate_disk_groups_fiber (GWeakRef *wr)
       dex_scheduler_get_default (),
       bz_get_dex_stack_size (),
       (DexFiberFunc) check_for_updates_fiber,
-      bz_track_weak (self),
-      bz_weak_release));
+      bz_weak_ref_ref (wr),
+      (GDestroyNotify) bz_weak_ref_unref));
 
   return dex_future_new_for_boolean (has_flathub_group);
 }
@@ -1480,7 +1471,7 @@ enumerate_disk_io_fiber (EnumerateDiskIoData *data)
 }
 
 static DexFuture *
-enumerate_disk_entries_fiber (GWeakRef *wr)
+enumerate_disk_entries_fiber (BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self          = NULL;
   g_autoptr (GError) local_error          = NULL;
@@ -1488,7 +1479,7 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
   g_autoptr (EnumerateDiskIoData) io_data = NULL;
   gboolean has_flathub_entry              = FALSE;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   io_data        = enumerate_disk_io_data_new ();
   io_data->cache = g_object_ref (self->cache);
@@ -1535,18 +1526,18 @@ enumerate_disk_entries_fiber (GWeakRef *wr)
       dex_scheduler_get_default (),
       bz_get_dex_stack_size (),
       (DexFiberFunc) check_for_updates_fiber,
-      bz_track_weak (self),
-      bz_weak_release));
+      bz_weak_ref_ref (wr),
+      (GDestroyNotify) bz_weak_ref_unref));
 
   return dex_future_new_for_boolean (has_flathub_entry);
 }
 
 static DexFuture *
-check_for_updates_fiber (GWeakRef *wr)
+check_for_updates_fiber (BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   fiber_check_for_updates (self);
   finish_with_background_task_label (self);
@@ -1555,7 +1546,7 @@ check_for_updates_fiber (GWeakRef *wr)
 }
 
 static DexFuture *
-cache_flathub_fiber (GWeakRef *wr)
+cache_flathub_fiber (BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self       = NULL;
   g_autoptr (GError) local_error       = NULL;
@@ -1563,7 +1554,7 @@ cache_flathub_fiber (GWeakRef *wr)
   g_autofree char *flathub_cache       = NULL;
   g_autoptr (GFile) flathub_cache_file = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   flathub_cache_file = fiber_dup_cache_file ("flathub-cache", &flathub_cache, &local_error);
   if (flathub_cache_file != NULL)
@@ -1600,7 +1591,7 @@ cache_flathub_fiber (GWeakRef *wr)
 }
 
 static DexFuture *
-cache_groups_fiber (GWeakRef *wr)
+cache_groups_fiber (BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self      = NULL;
   g_autoptr (GError) local_error      = NULL;
@@ -1615,7 +1606,7 @@ cache_groups_fiber (GWeakRef *wr)
   g_autofree char *module_dir         = NULL;
   g_autofree char *index_path         = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   groups_cache_file = fiber_dup_cache_file ("groups-cache", &groups_cache, &local_error);
   if (groups_cache_file == NULL)
@@ -1661,10 +1652,10 @@ cache_groups_fiber (GWeakRef *wr)
 }
 
 static DexFuture *
-respond_to_flatpak_fiber (RespondToFlatpakData *data)
+respond_to_flatpak_fiber (BzWeakRef             *wr,
+                          BzBackendNotification *notif)
 {
   g_autoptr (BzApplication) self            = NULL;
-  BzBackendNotification *notif              = data->notif;
   g_autoptr (GError) local_error            = NULL;
   g_autoptr (GPtrArray) build_futures       = NULL;
   g_autoptr (GPtrArray) build_notify_groups = NULL;
@@ -1673,7 +1664,7 @@ respond_to_flatpak_fiber (RespondToFlatpakData *data)
   gboolean update_labels                    = FALSE;
   gboolean update_filters                   = FALSE;
 
-  bz_weak_get_or_return_reject (self, data->self);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   build_futures       = g_ptr_array_new_with_free_func (dex_unref);
   build_notify_groups = g_ptr_array_new_with_free_func (g_object_unref);
@@ -2255,7 +2246,7 @@ open_metainfo_fiber (OpenMetainfoData *data)
 
 static DexFuture *
 init_fiber_finally (DexFuture *future,
-                    GWeakRef  *wr)
+                    BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self      = NULL;
   g_autoptr (GError) local_error      = NULL;
@@ -2264,7 +2255,7 @@ init_fiber_finally (DexFuture *future,
   gint64        now                   = 0;
   gint64        seconds_since_refresh = 0;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   value = dex_future_get_value (future, &local_error);
   if (value != NULL)
@@ -2274,8 +2265,8 @@ init_fiber_finally (DexFuture *future,
       self->notif_watch = dex_future_then_loop (
           dex_channel_receive (self->flatpak_notifs),
           (DexFutureCallback) watch_backend_notifs_then_loop_cb,
-          bz_track_weak (self),
-          bz_weak_release);
+          bz_weak_ref_ref (wr),
+          (GDestroyNotify) bz_weak_ref_unref);
 
       last_refresh          = g_settings_get_int64 (self->settings, "last-refresh-time");
       now                   = g_get_real_time () / G_USEC_PER_SEC;
@@ -2290,8 +2281,8 @@ init_fiber_finally (DexFuture *future,
           sync_future = dex_future_finally (
               sync_future,
               (DexFutureCallback) init_sync_finally,
-              bz_track_weak (self),
-              bz_weak_release);
+              bz_weak_ref_ref (wr),
+              (GDestroyNotify) bz_weak_ref_unref);
           self->sync = g_steal_pointer (&sync_future);
         }
       else
@@ -2306,8 +2297,8 @@ init_fiber_finally (DexFuture *future,
               dex_scheduler_get_default (),
               bz_get_dex_stack_size (),
               (DexFiberFunc) check_for_updates_fiber,
-              bz_track_weak (self),
-              bz_weak_release));
+              bz_weak_ref_ref (wr),
+              (GDestroyNotify) bz_weak_ref_unref));
         }
 
       self->periodic_timeout_source = g_timeout_add_seconds (
@@ -2344,12 +2335,12 @@ init_fiber_finally (DexFuture *future,
 
 static DexFuture *
 init_sync_finally (DexFuture *future,
-                   GWeakRef  *wr)
+                   BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self = NULL;
   g_autoptr (GError) local_error = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   /* Do nothing */
 
@@ -2358,11 +2349,11 @@ init_sync_finally (DexFuture *future,
 
 static DexFuture *
 backend_sync_finally (DexFuture *future,
-                      GWeakRef  *wr)
+                      BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   if (dex_future_is_resolved (future))
     {
@@ -2372,14 +2363,14 @@ backend_sync_finally (DexFuture *future,
           dex_scheduler_get_default (),
           bz_get_dex_stack_size (),
           (DexFiberFunc) enumerate_disk_entries_fiber,
-          bz_track_weak (self),
-          bz_weak_release);
+          bz_weak_ref_ref (wr),
+          (GDestroyNotify) bz_weak_ref_unref);
 
       enum_future = dex_future_finally (
           enum_future,
           (DexFutureCallback) backend_sync_save_groups_finally,
-          bz_track_weak (self),
-          bz_weak_release);
+          bz_weak_ref_ref (wr),
+          (GDestroyNotify) bz_weak_ref_unref);
 
       return g_steal_pointer (&enum_future);
     }
@@ -2389,27 +2380,27 @@ backend_sync_finally (DexFuture *future,
 
 static DexFuture *
 backend_sync_save_groups_finally (DexFuture *future,
-                                  GWeakRef  *wr)
+                                  BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   return dex_scheduler_spawn (
       dex_scheduler_get_default (),
       bz_get_dex_stack_size (),
       (DexFiberFunc) cache_groups_fiber,
-      bz_track_weak (self),
-      bz_weak_release);
+      bz_weak_ref_ref (wr),
+      (GDestroyNotify) bz_weak_ref_unref);
 }
 
 static DexFuture *
 flathub_update_finally (DexFuture *future,
-                        GWeakRef  *wr)
+                        BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   if (dex_future_is_resolved (future))
     {
@@ -2423,7 +2414,8 @@ flathub_update_finally (DexFuture *future,
           dex_scheduler_get_default (),
           bz_get_dex_stack_size (),
           (DexFiberFunc) cache_flathub_fiber,
-          bz_track_weak (self), bz_weak_release);
+          bz_weak_ref_ref (wr),
+          (GDestroyNotify) bz_weak_ref_unref);
     }
   else
     {
@@ -2461,11 +2453,11 @@ cache_write_back_finally (DexFuture          *future,
 
 static DexFuture *
 sync_finally (DexFuture *future,
-              GWeakRef  *wr)
+              BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   bz_state_info_set_online (self->state, dex_future_is_resolved (future));
   bz_state_info_set_allow_manual_sync (self->state, TRUE);
@@ -2485,31 +2477,27 @@ sync_finally (DexFuture *future,
 
 static DexFuture *
 watch_backend_notifs_then_loop_cb (DexFuture *future,
-                                   GWeakRef  *wr)
+                                   BzWeakRef *wr)
 {
-  g_autoptr (BzApplication) self        = NULL;
-  g_autoptr (GError) local_error        = NULL;
-  const GValue          *value          = NULL;
-  BzBackendNotification *notif          = NULL;
-  g_autoptr (RespondToFlatpakData) data = NULL;
-  g_autoptr (DexFuture) ret_future      = NULL;
+  g_autoptr (BzApplication) self   = NULL;
+  g_autoptr (GError) local_error   = NULL;
+  const GValue          *value     = NULL;
+  BzBackendNotification *notif     = NULL;
+  g_autoptr (DexFuture) ret_future = NULL;
 
-  bz_weak_get_or_return_reject (self, wr);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   value = dex_future_get_value (future, NULL);
   g_assert (value != NULL);
   notif = g_value_get_object (value);
 
-  data        = respond_to_flatpak_data_new ();
-  data->self  = bz_track_weak (self);
-  data->notif = g_object_ref (notif);
-
-  ret_future = dex_scheduler_spawn (
+  ret_future = dex_scheduler_spawnv (
       dex_scheduler_get_default (),
       bz_get_dex_stack_size (),
-      (DexFiberFunc) respond_to_flatpak_fiber,
-      respond_to_flatpak_data_ref (data),
-      respond_to_flatpak_data_unref);
+      G_CALLBACK (respond_to_flatpak_fiber),
+      2,
+      BZ_TYPE_WEAK_REF, wr,
+      BZ_TYPE_BACKEND_NOTIFICATION, notif);
   return g_steal_pointer (&ret_future);
 }
 
@@ -2856,14 +2844,14 @@ done:
 }
 
 static gboolean
-scheduled_timeout_cb (GWeakRef *wr)
+scheduled_timeout_cb (BzWeakRef *wr)
 {
   g_autoptr (BzApplication) self = NULL;
   gboolean have_connection       = FALSE;
 
   /* Use weak ref here since the source tag of this callback won't be tracked by
      the main application obj */
-  self = g_weak_ref_get (wr);
+  self = g_weak_ref_get (&wr->ref);
   if (self == NULL)
     goto done;
 
@@ -2904,7 +2892,8 @@ network_status_changed (BzApplication   *self,
     g_timeout_add_full (
         G_PRIORITY_DEFAULT,
         500, (GSourceFunc) scheduled_timeout_cb,
-        bz_track_weak (self), bz_weak_release);
+        bz_weak_ref_new (self),
+        (GDestroyNotify) bz_weak_ref_unref);
 
   bz_state_info_set_have_connection (self->state, have_connection);
   bz_state_info_set_metered_connection (self->state, is_metered);
@@ -4176,7 +4165,8 @@ make_sync_future (BzApplication *self)
   backend_future = dex_future_finally (
       backend_future,
       (DexFutureCallback) backend_sync_finally,
-      bz_track_weak (self), bz_weak_release);
+      bz_weak_ref_new (self),
+      (GDestroyNotify) bz_weak_ref_unref);
 
   g_clear_object (&self->tmp_flathub);
   self->tmp_flathub = bz_flathub_state_new ();
@@ -4184,7 +4174,8 @@ make_sync_future (BzApplication *self)
   flathub_future    = dex_future_finally (
       flathub_future,
       (DexFutureCallback) flathub_update_finally,
-      bz_track_weak (self), bz_weak_release);
+      bz_weak_ref_new (self),
+      (GDestroyNotify) bz_weak_ref_unref);
 
   ret_future = dex_future_all (
       dex_ref (backend_future),
@@ -4193,7 +4184,8 @@ make_sync_future (BzApplication *self)
   ret_future = dex_future_finally (
       ret_future,
       (DexFutureCallback) sync_finally,
-      bz_track_weak (self), bz_weak_release);
+      bz_weak_ref_new (self),
+      (GDestroyNotify) bz_weak_ref_unref);
   return g_steal_pointer (&ret_future);
 }
 

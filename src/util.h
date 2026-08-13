@@ -137,6 +137,21 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (BzGuard, bz_guard_destroy);
   }                                                        \
   G_STMT_END
 
+typedef struct
+{
+  gatomicrefcount rc;
+  GWeakRef        ref;
+} BzWeakRef;
+
+#define BZ_TYPE_WEAK_REF (bz_weak_ref_get_type ())
+GType bz_weak_ref_get_type (void);
+
+BzWeakRef *bz_weak_ref_ref (BzWeakRef *wr);
+void       bz_weak_ref_unref (BzWeakRef *wr);
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (BzWeakRef, bz_weak_ref_unref);
+
+BzWeakRef *bz_weak_ref_new (gpointer object);
+
 /* Use with dex_scheduler_spawn */
 G_GNUC_UNUSED
 static GWeakRef *

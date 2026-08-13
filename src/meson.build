@@ -177,6 +177,7 @@ bz_sources = files(
   'template-callbacks.c',
   'transaction-notification.c',
   'update-worker.c',
+  'util.c',
 )
 subdir('progress-bar-designs')
 
