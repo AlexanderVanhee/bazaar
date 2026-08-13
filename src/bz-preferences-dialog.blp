@@ -40,6 +40,7 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
 
         [prefix]
         CheckButton automatic_updates_check {
+          valign: center;
           toggled => $auto_updates_toggled_cb();
         }
       }
@@ -52,6 +53,7 @@ template $BzPreferencesDialog: Adw.PreferencesDialog {
 
         [prefix]
         CheckButton manual_updates_check {
+          valign: center;
           active: bind automatic_updates_check.active inverted;
           group: automatic_updates_check;
           toggled => $auto_updates_toggled_cb();
