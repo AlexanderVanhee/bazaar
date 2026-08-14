@@ -125,6 +125,8 @@ bz_screenshot_page_map (GtkWidget *widget)
 
   GTK_WIDGET_CLASS (bz_screenshot_page_parent_class)->map (widget);
 
+  gtk_widget_child_focus (widget, GTK_DIR_TAB_FORWARD);
+
   settings = gtk_widget_get_settings (widget);
   g_object_get (settings, "gtk-interface-reduced-motion", &reduced_motion, NULL);
 
@@ -912,6 +914,10 @@ on_key_pressed (GtkEventControllerKey *controller,
                 GdkModifierType        state,
                 BzScreenshotPage      *self)
 {
+  gboolean ctrl = FALSE;
+
+  ctrl = (state & GDK_CONTROL_MASK) != 0;
+
   if (keyval == GDK_KEY_Left)
     {
       previous_clicked (self);
@@ -920,6 +926,21 @@ on_key_pressed (GtkEventControllerKey *controller,
   else if (keyval == GDK_KEY_Right)
     {
       next_clicked (self);
+      return TRUE;
+    }
+  else if (ctrl && (keyval == GDK_KEY_plus || keyval == GDK_KEY_KP_Add || keyval == GDK_KEY_equal))
+    {
+      zoom_in_clicked (self);
+      return TRUE;
+    }
+  else if (ctrl && (keyval == GDK_KEY_minus || keyval == GDK_KEY_KP_Subtract))
+    {
+      zoom_out_clicked (self);
+      return TRUE;
+    }
+  else if (ctrl && (keyval == GDK_KEY_0 || keyval == GDK_KEY_KP_0))
+    {
+      reset_zoom_clicked (self);
       return TRUE;
     }
 
