@@ -26,6 +26,7 @@
   <maintainer>
     <foaf:Person>
       <foaf:name>Kolunmi</foaf:name>
+      <gnome:userid>kolunmi</gnome:userid>
       <foaf:mbox rdf:resource="mailto:kolunmi@posteo.net" />
       <foaf:account>
         <foaf:OnlineAccount>
