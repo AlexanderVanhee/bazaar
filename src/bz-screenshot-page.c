@@ -94,11 +94,6 @@ static BzZoom *get_current_zoom (BzScreenshotPage   *self,
 
 static void populate_carousel (BzScreenshotPage *self);
 
-static gboolean on_key_pressed (GtkEventControllerKey *controller,
-                                guint                  keyval,
-                                guint                  keycode,
-                                GdkModifierType        state,
-                                BzScreenshotPage      *self);
 static void     on_button_pressed (GtkGestureClick  *gesture,
                                    int               n_press,
                                    double            x,
@@ -311,9 +306,12 @@ back_clicked (BzScreenshotPage *self)
 }
 
 static void
-zoom_in_clicked (BzScreenshotPage *self)
+zoom_in_clicked (GtkWidget  *widget,
+                 const char *action_name,
+                 GVariant   *parameter)
 {
-  BzZoom *zoom = NULL;
+  BzScreenshotPage *self = BZ_SCREENSHOT_PAGE (widget);
+  BzZoom           *zoom = NULL;
 
   zoom = get_current_zoom (self, NULL);
   if (zoom != NULL)
@@ -321,9 +319,12 @@ zoom_in_clicked (BzScreenshotPage *self)
 }
 
 static void
-zoom_out_clicked (BzScreenshotPage *self)
+zoom_out_clicked (GtkWidget  *widget,
+                  const char *action_name,
+                  GVariant   *parameter)
 {
-  BzZoom *zoom = NULL;
+  BzScreenshotPage *self = BZ_SCREENSHOT_PAGE (widget);
+  BzZoom           *zoom = NULL;
 
   zoom = get_current_zoom (self, NULL);
   if (zoom != NULL)
@@ -331,9 +332,12 @@ zoom_out_clicked (BzScreenshotPage *self)
 }
 
 static void
-reset_zoom_clicked (BzScreenshotPage *self)
+reset_zoom_clicked (GtkWidget  *widget,
+                    const char *action_name,
+                    GVariant   *parameter)
 {
-  BzZoom *zoom = NULL;
+  BzScreenshotPage *self = BZ_SCREENSHOT_PAGE (widget);
+  BzZoom           *zoom = NULL;
 
   zoom = get_current_zoom (self, NULL);
   if (zoom != NULL)
@@ -341,10 +345,13 @@ reset_zoom_clicked (BzScreenshotPage *self)
 }
 
 static void
-previous_clicked (BzScreenshotPage *self)
+previous_clicked (GtkWidget  *widget,
+                  const char *action_name,
+                  GVariant   *parameter)
 {
-  guint      n_pages = 0;
-  GtkWidget *page    = NULL;
+  BzScreenshotPage *self    = BZ_SCREENSHOT_PAGE (widget);
+  guint             n_pages = 0;
+  GtkWidget        *page    = NULL;
 
   n_pages = adw_carousel_get_n_pages (self->carousel);
   if (n_pages == 0)
@@ -360,10 +367,13 @@ previous_clicked (BzScreenshotPage *self)
 }
 
 static void
-next_clicked (BzScreenshotPage *self)
+next_clicked (GtkWidget  *widget,
+              const char *action_name,
+              GVariant   *parameter)
 {
-  guint      n_pages = 0;
-  GtkWidget *page    = NULL;
+  BzScreenshotPage *self    = BZ_SCREENSHOT_PAGE (widget);
+  guint             n_pages = 0;
+  GtkWidget        *page    = NULL;
 
   n_pages = adw_carousel_get_n_pages (self->carousel);
   if (n_pages == 0)
@@ -416,8 +426,11 @@ on_carousel_position_changed (AdwCarousel      *carousel,
 }
 
 static void
-copy_clicked (BzScreenshotPage *self)
+copy_clicked (GtkWidget  *widget,
+              const char *action_name,
+              GVariant   *parameter)
 {
+  BzScreenshotPage *self                   = BZ_SCREENSHOT_PAGE (widget);
   g_autoptr (BzAsyncTexture) async_texture = NULL;
   g_autoptr (GdkTexture) texture           = NULL;
   GdkClipboard *clipboard                  = NULL;
@@ -622,33 +635,27 @@ bz_screenshot_page_class_init (BzScreenshotPageClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzScreenshotPage, carousel);
   gtk_widget_class_bind_template_child (widget_class, BzScreenshotPage, toast_overlay);
   gtk_widget_class_bind_template_callback (widget_class, back_clicked);
-  gtk_widget_class_bind_template_callback (widget_class, zoom_in_clicked);
-  gtk_widget_class_bind_template_callback (widget_class, zoom_out_clicked);
   gtk_widget_class_bind_template_callback (widget_class, on_carousel_position_changed);
-  gtk_widget_class_bind_template_callback (widget_class, reset_zoom_clicked);
-  gtk_widget_class_bind_template_callback (widget_class, copy_clicked);
-  gtk_widget_class_bind_template_callback (widget_class, previous_clicked);
-  gtk_widget_class_bind_template_callback (widget_class, next_clicked);
   gtk_widget_class_bind_template_callback (widget_class, has_multiple_screenshots);
   gtk_widget_class_bind_template_callback (widget_class, invert_boolean);
   gtk_widget_class_bind_template_callback (widget_class, is_valid_string);
+
+  gtk_widget_class_install_action (widget_class, "screenshot.previous", NULL, previous_clicked);
+  gtk_widget_class_install_action (widget_class, "screenshot.next", NULL, next_clicked);
+  gtk_widget_class_install_action (widget_class, "screenshot.zoom-in", NULL, zoom_in_clicked);
+  gtk_widget_class_install_action (widget_class, "screenshot.zoom-out", NULL, zoom_out_clicked);
+  gtk_widget_class_install_action (widget_class, "screenshot.zoom-reset", NULL, reset_zoom_clicked);
+  gtk_widget_class_install_action (widget_class, "screenshot.copy", NULL, copy_clicked);
 }
 
 static void
 bz_screenshot_page_init (BzScreenshotPage *self)
 {
-  GtkEventController *key_controller = NULL;
-  GtkEventController *scroll         = NULL;
-  GtkGesture         *swipe          = NULL;
-  GtkGesture         *click          = NULL;
+  GtkEventController *scroll = NULL;
+  GtkGesture         *swipe  = NULL;
+  GtkGesture         *click  = NULL;
 
   gtk_widget_init_template (GTK_WIDGET (self));
-
-  key_controller = gtk_event_controller_key_new ();
-  gtk_event_controller_set_propagation_phase (key_controller, GTK_PHASE_CAPTURE);
-  g_signal_connect (key_controller, "key-pressed",
-                    G_CALLBACK (on_key_pressed), self);
-  gtk_widget_add_controller (GTK_WIDGET (self), key_controller);
 
   swipe = gtk_gesture_swipe_new ();
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (swipe), GTK_PHASE_CAPTURE);
@@ -905,46 +912,6 @@ get_current_zoom (BzScreenshotPage   *self,
     }
   else
     return NULL;
-}
-
-static gboolean
-on_key_pressed (GtkEventControllerKey *controller,
-                guint                  keyval,
-                guint                  keycode,
-                GdkModifierType        state,
-                BzScreenshotPage      *self)
-{
-  gboolean ctrl = FALSE;
-
-  ctrl = (state & GDK_CONTROL_MASK) != 0;
-
-  if (keyval == GDK_KEY_Left)
-    {
-      previous_clicked (self);
-      return TRUE;
-    }
-  else if (keyval == GDK_KEY_Right)
-    {
-      next_clicked (self);
-      return TRUE;
-    }
-  else if (ctrl && (keyval == GDK_KEY_plus || keyval == GDK_KEY_KP_Add || keyval == GDK_KEY_equal))
-    {
-      zoom_in_clicked (self);
-      return TRUE;
-    }
-  else if (ctrl && (keyval == GDK_KEY_minus || keyval == GDK_KEY_KP_Subtract))
-    {
-      zoom_out_clicked (self);
-      return TRUE;
-    }
-  else if (ctrl && (keyval == GDK_KEY_0 || keyval == GDK_KEY_KP_0))
-    {
-      reset_zoom_clicked (self);
-      return TRUE;
-    }
-
-  return FALSE;
 }
 
 static void
