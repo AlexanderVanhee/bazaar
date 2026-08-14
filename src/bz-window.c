@@ -61,7 +61,6 @@ struct _BzWindow
 
   /* Template widgets */
   AdwNavigationView *navigation_view;
-  BzFullView        *full_view;
   BzSearchPage      *search_page;
   BzLibraryPage     *library_page;
   AdwToastOverlay   *toasts;
@@ -139,6 +138,11 @@ bulk_install (BzWindow *self,
 
 static void
 set_page (BzWindow *self);
+
+static BzFullView *
+create_full_view (BzWindow     *self,
+                  BzEntryGroup *group);
+
 
 static void
 emit_hook_disown (BzWindow     *self,
@@ -768,6 +772,7 @@ bz_window_class_init (BzWindowClass *klass)
   g_type_ensure (BZ_TYPE_PROGRESS_BAR);
   g_type_ensure (BZ_TYPE_CURATED_VIEW);
   g_type_ensure (BZ_TYPE_FULL_VIEW);
+  g_type_ensure (BZ_TYPE_ENTRY);
   g_type_ensure (BZ_TYPE_LIBRARY_PAGE);
   g_type_ensure (BZ_TYPE_FLATHUB_PAGE);
 
@@ -775,7 +780,6 @@ bz_window_class_init (BzWindowClass *klass)
   bz_widget_class_bind_all_util_callbacks (widget_class);
 
   gtk_widget_class_bind_template_child (widget_class, BzWindow, navigation_view);
-  gtk_widget_class_bind_template_child (widget_class, BzWindow, full_view);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, toasts);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, search_page);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, library_page);
@@ -1103,34 +1107,57 @@ bz_window_show_entry (BzWindow *self,
   bz_window_show_group (self, group);
 }
 
+static void
+full_view_page_hidden_cb (AdwNavigationPage *page,
+                          BzWindow          *self)
+{
+  adw_navigation_page_set_child (page, NULL);
+}
+
+static void
+full_view_page_shown_cb (AdwNavigationPage *page,
+                         BzWindow          *self)
+{
+  BzEntryGroup *group     = NULL;
+  GtkWidget    *existing  = NULL;
+  BzFullView   *full_view = NULL;
+
+  existing = adw_navigation_page_get_child (page);
+  if (BZ_IS_FULL_VIEW (existing))
+    return;
+
+  group = BZ_ENTRY_GROUP (g_object_get_data (G_OBJECT (page), "bz-entry-group"));
+  if (group == NULL)
+    return;
+
+  full_view = create_full_view (self, group);
+  adw_navigation_page_set_child (page, GTK_WIDGET (full_view));
+}
+
 void
 bz_window_show_group (BzWindow     *self,
                       BzEntryGroup *group)
 {
-  GListModel *stack    = NULL;
-  gboolean    in_stack = FALSE;
+  BzFullView        *full_view = NULL;
+  AdwNavigationPage *page      = NULL;
+  const char        *title     = NULL;
 
   g_return_if_fail (BZ_IS_WINDOW (self));
   g_return_if_fail (BZ_IS_ENTRY_GROUP (group));
 
-  bz_full_view_set_entry_group (self->full_view, group);
-  emit_hook_disown (self, BZ_HOOK_SIGNAL_VIEW_APP, group);
-  stack = adw_navigation_view_get_navigation_stack (self->navigation_view);
+  full_view = create_full_view (self, group);
 
-  for (guint i = 0; i < g_list_model_get_n_items (stack); i++)
-    {
-      g_autoptr (AdwNavigationPage) page = NULL;
-      page                               = g_list_model_get_item (stack, i);
+  title = bz_entry_group_get_title (group);
+  page  = adw_navigation_page_new (GTK_WIDGET (full_view), title != NULL ? title : "");
 
-      if (g_strcmp0 (adw_navigation_page_get_tag (page), "view") == 0)
-        {
-          in_stack = TRUE;
-          adw_navigation_view_pop_to_page (self->navigation_view, page);
-          break;
-        }
-    }
-  if (!in_stack)
-    adw_navigation_view_push_by_tag (self->navigation_view, "view");
+  g_object_set_data_full (
+      G_OBJECT (page), "bz-entry-group",
+      g_object_ref (group), g_object_unref);
+
+  g_signal_connect_object (page, "showing", G_CALLBACK (full_view_page_shown_cb), self, 0);
+  g_signal_connect_object (page, "hidden", G_CALLBACK (full_view_page_hidden_cb), self, 0);
+
+  adw_navigation_view_push (self->navigation_view, page);
 }
 
 void
@@ -1336,8 +1363,6 @@ search (BzWindow   *self,
 static void
 set_page (BzWindow *self)
 {
-  const char *selected_navigation_page_name = NULL;
-
   if (self->state == NULL)
     return;
 
@@ -1348,11 +1373,20 @@ set_page (BzWindow *self)
     }
   else
     gtk_stack_set_visible_child_name (self->main_stack, "main");
+}
 
-  selected_navigation_page_name = adw_navigation_view_get_visible_page_tag (self->navigation_view);
+static BzFullView *
+create_full_view (BzWindow     *self,
+                  BzEntryGroup *group)
+{
+  BzFullView *full_view = NULL;
 
-  if (g_strcmp0 (selected_navigation_page_name, "view") != 0)
-    bz_full_view_set_entry_group (self->full_view, NULL);
+  full_view = BZ_FULL_VIEW (bz_full_view_new ());
+  g_object_set (full_view, "state", self->state, NULL);
+  bz_full_view_set_entry_group (full_view, group);
+  g_signal_connect_object (full_view, "update", G_CALLBACK (update_cb), self, G_CONNECT_SWAPPED);
+
+  return full_view;
 }
 
 static void
