@@ -976,7 +976,6 @@ window.narrow .category-tile {
     padding: 0;
 }
 
-curated-list-view,
 curated-list-view list {
   background: var(--bg-color);
 }
