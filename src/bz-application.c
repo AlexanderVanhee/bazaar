@@ -65,6 +65,7 @@
 #include "bz-transaction-manager.h"
 #include "bz-window.h"
 #include "bz-yaml-parser.h"
+#include "dex-utils.h"
 #include "env.h"
 #include "error.h"
 #include "io.h"
@@ -147,17 +148,6 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (block, g_regex_unref);
     BZ_RELEASE_DATA (allow, g_regex_unref))
 
-BZ_DEFINE_DATA (
-    cache_write_back,
-    CacheWriteBack,
-    {
-      GWeakRef  *self;
-      GPtrArray *notify_groups;
-      gboolean   update_filters;
-    },
-    BZ_RELEASE_DATA (self, bz_weak_release);
-    BZ_RELEASE_DATA (notify_groups, g_ptr_array_unref))
-
 static DexFuture *
 init_fiber (BzWeakRef *wr);
 
@@ -220,8 +210,10 @@ flathub_update_finally (DexFuture *future,
                         BzWeakRef *wr);
 
 static DexFuture *
-cache_write_back_finally (DexFuture          *future,
-                          CacheWriteBackData *data);
+cache_write_back_finally (DexFuture *future,
+                          BzWeakRef *wr,
+                          GPtrArray *notify_groups,
+                          gboolean   update_filters);
 
 static DexFuture *
 sync_finally (DexFuture *future,
@@ -2028,23 +2020,18 @@ respond_to_flatpak_fiber (BzWeakRef             *wr,
 
   if (build_futures->len > 0)
     {
-      g_autoptr (DexFuture) future                   = NULL;
-      g_autoptr (CacheWriteBackData) write_back_data = NULL;
+      g_autoptr (DexFuture) future = NULL;
 
       future = dex_future_allv (
           (DexFuture *const *) build_futures->pdata,
           build_futures->len);
-
-      write_back_data                 = cache_write_back_data_new ();
-      write_back_data->self           = bz_track_weak (self);
-      write_back_data->notify_groups  = g_ptr_array_ref (build_notify_groups);
-      write_back_data->update_filters = update_filters;
-
-      future = dex_future_finally (
+      future = bz_future_finallyv (
           future,
-          (DexFutureCallback) cache_write_back_finally,
-          cache_write_back_data_ref (write_back_data),
-          cache_write_back_data_unref);
+          G_CALLBACK (cache_write_back_finally),
+          3,
+          BZ_TYPE_WEAK_REF, wr,
+          G_TYPE_PTR_ARRAY, build_notify_groups,
+          G_TYPE_BOOLEAN, update_filters);
       dex_future_disown (g_steal_pointer (&future));
     }
 
@@ -2386,14 +2373,14 @@ flathub_update_finally (DexFuture *future,
 }
 
 static DexFuture *
-cache_write_back_finally (DexFuture          *future,
-                          CacheWriteBackData *data)
+cache_write_back_finally (DexFuture *future,
+                          BzWeakRef *wr,
+                          GPtrArray *notify_groups,
+                          gboolean   update_filters)
 {
   g_autoptr (BzApplication) self = NULL;
-  GPtrArray *notify_groups       = data->notify_groups;
-  gboolean   update_filters      = data->update_filters;
 
-  bz_weak_get_or_return_reject (self, data->self);
+  bz_weak_get_or_return_reject (self, &wr->ref);
 
   for (guint i = 0; i < notify_groups->len; i++)
     {
