@@ -40,6 +40,7 @@ struct _BzSafetyDialog
   BzEntry *entry;
 
   gboolean has_sandbox_escape;
+  gboolean owns_dialog;
 
   AdwAnimation *width_animation;
   AdwAnimation *height_animation;
@@ -150,6 +151,9 @@ animate_to_page (BzSafetyDialog *self,
   int        cur_w         = 0;
   int        cur_h         = 0;
 
+  if (!self->owns_dialog)
+    return;
+
   dialog = ADW_DIALOG (gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_DIALOG));
   if (dialog == NULL)
     return;
@@ -178,14 +182,7 @@ animate_to_page (BzSafetyDialog *self,
 static void
 on_dialog_map (BzSafetyDialog *self)
 {
-  AdwDialog *dialog        = NULL;
-  int        target_width  = 0;
-  int        target_height = 0;
-  guint      page_index    = self->has_sandbox_escape ? 0 : 1;
-
-  dialog = ADW_DIALOG (gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_DIALOG));
-  if (dialog == NULL)
-    return;
+  guint page_index = self->has_sandbox_escape ? 0 : 1;
 
   if (page_index == 1)
     {
@@ -195,9 +192,20 @@ on_dialog_map (BzSafetyDialog *self)
       adw_carousel_scroll_to (self->carousel, page, FALSE);
     }
 
-  get_target_size (self, page_index, &target_width, &target_height);
-  adw_dialog_set_content_width (dialog, target_width);
-  adw_dialog_set_content_height (dialog, target_height);
+  if (self->owns_dialog)
+    {
+      AdwDialog *dialog        = NULL;
+      int        target_width  = 0;
+      int        target_height = 0;
+
+      dialog = ADW_DIALOG (gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_DIALOG));
+      if (dialog == NULL)
+        return;
+
+      get_target_size (self, page_index, &target_width, &target_height);
+      adw_dialog_set_content_width (dialog, target_width);
+      adw_dialog_set_content_height (dialog, target_height);
+    }
 }
 
 static void
@@ -265,6 +273,7 @@ static void
 bz_safety_dialog_init (BzSafetyDialog *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+  g_signal_connect_swapped (self, "map", G_CALLBACK (on_dialog_map), self);
 }
 
 AdwDialog *
@@ -277,6 +286,7 @@ bz_safety_dialog_new (BzEntry *entry)
   g_autofree char    *description   = NULL;
 
   widget = g_object_new (BZ_TYPE_SAFETY_DIALOG, NULL);
+  widget->owns_dialog = TRUE;
 
   dialog = adw_dialog_new ();
 
@@ -303,7 +313,6 @@ bz_safety_dialog_new (BzEntry *entry)
                                   GTK_ACCESSIBLE_PROPERTY_DESCRIPTION, description,
                                   -1);
 
-  g_signal_connect_swapped (widget, "map", G_CALLBACK (on_dialog_map), widget);
   return dialog;
 }
 
