@@ -674,6 +674,33 @@ bz_application_show_app_id_action (GSimpleAction *action,
 }
 
 static void
+bz_application_open_location_action (GSimpleAction *action,
+                                     GVariant      *parameter,
+                                     gpointer       user_data)
+{
+  BzApplication *self         = user_data;
+  const char    *uri          = NULL;
+  g_autoptr (GFile) file      = NULL;
+  g_autofree char *basename   = NULL;
+
+  g_assert (BZ_IS_APPLICATION (self));
+
+  uri = g_variant_get_string (parameter, NULL);
+  if (uri == NULL || *uri == '\0')
+    return;
+
+  file     = g_file_new_for_uri (uri);
+  basename = g_file_get_basename (file);
+
+  if (basename != NULL &&
+      (g_str_has_suffix (basename, ".metainfo.xml") ||
+       g_str_has_suffix (basename, ".appdata.xml")))
+    open_metainfo_take (self, g_object_ref (file));
+  else
+    open_flatpakref_take (self, g_object_ref (file));
+}
+
+static void
 bz_application_sync_remotes_action (GSimpleAction *action,
                                     GVariant      *parameter,
                                     gpointer       user_data)
@@ -848,6 +875,7 @@ static const GActionEntry app_actions[] = {
   {            "donate",            bz_application_donate_action, NULL },
   {  "bazaar-inspector",  bz_application_bazaar_inspector_action, NULL },
   { "toggle-debug-mode", bz_application_toggle_debug_mode_action, NULL },
+  {     "open-location",     bz_application_open_location_action,  "s" },
 };
 
 static void
