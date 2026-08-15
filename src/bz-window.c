@@ -56,6 +56,8 @@ struct _BzWindow
   GtkEventController *key_controller;
 
   BzScreenshotPage *screenshot_page;
+  GtkWidget        *drop_overlay;
+  GtkRevealer      *drop_revealer;
 
   gboolean breakpoint_applied;
 
@@ -67,6 +69,7 @@ struct _BzWindow
   AdwViewStack      *main_view_stack;
   GtkStack          *main_stack;
   GtkOverlay        *window_overlay;
+  GtkDropTarget     *drop_target;
 };
 
 G_DEFINE_FINAL_TYPE (BzWindow, bz_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -148,6 +151,9 @@ static void
 emit_hook_disown (BzWindow     *self,
                   BzHookSignal  signal,
                   BzEntryGroup *group);
+
+static gboolean
+can_accept_drop (BzWindow *self);
 
 static void
 bz_window_dispose (GObject *object)
@@ -392,6 +398,94 @@ format_title (gpointer    object,
     return g_strdup (_ ("Bazaar"));
   /* Translators: %s is the title of the current page */
   return g_strdup_printf (_ ("Bazaar — %s"), title);
+}
+
+static gboolean
+drop_accept_cb (BzWindow      *self,
+                GdkDrop       *drop,
+                GtkDropTarget *target)
+{
+  return can_accept_drop (self);
+}
+
+static gboolean
+drop_cb (BzWindow      *self,
+        const GValue  *value,
+        double         x,
+        double         y,
+        GtkDropTarget *target)
+{
+  GFile            *file = NULL;
+  g_autofree char  *uri  = NULL;
+
+  file = G_FILE (g_value_get_object (value));
+  uri  = g_file_get_uri (file);
+
+  gtk_widget_activate_action (GTK_WIDGET (self), "app.open-location", "s", uri);
+
+  return TRUE;
+}
+
+static GdkDragAction
+drop_enter_cb (BzWindow      *self,
+               double         x,
+               double         y,
+               GtkDropTarget *target)
+{
+  GtkWidget *inner  = NULL;
+  GtkWidget *status = NULL;
+
+  if (!can_accept_drop (self))
+    return 0;
+
+  if (self->drop_revealer != NULL)
+    {
+      gtk_revealer_set_reveal_child (self->drop_revealer, TRUE);
+      return GDK_ACTION_COPY;
+    }
+
+  /* We initialize it here instead of the Blueprint to not cause issues with
+   *  the GTK Inspectors object selector */
+  self->drop_overlay = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  gtk_widget_add_css_class (self->drop_overlay, "bz-drop-overlay");
+  gtk_widget_set_can_target (self->drop_overlay, FALSE);
+
+  inner = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  gtk_widget_add_css_class (inner, "bz-drop-overlay-inner");
+  gtk_widget_set_hexpand (inner, TRUE);
+  gtk_widget_set_vexpand (inner, TRUE);
+
+  status = adw_status_page_new ();
+  adw_status_page_set_icon_name (ADW_STATUS_PAGE (status), "folder-open-symbolic");
+  adw_status_page_set_title (ADW_STATUS_PAGE (status), _ ("Drop to Open"));
+  adw_status_page_set_description (ADW_STATUS_PAGE (status), _ ("Flatpak &amp; Flatpak ref files"));
+  gtk_widget_set_valign (status, GTK_ALIGN_CENTER);
+  gtk_widget_set_vexpand (status, TRUE);
+
+  gtk_box_append (GTK_BOX (inner), status);
+  gtk_box_append (GTK_BOX (self->drop_overlay), inner);
+
+  self->drop_revealer = GTK_REVEALER (gtk_revealer_new ());
+  gtk_revealer_set_transition_type (self->drop_revealer, GTK_REVEALER_TRANSITION_TYPE_CROSSFADE);
+  gtk_revealer_set_transition_duration (self->drop_revealer, 150);
+  gtk_revealer_set_child (self->drop_revealer, self->drop_overlay);
+  gtk_widget_set_can_target (GTK_WIDGET (self->drop_revealer), FALSE);
+
+  gtk_overlay_add_overlay (self->window_overlay, GTK_WIDGET (self->drop_revealer));
+
+  gtk_revealer_set_reveal_child (self->drop_revealer, TRUE);
+
+  return GDK_ACTION_COPY;
+}
+
+static void
+drop_leave_cb (BzWindow      *self,
+               GtkDropTarget *target)
+{
+  if (self->drop_revealer == NULL)
+    return;
+
+  gtk_revealer_set_reveal_child (self->drop_revealer, FALSE);
 }
 
 static BzEntryGroup *
@@ -786,6 +880,7 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_view_stack);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_stack);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, window_overlay);
+  gtk_widget_class_bind_template_child (widget_class, BzWindow, drop_target);
   gtk_widget_class_bind_template_callback (widget_class, list_length);
   gtk_widget_class_bind_template_callback (widget_class, update_cb);
   gtk_widget_class_bind_template_callback (widget_class, page_toggled_cb);
@@ -797,6 +892,10 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, open_search_cb);
   gtk_widget_class_bind_template_callback (widget_class, format_progress);
   gtk_widget_class_bind_template_callback (widget_class, format_title);
+  gtk_widget_class_bind_template_callback (widget_class, drop_accept_cb);
+  gtk_widget_class_bind_template_callback (widget_class, drop_cb);
+  gtk_widget_class_bind_template_callback (widget_class, drop_enter_cb);
+  gtk_widget_class_bind_template_callback (widget_class, drop_leave_cb);
 
   gtk_widget_class_install_action (widget_class, "escape", NULL, action_escape);
   gtk_widget_class_install_action (widget_class, "window.user-data", NULL, action_user_data);
@@ -874,6 +973,7 @@ bz_window_init (BzWindow *self)
                             G_CALLBACK (key_pressed),
                             self);
   gtk_widget_add_controller (GTK_WIDGET (self), self->key_controller);
+  gtk_drop_target_set_gtypes (self->drop_target, (GType[]) { G_TYPE_FILE }, 1);
 }
 
 static void
@@ -1410,4 +1510,12 @@ emit_hook_disown (BzWindow     *self,
 
   dex_future_disown (bz_run_hook_emission (
       hooks, signal, 0, NULL, group));
+}
+
+static gboolean
+can_accept_drop (BzWindow *self)
+{
+  return !bz_state_info_get_busy (self->state) &&
+         self->screenshot_page == NULL &&
+         adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (self)) == NULL;
 }

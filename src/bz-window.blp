@@ -32,6 +32,15 @@ template $BzWindow: Adw.ApplicationWindow {
     }
   }
 
+  DropTarget drop_target {
+    actions: copy;
+
+    accept => $drop_accept_cb(template);
+    drop => $drop_cb(template);
+    enter => $drop_enter_cb(template);
+    leave => $drop_leave_cb(template);
+  }
+
   content: Gtk.Overlay window_overlay {
     child: Adw.ToolbarView {
       content: Adw.BreakpointBin split_breakpoint_bin {
