@@ -2,6 +2,11 @@
 <img src="data/icons/hicolor/scalable/apps/io.github.kolunmi.Bazaar.svg" width="128" height="128" />
 <br/>
 Bazaar
+<br/>
+<a href="https://apps.gnome.org/Bazaar/">
+    <img src="https://circle.gnome.org/assets/button/badge.svg"
+         alt="GNOME Circle" />
+</a>
 </h1>
 
 > [!NOTE]
