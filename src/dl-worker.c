@@ -22,35 +22,15 @@
 
 #include "env.h"
 #include "global-net.h"
-#include "util.h"
-
-BZ_DEFINE_DATA (
-    main,
-    Main,
-    {
-      GMainLoop  *loop;
-      GIOChannel *stdout_channel;
-    },
-    BZ_RELEASE_DATA (loop, g_main_loop_unref);
-    BZ_RELEASE_DATA (stdout_channel, g_io_channel_unref));
-
-BZ_DEFINE_DATA (
-    download,
-    Download,
-    {
-      char       *src;
-      char       *dest;
-      GIOChannel *stdout_channel;
-    },
-    BZ_RELEASE_DATA (src, g_free);
-    BZ_RELEASE_DATA (dest, g_free);
-    BZ_RELEASE_DATA (stdout_channel, g_io_channel_unref));
 
 static DexFuture *
-read_stdin (MainData *data);
+read_stdin_fiber (GMainLoop  *loop,
+                  GIOChannel *stdout_channel);
 
 static DexFuture *
-download_fiber (DownloadData *data);
+download_fiber (const char *src_uri,
+                const char *dest_path,
+                GIOChannel *stdout_channel);
 
 int
 main (int   argc,
@@ -58,7 +38,6 @@ main (int   argc,
 {
   g_autoptr (GIOChannel) stdout_channel = NULL;
   g_autoptr (GMainLoop) main_loop       = NULL;
-  g_autoptr (MainData) data             = NULL;
   g_autoptr (DexFuture) future          = NULL;
 
   g_log_writer_default_set_use_stderr (TRUE);
@@ -70,35 +49,33 @@ main (int   argc,
 
   main_loop = g_main_loop_new (NULL, FALSE);
 
-  data                 = main_data_new ();
-  data->loop           = g_main_loop_ref (main_loop);
-  data->stdout_channel = g_io_channel_ref (stdout_channel);
-
-  future = dex_scheduler_spawn (
+  future = dex_scheduler_spawnv (
       dex_thread_pool_scheduler_get_default (),
       bz_get_dex_stack_size (),
-      (DexFiberFunc) read_stdin,
-      main_data_ref (data), main_data_unref);
+      G_CALLBACK (read_stdin_fiber),
+      2,
+      G_TYPE_MAIN_LOOP, main_loop,
+      G_TYPE_IO_CHANNEL, stdout_channel);
   g_main_loop_run (main_loop);
 
   return EXIT_SUCCESS;
 }
 
 static DexFuture *
-read_stdin (MainData *data)
+read_stdin_fiber (GMainLoop  *loop,
+                  GIOChannel *stdout_channel)
 {
   g_autoptr (GIOChannel) stdin_channel = NULL;
 
   stdin_channel = g_io_channel_unix_new (STDIN_FILENO);
   for (;;)
     {
-      g_autoptr (GError) local_error   = NULL;
-      g_autofree char *string          = NULL;
-      char            *newline         = NULL;
-      g_autoptr (GVariant) variant     = NULL;
-      g_autofree char *src_uri         = NULL;
-      g_autofree char *dest_path       = NULL;
-      g_autoptr (DownloadData) dl_data = NULL;
+      g_autoptr (GError) local_error = NULL;
+      g_autofree char *string        = NULL;
+      char            *newline       = NULL;
+      g_autoptr (GVariant) variant   = NULL;
+      g_autofree char *src_uri       = NULL;
+      g_autofree char *dst_path      = NULL;
 
       g_io_channel_read_line (
           stdin_channel, &string, NULL, NULL, &local_error);
@@ -106,7 +83,7 @@ read_stdin (MainData *data)
         {
           if (local_error != NULL)
             g_warning ("FATAL: Failure reading stdin channel: %s", local_error->message);
-          g_main_loop_quit (data->loop);
+          g_main_loop_quit (loop);
           return NULL;
         }
 
@@ -122,29 +99,29 @@ read_stdin (MainData *data)
         {
           g_warning ("Failure parsing variant text '%s' into structure: %s\n",
                      string, local_error->message);
-          g_main_loop_quit (data->loop);
+          g_main_loop_quit (loop);
           continue;
         }
 
-      g_variant_get (variant, "(ss)", &src_uri, &dest_path);
+      g_variant_get (variant, "(ss)", &src_uri, &dst_path);
 
-      dl_data                 = download_data_new ();
-      dl_data->src            = g_steal_pointer (&src_uri);
-      dl_data->dest           = g_steal_pointer (&dest_path);
-      dl_data->stdout_channel = g_io_channel_ref (data->stdout_channel);
-
-      dex_future_disown (dex_scheduler_spawn (
+      dex_future_disown (dex_scheduler_spawnv (
           dex_scheduler_get_default (),
           bz_get_dex_stack_size (),
-          (DexFiberFunc) download_fiber,
-          download_data_ref (dl_data), download_data_unref));
+          G_CALLBACK (download_fiber),
+          3,
+          G_TYPE_STRING, src_uri,
+          G_TYPE_STRING, dst_path,
+          G_TYPE_IO_CHANNEL, stdout_channel));
     }
 
   return NULL;
 }
 
 static DexFuture *
-download_fiber (DownloadData *data)
+download_fiber (const char *src_uri,
+                const char *dst_path,
+                GIOChannel *stdout_channel)
 {
   gboolean success                          = FALSE;
   g_autoptr (GError) local_error            = NULL;
@@ -156,7 +133,7 @@ download_fiber (DownloadData *data)
   g_autofree char *output                   = NULL;
   g_autofree char *output_plus_nl           = NULL;
 
-  dest_file   = g_file_new_for_path (data->dest);
+  dest_file   = g_file_new_for_path (dst_path);
   dest_output = g_file_replace (
       dest_file, NULL, FALSE,
       G_FILE_CREATE_REPLACE_DESTINATION,
@@ -167,7 +144,7 @@ download_fiber (DownloadData *data)
       goto done;
     }
 
-  message = soup_message_new (SOUP_METHOD_GET, data->src);
+  message = soup_message_new (SOUP_METHOD_GET, src_uri);
 
   headers = soup_message_get_request_headers (message);
   soup_message_headers_append (headers, "Accept", "*/*");
@@ -183,11 +160,11 @@ download_fiber (DownloadData *data)
     }
 
 done:
-  variant        = g_variant_new ("(sb)", data->dest, success);
+  variant        = g_variant_new ("(sb)", dst_path, success);
   output         = g_variant_print (variant, TRUE);
   output_plus_nl = g_strdup_printf ("%s\n", output);
 
-  g_io_channel_write_chars (data->stdout_channel, output_plus_nl, -1, NULL, NULL);
+  g_io_channel_write_chars (stdout_channel, output_plus_nl, -1, NULL, NULL);
 
   return dex_future_new_true ();
 }
