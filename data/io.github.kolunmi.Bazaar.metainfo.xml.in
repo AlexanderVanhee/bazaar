@@ -23,8 +23,10 @@
     <control>pointing</control>
     <control>keyboard</control>
     <control>touch</control>
-    <display_length compare="ge">360</display_length>
   </supports>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
 
   <developer id="io.github.kolunmi">
     <name>The Bazaar Contributors</name>
