@@ -56,25 +56,6 @@
     --banner-color: var(--accent-bg-color);
 }
 
-.bz-drop-overlay {
-  background-color: alpha(color-mix(in srgb, @accent_bg_color 50%, @window_bg_color 75%), 0.80);
-  backdrop-filter: blur(4px);
-}
-
-.bz-drop-overlay-inner {
-  border: 2px dashed alpha(@accent_color, 0.65);
-  border-radius: max(0px, calc(var(--window-radius) - 3px));
-  margin: 6px;
-}
-
-.bz-drop-overlay statuspage {
-  color: @accent_color;
-}
-
-.bz-drop-overlay statuspage image {
-  color: @accent_color;
-}
-
 .updates-amount {
 	background-color: white;
 	color: var(--accent-bg-color);

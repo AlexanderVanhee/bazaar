@@ -56,8 +56,6 @@ struct _BzWindow
   GtkEventController *key_controller;
 
   BzScreenshotPage *screenshot_page;
-  GtkWidget        *drop_overlay;
-  GtkRevealer      *drop_revealer;
 
   gboolean breakpoint_applied;
 
@@ -151,9 +149,6 @@ static void
 emit_hook_disown (BzWindow     *self,
                   BzHookSignal  signal,
                   BzEntryGroup *group);
-
-static gboolean
-can_accept_drop (BzWindow *self);
 
 static void
 bz_window_dispose (GObject *object)
@@ -405,7 +400,9 @@ drop_accept_cb (BzWindow      *self,
                 GdkDrop       *drop,
                 GtkDropTarget *target)
 {
-  return can_accept_drop (self);
+  return !bz_state_info_get_busy (self->state) &&
+         self->screenshot_page == NULL &&
+         adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (self)) == NULL;
 }
 
 static gboolean
@@ -424,68 +421,6 @@ drop_cb (BzWindow      *self,
   gtk_widget_activate_action (GTK_WIDGET (self), "app.open-location", "s", uri);
 
   return TRUE;
-}
-
-static GdkDragAction
-drop_enter_cb (BzWindow      *self,
-               double         x,
-               double         y,
-               GtkDropTarget *target)
-{
-  GtkWidget *inner  = NULL;
-  GtkWidget *status = NULL;
-
-  if (!can_accept_drop (self))
-    return 0;
-
-  if (self->drop_revealer != NULL)
-    {
-      gtk_revealer_set_reveal_child (self->drop_revealer, TRUE);
-      return GDK_ACTION_COPY;
-    }
-
-  /* We initialize it here instead of the Blueprint to not cause issues with
-   *  the GTK Inspectors object selector */
-  self->drop_overlay = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  gtk_widget_add_css_class (self->drop_overlay, "bz-drop-overlay");
-  gtk_widget_set_can_target (self->drop_overlay, FALSE);
-
-  inner = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  gtk_widget_add_css_class (inner, "bz-drop-overlay-inner");
-  gtk_widget_set_hexpand (inner, TRUE);
-  gtk_widget_set_vexpand (inner, TRUE);
-
-  status = adw_status_page_new ();
-  adw_status_page_set_icon_name (ADW_STATUS_PAGE (status), "folder-open-symbolic");
-  adw_status_page_set_title (ADW_STATUS_PAGE (status), _ ("Drop to Open"));
-  adw_status_page_set_description (ADW_STATUS_PAGE (status), _ ("Flatpak &amp; Flatpak ref files"));
-  gtk_widget_set_valign (status, GTK_ALIGN_CENTER);
-  gtk_widget_set_vexpand (status, TRUE);
-
-  gtk_box_append (GTK_BOX (inner), status);
-  gtk_box_append (GTK_BOX (self->drop_overlay), inner);
-
-  self->drop_revealer = GTK_REVEALER (gtk_revealer_new ());
-  gtk_revealer_set_transition_type (self->drop_revealer, GTK_REVEALER_TRANSITION_TYPE_CROSSFADE);
-  gtk_revealer_set_transition_duration (self->drop_revealer, 150);
-  gtk_revealer_set_child (self->drop_revealer, self->drop_overlay);
-  gtk_widget_set_can_target (GTK_WIDGET (self->drop_revealer), FALSE);
-
-  gtk_overlay_add_overlay (self->window_overlay, GTK_WIDGET (self->drop_revealer));
-
-  gtk_revealer_set_reveal_child (self->drop_revealer, TRUE);
-
-  return GDK_ACTION_COPY;
-}
-
-static void
-drop_leave_cb (BzWindow      *self,
-               GtkDropTarget *target)
-{
-  if (self->drop_revealer == NULL)
-    return;
-
-  gtk_revealer_set_reveal_child (self->drop_revealer, FALSE);
 }
 
 static BzEntryGroup *
@@ -894,8 +829,6 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, format_title);
   gtk_widget_class_bind_template_callback (widget_class, drop_accept_cb);
   gtk_widget_class_bind_template_callback (widget_class, drop_cb);
-  gtk_widget_class_bind_template_callback (widget_class, drop_enter_cb);
-  gtk_widget_class_bind_template_callback (widget_class, drop_leave_cb);
 
   gtk_widget_class_install_action (widget_class, "escape", NULL, action_escape);
   gtk_widget_class_install_action (widget_class, "window.user-data", NULL, action_user_data);
@@ -1510,12 +1443,4 @@ emit_hook_disown (BzWindow     *self,
 
   dex_future_disown (bz_run_hook_emission (
       hooks, signal, 0, NULL, group));
-}
-
-static gboolean
-can_accept_drop (BzWindow *self)
-{
-  return !bz_state_info_get_busy (self->state) &&
-         self->screenshot_page == NULL &&
-         adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (self)) == NULL;
 }
