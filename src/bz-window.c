@@ -67,6 +67,7 @@ struct _BzWindow
   AdwViewStack      *main_view_stack;
   GtkStack          *main_stack;
   GtkOverlay        *window_overlay;
+  GtkDropTarget     *drop_target;
 };
 
 G_DEFINE_FINAL_TYPE (BzWindow, bz_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -392,6 +393,34 @@ format_title (gpointer    object,
     return g_strdup (_ ("Bazaar"));
   /* Translators: %s is the title of the current page */
   return g_strdup_printf (_ ("Bazaar — %s"), title);
+}
+
+static gboolean
+drop_accept_cb (BzWindow      *self,
+                GdkDrop       *drop,
+                GtkDropTarget *target)
+{
+  return !bz_state_info_get_busy (self->state) &&
+         self->screenshot_page == NULL &&
+         adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (self)) == NULL;
+}
+
+static gboolean
+drop_cb (BzWindow      *self,
+        const GValue  *value,
+        double         x,
+        double         y,
+        GtkDropTarget *target)
+{
+  GFile            *file = NULL;
+  g_autofree char  *uri  = NULL;
+
+  file = G_FILE (g_value_get_object (value));
+  uri  = g_file_get_uri (file);
+
+  gtk_widget_activate_action (GTK_WIDGET (self), "app.open-location", "s", uri);
+
+  return TRUE;
 }
 
 static BzEntryGroup *
@@ -786,6 +815,7 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_view_stack);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, main_stack);
   gtk_widget_class_bind_template_child (widget_class, BzWindow, window_overlay);
+  gtk_widget_class_bind_template_child (widget_class, BzWindow, drop_target);
   gtk_widget_class_bind_template_callback (widget_class, list_length);
   gtk_widget_class_bind_template_callback (widget_class, update_cb);
   gtk_widget_class_bind_template_callback (widget_class, page_toggled_cb);
@@ -797,6 +827,8 @@ bz_window_class_init (BzWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, open_search_cb);
   gtk_widget_class_bind_template_callback (widget_class, format_progress);
   gtk_widget_class_bind_template_callback (widget_class, format_title);
+  gtk_widget_class_bind_template_callback (widget_class, drop_accept_cb);
+  gtk_widget_class_bind_template_callback (widget_class, drop_cb);
 
   gtk_widget_class_install_action (widget_class, "escape", NULL, action_escape);
   gtk_widget_class_install_action (widget_class, "window.user-data", NULL, action_user_data);
@@ -874,6 +906,7 @@ bz_window_init (BzWindow *self)
                             G_CALLBACK (key_pressed),
                             self);
   gtk_widget_add_controller (GTK_WIDGET (self), self->key_controller);
+  gtk_drop_target_set_gtypes (self->drop_target, (GType[]) { G_TYPE_FILE }, 1);
 }
 
 static void

@@ -189,6 +189,11 @@ static void
 open_metainfo_take (BzApplication *self,
                     GFile         *file);
 
+static void
+open_location_take (BzApplication *self,
+                    const char    *name_for_suffix_check,
+                    GFile         *file);
+
 static DexFuture *
 backend_sync_finally (DexFuture *future,
                       BzWeakRef *wr);
@@ -674,6 +679,28 @@ bz_application_show_app_id_action (GSimpleAction *action,
 }
 
 static void
+bz_application_open_location_action (GSimpleAction *action,
+                                     GVariant      *parameter,
+                                     gpointer       user_data)
+{
+  BzApplication *self         = user_data;
+  const char    *uri          = NULL;
+  g_autoptr (GFile) file      = NULL;
+  g_autofree char *basename   = NULL;
+
+  g_assert (BZ_IS_APPLICATION (self));
+
+  uri = g_variant_get_string (parameter, NULL);
+  if (uri == NULL || *uri == '\0')
+    return;
+
+  file     = g_file_new_for_uri (uri);
+  basename = g_file_get_basename (file);
+
+  open_location_take (self, basename, g_object_ref (file));
+}
+
+static void
 bz_application_sync_remotes_action (GSimpleAction *action,
                                     GVariant      *parameter,
                                     gpointer       user_data)
@@ -848,6 +875,7 @@ static const GActionEntry app_actions[] = {
   {            "donate",            bz_application_donate_action, NULL },
   {  "bazaar-inspector",  bz_application_bazaar_inspector_action, NULL },
   { "toggle-debug-mode", bz_application_toggle_debug_mode_action, NULL },
+  {     "open-location",     bz_application_open_location_action,  "s" },
 };
 
 static void
@@ -3791,6 +3819,19 @@ open_metainfo_take (BzApplication *self,
 }
 
 static void
+open_location_take (BzApplication *self,
+                    const char    *name_for_suffix_check,
+                    GFile         *file)
+{
+  if (name_for_suffix_check != NULL &&
+      (g_str_has_suffix (name_for_suffix_check, ".metainfo.xml") ||
+       g_str_has_suffix (name_for_suffix_check, ".appdata.xml")))
+    open_metainfo_take (self, file);
+  else
+    open_flatpakref_take (self, file);
+}
+
+static void
 command_line_open_location (BzApplication           *self,
                             GApplicationCommandLine *cmdline,
                             const char              *location)
@@ -3818,11 +3859,7 @@ command_line_open_location (BzApplication           *self,
                  : g_file_new_for_path (location);
     }
 
-  if (g_str_has_suffix (location, ".metainfo.xml") ||
-      g_str_has_suffix (location, ".appdata.xml"))
-    open_metainfo_take (self, g_steal_pointer (&file));
-  else
-    open_flatpakref_take (self, g_steal_pointer (&file));
+  open_location_take (self, location, g_steal_pointer (&file));
 }
 
 static void
