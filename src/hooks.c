@@ -28,33 +28,6 @@
 #include "util.h"
 
 BZ_DEFINE_DATA (
-    execute_hook,
-    ExecuteHook,
-    {
-      BzHook               *hook;
-      BzHookTransactionType ts_type;
-      char                 *ts_appid;
-      BzEntryGroup         *group;
-    },
-    BZ_RELEASE_DATA (hook, g_object_unref);
-    BZ_RELEASE_DATA (ts_appid, g_free);
-    BZ_RELEASE_DATA (group, g_object_unref))
-
-BZ_DEFINE_DATA (
-    run_emission,
-    RunEmission,
-    {
-      GListModel           *hooks;
-      BzHookSignal          signal;
-      BzHookTransactionType ts_type;
-      char                 *ts_appid;
-      BzEntryGroup         *group;
-    },
-    BZ_RELEASE_DATA (hooks, g_object_unref);
-    BZ_RELEASE_DATA (ts_appid, g_free);
-    BZ_RELEASE_DATA (group, g_object_unref))
-
-BZ_DEFINE_DATA (
     dialog,
     Dialog,
     {
@@ -65,10 +38,17 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (dialog, g_object_unref));
 
 static DexFuture *
-execute_hook_fiber (ExecuteHookData *data);
+execute_hook_fiber (BzHook               *hook,
+                    BzHookTransactionType ts_type,
+                    const char           *ts_appid,
+                    BzEntryGroup         *group);
 
 static DexFuture *
-run_emission_fiber (RunEmissionData *data);
+run_emission_fiber (GListModel           *hooks,
+                    BzHookSignal          signal,
+                    BzHookTransactionType ts_type,
+                    const char           *ts_appid,
+                    BzEntryGroup         *group);
 
 DexFuture *
 bz_execute_hook (BzHook               *hook,
@@ -76,22 +56,17 @@ bz_execute_hook (BzHook               *hook,
                  const char           *ts_appid,
                  BzEntryGroup         *group)
 {
-  g_autoptr (ExecuteHookData) data = NULL;
-
   dex_return_error_if_fail (BZ_IS_HOOK (hook));
 
-  data           = execute_hook_data_new ();
-  data->hook     = g_object_ref (hook);
-  data->ts_type  = ts_type;
-  data->ts_appid = bz_maybe_strdup (ts_appid);
-  data->group    = bz_object_maybe_ref (group);
-
-  return dex_scheduler_spawn (
+  return dex_scheduler_spawnv (
       dex_scheduler_get_default (),
       bz_get_dex_stack_size (),
-      (DexFiberFunc) execute_hook_fiber,
-      execute_hook_data_ref (data),
-      execute_hook_data_unref);
+      G_CALLBACK (execute_hook_fiber),
+      4,
+      BZ_TYPE_HOOK, hook,
+      BZ_TYPE_HOOK_TRANSACTION_TYPE, ts_type,
+      G_TYPE_STRING, ts_appid,
+      BZ_TYPE_ENTRY_GROUP, group);
 }
 
 DexFuture *
@@ -101,33 +76,27 @@ bz_run_hook_emission (GListModel           *hooks,
                       const char           *ts_appid,
                       BzEntryGroup         *group)
 {
-  g_autoptr (RunEmissionData) data = NULL;
-
   dex_return_error_if_fail (G_IS_LIST_MODEL (hooks));
 
-  data           = run_emission_data_new ();
-  data->hooks    = g_object_ref (hooks);
-  data->signal   = signal;
-  data->ts_type  = ts_type;
-  data->ts_appid = bz_maybe_strdup (ts_appid);
-  data->group    = bz_object_maybe_ref (group);
-
-  return dex_scheduler_spawn (
+  return dex_scheduler_spawnv (
       dex_scheduler_get_default (),
       bz_get_dex_stack_size (),
-      (DexFiberFunc) run_emission_fiber,
-      execute_hook_data_ref (data),
-      execute_hook_data_unref);
+      G_CALLBACK (run_emission_fiber),
+      5,
+      G_TYPE_LIST_MODEL, hooks,
+      BZ_TYPE_HOOK_SIGNAL, signal,
+      BZ_TYPE_HOOK_TRANSACTION_TYPE, ts_type,
+      G_TYPE_STRING, ts_appid,
+      BZ_TYPE_ENTRY_GROUP, group);
 }
 
 static DexFuture *
-execute_hook_fiber (ExecuteHookData *data)
+execute_hook_fiber (BzHook               *hook,
+                    BzHookTransactionType ts_type,
+                    const char           *ts_appid,
+                    BzEntryGroup         *group)
 {
-  BzHook               *hook                = data->hook;
-  BzHookTransactionType ts_type             = data->ts_type;
-  char                 *ts_appid            = data->ts_appid;
-  BzEntryGroup         *group               = data->group;
-  BzHookSignal          signal              = 0;
+  BzHookSignal signal                       = 0;
   g_autoptr (GEnumClass) signal_enum_class  = NULL;
   g_autoptr (GEnumClass) ts_type_enum_class = NULL;
   GEnumValue *signal_enum                   = NULL;
@@ -500,14 +469,13 @@ execute_hook_fiber (ExecuteHookData *data)
 }
 
 static DexFuture *
-run_emission_fiber (RunEmissionData *data)
+run_emission_fiber (GListModel           *hooks,
+                    BzHookSignal          signal,
+                    BzHookTransactionType ts_type,
+                    const char           *ts_appid,
+                    BzEntryGroup         *group)
 {
-  GListModel           *hooks    = data->hooks;
-  BzHookSignal          signal   = data->signal;
-  BzHookTransactionType ts_type  = data->ts_type;
-  char                 *ts_appid = data->ts_appid;
-  BzEntryGroup         *group    = data->group;
-  guint                 n_hooks  = 0;
+  guint n_hooks = 0;
 
   n_hooks = g_list_model_get_n_items (hooks);
   for (guint i = 0; i < n_hooks; i++)
