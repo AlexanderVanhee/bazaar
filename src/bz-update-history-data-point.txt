@@ -1,0 +1,14 @@
+prefix=bz
+name=update_history_data_point
+parent-prefix=g
+parent-name=object
+author=AUTOGEN
+
+include="bz-entry-group.h"
+
+property=group BzEntryGroup BZ_TYPE_ENTRY_GROUP object
+property=old_version char G_TYPE_STRING string
+property=new_version char G_TYPE_STRING string
+
+property=title char G_TYPE_STRING string
+property=id char G_TYPE_STRING string

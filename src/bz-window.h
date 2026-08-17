@@ -68,6 +68,10 @@ void
 bz_window_bulk_install (BzWindow   *self,
                         GListModel *groups);
 
+void
+bz_window_show_update_history (BzWindow *self,
+                               GVariant *history);
+
 BzStateInfo *
 bz_window_get_state_info (BzWindow *self);
 

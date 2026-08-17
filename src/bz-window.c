@@ -47,6 +47,9 @@
 #include "util.h"
 #include "bz-window.h"
 
+#include "bz-update-history-data-point.h"
+#include "bz-update-history-dialog.h"
+
 struct _BzWindow
 {
   AdwApplicationWindow parent_instance;
@@ -1248,6 +1251,44 @@ bz_window_bulk_install (BzWindow   *self,
       (DexFiberFunc) bulk_install_fiber,
       bulk_install_data_ref (data),
       bulk_install_data_unref));
+}
+
+void
+bz_window_show_update_history (BzWindow *self,
+                               GVariant *history)
+{
+  g_autoptr (GListStore) store = NULL;
+  GVariantIter iter            = { 0 };
+  const char  *id              = NULL;
+  const char  *old_version     = NULL;
+  const char  *new_version     = NULL;
+  AdwDialog   *dialog          = NULL;
+
+  g_return_if_fail (BZ_IS_WINDOW (self));
+  g_return_if_fail (history != NULL);
+
+  store = g_list_store_new (BZ_TYPE_UPDATE_HISTORY_DATA_POINT);
+
+  g_variant_iter_init (&iter, history);
+  while (g_variant_iter_next (&iter, "(&s&s&s)", &id, &old_version, &new_version))
+    {
+      g_autoptr (BzEntryGroup) group             = NULL;
+      g_autoptr (BzUpdateHistoryDataPoint) point = NULL;
+
+      group = bz_application_map_factory_convert_one (
+          bz_state_info_get_application_factory (self->state),
+          gtk_string_object_new (id));
+
+      point = g_object_new (BZ_TYPE_UPDATE_HISTORY_DATA_POINT,
+                            "group", group,
+                            "old-version", old_version,
+                            "new-version", new_version,
+                            NULL);
+      g_list_store_append (store, point);
+    }
+
+  dialog = bz_update_history_dialog_new (G_LIST_MODEL (store));
+  adw_dialog_present (dialog, GTK_WIDGET (self));
 }
 
 BzStateInfo *

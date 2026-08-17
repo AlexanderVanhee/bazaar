@@ -29,10 +29,8 @@
 /* Dialog structure */
 typedef struct
 {
-  /* Template widgets */
-  AdwDialog   parent_instance;
-  GtkListBox *releases_box;
-  GListModel *installed_versions;
+  AdwDialog parent_instance;
+  AdwBin   *content_bin;
 } BzReleasesDialog;
 
 typedef struct
@@ -44,7 +42,7 @@ static GType bz_releases_dialog_get_type (void) G_GNUC_CONST;
 G_DEFINE_TYPE (BzReleasesDialog, bz_releases_dialog, ADW_TYPE_DIALOG)
 
 /* Main widget structure */
-struct _BzReleasesList
+struct _BzReleasesPreview
 {
   AdwBin parent_instance;
 
@@ -56,7 +54,7 @@ struct _BzReleasesList
   GtkBox     *show_all_box;
 };
 
-G_DEFINE_FINAL_TYPE (BzReleasesList, bz_releases_list, ADW_TYPE_BIN)
+G_DEFINE_FINAL_TYPE (BzReleasesPreview, bz_releases_preview, ADW_TYPE_BIN)
 
 enum
 {
@@ -261,7 +259,7 @@ create_release_row (const char *version,
     {
       more_info_box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4));
 
-      markup = g_markup_printf_escaped ("<a href=\"%s\" title=\"%s\">%s</a>", url, url, _ ("Get More Information"));
+      markup          = g_markup_printf_escaped ("<a href=\"%s\" title=\"%s\">%s</a>", url, url, _ ("Get More Information"));
       more_info_label = GTK_LABEL (gtk_label_new (NULL));
       gtk_label_set_markup (more_info_label, markup);
       gtk_widget_set_tooltip_text (GTK_WIDGET (more_info_label), url);
@@ -280,48 +278,19 @@ create_release_row (const char *version,
   return GTK_WIDGET (row);
 }
 
-static void
-bz_releases_dialog_dispose (GObject *object)
-{
-  BzReleasesDialog *self = (BzReleasesDialog *) object;
-
-  g_clear_object (&self->installed_versions);
-  G_OBJECT_CLASS (bz_releases_dialog_parent_class)->dispose (object);
-}
-
-static void
-bz_releases_dialog_class_init (BzReleasesDialogClass *klass)
-{
-  GObjectClass   *object_class = G_OBJECT_CLASS (klass);
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-
-  object_class->dispose = bz_releases_dialog_dispose;
-
-  gtk_widget_class_set_template_from_resource (widget_class,
-                                               "/io/github/kolunmi/Bazaar/bz-releases-dialog.ui");
-  gtk_widget_class_bind_template_child (widget_class, BzReleasesDialog, releases_box);
-}
-
-static void
-bz_releases_dialog_init (BzReleasesDialog *self)
-{
-  gtk_widget_init_template (GTK_WIDGET (self));
-}
-
 GtkWidget *
-bz_releases_dialog_new (GListModel *version_history,
-                        GListModel *installed_versions)
+bz_releases_list_new (GListModel *version_history,
+                      GListModel *installed_versions)
 {
-  BzReleasesDialog *dialog  = NULL;
-  guint             n_items = 0;
+  GtkListBox *box     = NULL;
+  guint       n_items = 0;
 
-  dialog = g_object_new (bz_releases_dialog_get_type (), NULL);
-
-  if (installed_versions)
-    dialog->installed_versions = g_object_ref (installed_versions);
+  box = GTK_LIST_BOX (gtk_list_box_new ());
+  gtk_list_box_set_selection_mode (box, GTK_SELECTION_NONE);
+  gtk_widget_add_css_class (GTK_WIDGET (box), "boxed-list");
 
   if (version_history == NULL)
-    return GTK_WIDGET (dialog);
+    return GTK_WIDGET (box);
 
   n_items = g_list_model_get_n_items (version_history);
   for (guint i = 0; i < n_items; i++)
@@ -342,19 +311,59 @@ bz_releases_dialog_new (GListModel *version_history,
       url         = bz_release_get_url (release);
       timestamp   = bz_release_get_timestamp (release);
 
-      row = create_release_row (version, description, timestamp, url, FALSE, dialog->installed_versions);
-      gtk_list_box_append (dialog->releases_box, row);
+      row = create_release_row (version, description, timestamp, url, FALSE, installed_versions);
+      gtk_list_box_append (box, row);
     }
+
+  return GTK_WIDGET (box);
+}
+
+static void
+bz_releases_dialog_dispose (GObject *object)
+{
+  G_OBJECT_CLASS (bz_releases_dialog_parent_class)->dispose (object);
+}
+
+static void
+bz_releases_dialog_class_init (BzReleasesDialogClass *klass)
+{
+  GObjectClass   *object_class = G_OBJECT_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+  object_class->dispose = bz_releases_dialog_dispose;
+
+  gtk_widget_class_set_template_from_resource (widget_class,
+                                               "/io/github/kolunmi/Bazaar/bz-releases-dialog.ui");
+  gtk_widget_class_bind_template_child (widget_class, BzReleasesDialog, content_bin);
+}
+
+static void
+bz_releases_dialog_init (BzReleasesDialog *self)
+{
+  gtk_widget_init_template (GTK_WIDGET (self));
+}
+
+GtkWidget *
+bz_releases_dialog_new (GListModel *version_history,
+                        GListModel *installed_versions)
+{
+  BzReleasesDialog *dialog = NULL;
+  GtkWidget        *list   = NULL;
+
+  dialog = g_object_new (bz_releases_dialog_get_type (), NULL);
+
+  list = bz_releases_list_new (version_history, installed_versions);
+  adw_bin_set_child (dialog->content_bin, list);
 
   return GTK_WIDGET (dialog);
 }
 
 static void
-clear_preview_box (BzReleasesList *self)
+clear_preview_box (BzReleasesPreview *self)
 {
   GtkWidget *child = NULL;
 
-  g_return_if_fail (BZ_IS_RELEASES_LIST (self));
+  g_return_if_fail (BZ_IS_RELEASES_PREVIEW (self));
 
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (self->preview_box))) != NULL)
     {
@@ -365,11 +374,11 @@ clear_preview_box (BzReleasesList *self)
 }
 
 static void
-populate_preview_box (BzReleasesList *self)
+populate_preview_box (BzReleasesPreview *self)
 {
   guint n_items = 0;
 
-  g_return_if_fail (BZ_IS_RELEASES_LIST (self));
+  g_return_if_fail (BZ_IS_RELEASES_PREVIEW (self));
 
   clear_preview_box (self);
 
@@ -411,13 +420,13 @@ populate_preview_box (BzReleasesList *self)
 }
 
 static void
-show_all_releases_cb (AdwButtonRow   *button,
-                      BzReleasesList *self)
+show_all_releases_cb (AdwButtonRow      *button,
+                      BzReleasesPreview *self)
 {
   GtkWidget *dialog = NULL;
   GtkRoot   *root   = NULL;
 
-  g_return_if_fail (BZ_IS_RELEASES_LIST (self));
+  g_return_if_fail (BZ_IS_RELEASES_PREVIEW (self));
 
   root = gtk_widget_get_root (GTK_WIDGET (self));
   if (root == NULL)
@@ -428,23 +437,23 @@ show_all_releases_cb (AdwButtonRow   *button,
 }
 
 static void
-bz_releases_list_dispose (GObject *object)
+bz_releases_preview_dispose (GObject *object)
 {
-  BzReleasesList *self = BZ_RELEASES_LIST (object);
+  BzReleasesPreview *self = BZ_RELEASES_PREVIEW (object);
 
   g_clear_object (&self->version_history);
   g_clear_object (&self->installed_versions);
 
-  G_OBJECT_CLASS (bz_releases_list_parent_class)->dispose (object);
+  G_OBJECT_CLASS (bz_releases_preview_parent_class)->dispose (object);
 }
 
 static void
-bz_releases_list_get_property (GObject    *object,
-                               guint       prop_id,
-                               GValue     *value,
-                               GParamSpec *pspec)
+bz_releases_preview_get_property (GObject    *object,
+                                  guint       prop_id,
+                                  GValue     *value,
+                                  GParamSpec *pspec)
 {
-  BzReleasesList *self = BZ_RELEASES_LIST (object);
+  BzReleasesPreview *self = BZ_RELEASES_PREVIEW (object);
 
   switch (prop_id)
     {
@@ -460,17 +469,29 @@ bz_releases_list_get_property (GObject    *object,
 }
 
 static void
-bz_releases_list_set_property (GObject      *object,
-                               guint         prop_id,
-                               const GValue *value,
-                               GParamSpec   *pspec)
+bz_releases_preview_set_property (GObject      *object,
+                                  guint         prop_id,
+                                  const GValue *value,
+                                  GParamSpec   *pspec)
 {
-  BzReleasesList *self = BZ_RELEASES_LIST (object);
+  BzReleasesPreview *self = BZ_RELEASES_PREVIEW (object);
 
   switch (prop_id)
     {
     case PROP_VERSION_HISTORY:
-      bz_releases_list_set_version_history (self, g_value_get_object (value));
+      g_clear_object (&self->version_history);
+      self->version_history = g_value_dup_object (value);
+      if (self->version_history != NULL)
+        {
+          populate_preview_box (self);
+          gtk_widget_set_visible (GTK_WIDGET (self),
+                                  g_list_model_get_n_items (self->version_history) > 0);
+        }
+      else
+        {
+          clear_preview_box (self);
+          gtk_widget_set_visible (GTK_WIDGET (self), FALSE);
+        }
       break;
     case PROP_INSTALLED_VERSIONS:
       g_clear_object (&self->installed_versions);
@@ -483,14 +504,14 @@ bz_releases_list_set_property (GObject      *object,
 }
 
 static void
-bz_releases_list_class_init (BzReleasesListClass *klass)
+bz_releases_preview_class_init (BzReleasesPreviewClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->dispose      = bz_releases_list_dispose;
-  object_class->get_property = bz_releases_list_get_property;
-  object_class->set_property = bz_releases_list_set_property;
+  object_class->dispose      = bz_releases_preview_dispose;
+  object_class->get_property = bz_releases_preview_get_property;
+  object_class->set_property = bz_releases_preview_set_property;
 
   props[PROP_VERSION_HISTORY] =
       g_param_spec_object ("version-history",
@@ -512,56 +533,21 @@ bz_releases_list_class_init (BzReleasesListClass *klass)
   g_type_ensure (BZ_TYPE_APPSTREAM_DESCRIPTION_RENDER);
 
   gtk_widget_class_set_template_from_resource (widget_class,
-                                               "/io/github/kolunmi/Bazaar/bz-releases-list.ui");
+                                               "/io/github/kolunmi/Bazaar/bz-releases-preview.ui");
   bz_widget_class_bind_all_util_callbacks (widget_class);
-  gtk_widget_class_bind_template_child (widget_class, BzReleasesList, preview_box);
-  gtk_widget_class_bind_template_child (widget_class, BzReleasesList, show_all_box);
+  gtk_widget_class_bind_template_child (widget_class, BzReleasesPreview, preview_box);
+  gtk_widget_class_bind_template_child (widget_class, BzReleasesPreview, show_all_box);
   gtk_widget_class_bind_template_callback (widget_class, show_all_releases_cb);
 }
 
 static void
-bz_releases_list_init (BzReleasesList *self)
+bz_releases_preview_init (BzReleasesPreview *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 }
 
 GtkWidget *
-bz_releases_list_new (void)
+bz_releases_preview_new (void)
 {
-  return g_object_new (BZ_TYPE_RELEASES_LIST, NULL);
-}
-
-void
-bz_releases_list_set_version_history (BzReleasesList *self,
-                                      GListModel     *version_history)
-{
-  g_return_if_fail (BZ_IS_RELEASES_LIST (self));
-  g_return_if_fail (version_history == NULL || G_IS_LIST_MODEL (version_history));
-
-  if (self->version_history == version_history)
-    return;
-
-  g_clear_object (&self->version_history);
-
-  if (version_history != NULL)
-    {
-      self->version_history = g_object_ref (version_history);
-      populate_preview_box (self);
-      gtk_widget_set_visible (GTK_WIDGET (self),
-                              g_list_model_get_n_items (version_history) > 0);
-    }
-  else
-    {
-      clear_preview_box (self);
-      gtk_widget_set_visible (GTK_WIDGET (self), FALSE);
-    }
-
-  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_VERSION_HISTORY]);
-}
-
-GListModel *
-bz_releases_list_get_version_history (BzReleasesList *self)
-{
-  g_return_val_if_fail (BZ_IS_RELEASES_LIST (self), NULL);
-  return self->version_history;
+  return g_object_new (BZ_TYPE_RELEASES_PREVIEW, NULL);
 }

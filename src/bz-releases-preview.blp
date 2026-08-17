@@ -1,11 +1,13 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $BzReleasesList: Adw.Bin {
+template $BzReleasesPreview: Adw.Bin {
   visible: false;
+
   child: Box {
     orientation: vertical;
     spacing: 12;
+
     ListBox preview_box {
       styles [
         "boxed-list",
@@ -17,6 +19,7 @@ template $BzReleasesList: Adw.Bin {
 
     ListBox show_all_box {
       visible: false;
+
       styles [
         "boxed-list",
       ]

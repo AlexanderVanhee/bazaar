@@ -98,7 +98,7 @@ src/bz-preferences-dialog.c
 src/bz-progress-bar.blp
 src/bz-progress-bar.c
 src/bz-releases-dialog.blp
-src/bz-releases-list.blp
+src/bz-releases-preview.blp
 src/bz-releases-list.c
 src/bz-result.c
 src/bz-rich-app-tile.blp
@@ -134,6 +134,8 @@ src/bz-transaction-tile.c
 src/bz-transaction.c
 src/bz-updates-card.blp
 src/bz-updates-card.c
+src/bz-update-history-dialog.blp
+src/bz-update-history-dialog.c
 src/bz-user-data-page.blp
 src/bz-user-data-page.c
 src/bz-user-data-tile.blp

@@ -25,12 +25,7 @@ template $BzReleasesDialog: Adw.Dialog {
         margin-start: 12;
         margin-end: 12;
 
-        child: ListBox releases_box {
-          styles ["boxed-list"]
-
-          valign: start;
-          selection-mode: none;
-        };
+        child: Adw.Bin content_bin {};
       };
     };
   };

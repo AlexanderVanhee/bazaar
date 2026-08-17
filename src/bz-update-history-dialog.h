@@ -1,6 +1,6 @@
-/* bz-releases-list.h
+/* bz-update-history-dialog.h
  *
- * Copyright 2025 Alexander Vanhee, Adam Masciola
+ * Copyright 2026 Alexander Vanhee
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,19 +24,10 @@
 
 G_BEGIN_DECLS
 
-#define BZ_TYPE_RELEASES_PREVIEW (bz_releases_preview_get_type ())
+#define BZ_TYPE_UPDATE_HISTORY_DIALOG (bz_update_history_dialog_get_type ())
+G_DECLARE_FINAL_TYPE (BzUpdateHistoryDialog, bz_update_history_dialog, BZ, UPDATE_HISTORY_DIALOG, AdwDialog)
 
-G_DECLARE_FINAL_TYPE (BzReleasesPreview, bz_releases_preview, BZ, RELEASES_PREVIEW, AdwBin)
-
-GtkWidget *
-bz_releases_preview_new (void);
-
-GtkWidget *
-bz_releases_list_new (GListModel *version_history,
-                      GListModel *installed_versions);
-
-GtkWidget *
-bz_releases_dialog_new (GListModel *version_history,
-                        GListModel *installed_versions);
+AdwDialog *
+bz_update_history_dialog_new (GListModel *model);
 
 G_END_DECLS

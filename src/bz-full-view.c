@@ -708,7 +708,7 @@ bz_full_view_class_init (BzFullViewClass *klass)
   g_type_ensure (BZ_TYPE_HARDWARE_SUPPORT_DIALOG);
   g_type_ensure (BZ_TYPE_INSTALL_CONTROLS);
   g_type_ensure (BZ_TYPE_SECTION_VIEW);
-  g_type_ensure (BZ_TYPE_RELEASES_LIST);
+  g_type_ensure (BZ_TYPE_RELEASES_PREVIEW);
   g_type_ensure (BZ_TYPE_SCREENSHOTS_CAROUSEL);
   g_type_ensure (BZ_TYPE_SHARE_LIST);
   g_type_ensure (BZ_TYPE_CONTEXT_TILE);

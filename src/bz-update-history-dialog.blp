@@ -1,0 +1,172 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $BzUpdateHistoryDialog: Adw.Dialog {
+  title: _("Installed Updates");
+  content-width: 550;
+  content-height: 600;
+
+  child: Adw.NavigationView nav_view {
+    Adw.NavigationPage {
+      title: _("Installed Updates");
+      tag: "updates";
+
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {}
+
+        content: ScrolledWindow {
+          hscrollbar-policy: never;
+          vexpand: true;
+
+          child: Adw.Clamp {
+            maximum-size: 600;
+            margin-start: 12;
+            margin-end: 12;
+            margin-top: 12;
+            margin-bottom: 12;
+
+            child: ListView list_view {
+              styles [
+                "navigation-sidebar",
+                "installed-list-view",
+              ]
+
+              valign: start;
+              single-click-activate: true;
+              activate => $row_activated_cb(template);
+
+              factory: BuilderListItemFactory {
+                template ListItem {
+                  child: Box {
+                    orientation: horizontal;
+                    spacing: 10;
+
+                    styles [
+                      "card",
+                    ]
+
+                    Image icon_picture {
+                      margin-start: 10;
+                      margin-top: 10;
+                      margin-bottom: 10;
+                      pixel-size: 64;
+                      valign: center;
+                      halign: center;
+                      icon-name: "application-x-executable-symbolic";
+                      paintable: bind template.item as <$BzUpdateHistoryDataPoint>.group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
+                      visible: bind try {$invert_boolean($is_null(template.item as <$BzUpdateHistoryDataPoint>.group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable) as <bool>) as <bool>, false};
+
+                      styles [
+                        "icon-dropshadow",
+                      ]
+                    }
+
+                    Image fallback_icon {
+                      margin-start: 10;
+                      margin-top: 10;
+                      margin-bottom: 10;
+                      height-request: 64;
+                      width-request: 64;
+                      pixel-size: 64;
+                      icon-name: "application-x-executable";
+                      visible: bind icon_picture.visible inverted;
+
+                      styles [
+                        "icon-dropshadow",
+                      ]
+                    }
+
+                    Box {
+                      orientation: vertical;
+                      valign: center;
+                      spacing: 4;
+                      hexpand: true;
+
+                      Label {
+                        xalign: 0.0;
+                        ellipsize: end;
+                        single-line-mode: true;
+                        has-tooltip: true;
+                        tooltip-text: bind template.item as <$BzUpdateHistoryDataPoint>.group as <$BzEntryGroup>.id;
+                        label: bind template.item as <$BzUpdateHistoryDataPoint>.group as <$BzEntryGroup>.title;
+                      }
+
+                      Label {
+                        ellipsize: end;
+                        single-line-mode: true;
+                        xalign: 0.0;
+                        label: bind $format_version_change(template.item as <$BzUpdateHistoryDataPoint>.old-version, template.item as <$BzUpdateHistoryDataPoint>.new-version) as <string>;
+
+                        styles [
+                          "dimmed",
+                          "caption",
+                          "heading",
+                        ]
+                      }
+                    }
+
+                    Image {
+                      pixel-size: 14;
+                      icon-name: "go-next-symbolic";
+                      valign: center;
+                      margin-end: 12;
+
+                      styles [
+                        "dimmed",
+                      ]
+                    }
+                  };
+                }
+              };
+            };
+          };
+        };
+      };
+    }
+
+    Adw.NavigationPage releases_page {
+      title: _("Release Notes");
+      tag: "releases";
+
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {}
+
+        content: Stack releases_stack {
+          vexpand: true;
+
+          StackPage {
+            name: "empty";
+
+            child: Adw.StatusPage {
+              icon-name: "ghost-symbolic";
+              title: _("No Release Info");
+            };
+          }
+
+          StackPage {
+            name: "content";
+
+            child: ScrolledWindow {
+              hscrollbar-policy: never;
+              vexpand: true;
+
+              child: Adw.Clamp {
+                maximum-size: 600;
+                margin-start: 12;
+                margin-end: 12;
+                margin-top: 12;
+                margin-bottom: 12;
+
+                child: Adw.Bin releases_bin {
+                  valign: start;
+                };
+              };
+            };
+          }
+        };
+      };
+    }
+  };
+}

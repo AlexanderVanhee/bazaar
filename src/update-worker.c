@@ -27,6 +27,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 
+#include "bz-update-history-data-point.h"
 #include "update-worker.h"
 
 #define DAILY_WINDOW_START_HOUR    6
@@ -48,11 +49,13 @@ static gboolean on_operation_error (FlatpakTransaction          *transaction,
                                     int                          details,
                                     gpointer                     user_data);
 static gboolean update_installation (FlatpakInstallation *installation,
-                                     GHashTable          *titles_out);
+                                     GPtrArray           *history_out);
 static void     send_portal_notification (const char *id,
                                           const char *title,
-                                          const char *body);
-static void     send_update_notification (GHashTable *titles);
+                                          const char *body,
+                                          const char *action,
+                                          GVariant   *action_target);
+static void     send_update_notification (GPtrArray *history);
 
 int
 run_update_worker (int   argc,
@@ -61,7 +64,7 @@ run_update_worker (int   argc,
   g_autoptr (GSettings) settings              = NULL;
   g_autoptr (GError) local_error              = NULL;
   g_autoptr (FlatpakInstallation) system_inst = NULL;
-  g_autoptr (GHashTable) titles               = NULL;
+  g_autoptr (GPtrArray) history               = NULL;
   gboolean auto_update                        = FALSE;
   gboolean auto_update_notifications          = FALSE;
   gboolean had_error                          = FALSE;
@@ -94,7 +97,7 @@ run_update_worker (int   argc,
       return EXIT_SUCCESS;
     }
 
-  titles = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+  history = g_ptr_array_new_with_free_func (g_object_unref);
 
   system_inst = flatpak_installation_new_system (NULL, &local_error);
   if (system_inst == NULL)
@@ -106,7 +109,7 @@ run_update_worker (int   argc,
   else
     {
       flatpak_installation_set_no_interaction (system_inst, TRUE);
-      if (!update_installation (system_inst, titles))
+      if (!update_installation (system_inst, history))
         had_error = TRUE;
     }
 
@@ -124,7 +127,7 @@ run_update_worker (int   argc,
     else
       {
         flatpak_installation_set_no_interaction (user_inst, TRUE);
-        if (!update_installation (user_inst, titles))
+        if (!update_installation (user_inst, history))
           had_error = TRUE;
       }
   }
@@ -140,14 +143,14 @@ run_update_worker (int   argc,
   now = g_date_time_new_now_local ();
   g_settings_set_int64 (settings, "last-update-check", g_date_time_to_unix (now));
 
-  if (g_hash_table_size (titles) == 0)
+  if (history->len == 0)
     {
       g_print ("No apps needed auto updating\n");
       return EXIT_SUCCESS;
     }
 
   if (auto_update_notifications)
-    send_update_notification (titles);
+    send_update_notification (history);
 
   return EXIT_SUCCESS;
 }
@@ -261,7 +264,8 @@ maybe_notify_stale (GSettings *settings)
 
   send_portal_notification ("bazaar-update-stale",
                             _ ("Updates Are Out of Date"),
-                            _ ("Please check for available updates"));
+                            _ ("Please check for available updates"),
+                            NULL, NULL);
 
   g_settings_set_int64 (settings, "last-stale-notification", g_date_time_to_unix (g_date_time_new_now_local ()));
 }
@@ -275,8 +279,7 @@ network_is_restricted (void)
   if (monitor == NULL)
     return FALSE;
 
-  return !g_network_monitor_get_network_available (monitor) ||
-         g_network_monitor_get_network_metered (monitor);
+  return g_network_monitor_get_network_metered (monitor);
 }
 
 static gboolean
@@ -321,11 +324,12 @@ on_operation_error (FlatpakTransaction          *transaction,
 
 static gboolean
 update_installation (FlatpakInstallation *installation,
-                     GHashTable          *titles_out)
+                     GPtrArray           *history_out)
 {
   g_autoptr (GError) local_error             = NULL;
   g_autoptr (GPtrArray) update_refs          = NULL;
   g_autoptr (FlatpakTransaction) transaction = NULL;
+  g_autoptr (GPtrArray) pending              = NULL;
   gboolean added_any                         = FALSE;
   gboolean ran                               = FALSE;
   gboolean success                           = TRUE;
@@ -350,11 +354,15 @@ update_installation (FlatpakInstallation *installation,
 
   g_signal_connect (transaction, "operation-error", G_CALLBACK (on_operation_error), NULL);
 
+  pending = g_ptr_array_new ();
+
   for (guint i = 0; i < update_refs->len; i++)
     {
       FlatpakInstalledRef *iref    = NULL;
       g_autofree char     *ref_fmt = NULL;
       const char          *title   = NULL;
+      const char          *id      = NULL;
+      const char          *old_ver = NULL;
 
       iref = g_ptr_array_index (update_refs, i);
       if (should_skip_extension_ref (iref))
@@ -362,14 +370,29 @@ update_installation (FlatpakInstallation *installation,
 
       ref_fmt = flatpak_ref_format_ref (FLATPAK_REF (iref));
 
+      id    = flatpak_ref_get_name (FLATPAK_REF (iref));
       title = flatpak_installed_ref_get_appdata_name (iref);
       if (title == NULL)
-        title = flatpak_ref_get_name (FLATPAK_REF (iref));
-
-      g_hash_table_replace (titles_out, g_strdup (ref_fmt), g_strdup (title));
+        title = id;
+      old_ver = flatpak_installed_ref_get_appdata_version (iref);
 
       if (flatpak_transaction_add_update (transaction, ref_fmt, NULL, NULL, &local_error))
-        added_any = TRUE;
+        {
+          BzUpdateHistoryDataPoint *point = NULL;
+
+          added_any = TRUE;
+
+          point = g_object_new (BZ_TYPE_UPDATE_HISTORY_DATA_POINT,
+                                "id", id,
+                                "title", title,
+                                "old-version", old_ver != NULL ? old_ver : "",
+                                "new-version", old_ver != NULL ? old_ver : "",
+                                NULL);
+
+          g_ptr_array_add (history_out, point);
+          g_ptr_array_add (pending, iref);
+          g_ptr_array_add (pending, point);
+        }
       else
         {
           g_warning ("Failed to queue update for %s: %s", ref_fmt, local_error->message);
@@ -388,13 +411,41 @@ update_installation (FlatpakInstallation *installation,
       success = FALSE;
     }
 
+  for (guint i = 0; i < pending->len; i += 2)
+    {
+      FlatpakInstalledRef      *iref              = NULL;
+      BzUpdateHistoryDataPoint *point             = NULL;
+      g_autoptr (FlatpakInstalledRef) updated_ref = NULL;
+      g_autoptr (GError) resolve_error            = NULL;
+      const char *new_ver                         = NULL;
+
+      iref  = g_ptr_array_index (pending, i);
+      point = g_ptr_array_index (pending, i + 1);
+
+      updated_ref = flatpak_installation_get_installed_ref (
+          installation,
+          flatpak_ref_get_kind (FLATPAK_REF (iref)),
+          flatpak_ref_get_name (FLATPAK_REF (iref)),
+          flatpak_ref_get_arch (FLATPAK_REF (iref)),
+          flatpak_ref_get_branch (FLATPAK_REF (iref)),
+          NULL, &resolve_error);
+
+      if (updated_ref != NULL)
+        {
+          new_ver = flatpak_installed_ref_get_appdata_version (updated_ref);
+          bz_update_history_data_point_set_new_version (point, new_ver != NULL ? new_ver : "");
+        }
+    }
+
   return success;
 }
 
 static void
 send_portal_notification (const char *id,
                           const char *title,
-                          const char *body)
+                          const char *body,
+                          const char *action,
+                          GVariant   *action_target)
 {
   g_autoptr (GDBusConnection) conn = NULL;
   g_autoptr (GError) error         = NULL;
@@ -413,6 +464,23 @@ send_portal_notification (const char *id,
   g_variant_builder_add (&notification, "{sv}", "body", g_variant_new_string (body));
   g_variant_builder_add (&notification, "{sv}", "priority", g_variant_new_string ("normal"));
 
+  if (action != NULL)
+    {
+      GVariantBuilder buttons = { 0 };
+      GVariantBuilder button  = { 0 };
+
+      g_variant_builder_init (&button, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&button, "{sv}", "label", g_variant_new_string (_ ("Details")));
+      g_variant_builder_add (&button, "{sv}", "action", g_variant_new_string (action));
+      if (action_target != NULL)
+        g_variant_builder_add (&button, "{sv}", "target", action_target);
+
+      g_variant_builder_init (&buttons, G_VARIANT_TYPE ("aa{sv}"));
+      g_variant_builder_add (&buttons, "a{sv}", &button);
+
+      g_variant_builder_add (&notification, "{sv}", "buttons", g_variant_builder_end (&buttons));
+    }
+
   g_dbus_connection_call_sync (
       conn, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
       "org.freedesktop.portal.Notification", "AddNotification",
@@ -424,42 +492,59 @@ send_portal_notification (const char *id,
 }
 
 static void
-send_update_notification (GHashTable *titles)
+send_update_notification (GPtrArray *history)
 {
-  g_autoptr (GString) body      = NULL;
-  g_autoptr (GPtrArray) updated = NULL;
-  g_autofree char *summary      = NULL;
-  GHashTableIter   iter         = { 0 };
-  gpointer         ref_key      = NULL;
-  gpointer         title_val    = NULL;
-  guint            n_updated    = 0;
+  g_autoptr (GString) body   = NULL;
+  g_autofree char *summary   = NULL;
+  guint            n_updated = history->len;
+  GVariantBuilder  builder   = { 0 };
+  guint            i         = 0;
 
-  body    = g_string_new (NULL);
-  updated = g_ptr_array_new ();
-
-  g_hash_table_iter_init (&iter, titles);
-  while (g_hash_table_iter_next (&iter, &ref_key, &title_val))
-    g_ptr_array_add (updated, title_val);
-
-  n_updated = updated->len;
   if (n_updated == 0)
     return;
+
+  body    = NULL;
+  summary = NULL;
+  i       = 0;
+
+  body = g_string_new (NULL);
 
   summary = g_strdup_printf (
       ngettext ("%u App Updated", "%u Apps Updated", n_updated), n_updated);
 
   if (n_updated == 1)
     g_string_append_printf (body, _ ("%s has been updated."),
-                            (const char *) g_ptr_array_index (updated, 0));
+                            bz_update_history_data_point_get_title (g_ptr_array_index (history, 0)));
   else if (n_updated == 2)
     g_string_append_printf (body, _ ("%s and %s have been updated."),
-                            (const char *) g_ptr_array_index (updated, 0),
-                            (const char *) g_ptr_array_index (updated, 1));
+                            bz_update_history_data_point_get_title (g_ptr_array_index (history, 0)),
+                            bz_update_history_data_point_get_title (g_ptr_array_index (history, 1)));
   else if (n_updated >= 3)
     g_string_append_printf (body, _ ("Includes %s, %s and %s."),
-                            (const char *) g_ptr_array_index (updated, 0),
-                            (const char *) g_ptr_array_index (updated, 1),
-                            (const char *) g_ptr_array_index (updated, 2));
+                            bz_update_history_data_point_get_title (g_ptr_array_index (history, 0)),
+                            bz_update_history_data_point_get_title (g_ptr_array_index (history, 1)),
+                            bz_update_history_data_point_get_title (g_ptr_array_index (history, 2)));
 
-  send_portal_notification ("bazaar-update", summary, body->str);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(sss)"));
+  for (i = 0; i < history->len; i++)
+    {
+      BzUpdateHistoryDataPoint *point   = NULL;
+      const char               *id      = NULL;
+      const char               *old_ver = NULL;
+      const char               *new_ver = NULL;
+
+      point   = g_ptr_array_index (history, i);
+      id      = bz_update_history_data_point_get_id (point);
+      old_ver = bz_update_history_data_point_get_old_version (point);
+      new_ver = bz_update_history_data_point_get_new_version (point);
+
+      g_variant_builder_add (&builder, "(sss)",
+                             id != NULL ? id : "",
+                             old_ver != NULL ? old_ver : "",
+                             new_ver != NULL ? new_ver : "");
+    }
+
+  send_portal_notification ("bazaar-update", summary, body->str,
+                            "app.show-update-history",
+                            g_variant_builder_end (&builder));
 }

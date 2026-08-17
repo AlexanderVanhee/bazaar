@@ -185,6 +185,10 @@ static DexFuture *
 open_metainfo_fiber (BzWeakRef *wr,
                      GFile     *file);
 
+static DexFuture *
+show_update_history_fiber (BzWeakRef *wr,
+                           GVariant  *history);
+
 static void
 open_metainfo_take (BzApplication *self,
                     GFile         *file);
@@ -839,6 +843,30 @@ bz_application_flathub_favorites_action (GSimpleAction *action,
 }
 
 static void
+bz_application_show_update_history_action (GSimpleAction *action,
+                                           GVariant      *parameter,
+                                           gpointer       user_data)
+{
+  BzApplication *self      = user_data;
+  g_autoptr (BzWeakRef) wr = NULL;
+
+  g_assert (BZ_IS_APPLICATION (self));
+
+  if (parameter == NULL)
+    return;
+
+  wr = bz_weak_ref_new (self);
+
+  dex_future_disown (dex_scheduler_spawnv (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      G_CALLBACK (show_update_history_fiber),
+      2,
+      BZ_TYPE_WEAK_REF, wr,
+      G_TYPE_VARIANT, parameter));
+}
+
+static void
 bz_application_quit_action (GSimpleAction *action,
                             GVariant      *parameter,
                             gpointer       user_data)
@@ -863,19 +891,20 @@ bz_application_quit_action (GSimpleAction *action,
 }
 
 static const GActionEntry app_actions[] = {
-  {     "flathub-login",     bz_application_flathub_login_action, NULL },
-  {    "flathub-logout",    bz_application_flathub_logout_action, NULL },
-  { "flathub-favorites", bz_application_flathub_favorites_action, NULL },
-  {              "quit",              bz_application_quit_action, NULL },
-  {       "preferences",       bz_application_preferences_action, NULL },
-  {             "about",             bz_application_about_action, NULL },
-  {      "sync-remotes",      bz_application_sync_remotes_action, NULL },
-  {            "search",            bz_application_search_action,  "s" },
-  {       "show-app-id",       bz_application_show_app_id_action,  "s" },
-  {            "donate",            bz_application_donate_action, NULL },
-  {  "bazaar-inspector",  bz_application_bazaar_inspector_action, NULL },
-  { "toggle-debug-mode", bz_application_toggle_debug_mode_action, NULL },
-  {     "open-location",     bz_application_open_location_action,  "s" },
+  {       "flathub-login",       bz_application_flathub_login_action,     NULL },
+  {      "flathub-logout",      bz_application_flathub_logout_action,     NULL },
+  {   "flathub-favorites",   bz_application_flathub_favorites_action,     NULL },
+  { "show-update-history", bz_application_show_update_history_action, "a(sss)" },
+  {                "quit",                bz_application_quit_action,     NULL },
+  {         "preferences",         bz_application_preferences_action,     NULL },
+  {               "about",               bz_application_about_action,     NULL },
+  {        "sync-remotes",        bz_application_sync_remotes_action,     NULL },
+  {              "search",              bz_application_search_action,      "s" },
+  {         "show-app-id",         bz_application_show_app_id_action,      "s" },
+  {              "donate",              bz_application_donate_action,     NULL },
+  {    "bazaar-inspector",    bz_application_bazaar_inspector_action,     NULL },
+  {   "toggle-debug-mode",   bz_application_toggle_debug_mode_action,     NULL },
+  {       "open-location",       bz_application_open_location_action,      "s" },
 };
 
 static void
@@ -2216,6 +2245,26 @@ open_metainfo_fiber (BzWeakRef *wr,
 
   g_object_set (entry, "id", "preview", NULL);
   bz_window_show_entry (BZ_WINDOW (window), entry);
+
+  return dex_future_new_true ();
+}
+
+static DexFuture *
+show_update_history_fiber (BzWeakRef *wr,
+                           GVariant  *history)
+{
+  g_autoptr (BzApplication) self = NULL;
+  GtkWindow *window              = NULL;
+
+  bz_weak_get_or_return_reject (self, &wr->ref);
+  dex_await (dex_ref (self->ready_to_open_files), NULL);
+
+  window = get_or_create_window (self);
+  // TODO: implement this in the get or create window func
+  if (adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (window)) != NULL)
+    window = new_window (self);
+
+  bz_window_show_update_history (BZ_WINDOW (window), history);
 
   return dex_future_new_true ();
 }
