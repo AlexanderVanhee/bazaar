@@ -1,39 +1,39 @@
 defwidget "My Widget" {
-  reference ref-string : "GtkStringObject";
+  reference ref-string: GtkStringObject;
 
-  var box : "GtkBox";
+  var box: GtkBox;
 
-  var cx : "gdouble";
-  var cy : "gdouble";
-  var w : "gdouble";
-  var h : "gdouble";
-  var corner : "gdouble";
+  var cx: gdouble;
+  var cy: gdouble;
+  var w: gdouble;
+  var h: gdouble;
+  var corner: gdouble;
 
-  var x : "gdouble";
-  var y : "gdouble";
+  var x: gdouble;
+  var y: gdouble;
 
-  var start : "gdouble";
-  var end : "gdouble";
-  var outline : "GskPath";
-  var measure : "GskPathMeasure";
+  var start: gdouble;
+  var end: gdouble;
+  var outline: GskPath;
+  var measure: GskPathMeasure;
 
   init {
     set box = #child/(""("gradient")
       orientation = vertical;
-      
+
       _=#child/GtkLabel(""()
         margin-start = 10;
         margin-end = 10;
         margin-top = 10;
         margin-bottom = 10;
-        
+
         label = ref-string:string;
         wrap = true;
       );
     );
 
     measure 200, 300, 200, 300;
-    
+
     set x = #eval(#(cx)-#(w)/2.0);
     set y = #eval(#(cy)-#(h)/2.0);
     allocate box w, h,
@@ -41,7 +41,7 @@ defwidget "My Widget" {
 
     set outline = #GskPath(
       move-to(#eval(#(x)+#(corner)), y);
-      
+
       rel-line-to(#eval(#(w)-#(corner)*2.0), 0.0);
       rel-arc-to(corner, 0.0, corner, corner);
 
@@ -65,7 +65,7 @@ defwidget "My Widget" {
       ) {
         do-child box;
       }
-      
+
       add stroke(
         #GskPath(
           add-segment(
@@ -99,7 +99,7 @@ defwidget "My Widget" {
     transition-spring start 0.5, 0.5, 5.0;
     transition-spring end 0.5, 0.5, 5.0;
   }
-  
+
   state "2" {
     set w = 200.0;
     set h = 200.0;

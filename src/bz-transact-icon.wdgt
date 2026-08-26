@@ -1,19 +1,19 @@
 defwidget "Transact Icon" {
-  reference info : "BzTransactIconInfo";
-  var progress : "gdouble";
+  reference info: BzTransactIconInfo;
+  var progress: gdouble;
 
-  var icon-scale : "gdouble";
+  var icon-scale: gdouble;
 
-  var flag : "GtkFixed";
-  var icon : "GtkImage";
+  var flag: GtkFixed;
+  var icon: GtkImage;
 
-  var start : "gdouble";
-  var end : "gdouble";
+  var start: gdouble;
+  var end: gdouble;
 
-  var path : "GskPath";
-  var path-measure : "GskPathMeasure";
-  var path-width : "gdouble";
-  var path-opacity : "gdouble";
+  var path: GskPath;
+  var path-measure: GskPathMeasure;
+  var path-width: gdouble;
+  var path-opacity: gdouble;
 
   init {
     set progress = #transition(info:tracker:progress, 1.1, 0.1, 10.0);

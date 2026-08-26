@@ -528,7 +528,7 @@ parse_widget_block (const char  *p,
 
           GET_TOKEN (&name, TOKEN_PARSE_DEFAULT);
           GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ":");
-          GET_TOKEN (&type_string, TOKEN_PARSE_QUOTED);
+          GET_TOKEN (&type_string, TOKEN_PARSE_DEFAULT);
           GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ";");
 
           type   = g_type_from_name (type_string);
@@ -548,7 +548,7 @@ parse_widget_block (const char  *p,
 
           GET_TOKEN (&name, TOKEN_PARSE_DEFAULT);
           GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ":");
-          GET_TOKEN (&type_string, TOKEN_PARSE_QUOTED);
+          GET_TOKEN (&type_string, TOKEN_PARSE_DEFAULT);
           GET_TOKEN_EXPECT (&token, TOKEN_PARSE_DEFAULT, ";");
 
           type   = g_type_from_name (type_string);

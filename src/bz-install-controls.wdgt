@@ -1,23 +1,23 @@
 defwidget "Install Button" {
-  reference state : "BzTransactionEntryTracker";
-  var progress : "gdouble";
+  reference state: BzTransactionEntryTracker;
+  var progress: gdouble;
 
-  var lbl-install : "GtkLabel";
-  var lbl-cancel : "GtkLabel";
-  var lbl-cancelling : "GtkLabel";
-  var stack : "GtkStack";
-  var btn : "GtkButton";
-  var flag : "GtkFixed";
+  var lbl-install: GtkLabel;
+  var lbl-cancel: GtkLabel;
+  var lbl-cancelling: GtkLabel;
+  var stack: GtkStack;
+  var btn: GtkButton;
+  var flag: GtkFixed;
 
-  var start : "gdouble";
-  var end : "gdouble";
-  var opacity : "gdouble";
+  var start: gdouble;
+  var end: gdouble;
+  var opacity: gdouble;
 
-  var corner : "gdouble";
-  var outline : "GskPath";
-  var outline-measure : "GskPathMeasure";
-  var outline-width : "gdouble";
-  var outline-opacity : "gdouble";
+  var corner: gdouble;
+  var outline: GskPath;
+  var outline-measure: GskPathMeasure;
+  var outline-width: gdouble;
+  var outline-opacity: gdouble;
 
   init {
     set progress = #transition(state:progress, 1.1, 0.1, 10.0);
