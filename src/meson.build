@@ -400,6 +400,7 @@ vala_deps = [
   gtk_dep,
   libadwaita_dep,
   libdex_dep,
+  appstream_dep,
 ]
 vala_sources = files(
   'bz.vapi',
