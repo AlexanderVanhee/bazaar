@@ -49,6 +49,14 @@ void   bz_zoom_set_max_zoom (BzZoom *self,
 gboolean
 bz_zoom_is_transformed (BzZoom *self);
 
+GskTransform *
+bz_zoom_get_child_transform (BzZoom *self);
+
+gboolean
+bz_zoom_compute_child_bounds (BzZoom          *self,
+                              GtkWidget       *target,
+                              graphene_rect_t *out_bounds);
+
 void bz_zoom_zoom_in (BzZoom *self);
 void bz_zoom_zoom_out (BzZoom *self);
 void bz_zoom_reset (BzZoom *self);

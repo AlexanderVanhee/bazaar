@@ -56,19 +56,19 @@ template $BzScreenshotPage: Adw.Bin {
         ]
 
         [top]
-        Adw.HeaderBar header_bar {
-          styles [
-            "flat",
-            "header-osd",
-          ]
-
+        Adw.HeaderBar {
           show-end-title-buttons: false;
           show-start-title-buttons: false;
           show-back-button: false;
           show-title: false;
 
+          styles [
+            "flat",
+            "header-osd",
+          ]
+
           [start]
-          Button back_button {
+          Button {
             icon-name: "go-previous-symbolic";
             tooltip-text: _("Back");
             clicked => $back_clicked() swapped;
@@ -82,15 +82,13 @@ template $BzScreenshotPage: Adw.Bin {
         content: Overlay {
           [overlay]
           Box {
-            orientation: horizontal;
             halign: start;
             valign: end;
             margin-bottom: 18;
             margin-start: 18;
             spacing: 6;
 
-            Box navigation_controls {
-              orientation: horizontal;
+            Box {
               spacing: 6;
               visible: bind $has_multiple_screenshots(template.screenshots) as <bool>;
 
@@ -98,7 +96,7 @@ template $BzScreenshotPage: Adw.Bin {
                 "osd-box",
               ]
 
-              Button previous_button {
+              Button {
                 icon-name: "go-previous-symbolic";
                 tooltip-text: _("Previous Screenshot");
                 action-name: "screenshot.previous";
@@ -108,7 +106,7 @@ template $BzScreenshotPage: Adw.Bin {
                 ]
               }
 
-              Button next_button {
+              Button {
                 icon-name: "go-next-symbolic";
                 tooltip-text: _("Next Screenshot");
                 action-name: "screenshot.next";
@@ -124,7 +122,7 @@ template $BzScreenshotPage: Adw.Bin {
                 "osd-box",
               ]
 
-              Button copy_button {
+              Button {
                 icon-name: "edit-copy-symbolic";
                 tooltip-text: _("Copy Image");
                 action-name: "screenshot.copy";
@@ -146,6 +144,7 @@ template $BzScreenshotPage: Adw.Bin {
 
             child: Box mobile_caption_box {
               margin-bottom: 18;
+
               styles [
                 "osd-box",
               ]
@@ -158,11 +157,12 @@ template $BzScreenshotPage: Adw.Bin {
                 justify: center;
                 max-width-chars: 30;
                 wrap: true;
+                wrap-mode: word_char;
                 margin-start: 8;
                 margin-end: 8;
-                wrap-mode: word_char;
+
                 styles [
-                  "heading"
+                  "heading",
                 ]
               }
             };
@@ -170,61 +170,56 @@ template $BzScreenshotPage: Adw.Bin {
 
           [overlay]
           Box {
-            orientation: horizontal;
             halign: end;
             valign: end;
             margin-bottom: 18;
             margin-end: 18;
 
-            Box zoom_controls {
-              orientation: horizontal;
+            styles [
+              "osd-box",
+            ]
 
-              styles [
-                "osd-box",
-              ]
+            Revealer {
+              reveal-child: bind template.is-zoomed;
+              transition-type: slide_right;
 
-              Revealer {
-                reveal-child: bind template.is-zoomed as <bool>;
-                transition-type: slide_right;
-
-                Button reset_zoom_button {
-                  icon-name: "zoom-original-symbolic";
-                  tooltip-text: _("Reset View");
-                  action-name: "screenshot.zoom-reset";
-
-                  styles [
-                    "flat",
-                  ]
-                }
-              }
-
-              Button zoom_out_button {
-                icon-name: "zoom-minus-symbolic";
-                tooltip-text: _("Zoom Out");
-                action-name: "screenshot.zoom-out";
-
-                styles [
-                  "flat",
-                ]
-              }
-
-              Button zoom_in_button {
-                icon-name: "zoom-plus-symbolic";
-                tooltip-text: _("Zoom In");
-                action-name: "screenshot.zoom-in";
+              Button {
+                icon-name: "zoom-original-symbolic";
+                tooltip-text: _("Reset View");
+                action-name: "screenshot.zoom-reset";
 
                 styles [
                   "flat",
                 ]
               }
             }
+
+            Button {
+              icon-name: "zoom-minus-symbolic";
+              tooltip-text: _("Zoom Out");
+              action-name: "screenshot.zoom-out";
+
+              styles [
+                "flat",
+              ]
+            }
+
+            Button {
+              icon-name: "zoom-plus-symbolic";
+              tooltip-text: _("Zoom In");
+              action-name: "screenshot.zoom-in";
+
+              styles [
+                "flat",
+              ]
+            }
           }
 
           child: Adw.Carousel carousel {
             can-focus: false;
-            interactive: bind $invert_boolean(template.is-zoomed) as <bool>;
-            allow-scroll-wheel: bind $invert_boolean(template.is-zoomed) as <bool>;
-            allow-mouse-drag: bind $invert_boolean(template.is-zoomed) as <bool>;
+            interactive: bind template.is-zoomed inverted;
+            allow-scroll-wheel: bind template.is-zoomed inverted;
+            allow-mouse-drag: bind template.is-zoomed inverted;
             allow-long-swipes: false;
             notify::position => $on_carousel_position_changed();
           };

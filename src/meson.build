@@ -133,7 +133,6 @@ bz_sources = files(
   'bz-rounded-picture.c',
   'bz-row-view.c',
   'bz-safety-dialog.c',
-  'bz-screenshot-page.c',
   'bz-screenshot.c',
   'bz-screenshots-carousel.c',
   'bz-search-bar.c',
@@ -411,6 +410,7 @@ vala_sources = files(
   'bz-updates-card.vala',
   'bz-flathub-curated-section.vala',
   'bz-other-sources-list.vala',
+  'bz-screenshot-page.vala',
   'bz-new-permissions-dialog.vala',
 )
 

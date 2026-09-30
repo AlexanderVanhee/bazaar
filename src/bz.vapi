@@ -121,9 +121,11 @@ public extern class Bz.AspectPicture : GLib.Object {
 }
 
 [CCode (cheader_filename = "bz-async-texture.h", type_id = "bz_async_texture_get_type ()")]
-public extern class Bz.AsyncTexture : GLib.Object {
+public extern class Bz.AsyncTexture : GLib.Object, Gdk.Paintable {
     [CCode (has_construct_function = false)]
     protected AsyncTexture ();
+
+    public Gdk.Texture? dup_texture ();
 }
 
 [CCode (cheader_filename = "bz-auth-state.h", type_id = "bz_auth_state_get_type ()")]
@@ -508,16 +510,14 @@ public extern class Bz.SafetyDialog : GLib.Object {
     protected SafetyDialog ();
 }
 
-[CCode (cheader_filename = "bz-screenshot-page.h", type_id = "bz_screenshot_page_get_type ()")]
-public extern class Bz.ScreenshotPage : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected ScreenshotPage ();
-}
-
 [CCode (cheader_filename = "bz-screenshot.h", type_id = "bz_screenshot_get_type ()")]
-public extern class Bz.Screenshot : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected Screenshot ();
+public extern class Bz.Screenshot : Gtk.Widget {
+    [CCode (has_construct_function = false, type = "GtkWidget*")]
+    public Screenshot ();
+
+    public Gdk.Paintable? paintable { get; set; }
+    public bool rounded_corners { get; set; }
+    public Gsk.ScalingFilter filter { get; set; }
 }
 
 [CCode (cheader_filename = "bz-screenshots-carousel.h", type_id = "bz_screenshots_carousel_get_type ()")]
@@ -674,9 +674,22 @@ public extern class Bz.YamlParser : GLib.Object {
 }
 
 [CCode (cheader_filename = "bz-zoom.h", type_id = "bz_zoom_get_type ()")]
-public extern class Bz.Zoom : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected Zoom ();
+public extern class Bz.Zoom : Gtk.Widget, Gtk.Scrollable {
+    [CCode (has_construct_function = false, type = "GtkWidget*")]
+    public Zoom ();
+
+    public Gtk.Widget? child { get; set; }
+    public double zoom_level { get; set; }
+    public double min_zoom { get; set; }
+    public double max_zoom { get; set; }
+
+    public bool is_transformed ();
+    public Gsk.Transform? get_child_transform ();
+    public bool compute_child_bounds (Gtk.Widget target, out Graphene.Rect bounds);
+    public void zoom_in ();
+    public void zoom_out ();
+    public void reset ();
+    public void fit_to_window ();
 }
 
 [CCode (cheader_filename = "bz-backend.h", type_id = "bz_backend_get_type ()")]

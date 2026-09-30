@@ -21,8 +21,8 @@
 #pragma once
 
 #include <adwaita.h>
+#include <bzvala.h>
 
-#include "bz-screenshot-page.h"
 #include "bz-state-info.h"
 
 G_BEGIN_DECLS

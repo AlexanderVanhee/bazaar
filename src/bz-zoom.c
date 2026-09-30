@@ -345,40 +345,19 @@ static void
 bz_zoom_snapshot (GtkWidget   *widget,
                   GtkSnapshot *snapshot)
 {
-  BzZoom          *self;
-  int              width;
-  int              height;
-  GskTransform    *transform;
-  graphene_point_t point;
+  BzZoom       *self      = BZ_ZOOM (widget);
+  GskTransform *transform = NULL;
 
-  self = BZ_ZOOM (widget);
-
-  width  = gtk_widget_get_width (widget);
-  height = gtk_widget_get_height (widget);
-
-  if (width <= 0 || height <= 0)
+  if (self->child == NULL ||
+      gtk_widget_get_width (widget) <= 0 ||
+      gtk_widget_get_height (widget) <= 0)
     return;
 
-  transform = NULL;
-
-  graphene_point_init (&point, width / 2.0 + self->pan_x, height / 2.0 + self->pan_y);
-  transform = gsk_transform_translate (transform, &point);
-
-  /* See bz_zoom_size_allocate */
-  // transform = gsk_transform_scale (transform, self->zoom_level, self->zoom_level);
-
-  graphene_point_init (
-      &point,
-      -(width * self->zoom_level) / 2.0,
-      -(height * self->zoom_level) / 2.0);
-  transform = gsk_transform_translate (transform, &point);
+  transform = bz_zoom_get_child_transform (self);
 
   gtk_snapshot_save (snapshot);
   gtk_snapshot_transform (snapshot, transform);
-
-  if (self->child)
-    gtk_widget_snapshot_child (widget, self->child, snapshot);
-
+  gtk_widget_snapshot_child (widget, self->child, snapshot);
   gtk_snapshot_restore (snapshot);
 
   gsk_transform_unref (transform);
@@ -597,6 +576,58 @@ bz_zoom_is_transformed (BzZoom *self)
   return fabs (self->zoom_level - 1.0) >= 0.001 ||
          fabs (self->pan_x) >= 0.5 ||
          fabs (self->pan_y) >= 0.5;
+}
+
+GskTransform *
+bz_zoom_get_child_transform (BzZoom *self)
+{
+  GskTransform *transform = NULL;
+  int           width     = 0;
+  int           height    = 0;
+
+  g_return_val_if_fail (BZ_IS_ZOOM (self), NULL);
+
+  width  = gtk_widget_get_width (GTK_WIDGET (self));
+  height = gtk_widget_get_height (GTK_WIDGET (self));
+
+  transform = gsk_transform_translate (
+      transform,
+      &GRAPHENE_POINT_INIT (
+          width / 2.0 + self->pan_x - (width * self->zoom_level) / 2.0,
+          height / 2.0 + self->pan_y - (height * self->zoom_level) / 2.0));
+
+  return transform;
+}
+
+gboolean
+bz_zoom_compute_child_bounds (BzZoom          *self,
+                              GtkWidget       *target,
+                              graphene_rect_t *out_bounds)
+{
+  g_autoptr (GskTransform) transform = NULL;
+  graphene_rect_t  child_bounds;
+  graphene_rect_t  zoomed_bounds;
+  graphene_point_t origin;
+
+  g_return_val_if_fail (BZ_IS_ZOOM (self), FALSE);
+  g_return_val_if_fail (GTK_IS_WIDGET (target), FALSE);
+  g_return_val_if_fail (out_bounds != NULL, FALSE);
+
+  if (self->child == NULL)
+    return FALSE;
+
+  if (!gtk_widget_compute_bounds (self->child, GTK_WIDGET (self), &child_bounds))
+    return FALSE;
+
+  transform = bz_zoom_get_child_transform (self);
+  gsk_transform_transform_bounds (transform, &child_bounds, &zoomed_bounds);
+
+  if (!gtk_widget_compute_point (GTK_WIDGET (self), target,
+                                 &GRAPHENE_POINT_INIT (0, 0), &origin))
+    return FALSE;
+
+  graphene_rect_offset_r (&zoomed_bounds, origin.x, origin.y, out_bounds);
+  return TRUE;
 }
 
 double
