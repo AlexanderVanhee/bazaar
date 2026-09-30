@@ -331,9 +331,9 @@ check_installed_pill (BzAppTile *self)
 {
   gboolean installed = FALSE;
 
-  g_assert (self->group != NULL);
+  if (self->group != NULL)
+    installed = bz_entry_group_get_removable (self->group) != 0;
 
-  installed = bz_entry_group_get_removable (self->group) != 0;
   if (installed && self->installed_pill == NULL)
     {
       GtkWidget *image = NULL;
