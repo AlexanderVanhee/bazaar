@@ -35,7 +35,6 @@
 #include "bz-full-view.h"
 #include "bz-library-page.h"
 #include "bz-progress-bar.h"
-#include "bz-screenshot-page.h"
 #include "bz-search-bar.h"
 #include "bz-search-page.h"
 #include "bz-transaction-dialog.h"

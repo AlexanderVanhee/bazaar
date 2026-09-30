@@ -31,7 +31,6 @@
 #include <bzvala.h>
 #include <glib/gi18n.h>
 
-#include "bz-screenshot-page.h"
 #include "bz-screenshots-carousel.h"
 #include "bz-window.h"
 #include "template-callbacks.h"

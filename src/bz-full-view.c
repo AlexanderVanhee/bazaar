@@ -45,7 +45,6 @@
 #include "bz-metainfo-preview.h"
 #include "bz-releases-list.h"
 #include "bz-safety-dialog.h"
-#include "bz-screenshot-page.h"
 #include "bz-screenshots-carousel.h"
 #include "bz-section-view.h"
 #include "bz-share-list.h"

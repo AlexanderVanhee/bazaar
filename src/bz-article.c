@@ -22,6 +22,7 @@
 
 #include <bge.h>
 #include <libdex.h>
+#include <bzvala.h>
 
 #include "bz-app-tile.h"
 #include "bz-application-map-factory.h"
@@ -31,7 +32,6 @@
 #include "bz-async-texture.h"
 #include "bz-dynamic-list-view.h"
 #include "bz-rich-app-tile.h"
-#include "bz-screenshot-page.h"
 #include "bz-state-info.h"
 #include "bz-window.h"
 #include "env.h"
