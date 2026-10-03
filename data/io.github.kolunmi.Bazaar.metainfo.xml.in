@@ -77,6 +77,22 @@
   </screenshots>
 
   <releases>
+    <release version="0.9.7" date="2026-10-03">
+      <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.7</url>
+      <description translate="no">
+        <p>
+          <em>Changes</em>
+        </p>
+        <ul>
+          <li>Updated to the GNOME 51 Flatpak runtime</li>
+          <li>Reworked the screenshot opening animation</li>
+          <li>Added a warning dialog before updating when an app requests new permissions</li>
+        </ul>
+        <p>
+          Thanks for reading, and have a great day!
+        </p>
+      </description>
+    </release>
     <release version="0.9.6" date="2026-09-18">
       <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.6</url>
       <description translate="no">
