@@ -13,6 +13,7 @@ json_glib_dep        = dependency('json-glib-1.0', version: '>= 1.10.0')
 glycin_dep           = dependency('glycin-2', version: '>= 2.0')
 glycin_gtk4_dep      = dependency('glycin-gtk4-2', version: '>= 2.0')
 webkit_dep           = dependency('webkitgtk-6.0', version: '>= 2.50.2')
+gmodule_dep          = dependency('gmodule-2.0')
 libsecret_dep        = dependency('libsecret-1', version: '>= 0.20')
 libproxy_dep         = dependency('libproxy-1.0', version: '>= 0.5')
 malcontent_dep 	     = dependency('malcontent-0', version: '>= 0.12.0')
@@ -119,7 +120,6 @@ bz_sources = files(
   'bz-library-page.c',
   'bz-license-dialog.c',
   'bz-list-tile.c',
-  'bz-login-page.c',
   'bz-lozenge.c',
   'bz-malcontent-service.c',
   'bz-metainfo-preview.c',
@@ -193,7 +193,7 @@ bz_deps = [
   libdex_dep,
   glycin_dep,
   glycin_gtk4_dep,
-  webkit_dep,
+  gmodule_dep,
   libsecret_dep,
   libproxy_dep,
   malcontent_dep,
@@ -441,5 +441,19 @@ bz_deps += [bz_vala_dep]
 
 executable(bazaar_bin_name, bz_sources + ['main.c'], marshalers,
            dependencies: bz_deps,
+           link_whole: gen_gobjects_static,
+           export_dynamic: true,
            install: true,
+)
+
+shared_module('bazaar-login-page', 'bz-login-page.c',
+  dependencies: [
+    generated_gobjects.partial_dependency(sources: true),
+    libadwaita_dep,
+    libdex_dep,
+    json_glib_dep,
+    webkit_dep,
+  ],
+  install: true,
+  install_dir: login_page_module_dir,
 )

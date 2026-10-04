@@ -30,6 +30,7 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <gmodule.h>
 #include <malloc.h>
 
 #include "bz-application-map-factory.h"
@@ -51,7 +52,6 @@
 #include "bz-hash-table-object.h"
 #include "bz-inspector.h"
 #include "bz-internal-config.h"
-#include "bz-login-page.h"
 #include "bz-malcontent-service.h"
 #include "bz-metainfo-preview.h"
 #include "bz-newline-parser.h"
@@ -793,17 +793,29 @@ bz_application_flathub_login_action (GSimpleAction *action,
                                      GVariant      *parameter,
                                      gpointer       user_data)
 {
+  static AdwNavigationPage *(*login_page_new) (BzAuthState *) = NULL;
   BzApplication     *self       = user_data;
   GtkWindow         *window     = NULL;
   BzAuthState       *auth_state = NULL;
   AdwNavigationPage *login_page = NULL;
+  GModule           *module     = NULL;
 
   g_assert (BZ_IS_APPLICATION (self));
+
+  if (login_page_new == NULL)
+    {
+      module = g_module_open (LOGIN_PAGE_MODULE_PATH, 0);
+      if (module == NULL || !g_module_symbol (module, "bz_login_page_new", (gpointer *) &login_page_new))
+        {
+          g_warning ("Could not load login page module: %s", g_module_error ());
+          return;
+        }
+    }
 
   window = gtk_application_get_active_window (GTK_APPLICATION (self));
 
   auth_state = bz_state_info_get_auth_state (self->state);
-  login_page = bz_login_page_new (auth_state);
+  login_page = login_page_new (auth_state);
 
   bz_window_push_page (BZ_WINDOW (window), login_page);
 }

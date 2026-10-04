@@ -116,6 +116,9 @@ else
     config_h.set_quoted('BAZAAR_BIN_NAME', bazaar_bin_name)
     config_h.set_quoted('BAZAAR_BIN_PATH', get_option('prefix') / get_option('bindir') / bazaar_bin_name)
 
+    login_page_module_dir = get_option('libdir') / 'bazaar'
+    config_h.set_quoted('LOGIN_PAGE_MODULE_PATH', get_option('prefix') / login_page_module_dir / 'libbazaar-login-page.so')
+
     if get_option('hardcoded_main_config_path') != ''
       config_h.set_quoted('HARDCODED_MAIN_CONFIG', get_option('hardcoded_main_config_path'))
     endif
