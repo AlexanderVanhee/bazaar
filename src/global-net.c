@@ -36,12 +36,17 @@ BZ_DEFINE_DATA (
       SoupMessage   *message;
       GOutputStream *splice_into;
       gboolean       close_output;
+      DexPromise    *promise;
     },
     BZ_RELEASE_DATA (message, g_object_unref);
-    BZ_RELEASE_DATA (splice_into, g_object_unref));
+    BZ_RELEASE_DATA (splice_into, g_object_unref);
+    BZ_RELEASE_DATA (promise, dex_unref));
+
+static DexChannel *
+get_http_channel (void);
 
 static DexFuture *
-http_send_fiber (HttpRequestData *data);
+http_session_fiber (DexChannel *channel);
 
 static void
 http_send_and_splice_finish (GObject      *object,
@@ -235,42 +240,61 @@ query_uri_json_with_method (const char *uri,
   return g_steal_pointer (&future);
 }
 
-static DexFuture *
-http_send_fiber (HttpRequestData *data)
+static DexChannel *
+get_http_channel (void)
 {
-  static SoupSession      *session      = NULL;
-  SoupMessage             *message      = data->message;
-  GOutputStream           *splice_into  = data->splice_into;
-  gboolean                 close_output = data->close_output;
-  GOutputStreamSpliceFlags splice_flags = G_OUTPUT_STREAM_SPLICE_NONE;
-  g_autoptr (DexPromise) promise        = NULL;
+  static DexChannel *channel = NULL;
 
-  if (g_once_init_enter_pointer (&session))
+  if (g_once_init_enter_pointer (&channel))
     {
-      g_autoptr (SoupSession) session_instance = NULL;
+      g_autoptr (DexChannel) channel_instance = NULL;
 
-      session_instance = soup_session_new ();
-      soup_session_set_proxy_resolver (session_instance, bz_get_default_proxy_resolver ());
+      channel_instance = dex_channel_new (0);
+      dex_future_disown (dex_scheduler_spawn (
+          dex_thread_pool_scheduler_get_default (),
+          bz_get_dex_stack_size (),
+          (DexFiberFunc) http_session_fiber,
+          dex_ref (channel_instance),
+          dex_unref));
 
-      g_once_init_leave_pointer (&session, g_steal_pointer (&session_instance));
+      g_once_init_leave_pointer (&channel, g_steal_pointer (&channel_instance));
     }
 
-  splice_flags = G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE;
-  if (close_output)
-    splice_flags |= G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET;
+  return channel;
+}
 
-  promise = dex_promise_new_cancellable ();
-  soup_session_send_and_splice_async (
-      session,
-      message,
-      splice_into,
-      splice_flags,
-      G_PRIORITY_DEFAULT_IDLE,
-      dex_promise_get_cancellable (promise),
-      http_send_and_splice_finish,
-      dex_ref (promise));
+static DexFuture *
+http_session_fiber (DexChannel *channel)
+{
+  g_autoptr (SoupSession) session = NULL;
 
-  return DEX_FUTURE (g_steal_pointer (&promise));
+  session = soup_session_new ();
+  soup_session_set_proxy_resolver (session, bz_get_default_proxy_resolver ());
+
+  for (;;)
+    {
+      g_autoptr (GError) local_error        = NULL;
+      g_autoptr (HttpRequestData) data      = NULL;
+      GOutputStreamSpliceFlags splice_flags = G_OUTPUT_STREAM_SPLICE_NONE;
+
+      data = dex_await_pointer (dex_channel_receive (channel), &local_error);
+      if (data == NULL)
+        return dex_future_new_for_error (g_steal_pointer (&local_error));
+
+      splice_flags = G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE;
+      if (data->close_output)
+        splice_flags |= G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET;
+
+      soup_session_send_and_splice_async (
+          session,
+          data->message,
+          data->splice_into,
+          splice_flags,
+          G_PRIORITY_DEFAULT_IDLE,
+          dex_promise_get_cancellable (data->promise),
+          http_send_and_splice_finish,
+          dex_ref (data->promise));
+    }
 }
 
 static void
@@ -335,20 +359,18 @@ send (SoupMessage   *message,
       gboolean       close_output)
 {
   g_autoptr (HttpRequestData) data = NULL;
-  g_autoptr (DexFuture) future     = NULL;
 
   data               = http_request_data_new ();
   data->message      = g_object_ref (message);
   data->splice_into  = bz_object_maybe_ref (splice_into);
   data->close_output = close_output;
+  data->promise      = dex_promise_new_cancellable ();
 
-  future = dex_scheduler_spawn (
-      dex_scheduler_get_default (),
-      bz_get_dex_stack_size (),
-      (DexFiberFunc) http_send_fiber,
-      http_request_data_ref (data),
-      http_request_data_unref);
-  return g_steal_pointer (&future);
+  dex_future_disown (dex_channel_send (
+      get_http_channel (),
+      dex_future_new_for_pointer (http_request_data_ref (data))));
+
+  return DEX_FUTURE (dex_ref (data->promise));
 }
 
 static DexFuture *
