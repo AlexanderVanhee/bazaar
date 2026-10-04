@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-09-15 23:10+0000\n"
-"PO-Revision-Date: 2026-09-16 11:58+0200\n"
+"POT-Creation-Date: 2026-10-03 11:57+0000\n"
+"PO-Revision-Date: 2026-10-04 15:27+0200\n"
 "Last-Translator: twlvnn kraftwerk <kraft_werk@tutanota.com>\n"
 "Language-Team: Bulgarian\n"
 "Language: bg\n"
@@ -21,7 +21,7 @@ msgstr ""
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: data/io.github.kolunmi.Bazaar.desktop.in:3
 #: data/io.github.kolunmi.Bazaar.metainfo.xml.in:8 src/bz-window.blp:55
-#: src/bz-window.blp:211 src/bz-window.c:382 src/bz-window.c:383
+#: src/bz-window.blp:211 src/bz-window.c:437 src/bz-window.c:438
 msgid "Bazaar"
 msgstr "Базар"
 
@@ -74,7 +74,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Търсете програми директно от GNOME"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:754
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:755
 msgid "The Bazaar Contributors"
 msgstr "Сътрудниците на „Базар“"
 
@@ -140,15 +140,26 @@ msgstr ""
 msgid "Add-on Page"
 msgstr "Страницата на добавката"
 
-#: src/bz-addons-dialog.blp:203 src/bz-full-view.blp:406
+#: src/bz-addons-dialog.blp:172 src/bz-full-view.blp:267
+#: src/context-tile-callbacks.c:142
+msgid "Download"
+msgstr "Изтегляне"
+
+#. Translators: As in 'The app is installed'.
+#: src/bz-addons-dialog.blp:187 src/bz-app-tile.c:356 src/bz-full-view.blp:282
+#: src/bz-releases-list.c:204
+msgid "Installed"
+msgstr "Инсталирани"
+
+#: src/bz-addons-dialog.blp:221 src/bz-full-view.blp:406
 msgid "Downloads/Month"
 msgstr "Изтегляния/месец"
 
-#: src/bz-addons-dialog.blp:229 src/bz-full-view.blp:441
+#: src/bz-addons-dialog.blp:247 src/bz-full-view.blp:441
 msgid "Stopped Receiving Core Updates"
 msgstr "Престана да получава основни обновления"
 
-#: src/bz-addons-dialog.blp:243
+#: src/bz-addons-dialog.blp:261
 msgid ""
 "This add-on uses a runtime that no longer receives updates or security "
 "fixes. It may become unsafe to use."
@@ -157,7 +168,7 @@ msgstr ""
 "обновления или подобрения по сигурността. Използването ѝ може да стане "
 "несигурно."
 
-#: src/bz-addons-dialog.blp:328 src/bz-full-view.blp:602
+#: src/bz-addons-dialog.blp:346 src/bz-full-view.blp:602
 msgid "Other Sources"
 msgstr "Други източници"
 
@@ -166,11 +177,11 @@ msgstr "Други източници"
 msgid "Add-on for %s"
 msgstr "Добавка за %s"
 
-#: src/bz-addons-dialog.c:365 src/bz-full-view.c:613
+#: src/bz-addons-dialog.c:365 src/bz-full-view.c:612
 msgid "Show Less"
 msgstr "По-малко"
 
-#: src/bz-addons-dialog.c:365 src/bz-full-view.c:613 src/bz-section-view.blp:72
+#: src/bz-addons-dialog.c:365 src/bz-full-view.c:612 src/bz-section-view.blp:72
 msgid "Show More"
 msgstr "Повече"
 
@@ -556,129 +567,129 @@ msgstr "„%s“ е подходяща за %s"
 msgid "%s • %s"
 msgstr "%s • %s"
 
-#: src/bz-app-permissions.c:160
+#: src/bz-app-permissions.c:175
 #, c-format
 msgid "System folder %s"
 msgstr "Системна папка: „%s“"
 
-#: src/bz-app-permissions.c:162
+#: src/bz-app-permissions.c:177
 #, c-format
 msgid "Home subfolder %s"
 msgstr "Подпапка в домашната: „%s“"
 
-#: src/bz-app-permissions.c:164
+#: src/bz-app-permissions.c:179
 msgid "Host system folders"
 msgstr "Системни папки с настройки"
 
-#: src/bz-app-permissions.c:166
+#: src/bz-app-permissions.c:181
 msgid "Host system configuration from /etc"
 msgstr "Настройки на системата от „/etc“"
 
-#: src/bz-app-permissions.c:169
+#: src/bz-app-permissions.c:184
 #, c-format
 msgid "Desktop subfolder %s"
 msgstr "Подпапка в работния плот: „%s“"
 
-#: src/bz-app-permissions.c:170
+#: src/bz-app-permissions.c:185
 msgid "Desktop folder"
 msgstr "Папка за работен плот"
 
-#: src/bz-app-permissions.c:173
+#: src/bz-app-permissions.c:188
 #, c-format
 msgid "Documents subfolder %s"
 msgstr "Подпапка с документи: „%s“"
 
-#: src/bz-app-permissions.c:174
+#: src/bz-app-permissions.c:189
 msgid "Documents folder"
 msgstr "Папка с документи"
 
-#: src/bz-app-permissions.c:177
+#: src/bz-app-permissions.c:192
 #, c-format
 msgid "Music subfolder %s"
 msgstr "Подпапка с музика: „%s“"
 
-#: src/bz-app-permissions.c:178
+#: src/bz-app-permissions.c:193
 msgid "Music folder"
 msgstr "Папка с музика"
 
-#: src/bz-app-permissions.c:181
+#: src/bz-app-permissions.c:196
 #, c-format
 msgid "Pictures subfolder %s"
 msgstr "Подпапка с изображения: „%s“"
 
-#: src/bz-app-permissions.c:182
+#: src/bz-app-permissions.c:197
 msgid "Pictures folder"
 msgstr "Папка с изображения"
 
-#: src/bz-app-permissions.c:185
+#: src/bz-app-permissions.c:200
 #, c-format
 msgid "Public Share subfolder %s"
 msgstr "Подпапка за публично споделяне: „%s“"
 
-#: src/bz-app-permissions.c:186
+#: src/bz-app-permissions.c:201
 msgid "Public Share folder"
 msgstr "Папка за публично споделяне"
 
-#: src/bz-app-permissions.c:189
+#: src/bz-app-permissions.c:204
 #, c-format
 msgid "Videos subfolder %s"
 msgstr "Подпапка за видео: „%s“"
 
-#: src/bz-app-permissions.c:190
+#: src/bz-app-permissions.c:205
 msgid "Videos folder"
 msgstr "Папка за видео"
 
-#: src/bz-app-permissions.c:193
+#: src/bz-app-permissions.c:208
 #, c-format
 msgid "Templates subfolder %s"
 msgstr "Подпапка с шаблони: „%s“"
 
-#: src/bz-app-permissions.c:194
+#: src/bz-app-permissions.c:209
 msgid "Templates folder"
 msgstr "Папка с шаблони"
 
-#: src/bz-app-permissions.c:197
+#: src/bz-app-permissions.c:212
 #, c-format
 msgid "User cache subfolder %s"
 msgstr "Подпапка с временно складирани данни на потребителя: „%s“"
 
-#: src/bz-app-permissions.c:198
+#: src/bz-app-permissions.c:213
 msgid "User cache folder"
 msgstr "Папка с временно складирани данни на потребителя"
 
-#: src/bz-app-permissions.c:201
+#: src/bz-app-permissions.c:216
 #, c-format
 msgid "User configuration subfolder %s"
 msgstr "Подпапка за настройки на потребителя:„%s“"
 
-#: src/bz-app-permissions.c:202
+#: src/bz-app-permissions.c:217
 msgid "User configuration folder"
 msgstr "Папка за настройки на потребителя"
 
-#: src/bz-app-permissions.c:205
+#: src/bz-app-permissions.c:220
 #, c-format
 msgid "User data subfolder %s"
 msgstr "Подпапка за данни на потребителя: „%s“"
 
-#: src/bz-app-permissions.c:206
+#: src/bz-app-permissions.c:221
 msgid "User data folder"
 msgstr "Папка за данни на потребителя"
 
-#: src/bz-app-permissions.c:209
+#: src/bz-app-permissions.c:224
 #, c-format
 msgid "User runtime subfolder %s"
 msgstr "Подпапка за изпълнение на потребителя: „%s“"
 
-#: src/bz-app-permissions.c:210
+#: src/bz-app-permissions.c:225
 msgid "User runtime folder"
 msgstr "Папка за изпълнение на потребителя"
 
-#: src/bz-app-permissions.c:212
+#: src/bz-app-permissions.c:227
 #, c-format
 msgid "Filesystem access to %s"
 msgstr "Достъп до файловата система: %s"
 
-#: src/bz-app-permissions.c:214
+#: src/bz-app-permissions.c:229
 msgid "Unknown filesystem path"
 msgstr "Неизвестно местоположение към файловата система"
 
@@ -740,18 +751,13 @@ msgstr "Липсва"
 msgid "Storage"
 msgstr "Пространство"
 
-#: src/bz-app-tile.blp:56 src/bz-developer-badge.c:98
+#: src/bz-app-tile.blp:55 src/bz-developer-badge.c:98
 #: src/bz-rich-app-tile.blp:107 src/bz-rich-app-tile.c:444
 msgid "Verified"
 msgstr "Потвърдено"
 
-#. Translators: As in 'The app is installed'.
-#: src/bz-app-tile.blp:87 src/bz-full-view.blp:282 src/bz-releases-list.c:204
-msgid "Installed"
-msgstr "Инсталирани"
-
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:757
+#: src/bz-application.c:758
 msgid "translator-credits"
 msgstr ""
 "twlvnn kraftwerk &lt;<a "
@@ -763,19 +769,19 @@ msgstr ""
 "Докладвайте за грешки в превода в <a href='https://fsa-bg.org/project/gtp/"
 "newticket'>съответния раздел</a>."
 
-#: src/bz-application.c:767
+#: src/bz-application.c:768
 msgid "Special Thanks"
 msgstr "Специални благодарности"
 
-#: src/bz-application.c:825
+#: src/bz-application.c:826
 msgid "Logged Out Successfully!"
 msgstr "Излизането е успешно!"
 
-#: src/bz-application.c:1057
+#: src/bz-application.c:1058
 msgid "Notice for Ubuntu Users"
 msgstr "Забележка за потребителите на Ubuntu"
 
-#: src/bz-application.c:1060
+#: src/bz-application.c:1061
 msgid ""
 "Ubuntu 25.10 and newer have changed default security rules in a way that "
 "makes it <b>impossible to install apps</b> from the Flatpak version of "
@@ -799,19 +805,19 @@ msgstr ""
 "\n"
 "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"
 
-#: src/bz-application.c:1068
+#: src/bz-application.c:1069
 msgid "Continue Anyway"
 msgstr "Продължаване въпреки това"
 
-#: src/bz-application.c:1084
+#: src/bz-application.c:1085
 msgid "Performing setup…"
 msgstr "Настройване…"
 
-#: src/bz-application.c:1183
+#: src/bz-application.c:1184
 msgid "Set Up System Flathub?"
 msgstr "Настройване на Flathub на системно ниво?"
 
-#: src/bz-application.c:1186
+#: src/bz-application.c:1187
 msgid ""
 "The system Flathub remote is not set up. Bazaar requires Flathub to be "
 "configured on the system Flatpak installation to browse and install "
@@ -826,11 +832,11 @@ msgstr ""
 "Все пак може да използвате „Базар“, за да разглеждате и премахвате вече "
 "инсталирани програми."
 
-#: src/bz-application.c:1193
+#: src/bz-application.c:1194
 msgid "Set Up Flathub?"
 msgstr "Настройване на Flathub?"
 
-#: src/bz-application.c:1196
+#: src/bz-application.c:1197
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -843,63 +849,63 @@ msgstr ""
 "Все пак може да използвате „Базар“, за да разглеждате и премахвате вече "
 "инсталирани програми."
 
-#: src/bz-application.c:1202
+#: src/bz-application.c:1203
 msgid "Later"
 msgstr "По-късно"
 
-#: src/bz-application.c:1203
+#: src/bz-application.c:1204
 msgid "Set Up Flathub"
 msgstr "Настройване на Flathub"
 
-#: src/bz-application.c:1723
+#: src/bz-application.c:1724
 msgid "A backend error occurred"
 msgstr "Възникна грешка в задния слой"
 
-#: src/bz-application.c:1930 src/bz-application.c:4251
+#: src/bz-application.c:1931 src/bz-application.c:4271
 msgid "Refreshing…"
 msgstr "Опресняване…"
 
-#: src/bz-application.c:2089
+#: src/bz-application.c:2090
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Зареждане на %d програми…"
 
-#: src/bz-application.c:2148 src/bz-application.c:2225
+#: src/bz-application.c:2149 src/bz-application.c:2226
 msgid "Failed to open file"
 msgstr "Файлът не може да се отвори"
 
-#: src/bz-application.c:2239
+#: src/bz-application.c:2240
 msgid "Failed to load metainfo"
 msgstr "Информационният файл за метаданни не може да се зареди"
 
-#: src/bz-application.c:2362
+#: src/bz-application.c:2363
 msgid "An initialization error occurred"
 msgstr "Възникна грешка при инициализацията"
 
-#: src/bz-application.c:2770
+#: src/bz-application.c:2771
 msgid "Checking for updates…"
 msgstr "Проверяване за обновления…"
 
-#: src/bz-application.c:2826
+#: src/bz-application.c:2846
 msgid "Failed to check for updates"
 msgstr "Грешка при проверяване за обновления"
 
-#: src/bz-application.c:4028
+#: src/bz-application.c:4048
 msgid "Could not find app"
 msgstr "Програмата не може да бъде намерена"
 
-#: src/bz-application.c:4248
+#: src/bz-application.c:4268
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
 msgstr[0] "Зареждане на %d програма…"
 msgstr[1] "Зареждане на %d програми…"
 
-#: src/bz-application.c:4253
+#: src/bz-application.c:4273
 msgid "Writing to cache…"
 msgstr "Записване в кеша…"
 
-#: src/bz-apps-page.blp:97 src/bz-full-view.c:217
+#: src/bz-apps-page.blp:97 src/bz-full-view.c:216
 msgid "Show All"
 msgstr "Показване на всички"
 
@@ -1013,26 +1019,6 @@ msgstr "Около %s за инсталиране"
 msgid "No special permissions"
 msgstr "Без специални права̀"
 
-#: src/bz-curated-view.blp:27
-msgid "No Curation"
-msgstr "Няма подбрани програми"
-
-#: src/bz-curated-view.blp:29
-msgid ""
-"There is no curation information provided on this system. You can still "
-"browse apps on Flathub"
-msgstr ""
-"За тази система не са подбрани програми. Все пак може да разгледате "
-"програмите във Flathub"
-
-#: src/bz-curated-view.blp:33
-msgid "Browse Flathub"
-msgstr "Разглеждане на Flathub"
-
-#: src/bz-curated-view.blp:49
-msgid "Offline"
-msgstr "Няма връзка"
-
 #: src/bz-cosmic-place-applet-dialog.vala:25
 msgid "Place Applet"
 msgstr "Поставяне на аплет"
@@ -1053,6 +1039,26 @@ msgstr "Панел"
 #: src/bz-cosmic-place-applet-dialog.vala:31
 msgid "Dock"
 msgstr "Док"
+
+#: src/bz-curated-view.blp:27
+msgid "No Curation"
+msgstr "Няма подбрани програми"
+
+#: src/bz-curated-view.blp:29
+msgid ""
+"There is no curation information provided on this system. You can still "
+"browse apps on Flathub"
+msgstr ""
+"За тази система не са подбрани програми. Все пак може да разгледате "
+"програмите във Flathub"
+
+#: src/bz-curated-view.blp:33
+msgid "Browse Flathub"
+msgstr "Разглеждане на Flathub"
+
+#: src/bz-curated-view.blp:49
+msgid "Offline"
+msgstr "Няма връзка"
 
 #: src/bz-developer-badge.c:94 src/bz-developer-badge.c:98
 msgid "Not Verified"
@@ -1160,7 +1166,7 @@ msgstr "Подробности"
 msgid "Copy"
 msgstr "Копиране"
 
-#: src/bz-error-dialog.c:56 src/bz-screenshot-page.c:461
+#: src/bz-error-dialog.c:56 src/bz-screenshot-page.vala:346
 #: src/bz-share-list.c:364
 msgid "Copied!"
 msgstr "Копирано!"
@@ -1169,15 +1175,15 @@ msgstr "Копирано!"
 msgid "Favorite Count"
 msgstr "Брой любими"
 
-#: src/bz-favorite-button.c:388
+#: src/bz-favorite-button.c:391
 msgid "Failed to update favorite"
 msgstr "Порграмата от любими не може да се обнови"
 
-#: src/bz-favorite-button.c:434
+#: src/bz-favorite-button.c:438
 msgid "Log in with Flathub to manage favorites"
 msgstr "Впишете се с Flathub, за да добавите любими програми"
 
-#: src/bz-favorite-button.c:440
+#: src/bz-favorite-button.c:444
 msgid "Log In"
 msgstr "Вписване"
 
@@ -1753,11 +1759,11 @@ msgstr "Връзки"
 msgid "Similar Apps"
 msgstr "Подобни програми"
 
-#: src/bz-full-view.c:184
+#: src/bz-full-view.c:183
 msgid "No URL"
 msgstr "Няма адрес"
 
-#: src/bz-full-view.c:202
+#: src/bz-full-view.c:201
 msgid ""
 "This app has a FLOSS license, meaning the source code can be audited for "
 "safety."
@@ -1765,7 +1771,7 @@ msgstr ""
 "Тази програма има FLOSS лиценз, което означава, че изходният код може да "
 "бъде проверен за сигурност."
 
-#: src/bz-full-view.c:203
+#: src/bz-full-view.c:202
 msgid ""
 "This app has a proprietary license, meaning the source code is developed "
 "privately and cannot be audited by an independent third party."
@@ -1773,37 +1779,37 @@ msgstr ""
 "Тази програма има собственически лиценз, което означава, че изходният код е "
 "разработен частно и не може да бъде проверен от независими трети лица."
 
-#: src/bz-full-view.c:210
+#: src/bz-full-view.c:209
 msgid "Other Apps From This Developer"
 msgstr "Други програми от този разработчик"
 
-#: src/bz-full-view.c:211
+#: src/bz-full-view.c:210
 #, c-format
 msgid "Other Apps From %s"
 msgstr "Други програми от %s"
 
-#: src/bz-full-view.c:226
+#: src/bz-full-view.c:225
 #, c-format
 msgid "%s is not installed, but it still has <b>%s</b> of data present."
 msgstr "%s не е инсталирано, но все пак съдържа <b>%s</b> данни."
 
-#: src/bz-full-view.c:309
+#: src/bz-full-view.c:308
 #, c-format
 msgid "Apps by %s"
 msgstr "Програми от %s"
 
-#: src/bz-full-view.c:311
+#: src/bz-full-view.c:310
 msgid "Apps by This Developer"
 msgstr "Програми от този разработчик"
 
-#: src/bz-full-view.c:313
+#: src/bz-full-view.c:312
 #, c-format
 msgid "%d Application"
 msgid_plural "%d Applications"
 msgstr[0] "%d програма"
 msgstr[1] "%d програми"
 
-#: src/bz-full-view.c:468 src/bz-user-data-tile.c:160
+#: src/bz-full-view.c:467 src/bz-user-data-tile.c:160
 msgid "Failed to Remove User Data"
 msgstr "Потребителските данни не можe да се премахнат"
 
@@ -1917,8 +1923,8 @@ msgstr "Деинсталиране на програмата"
 msgid "_Remove"
 msgstr "_Премахване"
 
-#: src/bz-install-controls.blp:114 src/bz-updates-card.c:168
-#: src/bz-updates-card.c:187
+#: src/bz-install-controls.blp:114 src/bz-updates-card.vala:178
+#: src/bz-updates-card.vala:201
 msgid "Update"
 msgstr "Обновяване"
 
@@ -1926,12 +1932,12 @@ msgstr "Обновяване"
 msgid "Remove"
 msgstr "Премахване"
 
-#: src/bz-install-controls.c:669
+#: src/bz-install-controls.c:672
 #, c-format
 msgid "Install %s from %s"
 msgstr "Инсталиране на %s от %s"
 
-#: src/bz-install-controls.c:671
+#: src/bz-install-controls.c:674
 #, c-format
 msgid "Install %s"
 msgstr "Инсталиране на %s"
@@ -1999,7 +2005,7 @@ msgstr "Размер"
 msgid "No matches found for \"%s\" in the list of installed apps"
 msgstr "Липсват резултати за „%s“ в списъка с инсталираните програми"
 
-#: src/bz-library-page.c:194 src/bz-updates-card.c:437
+#: src/bz-library-page.c:194 src/bz-updates-card.vala:51
 #, c-format
 msgid "%u Available Update"
 msgid_plural "%u Available Updates"
@@ -2153,6 +2159,27 @@ msgstr "Избор на иконка"
 #: src/bz-metainfo-preview.c:166
 msgid "Image Files"
 msgstr "Файлове с изображения"
+
+#: src/bz-new-permissions-dialog.vala:30
+msgid "New Permissions"
+msgstr "Нови права̀"
+
+#: src/bz-new-permissions-dialog.vala:51
+msgid "_Accept"
+msgstr "_Приемане"
+
+#: src/bz-new-permissions-dialog.vala:103
+#, c-format
+msgid "New Permission for %s"
+msgid_plural "New Permissions for %s"
+msgstr[0] "Ново право за %s"
+msgstr[1] "Нови права̀ за %s"
+
+#: src/bz-new-permissions-dialog.vala:108
+msgid "This update requires the following additional permission"
+msgid_plural "This update requires the following additional permissions"
+msgstr[0] "Това обновление изисква допълнително следното право"
+msgstr[1] "Това обновление изисква допълнително следните права̀"
 
 #: src/bz-other-sources-list.vala:52
 msgid "User"
@@ -2361,13 +2388,9 @@ msgid "Bazaar needs to run in the background to check for app updates"
 msgstr ""
 "„Базар“ трябва да работи на фона, за да проверява за обновления на програмите"
 
-#: src/bz-releases-dialog.blp:5 src/bz-updates-card.c:159
+#: src/bz-releases-dialog.blp:5 src/bz-updates-card.vala:167
 msgid "Version History"
 msgstr "История на версията"
-
-#: src/bz-releases-preview.blp:30
-msgid "_Version History"
-msgstr "История на _версията"
 
 #. Translators: something happened less than a day ago
 #: src/bz-releases-list.c:120
@@ -2430,6 +2453,10 @@ msgstr "Няма данни за тази версия"
 msgid "Get More Information"
 msgstr "Повече информация"
 
+#: src/bz-releases-preview.blp:30
+msgid "_Version History"
+msgstr "История на _версията"
+
 #: src/bz-rich-app-tile.blp:218
 msgid "Uninstall"
 msgstr "Деинсталиране"
@@ -2440,7 +2467,7 @@ msgid "Get"
 msgstr "Получаване"
 
 #: src/bz-safety-dialog.blp:32 src/bz-safety-dialog.c:322
-#: src/safety-calculator.c:161
+#: src/safety-calculator.c:158
 msgid "Arbitrary Permissions"
 msgstr "Произволни права̀"
 
@@ -2524,27 +2551,27 @@ msgstr "„%s“ не е безопасна"
 msgid "Back"
 msgstr "Назад"
 
-#: src/bz-screenshot-page.blp:103
+#: src/bz-screenshot-page.blp:101
 msgid "Previous Screenshot"
 msgstr "Предишна снимка на екрана"
 
-#: src/bz-screenshot-page.blp:113
+#: src/bz-screenshot-page.blp:111
 msgid "Next Screenshot"
 msgstr "Следваща снимка на екрана"
 
-#: src/bz-screenshot-page.blp:129
+#: src/bz-screenshot-page.blp:127
 msgid "Copy Image"
 msgstr "Копиране на изображението"
 
-#: src/bz-screenshot-page.blp:192
+#: src/bz-screenshot-page.blp:188
 msgid "Reset View"
 msgstr "Връщане на изгледа"
 
-#: src/bz-screenshot-page.blp:203
+#: src/bz-screenshot-page.blp:199
 msgid "Zoom Out"
 msgstr "Намаляване"
 
-#: src/bz-screenshot-page.blp:213
+#: src/bz-screenshot-page.blp:209
 msgid "Zoom In"
 msgstr "Увеличаване"
 
@@ -2560,12 +2587,12 @@ msgstr "Без снимки на екрана"
 msgid "Open Screenshot Viewer"
 msgstr "Отваряне на програма за преглед на снимки на екрана"
 
-#: src/bz-screenshots-carousel.c:310
+#: src/bz-screenshots-carousel.c:309
 #, c-format
 msgid "Screenshot %u %s"
 msgstr "Снимка на екрана %u %s"
 
-#: src/bz-screenshots-carousel.c:312
+#: src/bz-screenshots-carousel.c:311
 #, c-format
 msgid "Screenshot %u"
 msgstr "Снимка %u"
@@ -2954,17 +2981,6 @@ msgstr "Грешка с операцията"
 msgid "Pending"
 msgstr "Чакащи"
 
-#: src/bz-updates-card.blp:23
-msgid "_Update All"
-msgstr "_Обновяване на всички"
-
-#: src/bz-updates-card.c:215
-#, c-format
-msgid "%u Runtime Update"
-msgid_plural "%u Runtime Updates"
-msgstr[0] "%u обновление за средата за изпълнение"
-msgstr[1] "%u обновления за средата за изпълнение"
-
 #: src/bz-update-history-dialog.blp:5 src/bz-update-history-dialog.blp:11
 msgid "Installed Updates"
 msgstr "Обновленията са инсталирани"
@@ -2976,6 +2992,21 @@ msgstr "Бележки за изданието"
 #: src/bz-update-history-dialog.blp:143
 msgid "No Release Info"
 msgstr "Няма информация за изданието"
+
+#: src/bz-updates-card.blp:23
+msgid "_Update All"
+msgstr "_Обновяване на всички"
+
+#: src/bz-updates-card.vala:159
+msgid "This update requests new permissions"
+msgstr "Това обновление изисква нови права̀"
+
+#: src/bz-updates-card.vala:199
+#, c-format
+msgid "%u Runtime Update"
+msgid_plural "%u Runtime Updates"
+msgstr[0] "%u обновление за средата за изпълнение"
+msgstr[1] "%u обновления за средата за изпълнение"
 
 #: src/bz-user-data-page.blp:5
 msgid "Manage Leftover User Data"
@@ -3092,25 +3123,25 @@ msgid "Log Out"
 msgstr "Изход"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating. %s is the title of the current page.
-#: src/bz-window.c:385
+#: src/bz-window.c:440
 #, c-format
 msgid "Bazaar — %s"
 msgstr "Базар — %s"
 
-#: src/bz-window.c:665 src/bz-window.c:714
+#: src/bz-window.c:720 src/bz-window.c:769
 msgid "Failed to launch application"
 msgstr "Програмата не може да бъде стартирана"
 
-#: src/bz-window.c:793
+#: src/bz-window.c:848
 msgid "Could not open link"
 msgstr "Връзката не може да бъде отворена"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.c:1002
+#: src/bz-window.c:1057
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr "Не може да премахнете „Базар“ от „Базар“!"
 
-#: src/bz-window.c:1386 src/bz-window.c:1420
+#: src/bz-window.c:1441 src/bz-window.c:1475
 msgid "Can't do that right now!"
 msgstr "Това действие не може да се извърши сега!"
 
@@ -3140,10 +3171,6 @@ msgstr "%d изтегляния през последния месец"
 #, c-format
 msgid "+%s Runtime"
 msgstr "+%s среда за изпълнение"
-
-#: src/context-tile-callbacks.c:142
-msgid "Download"
-msgstr "Изтегляне"
 
 #: src/context-tile-callbacks.c:151 src/context-tile-callbacks.c:163
 msgid "Size information unavailable"
@@ -3230,208 +3257,208 @@ msgstr "Среден риск"
 msgid "High Risk"
 msgstr "Голям риск"
 
-#: src/safety-calculator.c:87
+#: src/safety-calculator.c:80
 msgid "Unknown Permissions"
 msgstr "Неизвестни права̀"
 
-#: src/safety-calculator.c:88
+#: src/safety-calculator.c:81
 msgid "Permissions are missing for this app."
 msgstr "Липсват права̀ за тази програма."
 
-#: src/safety-calculator.c:101
+#: src/safety-calculator.c:95
 msgid "No Permissions"
 msgstr "Няма права̀"
 
-#: src/safety-calculator.c:102
+#: src/safety-calculator.c:96
 msgid "App is fully sandboxed"
 msgstr "Програмата е в ограничена среда"
 
-#: src/safety-calculator.c:108
+#: src/safety-calculator.c:103
 msgid "Network Access"
 msgstr "Достъп до мрежата"
 
-#: src/safety-calculator.c:109
+#: src/safety-calculator.c:104
 msgid "Can access the internet"
 msgstr "Може да достъпва мрежата"
 
-#: src/safety-calculator.c:111
+#: src/safety-calculator.c:106
 msgid "No Network Access"
 msgstr "Без достъп до мрежата"
 
-#: src/safety-calculator.c:112
+#: src/safety-calculator.c:107
 msgid "Cannot access the internet"
 msgstr "Не може да достъпва мрежата"
 
-#: src/safety-calculator.c:117
+#: src/safety-calculator.c:114
 msgid "User Device Access"
 msgstr "Потребителски достъп до устройства"
 
-#: src/safety-calculator.c:118
+#: src/safety-calculator.c:115
 msgid "Can access devices such as webcams or gaming controllers"
 msgstr "Има достъп до устройства като уеб камера или контролер за игри"
 
-#: src/safety-calculator.c:120
+#: src/safety-calculator.c:117
 msgid "No User Device Access"
 msgstr "Без потребителски достъп до устройства"
 
-#: src/safety-calculator.c:121
+#: src/safety-calculator.c:118
 msgid "Cannot access devices such as webcams or gaming controllers"
 msgstr "Няма достъп до устройства като уеб камера или контролер за игри"
 
-#: src/safety-calculator.c:126
+#: src/safety-calculator.c:123
 msgid "Input Device Access"
 msgstr "Достъп до входни устройства"
 
-#: src/safety-calculator.c:127
+#: src/safety-calculator.c:124
 msgid "Can access input devices"
 msgstr "Достъпва входните устройства"
 
-#: src/safety-calculator.c:133
+#: src/safety-calculator.c:130
 msgid "Microphone Access and Audio Playback"
 msgstr "Достъп до микрофона и възпроизвеждане на звук"
 
-#: src/safety-calculator.c:134
+#: src/safety-calculator.c:131
 msgid "Can listen using microphones and play audio without asking permission"
 msgstr ""
 "Може да слуша с микрофони и да възпроизвежда звук, без да иска разрешение"
 
-#: src/safety-calculator.c:140
+#: src/safety-calculator.c:137
 msgid "System Device Access"
 msgstr "Системен достъп до устройства"
 
-#: src/safety-calculator.c:141
+#: src/safety-calculator.c:138
 msgid "Can access system devices which require elevated permissions"
 msgstr "Достъпва системните устройства, които искат права̀ на администратор"
 
-#: src/safety-calculator.c:147
+#: src/safety-calculator.c:144
 msgid "Screen Contents Access"
 msgstr "Достъп до съдържанието на екрана"
 
-#: src/safety-calculator.c:148
+#: src/safety-calculator.c:145
 msgid "Can access the contents of the screen or other windows"
 msgstr "Може да достъпи съдържанието на екрана или други прозорци"
 
-#: src/safety-calculator.c:154
+#: src/safety-calculator.c:151
 msgid "Legacy Windowing System"
 msgstr "Остаряла графична система"
 
-#: src/safety-calculator.c:155
+#: src/safety-calculator.c:152
 msgid "Always uses a legacy windowing system (X11)"
 msgstr "Винаги използва остаряла графична система (X11)"
 
-#: src/safety-calculator.c:162
+#: src/safety-calculator.c:159
 msgid "Can acquire arbitrary permissions"
 msgstr "Може да придобива всякакви права̀"
 
-#: src/safety-calculator.c:168
+#: src/safety-calculator.c:165
 msgid "User Settings"
 msgstr "Потребителски настройки"
 
-#: src/safety-calculator.c:169
+#: src/safety-calculator.c:166
 msgid "Can access and change user settings"
 msgstr "Достъп до настройките на потребител"
 
-#: src/safety-calculator.c:175
+#: src/safety-calculator.c:172
 msgid "Full File System Read/Write Access"
 msgstr "Пълен достъп за четене и писане по файловата система"
 
-#: src/safety-calculator.c:176
+#: src/safety-calculator.c:173
 msgid "Can read and write all data on the file system"
 msgstr "Може да чете и пише всички данни на файловата система"
 
-#: src/safety-calculator.c:183
+#: src/safety-calculator.c:180
 msgid "Home Folder Read/Write Access"
 msgstr "Достъп за четене и писане в домашната папка"
 
-#: src/safety-calculator.c:184
+#: src/safety-calculator.c:181
 msgid "Can read and write all data in your home directory"
 msgstr "Може да чете и пише всякакви данни в домашната ви папка"
 
-#: src/safety-calculator.c:191
+#: src/safety-calculator.c:188
 msgid "Full File System Read Access"
 msgstr "Пълен достъп за четене на цялата файлова система"
 
-#: src/safety-calculator.c:192
+#: src/safety-calculator.c:189
 msgid "Can read all data on the file system"
 msgstr "Може да чете всякакви данни от файловата система"
 
-#: src/safety-calculator.c:200
+#: src/safety-calculator.c:197
 msgid "Home Folder Read Access"
 msgstr "Достъп за четене на файловете в домашната папка"
 
-#: src/safety-calculator.c:201
+#: src/safety-calculator.c:198
 msgid "Can read all data in your home directory"
 msgstr "Може да чете всякакви данни в домашната ви папка"
 
-#: src/safety-calculator.c:209
+#: src/safety-calculator.c:206
 msgid "Download Folder Read/Write Access"
 msgstr "Четене и писане в папката за изтеглените"
 
-#: src/safety-calculator.c:210
+#: src/safety-calculator.c:207
 msgid "Can read and write all data in your downloads directory"
 msgstr "Може да чете всякакви данни в папката за изтеглените"
 
-#: src/safety-calculator.c:220
+#: src/safety-calculator.c:217
 msgid "Download Folder Read Access"
 msgstr "Достъп за четене до папката за изтеглените"
 
-#: src/safety-calculator.c:221
+#: src/safety-calculator.c:218
 msgid "Can read all data in your downloads directory"
 msgstr "Достъп за четене до изтеглените файлове"
 
-#: src/safety-calculator.c:242
+#: src/safety-calculator.c:235
 msgid "Can read and write all data in the directory"
 msgstr "Може да чете и пише всякакви данни в папката"
 
-#: src/safety-calculator.c:266
+#: src/safety-calculator.c:255
 msgid "Can read all data in the directory"
 msgstr "Може да чете всякакви данни в папката"
 
-#: src/safety-calculator.c:281
+#: src/safety-calculator.c:271
 msgid "No File System Access"
 msgstr "Без достъп до файловата система"
 
-#: src/safety-calculator.c:282
+#: src/safety-calculator.c:272
 msgid "Cannot access the file system at all"
 msgstr "Без никакъв достъп до файловите системи"
 
-#: src/safety-calculator.c:289
+#: src/safety-calculator.c:279
 msgid "Uses System Services"
 msgstr "Ползва системни услуги"
 
-#: src/safety-calculator.c:290
+#: src/safety-calculator.c:280
 msgid "Can request data from non-portal system services"
 msgstr "Може да поиска данни от извънпортални системни услуги"
 
-#: src/safety-calculator.c:296
+#: src/safety-calculator.c:286
 msgid "Uses Session Services"
 msgstr "Ползва сесийни услуги"
 
-#: src/safety-calculator.c:297
+#: src/safety-calculator.c:287
 msgid "Can request data from non-portal session services"
 msgstr "Може да поиска данни от извънпортални сесийни услуги"
 
-#: src/safety-calculator.c:345
+#: src/safety-calculator.c:332
 msgid "No Service Access"
 msgstr "Няма достъп до услуги"
 
-#: src/safety-calculator.c:346
+#: src/safety-calculator.c:333
 msgid "Cannot access non-portal session or system services at all"
 msgstr "Без достъп до извънпортални сесийни или системни услуги"
 
-#: src/safety-calculator.c:354
+#: src/safety-calculator.c:372
 msgid "Verified App Developer"
 msgstr "Потвърден разработчик"
 
-#: src/safety-calculator.c:355
+#: src/safety-calculator.c:373
 msgid "The developer of this app has been verified to be who they say they are"
 msgstr "Потвърдено е кой e разработчикът на програмата"
 
-#: src/safety-calculator.c:364
+#: src/safety-calculator.c:382
 msgid "Proprietary Code"
 msgstr "Собственически код"
 
-#: src/safety-calculator.c:365
+#: src/safety-calculator.c:383
 msgid ""
 "The source code is not public, so it cannot be independently audited and "
 "might be unsafe"
@@ -3439,11 +3466,11 @@ msgstr ""
 "Изходният код не е публичен — не може да бъде прегледан и може да се окаже "
 "несигурен"
 
-#: src/safety-calculator.c:375
+#: src/safety-calculator.c:393
 msgid "Auditable Code"
 msgstr "Проверим код"
 
-#: src/safety-calculator.c:376
+#: src/safety-calculator.c:394
 msgid ""
 "The source code is public and can be independently audited, which makes the "
 "app more likely to be safe"
@@ -3451,90 +3478,90 @@ msgstr ""
 "Изходният код е публичен — може да бъде прегледан независимо, което "
 "увеличава вероятността да е надежден"
 
-#: src/safety-calculator.c:516
+#: src/safety-calculator.c:532
 #, c-format
 msgid "Use the %s System Service"
 msgstr "Да се ползва системната услуга „%s“"
 
-#: src/safety-calculator.c:520
+#: src/safety-calculator.c:536
 #, c-format
 msgid "Use the %s Session Service"
 msgstr "Да се ползва услугата за сесии „%s“"
 
-#: src/safety-calculator.c:524
+#: src/safety-calculator.c:540
 #, c-format
 msgid "Use the %s Service"
 msgstr "Да се ползва услугата „%s“"
 
-#: src/safety-calculator.c:534
+#: src/safety-calculator.c:550
 msgid "Can see the non-portal service"
 msgstr "Може да вижда извънпорталната услуга"
 
-#: src/safety-calculator.c:536
+#: src/safety-calculator.c:552
 msgid "Can talk to the non-portal service"
 msgstr "Може да комуникира с извънпорталната услуга"
 
-#: src/safety-calculator.c:538
+#: src/safety-calculator.c:554
 msgid "Can own the non-portal service"
 msgstr "Може да притежава извънпорталната услуга"
 
-#: src/safety-calculator.c:553
+#: src/safety-calculator.c:569
 msgid "Global Menu Integration"
 msgstr "Интеграция с глобалното меню"
 
-#: src/safety-calculator.c:554
+#: src/safety-calculator.c:570
 msgid "Can display its menus in a global menu bar"
 msgstr "Може да показва менютата си в глобалната лента с менюта"
 
-#: src/safety-calculator.c:559
+#: src/safety-calculator.c:575
 msgid "KDE Settings Integration"
 msgstr "Интеграция с настройките на KDE"
 
-#: src/safety-calculator.c:560
+#: src/safety-calculator.c:576
 msgid "Can detect when KDE desktop settings change"
 msgstr "Може да засича промени в настройките на работната среда на KDE"
 
-#: src/safety-calculator.c:565
+#: src/safety-calculator.c:581
 msgid "KDE Global Settings"
 msgstr "Глобални настройки на KDE"
 
-#: src/safety-calculator.c:566
+#: src/safety-calculator.c:582
 msgid "Can read KDE desktop preferences like fonts and colors"
 msgstr ""
 "Може да чете настройките на работната среда на KDE, като например шрифтове и "
 "цветове"
 
-#: src/safety-calculator.c:571
+#: src/safety-calculator.c:587
 msgid "Secret Storage Service"
 msgstr "Услуга за съхранение на тайни"
 
-#: src/safety-calculator.c:572
+#: src/safety-calculator.c:588
 msgid "Can store and retrieve its own passwords using the system keyring"
 msgstr ""
 "Може да съхранява и извлича собствените си пароли, като използва системния "
 "ключодържател"
 
-#: src/safety-calculator.c:577
+#: src/safety-calculator.c:593
 msgid "Desktop Notifications Service"
 msgstr "Услуга за известия на работната среда"
 
-#: src/safety-calculator.c:578
+#: src/safety-calculator.c:594
 msgid "Can send desktop notifications"
 msgstr "Може да изпраща известия на работната среда"
 
-#: src/safety-calculator.c:584
+#: src/safety-calculator.c:600
 msgid "System Tray Integration"
 msgstr "Интеграция със системната лента"
 
-#: src/safety-calculator.c:585
+#: src/safety-calculator.c:601
 msgid "Can display an icon in the system tray"
 msgstr "Може да показва иконка в системната лента"
 
-#: src/safety-calculator.c:590
+#: src/safety-calculator.c:606
 msgid "KDE Connect Integration"
 msgstr "Интеграция с KDE Connect"
 
-#: src/safety-calculator.c:591
+#: src/safety-calculator.c:607
 msgid "Can interact with devices paired via KDE Connect"
 msgstr "Може да взаимодейства с устройства, сдвоени чрез KDE Connect"
 
