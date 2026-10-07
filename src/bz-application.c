@@ -151,11 +151,33 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (block, g_regex_unref);
     BZ_RELEASE_DATA (allow, g_regex_unref))
 
-static DexFuture *
-init_fiber (BzWeakRef *wr);
+typedef enum
+{
+  CACHE_STATE_NEW              = 1 << 0,
+  CACHE_STATE_PACKAGE_UPGRADED = 1 << 1,
+  CACHE_STATE_WIPED            = 1 << 2,
+} CacheState;
 
 static DexFuture *
-enumerate_disk_groups_fiber (BzWeakRef *wr);
+init_fiber (BzWeakRef *wr,
+            DexFuture *cache_check,
+            DexFuture *groups,
+            DexFuture *flatpak,
+            DexFuture *installed_set);
+
+static DexFuture *
+cache_check_fiber (void);
+
+static DexFuture *
+load_groups_cache_fiber (DexFuture               *cache_check,
+                         BzApplicationMapFactory *factory);
+
+static DexFuture *
+retrieve_install_ids_fiber (DexFuture *flatpak);
+
+static DexFuture *
+enumerate_disk_groups_fiber (BzWeakRef *wr,
+                             DexFuture *groups);
 
 static DexFuture *
 enumerate_disk_io_fiber (BzEntryCacheManager *cache);
@@ -509,6 +531,11 @@ bz_application_command_line (GApplication            *app,
       g_autoptr (GtkStringList) blocklists      = NULL;
       g_autoptr (GtkStringList) txt_blocklists  = NULL;
       g_autoptr (GtkStringList) content_configs = NULL;
+      g_autoptr (BzWeakRef) wr                  = NULL;
+      g_autoptr (DexFuture) cache_check         = NULL;
+      g_autoptr (DexFuture) groups              = NULL;
+      g_autoptr (DexFuture) flatpak             = NULL;
+      g_autoptr (DexFuture) installed_set       = NULL;
       g_autoptr (DexFuture) init                = NULL;
 
       self->running           = TRUE;
@@ -550,12 +577,38 @@ bz_application_command_line (GApplication            *app,
             (const char *const *) content_configs_strv);
 
       g_timer_start (self->init_timer);
-      init = dex_scheduler_spawn (
+
+      cache_check = dex_scheduler_spawn (
+          dex_thread_pool_scheduler_get_default (),
+          bz_get_dex_stack_size (),
+          (DexFiberFunc) cache_check_fiber,
+          NULL, NULL);
+      groups = dex_scheduler_spawnv (
+          dex_thread_pool_scheduler_get_default (),
+          bz_get_dex_stack_size (),
+          G_CALLBACK (load_groups_cache_fiber),
+          2,
+          DEX_TYPE_FUTURE, cache_check,
+          BZ_TYPE_APPLICATION_MAP_FACTORY, self->entry_factory);
+      flatpak       = bz_flatpak_instance_new ();
+      installed_set = dex_scheduler_spawnv (
+          dex_thread_pool_scheduler_get_default (),
+          bz_get_dex_stack_size (),
+          G_CALLBACK (retrieve_install_ids_fiber),
+          1,
+          DEX_TYPE_FUTURE, flatpak);
+
+      wr   = bz_weak_ref_new (self);
+      init = dex_scheduler_spawnv (
           dex_scheduler_get_default (),
           bz_get_dex_stack_size (),
-          (DexFiberFunc) init_fiber,
-          bz_weak_ref_new (self),
-          (GDestroyNotify) bz_weak_ref_unref);
+          G_CALLBACK (init_fiber),
+          5,
+          BZ_TYPE_WEAK_REF, wr,
+          DEX_TYPE_FUTURE, cache_check,
+          DEX_TYPE_FUTURE, groups,
+          DEX_TYPE_FUTURE, flatpak,
+          DEX_TYPE_FUTURE, installed_set);
       init = dex_future_finally (
           init,
           (DexFutureCallback) init_fiber_finally,
@@ -990,12 +1043,15 @@ bz_state_info_get_default (void)
 }
 
 static DexFuture *
-init_fiber (BzWeakRef *wr)
+init_fiber (BzWeakRef *wr,
+            DexFuture *cache_check,
+            DexFuture *groups,
+            DexFuture *flatpak,
+            DexFuture *installed_set)
 {
   g_autoptr (BzApplication) self        = NULL;
   g_autoptr (GError) local_error        = NULL;
-  g_autofree char *root_cache_dir       = NULL;
-  g_autoptr (GFile) root_cache_dir_file = NULL;
+  CacheState cache_state                = 0;
   g_autoptr (GListModel) repos          = NULL;
   gboolean has_flathub                  = FALSE;
   gboolean cache_has_flathub            = FALSE;
@@ -1003,8 +1059,6 @@ init_fiber (BzWeakRef *wr)
   g_autoptr (BzAuthState) auth_state    = NULL;
   g_autofree char *flathub_cache        = NULL;
   g_autoptr (GFile) flathub_cache_file  = NULL;
-  g_autofree char *cache_version_path   = NULL;
-  g_autoptr (GFile) cache_version_file  = NULL;
 
   bz_weak_get_or_return_reject (self, &wr->ref);
 
@@ -1096,75 +1150,16 @@ init_fiber (BzWeakRef *wr)
   bz_state_info_set_busy (self->state, TRUE);
   bz_state_info_set_background_task_label (self->state, _ ("Performing setup…"));
 
-  root_cache_dir      = bz_dup_root_cache_dir ();
-  root_cache_dir_file = g_file_new_for_path (root_cache_dir);
-  cache_version_path  = g_build_filename (root_cache_dir, "cache-version", NULL);
-  cache_version_file  = g_file_new_for_path (cache_version_path);
-
-  if (dex_await (dex_file_query_exists (root_cache_dir_file), NULL))
-    {
-      gboolean wipe_cache       = TRUE;
-      gboolean package_upgraded = TRUE;
-
-      if (dex_await (dex_file_query_exists (cache_version_file), NULL))
-        {
-          g_autoptr (GBytes) bytes = NULL;
-
-          bytes = dex_await_boxed (dex_file_load_contents_bytes (cache_version_file), NULL);
-          if (bytes != NULL)
-            {
-              g_autoptr (GVariant) variant = NULL;
-
-              variant = g_variant_new_from_bytes (G_VARIANT_TYPE ("(ss)"), bytes, FALSE);
-              if (variant != NULL)
-                {
-                  const char *stored_package_version = NULL;
-                  const char *stored_cache_version   = NULL;
-
-                  g_variant_get (variant, "(&s&s)", &stored_package_version, &stored_cache_version);
-
-                  wipe_cache       = g_strcmp0 (stored_cache_version, CACHE_VERSION) != 0;
-                  package_upgraded = g_strcmp0 (stored_package_version, PACKAGE_VERSION) != 0;
-                }
-            }
-        }
-
-      if (package_upgraded)
-        bz_state_info_set_donation_prompt_dismissed (self->state, FALSE);
-
-      if (wipe_cache)
-        {
-          g_settings_set_int64 (self->settings, "last-refresh-time", 0);
-
-          g_info ("Version incompatibility detected: clearing cache");
-          dex_await (bz_reap_file_dex (root_cache_dir_file), NULL);
-        }
-    }
-  else
+  cache_state = dex_await_int (dex_ref (cache_check), NULL);
+  if (cache_state & CACHE_STATE_WIPED)
+    g_settings_set_int64 (self->settings, "last-refresh-time", 0);
+  if (cache_state & CACHE_STATE_NEW)
     bz_state_info_set_donation_prompt_dismissed (self->state, TRUE);
-
-  {
-    g_autoptr (GError) mkdir_error = NULL;
-
-    dex_await (dex_file_make_directory_with_parents (root_cache_dir_file), &mkdir_error);
-    if (mkdir_error == NULL || mkdir_error->code == G_IO_ERROR_EXISTS)
-      {
-        g_autoptr (GVariant) variant = NULL;
-        g_autoptr (GBytes) bytes     = NULL;
-
-        variant = g_variant_new ("(ss)", PACKAGE_VERSION, CACHE_VERSION);
-        bytes   = g_variant_get_data_as_bytes (variant);
-        dex_await (dex_file_replace_contents_bytes (
-                       cache_version_file, bytes, NULL, FALSE,
-                       G_FILE_CREATE_REPLACE_DESTINATION),
-                   NULL);
-      }
-    else
-      g_warning ("Unable to ensure cache directory: %s", mkdir_error->message);
-  }
+  else if (cache_state & CACHE_STATE_PACKAGE_UPGRADED)
+    bz_state_info_set_donation_prompt_dismissed (self->state, FALSE);
 
   g_clear_object (&self->flatpak);
-  self->flatpak = dex_await_object (bz_flatpak_instance_new (), &local_error);
+  self->flatpak = dex_await_object (dex_ref (flatpak), &local_error);
   if (self->flatpak == NULL)
     return dex_future_new_for_error (g_steal_pointer (&local_error));
   bz_transaction_manager_set_backend (self->transactions, BZ_BACKEND (self->flatpak));
@@ -1243,10 +1238,7 @@ init_fiber (BzWeakRef *wr)
     }
   bz_state_info_set_has_flathub (self->state, has_flathub);
 
-  self->installed_set = dex_await_boxed (
-      bz_backend_retrieve_install_ids (
-          BZ_BACKEND (self->flatpak), NULL),
-      &local_error);
+  self->installed_set = dex_await_boxed (dex_ref (installed_set), &local_error);
   if (self->installed_set == NULL)
     {
       g_warning ("Unable to enumerate installed entries from flatpak backend; "
@@ -1272,12 +1264,13 @@ init_fiber (BzWeakRef *wr)
 
   /* Revive old cache from previous Bazaar process */
   cache_has_flathub = dex_await_boolean (
-      dex_scheduler_spawn (
+      dex_scheduler_spawnv (
           dex_scheduler_get_default (),
           bz_get_dex_stack_size (),
-          (DexFiberFunc) enumerate_disk_groups_fiber,
-          bz_weak_ref_ref (wr),
-          (GDestroyNotify) bz_weak_ref_unref),
+          G_CALLBACK (enumerate_disk_groups_fiber),
+          2,
+          BZ_TYPE_WEAK_REF, wr,
+          DEX_TYPE_FUTURE, groups),
       NULL);
 
   self->had_cache_on_init = g_list_model_get_n_items (G_LIST_MODEL (self->groups)) > 0;
@@ -1348,45 +1341,110 @@ init_fiber (BzWeakRef *wr)
 }
 
 static DexFuture *
-enumerate_disk_groups_fiber (BzWeakRef *wr)
+cache_check_fiber (void)
 {
-  g_autoptr (BzApplication) self      = NULL;
+  g_autofree char *root_cache_dir       = NULL;
+  g_autoptr (GFile) root_cache_dir_file = NULL;
+  g_autofree char *cache_version_path   = NULL;
+  g_autoptr (GFile) cache_version_file  = NULL;
+  CacheState state                      = 0;
+
+  root_cache_dir      = bz_dup_root_cache_dir ();
+  root_cache_dir_file = g_file_new_for_path (root_cache_dir);
+  cache_version_path  = g_build_filename (root_cache_dir, "cache-version", NULL);
+  cache_version_file  = g_file_new_for_path (cache_version_path);
+
+  if (dex_await (dex_file_query_exists (root_cache_dir_file), NULL))
+    {
+      gboolean wipe_cache       = TRUE;
+      gboolean package_upgraded = TRUE;
+
+      if (dex_await (dex_file_query_exists (cache_version_file), NULL))
+        {
+          g_autoptr (GBytes) bytes = NULL;
+
+          bytes = dex_await_boxed (dex_file_load_contents_bytes (cache_version_file), NULL);
+          if (bytes != NULL)
+            {
+              g_autoptr (GVariant) variant = NULL;
+
+              variant = g_variant_new_from_bytes (G_VARIANT_TYPE ("(ss)"), bytes, FALSE);
+              if (variant != NULL)
+                {
+                  const char *stored_package_version = NULL;
+                  const char *stored_cache_version   = NULL;
+
+                  g_variant_get (variant, "(&s&s)", &stored_package_version, &stored_cache_version);
+
+                  wipe_cache       = g_strcmp0 (stored_cache_version, CACHE_VERSION) != 0;
+                  package_upgraded = g_strcmp0 (stored_package_version, PACKAGE_VERSION) != 0;
+                }
+            }
+        }
+
+      if (package_upgraded)
+        state |= CACHE_STATE_PACKAGE_UPGRADED;
+
+      if (wipe_cache)
+        {
+          state |= CACHE_STATE_WIPED;
+
+          g_info ("Version incompatibility detected: clearing cache");
+          dex_await (bz_reap_file_dex (root_cache_dir_file), NULL);
+        }
+    }
+  else
+    state |= CACHE_STATE_NEW;
+
+  {
+    g_autoptr (GError) mkdir_error = NULL;
+
+    dex_await (dex_file_make_directory_with_parents (root_cache_dir_file), &mkdir_error);
+    if (mkdir_error == NULL || mkdir_error->code == G_IO_ERROR_EXISTS)
+      {
+        g_autoptr (GVariant) variant = NULL;
+        g_autoptr (GBytes) bytes     = NULL;
+
+        variant = g_variant_new ("(ss)", PACKAGE_VERSION, CACHE_VERSION);
+        bytes   = g_variant_get_data_as_bytes (variant);
+        dex_await (dex_file_replace_contents_bytes (
+                       cache_version_file, bytes, NULL, FALSE,
+                       G_FILE_CREATE_REPLACE_DESTINATION),
+                   NULL);
+      }
+    else
+      g_warning ("Unable to ensure cache directory: %s", mkdir_error->message);
+  }
+
+  return dex_future_new_for_int (state);
+}
+
+static DexFuture *
+load_groups_cache_fiber (DexFuture               *cache_check,
+                         BzApplicationMapFactory *factory)
+{
   g_autoptr (GError) local_error      = NULL;
   g_autofree char *groups_cache       = NULL;
   g_autoptr (GFile) groups_cache_file = NULL;
   g_autoptr (GBytes) bytes            = NULL;
   g_autoptr (GVariant) variant        = NULL;
   g_autoptr (GVariantIter) iter       = NULL;
-  gboolean has_flathub_group          = FALSE;
+  g_autoptr (GPtrArray) groups        = NULL;
 
-  bz_weak_get_or_return_reject (self, &wr->ref);
+  dex_await (dex_ref (cache_check), NULL);
 
   groups_cache_file = fiber_dup_cache_file ("groups-cache", &groups_cache, &local_error);
   if (groups_cache_file == NULL)
-    {
-      g_warning ("Unable to ensure groups cache directory: %s", local_error->message);
-      return dex_future_new_for_boolean (FALSE);
-    }
-
-  if (!dex_await (dex_file_query_exists (groups_cache_file), NULL))
-    return dex_future_new_for_boolean (FALSE);
+    return dex_future_new_for_error (g_steal_pointer (&local_error));
 
   bytes = dex_await_boxed (
       dex_file_load_contents_bytes (groups_cache_file),
       &local_error);
   if (bytes == NULL)
-    {
-      g_warning ("Failed to load groups cache from %s: %s",
-                 groups_cache, local_error->message);
-      return dex_future_new_for_boolean (FALSE);
-    }
+    return dex_future_new_for_error (g_steal_pointer (&local_error));
 
   variant = g_variant_new_from_bytes (G_VARIANT_TYPE ("aa{sv}"), bytes, FALSE);
-  if (variant == NULL)
-    {
-      g_warning ("Failed to parse groups cache from %s", groups_cache);
-      return dex_future_new_for_boolean (FALSE);
-    }
+  groups  = g_ptr_array_new_with_free_func (g_object_unref);
 
   iter = g_variant_iter_new (variant);
   for (;;)
@@ -1398,32 +1456,71 @@ enumerate_disk_groups_fiber (BzWeakRef *wr)
       if (group_variant == NULL)
         break;
 
-      group = bz_entry_group_new (self->entry_factory);
+      group = bz_entry_group_new (factory);
       if (bz_entry_group_deserialize (group, group_variant))
-        {
-          const char *id           = NULL;
-          gboolean    is_installed = FALSE;
+        g_ptr_array_add (groups, g_steal_pointer (&group));
+    }
 
-          is_installed = bz_entry_group_reconcile_with_installed_set (group, self->installed_set);
+  return dex_future_new_take_boxed (G_TYPE_PTR_ARRAY, g_steal_pointer (&groups));
+}
 
-          if (!has_flathub_group &&
-              bz_entry_group_get_is_flathub (group))
-            has_flathub_group = TRUE;
+static DexFuture *
+retrieve_install_ids_fiber (DexFuture *flatpak)
+{
+  g_autoptr (GError) local_error = NULL;
+  g_autoptr (BzBackend) backend  = NULL;
 
-          g_list_store_append (self->groups, group);
+  backend = dex_await_object (dex_ref (flatpak), &local_error);
+  if (backend == NULL)
+    return dex_future_new_for_error (g_steal_pointer (&local_error));
 
-          id = bz_entry_group_get_id (group);
-          if (id != NULL)
-            g_hash_table_replace (
-                self->ids_to_groups,
-                g_strdup (id),
-                g_object_ref (group));
+  return bz_backend_retrieve_install_ids (backend, NULL);
+}
 
-          if (is_installed)
-            g_list_store_insert_sorted (
-                self->installed_apps, group,
-                (GCompareDataFunc) cmp_group, NULL);
-        }
+static DexFuture *
+enumerate_disk_groups_fiber (BzWeakRef *wr,
+                             DexFuture *groups)
+{
+  g_autoptr (BzApplication) self = NULL;
+  g_autoptr (GError) local_error = NULL;
+  g_autoptr (GPtrArray) loaded   = NULL;
+  gboolean has_flathub_group     = FALSE;
+
+  bz_weak_get_or_return_reject (self, &wr->ref);
+
+  loaded = dex_await_boxed (dex_ref (groups), &local_error);
+  if (loaded == NULL)
+    {
+      if (!g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))
+        g_warning ("Failed to load groups cache: %s", local_error->message);
+      return dex_future_new_for_boolean (FALSE);
+    }
+
+  for (guint i = 0; i < loaded->len; i++)
+    {
+      BzEntryGroup *group        = g_ptr_array_index (loaded, i);
+      const char   *id           = NULL;
+      gboolean      is_installed = FALSE;
+
+      is_installed = bz_entry_group_reconcile_with_installed_set (group, self->installed_set);
+
+      if (!has_flathub_group &&
+          bz_entry_group_get_is_flathub (group))
+        has_flathub_group = TRUE;
+
+      g_list_store_append (self->groups, group);
+
+      id = bz_entry_group_get_id (group);
+      if (id != NULL)
+        g_hash_table_replace (
+            self->ids_to_groups,
+            g_strdup (id),
+            g_object_ref (group));
+
+      if (is_installed)
+        g_list_store_insert_sorted (
+            self->installed_apps, group,
+            (GCompareDataFunc) cmp_group, NULL);
     }
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_LESS_STRICT);
