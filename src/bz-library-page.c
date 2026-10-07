@@ -37,11 +37,13 @@ struct _BzLibraryPage
   GListModel           *model;
   BzTransactionManager *transactions;
   BzStateInfo          *state;
+  guint                 fill_id;
 
   /* Template widgets */
   AdwViewStack       *stack;
   BzSearchBar        *search_bar;
   GtkScrolledWindow  *scroll;
+  GtkSliceListModel  *slice_model;
   GtkFilterListModel *filter_model;
   GtkCustomFilter    *filter;
   GtkListView        *list_view;
@@ -109,6 +111,7 @@ bz_library_page_dispose (GObject *object)
   g_clear_object (&self->model);
   g_clear_object (&self->transactions);
   g_clear_object (&self->state);
+  g_clear_handle_id (&self->fill_id, g_source_remove);
 
   G_OBJECT_CLASS (bz_library_page_parent_class)->dispose (object);
 }
@@ -349,6 +352,35 @@ sort_changed_cb (BzLibraryPage  *self,
                       GTK_SORTER_CHANGE_DIFFERENT);
 }
 
+static gboolean
+fill_list_cb (BzLibraryPage *self)
+{
+  guint size = 0;
+
+  size = gtk_slice_list_model_get_size (self->slice_model) + 20;
+  if (size < g_list_model_get_n_items (G_LIST_MODEL (self->filter_model)))
+    {
+      gtk_slice_list_model_set_size (self->slice_model, size);
+      return G_SOURCE_CONTINUE;
+    }
+
+  gtk_slice_list_model_set_size (self->slice_model, G_MAXUINT);
+  self->fill_id = 0;
+  return G_SOURCE_REMOVE;
+}
+
+static void
+bz_library_page_map (GtkWidget *widget)
+{
+  BzLibraryPage *self = BZ_LIBRARY_PAGE (widget);
+
+  GTK_WIDGET_CLASS (bz_library_page_parent_class)->map (widget);
+
+  if (gtk_slice_list_model_get_size (self->slice_model) == 0 &&
+      fill_list_cb (self) == G_SOURCE_CONTINUE)
+    self->fill_id = g_idle_add ((GSourceFunc) fill_list_cb, self);
+}
+
 static void
 bz_library_page_class_init (BzLibraryPageClass *klass)
 {
@@ -358,6 +390,8 @@ bz_library_page_class_init (BzLibraryPageClass *klass)
   object_class->dispose      = bz_library_page_dispose;
   object_class->get_property = bz_library_page_get_property;
   object_class->set_property = bz_library_page_set_property;
+
+  widget_class->map = bz_library_page_map;
 
   props[PROP_MODEL] =
       g_param_spec_object (
@@ -415,6 +449,7 @@ bz_library_page_class_init (BzLibraryPageClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, stack);
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, search_bar);
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, scroll);
+  gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, slice_model);
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, filter_model);
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, filter);
   gtk_widget_class_bind_template_child (widget_class, BzLibraryPage, list_view);
