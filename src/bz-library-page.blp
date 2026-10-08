@@ -247,15 +247,19 @@ template $BzLibraryPage: Adw.Bin {
                 visible: bind template.has-apps;
 
                 model: NoSelection {
-                  model: FilterListModel filter_model {
-                    filter: CustomFilter filter {};
+                  model: SliceListModel slice_model {
+                    size: 0;
 
-                    model: SortListModel sort_model {
-                      sorter: CustomSorter sorter {};
-                      model: bind template.model;
+                    model: FilterListModel filter_model {
+                      filter: CustomFilter filter {};
+
+                      model: SortListModel sort_model {
+                        sorter: CustomSorter sorter {};
+                        model: bind template.model;
+                      };
+
+                      notify::n-items => $n_filtered_items_changed(template);
                     };
-
-                    notify::n-items => $n_filtered_items_changed(template);
                   };
                 };
 
