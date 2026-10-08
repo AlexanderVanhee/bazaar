@@ -133,6 +133,7 @@ struct _BzApplication
   gboolean                 no_window_refresh;
   gboolean                 holding_for_no_window_refresh;
   gboolean                 running;
+  guint                    defer_window_present_source;
   guint                    periodic_timeout_source;
   int                      n_entries_incoming;
   int                      n_remotes_syncing;
@@ -334,6 +335,9 @@ static GtkWindow *
 new_window (BzApplication *self);
 
 static void
+present_deferred_windows (BzApplication *self);
+
+static void
 open_appstream_take (BzApplication *self,
                      char          *appstream);
 
@@ -400,6 +404,7 @@ bz_application_dispose (GObject *object)
   dex_clear (&self->ready_to_open_files);
   dex_clear (&self->sync);
   g_clear_handle_id (&self->periodic_timeout_source, g_source_remove);
+  g_clear_handle_id (&self->defer_window_present_source, g_source_remove);
   g_clear_object (&self->appid_filter);
   g_clear_object (&self->application_factory);
   g_clear_object (&self->blocklist_parser);
@@ -577,6 +582,9 @@ bz_application_command_line (GApplication            *app,
             (const char *const *) content_configs_strv);
 
       g_timer_start (self->init_timer);
+
+      self->defer_window_present_source = g_timeout_add_once (
+          1000, (GSourceOnceFunc) present_deferred_windows, self);
 
       cache_check = dex_scheduler_spawn (
           dex_thread_pool_scheduler_get_default (),
@@ -1115,6 +1123,7 @@ init_fiber (BzWeakRef *wr,
           g_autofree char *response = NULL;
 
           dex_await (dex_ref (DEX_FUTURE (self->first_window_opened)), NULL);
+          present_deferred_windows (self);
 
           window = gtk_application_get_active_window (GTK_APPLICATION (self));
           if (window == NULL)
@@ -1157,6 +1166,8 @@ init_fiber (BzWeakRef *wr,
     bz_state_info_set_donation_prompt_dismissed (self->state, TRUE);
   else if (cache_state & CACHE_STATE_PACKAGE_UPGRADED)
     bz_state_info_set_donation_prompt_dismissed (self->state, FALSE);
+  if (cache_state & (CACHE_STATE_NEW | CACHE_STATE_WIPED))
+    present_deferred_windows (self);
 
   g_clear_object (&self->flatpak);
   self->flatpak = dex_await_object (dex_ref (flatpak), &local_error);
@@ -1178,6 +1189,7 @@ init_fiber (BzWeakRef *wr,
       AdwDialog       *alert    = NULL;
 
       dex_await (dex_ref (DEX_FUTURE (self->first_window_opened)), NULL);
+      present_deferred_windows (self);
 
       window = gtk_application_get_active_window (GTK_APPLICATION (self));
       if (window == NULL)
@@ -2390,6 +2402,8 @@ init_fiber_finally (DexFuture *future,
   gint64        seconds_since_refresh = 0;
 
   bz_weak_get_or_return_reject (self, &wr->ref);
+
+  present_deferred_windows (self);
 
   value = dex_future_get_value (future, &local_error);
   if (value != NULL)
@@ -3862,7 +3876,8 @@ get_or_create_window (BzApplication *self)
       if (adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (window)) != NULL)
         return new_window (self);
 
-      gtk_window_present (window);
+      if (self->defer_window_present_source == 0)
+        gtk_window_present (window);
       return window;
     }
 
@@ -3874,7 +3889,8 @@ get_or_create_window (BzApplication *self)
           if (adw_application_window_get_visible_dialog (ADW_APPLICATION_WINDOW (l->data)) != NULL)
             continue;
 
-          gtk_window_present (GTK_WINDOW (l->data));
+          if (self->defer_window_present_source == 0)
+            gtk_window_present (GTK_WINDOW (l->data));
           return GTK_WINDOW (l->data);
         }
     }
@@ -3913,12 +3929,26 @@ new_window (BzApplication *self)
     }
 
   gtk_window_set_default_size (GTK_WINDOW (window), width, height);
-  gtk_window_present (GTK_WINDOW (window));
+  if (self->defer_window_present_source == 0)
+    gtk_window_present (GTK_WINDOW (window));
+  else
+    gtk_widget_realize (GTK_WIDGET (window));
 
   if (dex_future_is_pending (DEX_FUTURE (self->first_window_opened)))
     dex_promise_resolve_boolean (self->first_window_opened, TRUE);
 
   return GTK_WINDOW (window);
+}
+
+static void
+present_deferred_windows (BzApplication *self)
+{
+  if (self->defer_window_present_source == 0)
+    return;
+  g_clear_handle_id (&self->defer_window_present_source, g_source_remove);
+
+  for (GList *l = gtk_application_get_windows (GTK_APPLICATION (self)); l != NULL; l = l->next)
+    gtk_window_present (GTK_WINDOW (l->data));
 }
 
 static void
