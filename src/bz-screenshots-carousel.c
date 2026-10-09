@@ -155,13 +155,35 @@ on_notify_model (BzScreenshotsCarousel *self)
   update_button_visibility (self);
 }
 
+static GtkWidget *
+get_picture_at_index (BzScreenshotsCarousel *self, guint index)
+{
+  GtkWidget *child = NULL;
+
+  child = bge_carousel_get_nth_page (self->carousel, index);
+  if (child == NULL)
+    return NULL;
+
+  return gtk_widget_get_first_child (child);
+}
+
+static void
+on_page_current_index_changed (BzScreenshotPage      *page,
+                               GParamSpec            *pspec,
+                               BzScreenshotsCarousel *self)
+{
+  guint index = 0;
+
+  index = bz_screenshot_page_get_current_index (page);
+  gtk_single_selection_set_selected (self->selection, index);
+  bz_screenshot_page_set_source_widget (page, get_picture_at_index (self, index));
+}
+
 static void
 open_screenshot_at_index (BzScreenshotsCarousel *self, guint index)
 {
-  BzScreenshotPage *page    = NULL;
-  GtkWidget        *picture = NULL;
-  GtkWidget        *child   = NULL;
-  GtkWidget        *root    = NULL;
+  BzScreenshotPage *page = NULL;
+  GtkWidget        *root = NULL;
   guint             n_items;
 
   if (!self->model)
@@ -171,15 +193,14 @@ open_screenshot_at_index (BzScreenshotsCarousel *self, guint index)
   if (index >= n_items)
     return;
 
-  child = bge_carousel_get_nth_page (self->carousel, index);
-  if (child != NULL)
-    picture = gtk_widget_get_first_child (child);
-
   root = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (self)));
   if (!BZ_IS_WINDOW (root))
     return;
 
-  page = BZ_SCREENSHOT_PAGE (bz_screenshot_page_new (self->model, self->captions, index, picture));
+  page = BZ_SCREENSHOT_PAGE (bz_screenshot_page_new (self->model, self->captions, index,
+                                                     get_picture_at_index (self, index)));
+  g_signal_connect_object (page, "notify::current-index",
+                           G_CALLBACK (on_page_current_index_changed), self, 0);
   bz_window_open_screenshot_page (BZ_WINDOW (root), page);
 }
 

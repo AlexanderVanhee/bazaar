@@ -37,7 +37,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
     private bool reduce_motion = false;
     private bool closing = false;
 
-    private unowned Gtk.Widget? source_widget = null;
+    private unowned Gtk.Widget? _source_widget = null;
     private Gdk.Paintable? source_image = null;
     private Graphene.Rect source_bounds_at_map;
     private Adw.Animation? animation = null;
@@ -54,19 +54,32 @@ public class Bz.ScreenshotPage : Adw.Bin {
     [CCode (notify = false)]
     public string? current_caption {
         get {
-            if (captions == null || screenshots == null)
+            if (captions == null)
                 return null;
 
-            uint n = screenshots.get_n_items ();
-            if (n == 0)
-                return null;
-
-            var caption = captions.get_item ((initial_index + _current_index) % n) as Gtk.StringObject;
+            var caption = captions.get_item (_current_index) as Gtk.StringObject;
             return caption?.string;
         }
     }
 
     public bool is_zoomed { get; private set; default = false; }
+
+    public Gtk.Widget? source_widget {
+        get { return _source_widget; }
+        set {
+            if (_source_widget == value)
+                return;
+
+            if (_source_widget != null)
+                _source_widget.opacity = 1.0;
+
+            _source_widget = value;
+            source_image = null;
+
+            if (get_mapped () && !reduce_motion && _source_widget != null)
+                capture_source ();
+        }
+    }
 
     public ScreenshotPage (ListModel screenshots, ListModel? captions,
                            uint initial_index, Gtk.Widget? source_widget) {
@@ -87,6 +100,9 @@ public class Bz.ScreenshotPage : Adw.Bin {
 
     construct {
         populate_carousel ();
+
+        if (initial_index < carousel.n_pages)
+            _current_index = initial_index;
 
         var zoom = get_current_zoom ();
         if (zoom != null)
@@ -142,16 +158,30 @@ public class Bz.ScreenshotPage : Adw.Bin {
         if (reduce_motion) {
             opacity = 0.0;
         } else if (source_widget != null) {
-            source_image = new Gtk.WidgetPaintable (source_widget).get_current_image ();
-
-            if (!source_widget.compute_bounds (this, out source_bounds_at_map))
-                source_bounds_at_map = Graphene.Rect ().init (0, 0, get_width (), get_height ());
-
-            source_widget.opacity = 0.0;
+            capture_source ();
             set_image_hidden (true);
         }
 
-        start_animation (1.0);
+        add_tick_callback ((w, clock) => {
+            if (carousel.get_width () == 0)
+                return Source.CONTINUE;
+
+            carousel.scroll_to (carousel.get_nth_page (_current_index), false);
+
+            if (!closing)
+                start_animation (1.0);
+
+            return Source.REMOVE;
+        });
+    }
+
+    private void capture_source () {
+        source_image = new Gtk.WidgetPaintable (_source_widget).get_current_image ();
+
+        if (!_source_widget.compute_bounds (this, out source_bounds_at_map))
+            source_bounds_at_map = Graphene.Rect ().init (0, 0, get_width (), get_height ());
+
+        _source_widget.opacity = 0.0;
     }
 
     public override void unmap () {
@@ -373,8 +403,8 @@ public class Bz.ScreenshotPage : Adw.Bin {
 
         uint n_items = screenshots.get_n_items ();
 
-        for (uint offset = 0; offset < n_items; offset++) {
-            var async_texture = screenshots.get_item ((initial_index + offset) % n_items) as Bz.AsyncTexture;
+        for (uint i = 0; i < n_items; i++) {
+            var async_texture = screenshots.get_item (i) as Bz.AsyncTexture;
             if (async_texture == null)
                 continue;
 
