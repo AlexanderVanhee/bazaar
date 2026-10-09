@@ -38,6 +38,9 @@ struct _BzFlathubCategorySection
   gboolean           compact;
   gboolean           has_title;
   guint              min_items;
+  gboolean           lazy;
+  gboolean           lazy_filled;
+  gulong             lazy_fill_id;
   GtkSliceListModel *slice_model;
 };
 
@@ -50,6 +53,7 @@ enum
   PROP_COMPACT,
   PROP_HAS_TITLE,
   PROP_MIN_ITEMS,
+  PROP_LAZY,
   LAST_PROP
 };
 
@@ -88,6 +92,29 @@ get_spacing (gpointer object,
   return compact ? 9 : 11;
 }
 
+static gint64 lazy_fill_frame = -1;
+
+static void
+update_model (BzFlathubCategorySection *self);
+
+static void
+lazy_fill_after_paint (GdkFrameClock            *clock,
+                       BzFlathubCategorySection *self)
+{
+  gint64 frame = 0;
+
+  gdk_frame_clock_request_phase (clock, GDK_FRAME_CLOCK_PHASE_AFTER_PAINT);
+
+  frame = gdk_frame_clock_get_frame_counter (clock);
+  if (frame == lazy_fill_frame)
+    return;
+  lazy_fill_frame = frame;
+
+  g_clear_signal_handler (&self->lazy_fill_id, clock);
+  self->lazy_filled = TRUE;
+  update_model (self);
+}
+
 static void
 update_model (BzFlathubCategorySection *self)
 {
@@ -105,6 +132,21 @@ update_model (BzFlathubCategorySection *self)
       gtk_slice_list_model_set_size (self->slice_model, max_items);
       return;
     }
+
+  if (self->lazy && !self->lazy_filled && self->lazy_fill_id == 0)
+    {
+      GtkRoot       *root  = NULL;
+      GdkFrameClock *clock = NULL;
+
+      root = gtk_widget_get_root (GTK_WIDGET (self));
+      if (root != NULL)
+        clock = gtk_widget_get_frame_clock (GTK_WIDGET (root));
+      if (clock != NULL)
+        self->lazy_fill_id = g_signal_connect_object (
+            clock, "after-paint", G_CALLBACK (lazy_fill_after_paint), self, 0);
+    }
+  if (self->lazy_fill_id != 0)
+    max_items = 0;
 
   expression        = gtk_property_expression_new (BZ_TYPE_FLATHUB_CATEGORY, NULL, "applications");
   self->slice_model = gtk_slice_list_model_new (NULL, 0, max_items);
@@ -147,6 +189,9 @@ bz_flathub_category_section_get_property (GObject    *object,
     case PROP_MIN_ITEMS:
       g_value_set_uint (value, bz_flathub_category_section_get_min_items (self));
       break;
+    case PROP_LAZY:
+      g_value_set_boolean (value, self->lazy);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -174,6 +219,10 @@ bz_flathub_category_section_set_property (GObject      *object,
       break;
     case PROP_MIN_ITEMS:
       bz_flathub_category_section_set_min_items (self, g_value_get_uint (value));
+      break;
+    case PROP_LAZY:
+      self->lazy = g_value_get_boolean (value);
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_LAZY]);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -228,6 +277,12 @@ bz_flathub_category_section_class_init (BzFlathubCategorySectionClass *klass)
           "min-items",
           NULL, NULL,
           0, G_MAXUINT, 0,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  props[PROP_LAZY] =
+      g_param_spec_boolean (
+          "lazy",
+          NULL, NULL, FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
