@@ -496,6 +496,13 @@ handle_relaunch (DBusConnection *connection, DBusMessage *message)
 
   log_msg ("Relaunch requested via D-Bus");
 
+  if (strv_count_local (terms) == 0 && child_pid > 0 &&
+      !dbus_bus_name_has_owner (connection, "io.github.kolunmi.Bazaar", NULL))
+    {
+      send_empty_reply (connection, message);
+      return DBUS_HANDLER_RESULT_HANDLED;
+    }
+
   arm_idle_timer ();
   launch_app (terms, strv_count_local (terms));
 
