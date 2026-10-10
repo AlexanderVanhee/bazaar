@@ -82,6 +82,8 @@ public extern class Bz.Application : GLib.Object {
 public extern class Bz.AppsPage : GLib.Object {
     [CCode (has_construct_function = false)]
     protected AppsPage ();
+
+    public static unowned Adw.NavigationPage? new_from_category (Bz.FlathubCategory category);
 }
 
 [CCode (cheader_filename = "bz-appstream-description-render.h", type_id = "bz_appstream_description_render_get_type ()")]
@@ -212,6 +214,9 @@ public extern class Bz.DynamicListView : GLib.Object {
     protected DynamicListView ();
 
     public GLib.ListModel? model { get; set; }
+    public uint max_children_per_line { get; set; }
+    public uint row_spacing { get; set; }
+    public uint column_spacing { get; set; }
 }
 
 [CCode (cheader_filename = "bz-entry-cache-manager.h", type_id = "bz_entry_cache_manager_get_type ()")]
@@ -319,16 +324,13 @@ public extern class Bz.FeaturedTile : GLib.Object {
     protected FeaturedTile ();
 }
 
-[CCode (cheader_filename = "bz-flathub-category-section.h", type_id = "bz_flathub_category_section_get_type ()")]
-public extern class Bz.FlathubCategorySection : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected FlathubCategorySection ();
-}
-
 [CCode (cheader_filename = "bz-flathub-category.h", type_id = "bz_flathub_category_get_type ()")]
 public extern class Bz.FlathubCategory : GLib.Object {
     [CCode (has_construct_function = false)]
     protected FlathubCategory ();
+
+    public unowned string get_display_name ();
+    public unowned string get_more_of_name ();
 }
 
 [CCode (cheader_filename = "bz-flathub-page.h", type_id = "bz_flathub_page_get_type ()")]
