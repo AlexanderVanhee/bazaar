@@ -38,6 +38,9 @@ struct _BzFlathubCategorySection
   gboolean           compact;
   gboolean           has_title;
   guint              min_items;
+  guint              max_items;
+  guint              max_children_per_line;
+  gboolean           show_more;
   gboolean           lazy;
   gboolean           lazy_filled;
   gulong             lazy_fill_id;
@@ -53,6 +56,9 @@ enum
   PROP_COMPACT,
   PROP_HAS_TITLE,
   PROP_MIN_ITEMS,
+  PROP_MAX_ITEMS,
+  PROP_MAX_CHILDREN_PER_LINE,
+  PROP_SHOW_MORE,
   PROP_LAZY,
   LAST_PROP
 };
@@ -124,7 +130,7 @@ update_model (BzFlathubCategorySection *self)
   if (self->category == NULL)
     return;
 
-  max_items = self->compact ? 6 : 12;
+  max_items = self->compact ? 6 : self->max_items;
   max_items = MAX (max_items, self->min_items);
 
   if (self->slice_model != NULL)
@@ -189,6 +195,15 @@ bz_flathub_category_section_get_property (GObject    *object,
     case PROP_MIN_ITEMS:
       g_value_set_uint (value, bz_flathub_category_section_get_min_items (self));
       break;
+    case PROP_MAX_ITEMS:
+      g_value_set_uint (value, self->max_items);
+      break;
+    case PROP_MAX_CHILDREN_PER_LINE:
+      g_value_set_uint (value, self->max_children_per_line);
+      break;
+    case PROP_SHOW_MORE:
+      g_value_set_boolean (value, self->show_more);
+      break;
     case PROP_LAZY:
       g_value_set_boolean (value, self->lazy);
       break;
@@ -219,6 +234,19 @@ bz_flathub_category_section_set_property (GObject      *object,
       break;
     case PROP_MIN_ITEMS:
       bz_flathub_category_section_set_min_items (self, g_value_get_uint (value));
+      break;
+    case PROP_MAX_ITEMS:
+      self->max_items = g_value_get_uint (value);
+      update_model (self);
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_MAX_ITEMS]);
+      break;
+    case PROP_MAX_CHILDREN_PER_LINE:
+      self->max_children_per_line = g_value_get_uint (value);
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_MAX_CHILDREN_PER_LINE]);
+      break;
+    case PROP_SHOW_MORE:
+      self->show_more = g_value_get_boolean (value);
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_SHOW_MORE]);
       break;
     case PROP_LAZY:
       self->lazy = g_value_get_boolean (value);
@@ -279,6 +307,26 @@ bz_flathub_category_section_class_init (BzFlathubCategorySectionClass *klass)
           0, G_MAXUINT, 0,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_MAX_ITEMS] =
+      g_param_spec_uint (
+          "max-items",
+          NULL, NULL,
+          1, G_MAXUINT, 12,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  props[PROP_MAX_CHILDREN_PER_LINE] =
+      g_param_spec_uint (
+          "max-children-per-line",
+          NULL, NULL,
+          1, G_MAXUINT, 4,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  props[PROP_SHOW_MORE] =
+      g_param_spec_boolean (
+          "show-more",
+          NULL, NULL, TRUE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
   props[PROP_LAZY] =
       g_param_spec_boolean (
           "lazy",
@@ -305,6 +353,9 @@ bz_flathub_category_section_init (BzFlathubCategorySection *self)
   self->compact   = FALSE;
   self->has_title = TRUE;
   self->min_items = 0;
+  self->max_items = 12;
+  self->max_children_per_line = 4;
+  self->show_more = TRUE;
 
   gtk_widget_init_template (GTK_WIDGET (self));
 }

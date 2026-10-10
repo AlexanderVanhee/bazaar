@@ -299,23 +299,14 @@ template $BzFlathubPage: Adw.Bin {
                         }
                       }
 
-                      $BzDynamicListView otg_list {
-                        styles [
-                          "flathub-page-section",
-                        ]
-
+                      $BzFlathubCategorySection otg_section {
+                        lazy: true;
+                        has-title: false;
+                        show-more: false;
                         hexpand: true;
-                        scroll: false;
-                        noscroll-kind: flow-box;
-                        child-type: "BzAppTile";
-                        child-prop: "group";
+                        max-items: 9;
                         max-children-per-line: 3;
-
-                        model: SliceListModel otg_slice {
-                          offset: 0;
-                          size: 9;
-                          model: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "mobile") as <$BzFlathubCategory>.applications;
-                        };
+                        category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "mobile") as <$BzFlathubCategory>;
                       }
 
                       Button otg_more_button_bottom {
@@ -456,23 +447,11 @@ template $BzFlathubPage: Adw.Bin {
                           name: "game";
                           child: Box {
                             orientation: vertical;
-                            $BzDynamicListView game_list {
-                              styles [
-                                "flathub-page-section",
-                              ]
-
-                              hexpand: true;
-                              scroll: false;
-                              noscroll-kind: flow-box;
-                              child-type: "BzAppTile";
-                              child-prop: "group";
-                              max-children-per-line: 4;
-
-                              model: SliceListModel game_slice {
-                                offset: 0;
-                                size: 12;
-                                model: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game-only") as <$BzFlathubCategory>.applications;
-                              };
+                            $BzFlathubCategorySection game_section {
+                              lazy: true;
+                              has-title: false;
+                              show-more: false;
+                              category: bind $get_category_by_name_cb(template.state as <$BzStateInfo>.flathub as <$BzFlathubState>.categories, "game-only") as <$BzFlathubCategory>;
                             }
 
                             Button {
@@ -561,8 +540,8 @@ template $BzFlathubPage: Adw.Bin {
         condition ("max-width: 1250sp")
 
         setters {
-          otg_list.max-children-per-line: 2;
-          otg_slice.size: 6;
+          otg_section.max-children-per-line: 2;
+          otg_section.max-items: 6;
           after_hero.compact: true;
           after_top_apps.compact: true;
           after_first_category_block.compact: true;
@@ -600,9 +579,9 @@ template $BzFlathubPage: Adw.Bin {
           emulators_section.compact: true;
           launchers_section.compact: true;
           game_tools_section.compact: true;
-          game_list.max-children-per-line: 2;
-          game_slice.size: 6;
-          otg_slice.size: 6;
+          game_section.max-children-per-line: 2;
+          game_section.max-items: 6;
+          otg_section.max-items: 6;
         }
       }
     };
