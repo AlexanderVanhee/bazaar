@@ -190,6 +190,9 @@ main (int argc, char *argv[])
   else
     launch_app (fwd_args, n_fwd_args);
 
+  unsetenv ("XDG_ACTIVATION_TOKEN");
+  unsetenv ("DESKTOP_STARTUP_ID");
+
   arm_idle_timer ();
 
   while (dbus_connection_get_dispatch_status (bus) == DBUS_DISPATCH_DATA_REMAINS)
@@ -460,6 +463,7 @@ forward_to_running_daemon (DBusConnection *forward_bus, int argc, char *argv[])
   DBusError       err   = DBUS_ERROR_INIT;
   int             i     = 0;
   int             start = argc > 0 ? 1 : 0;
+  const char     *token = getenv ("XDG_ACTIVATION_TOKEN");
 
   m = dbus_message_new_method_call (BUS_NAME, OBJECT_PATH, DAEMON_IFACE, "Relaunch");
   if (m == NULL)
@@ -470,6 +474,9 @@ forward_to_running_daemon (DBusConnection *forward_bus, int argc, char *argv[])
   for (i = start; i < argc; i++)
     dbus_message_iter_append_basic (&sub, DBUS_TYPE_STRING, &argv[i]);
   dbus_message_iter_close_container (&iter, &sub);
+
+  if (token != NULL)
+    dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &token);
 
   reply = dbus_connection_send_with_reply_and_block (forward_bus, m, ACTIVATE_TIMEOUT_MS, &err);
   dbus_message_unref (m);
@@ -490,9 +497,13 @@ handle_relaunch (DBusConnection *connection, DBusMessage *message)
 {
   DBusMessageIter               iter;
   _cleanup_ (strv_freep) char **terms = NULL;
+  const char                   *token = NULL;
 
   dbus_message_iter_init (message, &iter);
   terms = read_strv_arg (&iter);
+  if (dbus_message_iter_next (&iter) &&
+      dbus_message_iter_get_arg_type (&iter) == DBUS_TYPE_STRING)
+    dbus_message_iter_get_basic (&iter, &token);
 
   log_msg ("Relaunch requested via D-Bus");
 
@@ -504,7 +515,10 @@ handle_relaunch (DBusConnection *connection, DBusMessage *message)
     }
 
   arm_idle_timer ();
+  if (token != NULL)
+    setenv ("XDG_ACTIVATION_TOKEN", token, 1);
   launch_app (terms, strv_count_local (terms));
+  unsetenv ("XDG_ACTIVATION_TOKEN");
 
   send_empty_reply (connection, message);
 
