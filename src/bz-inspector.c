@@ -245,14 +245,14 @@ open_file_externally_cb (GtkListItem *list_item,
 #if defined(DEVELOPMENT_BUILD) && defined(SANDBOXED_LIBFLATPAK)
   {
     const char *argv[] = { "flatpak-spawn", "--host", "xdg-open", NULL, NULL };
-    argv[3]            = path;
 
+    argv[3] = path;
     g_spawn_async (NULL, (char **) argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
   }
 #else
   {
-    g_autofree char             *uri      = NULL;
-    g_autoptr (GtkUriLauncher)   launcher = NULL;
+    g_autofree char *uri                = NULL;
+    g_autoptr (GtkUriLauncher) launcher = NULL;
 
     uri      = g_strdup_printf ("file://%s", path);
     launcher = gtk_uri_launcher_new (uri);
