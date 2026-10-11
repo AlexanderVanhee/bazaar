@@ -2327,6 +2327,8 @@ bz_entry_calc_usefulness (BzEntry *self)
 
   score -= priv->eol != NULL ? 500 : 0;
 
+  score += priv->unique_id != NULL && g_str_has_prefix (priv->unique_id, "FLATPAK-SYSTEM::") ? 1 : 0;
+
   return score;
 }
 
