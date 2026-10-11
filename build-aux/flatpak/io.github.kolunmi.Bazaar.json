@@ -241,6 +241,10 @@
                 "tag-pattern": "^(1\\.[0-8][02468]\\..*)$",
                 "is-important": true
               }
+            },
+            {
+              "type": "patch",
+              "path": "revokefs-propagate-fuse-main-failure.patch"
             }
           ],
           "modules": [
