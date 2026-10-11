@@ -351,10 +351,14 @@ bz_flatpak_entry_real_deserialize (BzSerializable *serializable,
         self->addon_extension_of_ref = g_variant_dup_string (value, NULL);
     }
 
-  if (self->is_installed_ref)
+  if (!bz_entry_deserialize (BZ_ENTRY (self), import, error))
+    return FALSE;
+
+  if (self->is_installed_ref &&
+      bz_entry_get_icon_paintable (BZ_ENTRY (self)) == NULL)
     apply_icon_theme (self);
 
-  return bz_entry_deserialize (BZ_ENTRY (self), import, error);
+  return TRUE;
 }
 
 static void
