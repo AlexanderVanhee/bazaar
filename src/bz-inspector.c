@@ -28,6 +28,7 @@
 #include "bz-inspector.h"
 #include "bz-serializable.h"
 #include "bz-window.h"
+#include "dex-gtk-utils.h"
 #include "env.h"
 #include "template-callbacks.h"
 
@@ -376,6 +377,8 @@ serialize_all_entries_fiber (BzInspector *self)
   g_autoptr (BzEntryCacheManager) cache = NULL;
   const char      *path                 = NULL;
   g_autofree char *path_clone           = NULL;
+  g_autoptr (GFile) initial_file        = NULL;
+  g_autoptr (GtkFileDialog) file_dialog = NULL;
   g_autoptr (GFile) file                = NULL;
   g_autoptr (GHashTable) cached_set     = NULL;
   guint cached_set_size                 = 0;
@@ -390,14 +393,25 @@ serialize_all_entries_fiber (BzInspector *self)
   g_object_ref (cache);
 
   path = gtk_editable_get_text (self->serialize_all_entries_path_entry);
-  if (path == NULL || *path == '\0')
-    return dex_future_new_false ();
-  path_clone = g_strdup (path);
-  file       = g_file_new_for_path (path_clone);
+  if (path != NULL && *path != '\0')
+    {
+      path_clone   = g_strdup (path);
+      initial_file = g_file_new_for_path (path_clone);
+    }
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_btn), FALSE);
   gtk_widget_set_visible (GTK_WIDGET (self->serialize_all_entries_progress), TRUE);
   gtk_progress_bar_set_fraction (self->serialize_all_entries_progress, 0.0);
+
+  file_dialog = gtk_file_dialog_new ();
+  gtk_file_dialog_set_title (file_dialog, "Choose a file to serialize json into");
+  gtk_file_dialog_set_initial_file (file_dialog, initial_file);
+
+  file = dex_await_object (
+      bz_file_dialog_save (file_dialog, GTK_WINDOW (self)),
+      &local_error);
+  if (file == NULL)
+    goto err;
 
   cached_set = dex_await_boxed (
       bz_entry_cache_manager_enumerate_disk (
