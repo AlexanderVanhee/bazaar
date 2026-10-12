@@ -239,7 +239,13 @@ bz_entry_deserialize (BzEntry  *self,
                       GError  **error);
 
 GIcon *
-bz_load_mini_icon_sync (const char *unique_id_checksum,
-                        const char *path);
+bz_load_mini_icon (const char *unique_id_checksum,
+                   const char *path);
+
+void
+bz_track_pending_mini_icons (void);
+
+DexFuture *
+bz_wait_pending_mini_icons (void);
 
 G_END_DECLS

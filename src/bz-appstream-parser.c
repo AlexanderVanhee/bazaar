@@ -494,7 +494,7 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
           icon_paintable = GDK_PAINTABLE (texture);
 
           if (select_is_local)
-            mini_icon = bz_load_mini_icon_sync (unique_id_checksum, select);
+            mini_icon = bz_load_mini_icon (unique_id_checksum, select);
         }
     }
 

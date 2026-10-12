@@ -23,6 +23,7 @@
 #include "bz-backend-notification.h"
 #include "bz-backend.h"
 #include "bz-entry-cache-manager.h"
+#include "bz-entry.h"
 #include "bz-flatpak-instance.h"
 #include "env.h"
 #include "util.h"
@@ -78,6 +79,7 @@ run (MainData *data)
   guint n_notifs                        = 0;
   g_autoptr (GPtrArray) write_backs     = NULL;
 
+  bz_track_pending_mini_icons ();
   cache = bz_entry_cache_manager_new ();
 
   flatpak = dex_await_object (
@@ -142,6 +144,8 @@ run (MainData *data)
             (DexFuture *const *) write_backs->pdata,
             write_backs->len),
         NULL);
+
+  dex_await (bz_wait_pending_mini_icons (), NULL);
 
   data->rv = EXIT_SUCCESS;
   g_main_loop_quit (data->loop);
