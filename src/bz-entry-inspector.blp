@@ -82,15 +82,25 @@ template $BzEntryInspector: Adw.Window {
         }
       }
 
-      ScrolledWindow {
-        propagate-natural-height: true;
-        child: $GtkSourceView {
-          styles [
-            "monospace",
-          ]
-          // wrap-mode: word_char;
-          buffer: $GtkSourceBuffer text_buffer {};
-        };
+      Box {
+        vexpand: true;
+        orientation: vertical;
+
+        Separator {
+          orientation: horizontal;
+        }
+
+        ScrolledWindow {
+          vexpand: true;
+          propagate-natural-height: true;
+          child: $GtkSourceView {
+            styles [
+              "monospace",
+            ]
+            // wrap-mode: word_char;
+            buffer: $GtkSourceBuffer text_buffer {};
+          };
+        }
       }
     };
 

@@ -49,6 +49,14 @@ enum
 static GParamSpec *props[LAST_PROP] = { 0 };
 
 static void
+dark_changed (BzEntryInspector *self,
+              GParamSpec       *pspec,
+              AdwStyleManager  *mgr);
+
+static void
+check_dark_mode (BzEntryInspector *self);
+
+static void
 bz_entry_inspector_dispose (GObject *object)
 {
   BzEntryInspector *self = BZ_ENTRY_INSPECTOR (object);
@@ -174,14 +182,15 @@ bz_entry_inspector_class_init (BzEntryInspectorClass *klass)
 static void
 bz_entry_inspector_init (BzEntryInspector *self)
 {
-  GtkSourceStyleSchemeManager *scheme_mgr = NULL;
-  GtkSourceStyleScheme        *scheme     = NULL;
-
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  scheme_mgr = gtk_source_style_scheme_manager_get_default ();
-  scheme     = gtk_source_style_scheme_manager_get_scheme (scheme_mgr, "Adwaita-dark");
-  gtk_source_buffer_set_style_scheme (self->text_buffer, scheme);
+  check_dark_mode (self);
+  g_signal_connect_object (
+      adw_style_manager_get_default (),
+      "notify::dark",
+      G_CALLBACK (dark_changed),
+      self,
+      G_CONNECT_SWAPPED);
 }
 
 BzEntryInspector *
@@ -208,6 +217,35 @@ bz_entry_inspector_set_result (BzEntryInspector *self,
     self->result = g_object_ref (result);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_RESULT]);
+}
+
+static void
+dark_changed (BzEntryInspector *self,
+              GParamSpec       *pspec,
+              AdwStyleManager  *mgr)
+{
+  check_dark_mode (self);
+}
+
+static void
+check_dark_mode (BzEntryInspector *self)
+{
+  gboolean              dark   = FALSE;
+  const char           *id     = NULL;
+  GtkSourceStyleScheme *scheme = NULL;
+
+  dark = adw_style_manager_get_dark (
+      adw_style_manager_get_default ());
+
+  if (dark)
+    id = "Adwaita-dark";
+  else
+    id = "Adwaita";
+
+  scheme = gtk_source_style_scheme_manager_get_scheme (
+      gtk_source_style_scheme_manager_get_default (),
+      id);
+  gtk_source_buffer_set_style_scheme (GTK_SOURCE_BUFFER (self->text_buffer), scheme);
 }
 
 /* End of bz-entry-inspector.c */
