@@ -256,8 +256,8 @@ on_watch_io (sd_event_source *s, int fd, uint32_t revents, void *userdata)
 
   dbus_watch_handle (watch, flags);
 
-  if (dbus_connection_get_dispatch_status (bus) == DBUS_DISPATCH_DATA_REMAINS
-      && dispatch_source != NULL)
+  if (dbus_connection_get_dispatch_status (bus) == DBUS_DISPATCH_DATA_REMAINS &&
+      dispatch_source != NULL)
     sd_event_source_set_enabled (dispatch_source, SD_EVENT_ON);
 
   return 0;

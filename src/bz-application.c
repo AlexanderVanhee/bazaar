@@ -855,11 +855,11 @@ bz_application_flathub_login_action (GSimpleAction *action,
                                      gpointer       user_data)
 {
   static AdwNavigationPage *(*login_page_new) (BzAuthState *) = NULL;
-  BzApplication     *self       = user_data;
-  GtkWindow         *window     = NULL;
-  BzAuthState       *auth_state = NULL;
-  AdwNavigationPage *login_page = NULL;
-  GModule           *module     = NULL;
+  BzApplication     *self                                     = user_data;
+  GtkWindow         *window                                   = NULL;
+  BzAuthState       *auth_state                               = NULL;
+  AdwNavigationPage *login_page                               = NULL;
+  GModule           *module                                   = NULL;
 
   g_assert (BZ_IS_APPLICATION (self));
 
@@ -1057,16 +1057,16 @@ init_fiber (BzWeakRef *wr,
             DexFuture *flatpak,
             DexFuture *installed_set)
 {
-  g_autoptr (BzApplication) self        = NULL;
-  g_autoptr (GError) local_error        = NULL;
-  CacheState cache_state                = 0;
-  g_autoptr (GListModel) repos          = NULL;
-  gboolean has_flathub                  = FALSE;
-  gboolean cache_has_flathub            = FALSE;
-  gboolean result                       = FALSE;
-  g_autoptr (BzAuthState) auth_state    = NULL;
-  g_autofree char *flathub_cache        = NULL;
-  g_autoptr (GFile) flathub_cache_file  = NULL;
+  g_autoptr (BzApplication) self       = NULL;
+  g_autoptr (GError) local_error       = NULL;
+  CacheState cache_state               = 0;
+  g_autoptr (GListModel) repos         = NULL;
+  gboolean has_flathub                 = FALSE;
+  gboolean cache_has_flathub           = FALSE;
+  gboolean result                      = FALSE;
+  g_autoptr (BzAuthState) auth_state   = NULL;
+  g_autofree char *flathub_cache       = NULL;
+  g_autoptr (GFile) flathub_cache_file = NULL;
 
   bz_weak_get_or_return_reject (self, &wr->ref);
 
