@@ -775,14 +775,17 @@ bz_appstream_parser_entry_from_metainfo (GFile   *metainfo_file,
 
   if (icon_file != NULL)
     {
-      g_autoptr (GFile) cache_into = NULL;
+      g_autoptr (GFile) cache_into       = NULL;
+      g_autoptr (BzAsyncTexture) texture = NULL;
 
       cache_into = g_file_new_build_filename (
           module_dir, checksum, "icon-paintable.png", NULL);
 
+      texture = bz_async_texture_new_lazy (icon_file, cache_into);
+
       g_object_set (
           entry,
-          "icon-paintable", GDK_PAINTABLE (bz_async_texture_new_lazy (icon_file, cache_into)),
+          "icon-paintable", texture,
           NULL);
     }
 
