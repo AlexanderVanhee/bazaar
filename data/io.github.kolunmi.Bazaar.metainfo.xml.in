@@ -77,6 +77,30 @@
   </screenshots>
 
   <releases>
+    <release version="0.9.8" date="2026-10-12">
+      <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.8</url>
+      <description translate="no">
+        <p>
+          <em>Changes</em>
+        </p>
+        <ul>
+          <li>Improved startup time</li>
+          <li>Closing the screenshot viewer now returns to the screenshot you were viewing</li>
+          <li>System remotes are now preferred over user remotes</li>
+        </ul>
+        <p>
+          <em>Bug Fixes</em>
+        </p>
+        <ul>
+          <li>Fixed an issue where two windows could open when launching the app</li>
+          <li>Fixed app icons not loading for sideloaded apps</li>
+          <li>Fixed an issue where apps could not be installed when using the Flatpak version on Ubuntu</li>
+        </ul>
+        <p>
+          Thanks for reading, and have a great day!
+        </p>
+      </description>
+    </release>
     <release version="0.9.7" date="2026-10-03">
       <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.7</url>
       <description translate="no">
