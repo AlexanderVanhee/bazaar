@@ -24,6 +24,7 @@
 
 #include "config.h"
 
+#include "bz-application.h"
 #include "bz-entry-inspector.h"
 #include "bz-inspector.h"
 #include "bz-serializable.h"
@@ -34,9 +35,7 @@
 
 struct _BzInspector
 {
-  AdwWindow parent_instance;
-
-  BzStateInfo *state;
+  AdwBin parent_instance;
 
   GBinding  *debug_mode_binding;
   GBinding  *disable_blocklists_binding;
@@ -52,7 +51,7 @@ struct _BzInspector
   GtkSingleSelection *groups_selection;
 };
 
-G_DEFINE_FINAL_TYPE (BzInspector, bz_inspector, ADW_TYPE_WINDOW);
+G_DEFINE_FINAL_TYPE (BzInspector, bz_inspector, ADW_TYPE_BIN);
 
 enum
 {
@@ -76,8 +75,6 @@ bz_inspector_dispose (GObject *object)
 {
   BzInspector *self = BZ_INSPECTOR (object);
 
-  g_clear_pointer (&self->state, g_object_unref);
-
   g_clear_object (&self->debug_mode_binding);
   g_clear_object (&self->disable_blocklists_binding);
   if (self->preview_window != NULL)
@@ -93,30 +90,10 @@ bz_inspector_get_property (GObject    *object,
                            GValue     *value,
                            GParamSpec *pspec)
 {
-  BzInspector *self = BZ_INSPECTOR (object);
-
   switch (prop_id)
     {
     case PROP_STATE:
-      g_value_set_object (value, bz_inspector_get_state (self));
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-bz_inspector_set_property (GObject      *object,
-                           guint         prop_id,
-                           const GValue *value,
-                           GParamSpec   *pspec)
-{
-  BzInspector *self = BZ_INSPECTOR (object);
-
-  switch (prop_id)
-    {
-    case PROP_STATE:
-      bz_inspector_set_state (self, g_value_get_object (value));
+      g_value_set_object (value, bz_state_info_get_default ());
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -147,7 +124,7 @@ preview_changed (BzInspector    *self,
 
       g_assert (self->preview_window == NULL);
 
-      window = bz_window_new (self->state);
+      window = bz_window_new (bz_state_info_get_default ());
       gtk_window_set_default_size (GTK_WINDOW (window), 750, 750);
       gtk_window_present (GTK_WINDOW (window));
 
@@ -205,7 +182,7 @@ decache_and_inspect_cb (GtkListItem *list_item,
   g_assert (self != NULL);
 
   result = bz_application_map_factory_convert_one (
-      bz_state_info_get_entry_factory (self->state),
+      bz_state_info_get_entry_factory (bz_state_info_get_default ()),
       g_object_ref (item));
   if (result != NULL)
     {
@@ -269,7 +246,6 @@ bz_inspector_class_init (BzInspectorClass *klass)
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->set_property = bz_inspector_set_property;
   object_class->get_property = bz_inspector_get_property;
   object_class->dispose      = bz_inspector_dispose;
 
@@ -278,7 +254,7 @@ bz_inspector_class_init (BzInspectorClass *klass)
           "state",
           NULL, NULL,
           BZ_TYPE_STATE_INFO,
-          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
@@ -329,45 +305,21 @@ bz_inspector_init (BzInspector *self)
   gtk_editable_set_text (
       self->serialize_all_entries_path_entry,
       serialize_all_entries_output);
+
+  self->debug_mode_binding = g_object_bind_property (
+      bz_state_info_get_default (), "debug-mode",
+      self->debug_mode_check, "active",
+      G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+  self->disable_blocklists_binding = g_object_bind_property (
+      bz_state_info_get_default (), "disable-blocklists",
+      self->disable_blocklists_check, "active",
+      G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 }
 
 BzInspector *
 bz_inspector_new (void)
 {
   return g_object_new (BZ_TYPE_INSPECTOR, NULL);
-}
-
-BzStateInfo *
-bz_inspector_get_state (BzInspector *self)
-{
-  g_return_val_if_fail (BZ_IS_INSPECTOR (self), NULL);
-  return self->state;
-}
-
-void
-bz_inspector_set_state (BzInspector *self,
-                        BzStateInfo *state)
-{
-  g_return_if_fail (BZ_IS_INSPECTOR (self));
-
-  g_clear_pointer (&self->state, g_object_unref);
-  g_clear_pointer (&self->debug_mode_binding, g_object_unref);
-  g_clear_pointer (&self->disable_blocklists_binding, g_object_unref);
-
-  if (state != NULL)
-    {
-      self->state              = g_object_ref (state);
-      self->debug_mode_binding = g_object_bind_property (
-          state, "debug-mode",
-          self->debug_mode_check, "active",
-          G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
-      self->disable_blocklists_binding = g_object_bind_property (
-          state, "disable-blocklists",
-          self->disable_blocklists_check, "active",
-          G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
-    }
-
-  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_STATE]);
 }
 
 static DexFuture *
@@ -385,9 +337,7 @@ serialize_all_entries_fiber (BzInspector *self)
   g_autoptr (GFileOutputStream) output  = NULL;
   GHashTableIter iter                   = { 0 };
 
-  if (self->state == NULL)
-    return dex_future_new_false ();
-  cache = bz_state_info_get_cache_manager (self->state);
+  cache = bz_state_info_get_cache_manager (bz_state_info_get_default ());
   if (cache == NULL)
     return dex_future_new_false ();
   g_object_ref (cache);
@@ -408,14 +358,14 @@ serialize_all_entries_fiber (BzInspector *self)
   gtk_file_dialog_set_initial_file (file_dialog, initial_file);
 
   file = dex_await_object (
-      bz_file_dialog_save (file_dialog, GTK_WINDOW (self)),
+      bz_file_dialog_save (file_dialog, GTK_WINDOW (gtk_widget_get_root (GTK_WIDGET (self)))),
       &local_error);
   if (file == NULL)
     goto err;
 
   cached_set = dex_await_boxed (
       bz_entry_cache_manager_enumerate_disk (
-          bz_state_info_get_cache_manager (self->state)),
+          bz_state_info_get_cache_manager (bz_state_info_get_default ())),
       &local_error);
   if (cached_set == NULL)
     goto err;
@@ -540,6 +490,102 @@ filter_func (BzEntryGroup *group,
     return TRUE;
 
   return FALSE;
+}
+
+struct _BzInspectorPage
+{
+  AdwBin parent_instance;
+};
+
+G_DEFINE_FINAL_TYPE (BzInspectorPage, bz_inspector_page, ADW_TYPE_BIN);
+
+enum
+{
+  PAGE_PROP_0,
+
+  PAGE_PROP_TITLE,
+  PAGE_PROP_OBJECT,
+
+  PAGE_LAST_PROP
+};
+
+static void
+bz_inspector_page_get_property (GObject    *object,
+                                guint       prop_id,
+                                GValue     *value,
+                                GParamSpec *pspec)
+{
+  if (prop_id == PAGE_PROP_TITLE)
+    g_value_set_string (value, "Bazaar");
+  else
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+bz_inspector_page_set_property (GObject      *object,
+                                guint         prop_id,
+                                const GValue *value,
+                                GParamSpec   *pspec)
+{
+  if (prop_id != PAGE_PROP_OBJECT)
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+bz_inspector_page_map (GtkWidget *widget)
+{
+  if (adw_bin_get_child (ADW_BIN (widget)) == NULL)
+    {
+      g_autoptr (GtkCssProvider) provider = NULL;
+      BzInspector *inspector              = NULL;
+
+      provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_resource (provider, "/io/github/kolunmi/Bazaar/inspector.css");
+      gtk_style_context_add_provider_for_display (
+          gtk_widget_get_display (widget),
+          GTK_STYLE_PROVIDER (provider),
+          GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+      gtk_icon_theme_add_resource_path (
+          gtk_icon_theme_get_for_display (gtk_widget_get_display (widget)),
+          "/io/github/kolunmi/Bazaar/icons");
+
+      inspector = bz_inspector_new ();
+      adw_bin_set_child (ADW_BIN (widget), GTK_WIDGET (inspector));
+    }
+
+  GTK_WIDGET_CLASS (bz_inspector_page_parent_class)->map (widget);
+}
+
+static void
+bz_inspector_page_class_init (BzInspectorPageClass *klass)
+{
+  GObjectClass   *object_class = G_OBJECT_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+  object_class->set_property = bz_inspector_page_set_property;
+  object_class->get_property = bz_inspector_page_get_property;
+  widget_class->map          = bz_inspector_page_map;
+
+  g_object_class_install_property (
+      object_class, PAGE_PROP_TITLE,
+      g_param_spec_string ("title", NULL, NULL, NULL,
+                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+  g_object_class_install_property (
+      object_class, PAGE_PROP_OBJECT,
+      g_param_spec_object ("object", NULL, NULL, G_TYPE_OBJECT,
+                           G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS));
+}
+
+static void
+bz_inspector_page_init (BzInspectorPage *self)
+{
+}
+
+void
+bz_inspector_page_register (void)
+{
+  if (g_io_extension_point_lookup ("gtk-inspector-page") != NULL)
+    g_io_extension_point_implement ("gtk-inspector-page", BZ_TYPE_INSPECTOR_PAGE, "bazaar", 10);
 }
 
 /* End of bz-inspector.c */

@@ -151,24 +151,6 @@ template $BzWindow: Adw.ApplicationWindow {
 
                   Adw.HeaderBar top_header_bar {
                     [start]
-                    Box {
-                      styles [
-                        "bz-debug",
-                      ]
-
-                      orientation: horizontal;
-                      spacing: 6;
-                      visible: bind template.state as <$BzStateInfo>.debug-mode;
-
-                      Button {
-                        // Translators: Please treat "Bazaar" as a brand name and avoid translating.
-                        tooltip-text: "Open Bazaar Inspector";
-                        icon-name: "bug-symbolic";
-                        action-name: "app.bazaar-inspector";
-                      }
-                    }
-
-                    [start]
                     MenuButton {
                       visible: bind try {template.state as <$BzStateInfo>.auth-state as <$BzAuthState>.authenticated, false};
                       menu-model: account_menu;
@@ -330,16 +312,6 @@ menu primary_menu {
       // Translators: Please treat "Bazaar" as a brand name and avoid translating.
       label: _("_Quit Bazaar");
       action: "app.quit";
-    }
-  }
-}
-
-menu debug_menu {
-  section {
-    item {
-      // Translators: Please treat "Bazaar" as a brand name and avoid translating.
-      label: "Open Bazaar Inspector";
-      action: "app.bazaar-inspector";
     }
   }
 }
