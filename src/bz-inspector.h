@@ -27,17 +27,16 @@
 G_BEGIN_DECLS
 
 #define BZ_TYPE_INSPECTOR (bz_inspector_get_type ())
-G_DECLARE_FINAL_TYPE (BzInspector, bz_inspector, BZ, INSPECTOR, AdwWindow)
+G_DECLARE_FINAL_TYPE (BzInspector, bz_inspector, BZ, INSPECTOR, AdwBin)
 
 BzInspector *
 bz_inspector_new (void);
 
-BzStateInfo *
-bz_inspector_get_state (BzInspector *self);
+#define BZ_TYPE_INSPECTOR_PAGE (bz_inspector_page_get_type ())
+G_DECLARE_FINAL_TYPE (BzInspectorPage, bz_inspector_page, BZ, INSPECTOR_PAGE, AdwBin)
 
 void
-bz_inspector_set_state (BzInspector *self,
-                        BzStateInfo *state);
+bz_inspector_page_register (void);
 
 G_END_DECLS
 

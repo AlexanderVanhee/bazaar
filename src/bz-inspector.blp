@@ -1,37 +1,19 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $BzInspector: Adw.Window {
-  title: "Bazaar Inspector";
-  default-width: 1200;
-  default-height: 800;
-  width-request: 600;
-  height-request: 600;
-
+template $BzInspector: Adw.Bin {
   Adw.ToolbarView {
-    top-bar-style: raised_border;
-    bottom-bar-style: raised_border;
-    reveal-bottom-bars: false;
-
-    [top]
-    Adw.HeaderBar {
-      [end]
-      MenuButton {
-        primary: true;
-        icon-name: "open-menu-symbolic";
-        tooltip-text: _("Inspector Menu");
-        menu-model: inspector_menu;
-      }
-    }
-
     content: Paned {
       orientation: horizontal;
+      position: 360;
 
       start-child: ScrolledWindow {
         child: Box {
           orientation: vertical;
           width-request: 100;
           spacing: 10;
+          margin-top: 12;
+          margin-bottom: 12;
 
           Box {
             orientation: vertical;
@@ -44,10 +26,12 @@ template $BzInspector: Adw.Window {
                 styles [
                   "heading"
                 ]
+                margin-start: 12;
                 label: "Background Task Info:";
                 xalign: 0.0;
               }
               Label {
+                margin-end: 12;
                 label: bind template.state as <$BzStateInfo>.background-task-label as <string>;
                 xalign: 0.0;
               }
@@ -60,10 +44,12 @@ template $BzInspector: Adw.Window {
                 styles [
                   "heading"
                 ]
+                margin-start: 12;
                 label: "Active Entry Objects in Memory:";
                 xalign: 0.0;
               }
               Label {
+                margin-end: 12;
                 label: bind $format_uint(template.state as <$BzStateInfo>.cache-manager as <$BzEntryCacheManager>.living-entries) as <string>;
                 xalign: 0.0;
               }
@@ -75,9 +61,13 @@ template $BzInspector: Adw.Window {
             spacing: 3;
 
             CheckButton debug_mode_check {
+              margin-start: 6;
+              margin-end: 12;
               label: "Enable Global Debug Mode";
             }
             CheckButton disable_blocklists_check {
+              margin-start: 6;
+              margin-end: 12;
               label: "Disable All Blocklists";
             }
           }
@@ -90,6 +80,8 @@ template $BzInspector: Adw.Window {
               styles [
                 "heading"
               ]
+              margin-start: 12;
+              margin-end: 12;
               label: "Active Blocklists (YAML)";
               xalign: 0.0;
             }
@@ -112,6 +104,8 @@ template $BzInspector: Adw.Window {
               styles [
                 "heading"
               ]
+              margin-start: 12;
+              margin-end: 12;
               label: "Active Blocklists (TXT)";
               xalign: 0.0;
             }
@@ -134,6 +128,8 @@ template $BzInspector: Adw.Window {
               styles [
                 "heading"
               ]
+              margin-start: 12;
+              margin-end: 12;
               label: "Active Curated-Configs";
               xalign: 0.0;
             }
@@ -160,10 +156,12 @@ template $BzInspector: Adw.Window {
                 styles [
                   "heading"
                 ]
+                margin-start: 12;
                 label: "Max Age Rating:";
                 xalign: 0.0;
               }
               Label {
+                margin-end: 12;
                 label: bind $format_int(template.state as <$BzStateInfo>.parental-age-rating) as <string>;
                 xalign: 0.0;
               }
@@ -172,6 +170,8 @@ template $BzInspector: Adw.Window {
               styles [
                 "heading"
               ]
+              margin-start: 12;
+              margin-end: 12;
               label: "Restricted App IDs";
               xalign: 0.0;
             }
@@ -197,6 +197,7 @@ template $BzInspector: Adw.Window {
             "heading"
           ]
           margin-top: 10;
+          margin-start: 12;
           label: "All Entry Groups";
           xalign: 0.0;
         }
@@ -206,6 +207,8 @@ template $BzInspector: Adw.Window {
         }
 
         Expander {
+          margin-start: 6;
+          margin-end: 6;
           label: "Serialize All Entries Into File";
 
           child: Box {
@@ -248,6 +251,7 @@ template $BzInspector: Adw.Window {
         Box {
           orientation: horizontal;
           spacing: 5;
+          margin-start: 6;
 
           CheckButton {
             label: "Preview";
@@ -664,7 +668,7 @@ BuilderListItemFactory string_list_factory {
           "dimmed",
           "bz-monospace",
         ]
-        width-request: 30;
+        width-request: 20;
         label: bind $format_uint(template.position) as <string>;
         xalign: 1.0;
       }
@@ -701,7 +705,7 @@ BuilderListItemFactory plain_string_list_factory {
           "dimmed",
           "bz-monospace",
         ]
-        width-request: 30;
+        width-request: 20;
         label: bind $format_uint(template.position) as <string>;
         xalign: 1.0;
       }
@@ -717,14 +721,5 @@ BuilderListItemFactory plain_string_list_factory {
         label: bind template.item as <$GtkStringObject>.string as <string>;
       }
     };
-  }
-}
-
-menu inspector_menu {
-  section {
-    item {
-      label: "_Quit Bazaar";
-      action: "app.quit";
-    }
   }
 }

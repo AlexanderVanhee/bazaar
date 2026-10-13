@@ -648,6 +648,14 @@ bz_application_local_command_line (GApplication *application,
 }
 
 static void
+bz_application_startup (GApplication *app)
+{
+  G_APPLICATION_CLASS (bz_application_parent_class)->startup (app);
+
+  bz_inspector_page_register ();
+}
+
+static void
 bz_application_class_init (BzApplicationClass *klass)
 {
   GObjectClass      *object_class = G_OBJECT_CLASS (klass);
@@ -655,6 +663,7 @@ bz_application_class_init (BzApplicationClass *klass)
 
   object_class->dispose = bz_application_dispose;
 
+  app_class->startup            = bz_application_startup;
   app_class->activate           = bz_application_activate;
   app_class->command_line       = bz_application_command_line;
   app_class->local_command_line = bz_application_local_command_line;
@@ -672,23 +681,6 @@ bz_application_toggle_debug_mode_action (GSimpleAction *action,
 
   debug_mode = bz_state_info_get_debug_mode (self->state);
   bz_state_info_set_debug_mode (self->state, !debug_mode);
-}
-
-static void
-bz_application_bazaar_inspector_action (GSimpleAction *action,
-                                        GVariant      *parameter,
-                                        gpointer       user_data)
-{
-  BzApplication *self      = user_data;
-  BzInspector   *inspector = NULL;
-
-  g_assert (BZ_IS_APPLICATION (self));
-
-  inspector = bz_inspector_new ();
-  bz_inspector_set_state (inspector, self->state);
-
-  gtk_application_add_window (GTK_APPLICATION (self), GTK_WINDOW (inspector));
-  gtk_window_present (GTK_WINDOW (inspector));
 }
 
 static void
@@ -976,7 +968,6 @@ static const GActionEntry app_actions[] = {
   {              "search",              bz_application_search_action,      "s" },
   {         "show-app-id",         bz_application_show_app_id_action,      "s" },
   {              "donate",              bz_application_donate_action,     NULL },
-  {    "bazaar-inspector",    bz_application_bazaar_inspector_action,     NULL },
   {   "toggle-debug-mode",   bz_application_toggle_debug_mode_action,     NULL },
   {       "open-location",       bz_application_open_location_action,      "s" },
 };
@@ -1008,10 +999,6 @@ bz_application_init (BzApplication *self)
       GTK_APPLICATION (self),
       "app.search('')",
       (const char *[]){ "<primary>f", NULL });
-  gtk_application_set_accels_for_action (
-      GTK_APPLICATION (self),
-      "app.bazaar-inspector",
-      (const char *[]){ "<primary><alt><shift>i", NULL });
   gtk_application_set_accels_for_action (
       GTK_APPLICATION (self),
       "app.toggle-debug-mode",

@@ -3,6 +3,7 @@
   <gresource prefix="/io/github/kolunmi/Bazaar/">
 
     <file>style.css</file>
+    <file>inspector.css</file>
 
     <file>internal-config.yaml</file>
     <file alias="pride-flags.yaml">progress-bar-designs/pride/pride-flags.yaml</file>
