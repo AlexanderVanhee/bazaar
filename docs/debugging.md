@@ -12,22 +12,21 @@ This will produce a flood of output. If you know the specific log domain you
 want to see, you can replace `all` with that domain name, such as `flatpak` or
 `BAZAAR::CORE`.
 
-## Bazaar Inspector
+## Bazaar in GtkInspector
 
-Bazaar has its own inspector window, which you can spawn with the key combo
-`control+alt+shift+i`. This is meant to be useful for developers and
-distributors.
+Bazaar has its own gtk inspector page, which you can spawn with the key combo
+`control+shift+i`. This is meant to be useful for developers and distributors.
 
-The global debug mode toggle in this window basically just enables a bottom bar
-in each Bazaar window which displays useful information particular to that
-window and allows you to easily inspect the UI entry for the visible
-application.
+The global debug mode toggle in this page enables some extra widgets in the UI
+that display useful debugging information and some shortcut buttons to, for
+example, easily inspect the UI entry for the visible application or copy an
+appid.
 
-You can also disable blocklists from this window. This is a temporary internal
-property, not a configuration option; It will not be saved for the next Bazaar
-process.
+You can also disable blocklists from this debug page. This is a temporary
+internal property, not a configuration option; It will not be saved for the next
+Bazaar process.
 
-The rest of the contents of this window should be self-explanatory.
+The rest of the contents of this page should be self-explanatory.
 
 ## Debugging Crashes
 
