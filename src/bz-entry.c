@@ -2353,33 +2353,23 @@ bz_entry_deserialize (BzEntry  *self,
   return bz_entry_real_deserialize (BZ_SERIALIZABLE (self), import, error);
 }
 
-GIcon *
-bz_load_mini_icon_sync (const char *unique_id_checksum,
-                        const char *path)
+static GMutex     pending_mini_icons_mutex;
+static GPtrArray *pending_mini_icons = NULL;
+
+static DexFuture *
+load_mini_icon_fiber (const char *path,
+                      const char *mini_icon_path)
 {
-  guint            icon_size          = 0;
-  g_autofree char *main_cache         = NULL;
-  g_autofree char *mini_icon_basename = NULL;
-  g_autofree char *mini_icon_path     = NULL;
-  g_autoptr (GBytes) bytes            = NULL;
-  cairo_surface_t *surface_in         = NULL;
-  int              width              = 0;
-  int              height             = 0;
-  cairo_surface_t *surface_out        = NULL;
-  cairo_t         *cairo              = NULL;
-  g_autoptr (GFile) parent_file       = NULL;
-  g_autoptr (GFile) mini_icon_file    = NULL;
-  g_autoptr (GIcon) mini_icon         = NULL;
+  guint            icon_size    = 0;
+  g_autofree char *main_cache   = NULL;
+  cairo_surface_t *surface_in   = NULL;
+  int              width        = 0;
+  int              height       = 0;
+  cairo_surface_t *surface_out  = NULL;
+  cairo_t         *cairo        = NULL;
+  g_autoptr (GFile) parent_file = NULL;
 
   icon_size = bz_get_desktop_search_provider_icon_size ();
-
-  main_cache         = bz_dup_module_dir ();
-  mini_icon_basename = g_strdup_printf ("%s-%ux%u", unique_id_checksum, icon_size, icon_size);
-  mini_icon_path     = g_build_filename (main_cache, mini_icon_basename, NULL);
-
-  if (g_file_test (mini_icon_path, G_FILE_TEST_EXISTS))
-    /* Assume the icon left behind by last writer */
-    goto done;
 
   surface_in = cairo_image_surface_create_from_png (path);
   width      = cairo_image_surface_get_width (surface_in);
@@ -2395,6 +2385,7 @@ bz_load_mini_icon_sync (const char *unique_id_checksum,
   cairo_paint (cairo);
   cairo_restore (cairo);
 
+  main_cache  = bz_dup_module_dir ();
   parent_file = g_file_new_for_path (main_cache);
   g_file_make_directory_with_parents (parent_file, NULL, NULL);
 
@@ -2404,10 +2395,70 @@ bz_load_mini_icon_sync (const char *unique_id_checksum,
   cairo_surface_destroy (surface_in);
   cairo_surface_destroy (surface_out);
 
-done:
+  return dex_future_new_true ();
+}
+
+GIcon *
+bz_load_mini_icon (const char *unique_id_checksum,
+                   const char *path)
+{
+  guint            icon_size          = 0;
+  g_autofree char *main_cache         = NULL;
+  g_autofree char *mini_icon_basename = NULL;
+  g_autofree char *mini_icon_path     = NULL;
+  g_autoptr (GFile) mini_icon_file    = NULL;
+
+  icon_size = bz_get_desktop_search_provider_icon_size ();
+
+  main_cache         = bz_dup_module_dir ();
+  mini_icon_basename = g_strdup_printf ("%s-%ux%u", unique_id_checksum, icon_size, icon_size);
+  mini_icon_path     = g_build_filename (main_cache, mini_icon_basename, NULL);
+
+  if (!g_file_test (mini_icon_path, G_FILE_TEST_EXISTS))
+    {
+      DexFuture *future = NULL;
+
+      future = dex_scheduler_spawnv (
+          dex_thread_pool_scheduler_get_default (),
+          bz_get_dex_stack_size (),
+          G_CALLBACK (load_mini_icon_fiber),
+          2,
+          G_TYPE_STRING, path,
+          G_TYPE_STRING, mini_icon_path);
+
+      g_mutex_lock (&pending_mini_icons_mutex);
+      if (pending_mini_icons != NULL)
+        g_ptr_array_add (pending_mini_icons, dex_ref (future));
+      g_mutex_unlock (&pending_mini_icons_mutex);
+
+      dex_future_disown (future);
+    }
+
   mini_icon_file = g_file_new_for_path (mini_icon_path);
-  mini_icon      = g_file_icon_new (mini_icon_file);
-  return g_steal_pointer (&mini_icon);
+  return g_file_icon_new (mini_icon_file);
+}
+
+void
+bz_track_pending_mini_icons (void)
+{
+  g_mutex_lock (&pending_mini_icons_mutex);
+  if (pending_mini_icons == NULL)
+    pending_mini_icons = g_ptr_array_new_with_free_func (dex_unref);
+  g_mutex_unlock (&pending_mini_icons_mutex);
+}
+
+DexFuture *
+bz_wait_pending_mini_icons (void)
+{
+  g_autoptr (GPtrArray) pending = NULL;
+
+  g_mutex_lock (&pending_mini_icons_mutex);
+  pending = g_steal_pointer (&pending_mini_icons);
+  g_mutex_unlock (&pending_mini_icons_mutex);
+
+  if (pending == NULL || pending->len == 0)
+    return dex_future_new_true ();
+  return dex_future_allv ((DexFuture *const *) pending->pdata, pending->len);
 }
 
 static void
