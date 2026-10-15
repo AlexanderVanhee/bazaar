@@ -84,13 +84,6 @@ search provider. This should be configured to be a higher value than its default
 value of 24x24 when on KDE, as krunner paints result icons as much larger than
 gnome-shell does. This way, the images will not appear blurry.
 
-* `BAZAAR_N_DOWNLOAD_WORKERS`: may be read as an unsigned integer greater than 0
-to specify the number of image download worker subprocesses that should be
-spawned and managed by Bazaar to fetch screenshots, icons, and other images. By
-default, Bazaar spawns 8 download workers. Download workers are always killed
-when Bazaar has no active windows and ensured when Bazaar returns to having 1 or
-more windows.
-
 ## Main Configuration
 
 This is the primary YAML configuration file for bazaar, as designated by the

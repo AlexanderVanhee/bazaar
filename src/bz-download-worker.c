@@ -91,9 +91,16 @@ plumb_data_input_stream_read_line_finish (GDataInputStream *stream,
                                           GAsyncResult     *result,
                                           gpointer          user_data);
 
-static GMutex     default_worker_mutex = { 0 };
-static GPtrArray *default_workers      = NULL;
-static guint      next_default_worker  = 0;
+static gboolean
+idle_reap_timeout (gpointer user_data);
+
+static void
+arm_idle_reap (void);
+
+static GMutex            default_worker_mutex = { 0 };
+static BzDownloadWorker *default_worker       = NULL;
+static guint             idle_reap_source     = 0;
+static guint             idle_reap_generation = 0;
 
 static void
 bz_download_worker_dispose (GObject *object)
@@ -273,56 +280,28 @@ BzDownloadWorker *
 bz_download_worker_get_default (void)
 {
   g_autoptr (GMutexLocker) locker = NULL;
-  BzDownloadWorker *ret           = NULL;
 
   locker = g_mutex_locker_new (&default_worker_mutex);
 
-  if (default_workers == NULL)
+  g_clear_handle_id (&idle_reap_source, g_source_remove);
+  idle_reap_generation++;
+
+  if (default_worker != NULL &&
+      g_subprocess_get_identifier (default_worker->subprocess) == NULL)
+    g_clear_object (&default_worker);
+
+  if (default_worker == NULL)
     {
-      default_workers = g_ptr_array_new_with_free_func (g_object_unref);
+      g_autoptr (GError) local_error = NULL;
 
-      for (guint i = 0; i < bz_get_n_download_workers (); i++)
-        {
-          g_autoptr (GError) local_error      = NULL;
-          g_autoptr (BzDownloadWorker) worker = NULL;
-
-          worker = bz_download_worker_new ("default", &local_error);
-          if (worker == NULL)
-            g_warning ("FATAL!!! The default download worker could not be spawned: %s",
-                       local_error->message);
-          g_assert (worker != NULL);
-
-          g_ptr_array_add (default_workers, g_steal_pointer (&worker));
-        }
+      default_worker = bz_download_worker_new ("default", &local_error);
+      if (default_worker == NULL)
+        g_warning ("FATAL!!! The default download worker could not be spawned: %s",
+                   local_error->message);
+      g_assert (default_worker != NULL);
     }
 
-  /* Check if any of the subprocesses need to be recreated */
-  for (guint i = 0; i < default_workers->len; i++)
-    {
-      BzDownloadWorker **loc = NULL;
-
-      loc = (BzDownloadWorker **) &g_ptr_array_index (default_workers, i);
-      if (g_subprocess_get_identifier ((*loc)->subprocess) == NULL)
-        {
-          g_autoptr (GError) local_error      = NULL;
-          g_autoptr (BzDownloadWorker) worker = NULL;
-
-          g_clear_object (loc);
-
-          worker = bz_download_worker_new ("default", &local_error);
-          if (worker == NULL)
-            g_warning ("FATAL!!! The default download worker could not be spawned: %s",
-                       local_error->message);
-          g_assert (worker != NULL);
-
-          *loc = g_steal_pointer (&worker);
-        }
-    }
-
-  ret                 = g_ptr_array_index (default_workers, next_default_worker);
-  next_default_worker = (next_default_worker + 1) % default_workers->len;
-
-  return ret;
+  return default_worker;
 }
 
 void
@@ -331,19 +310,11 @@ bz_reap_default_download_workers (void)
   g_autoptr (GMutexLocker) locker = NULL;
 
   locker = g_mutex_locker_new (&default_worker_mutex);
-  if (default_workers == NULL)
+  if (default_worker == NULL)
     return;
 
-  for (guint i = 0; i < default_workers->len; i++)
-    {
-      BzDownloadWorker *worker = NULL;
-
-      worker = g_ptr_array_index (default_workers, i);
-      g_subprocess_force_exit (worker->subprocess);
-    }
-  g_clear_pointer (&default_workers, g_ptr_array_unref);
-
-  next_default_worker = 0;
+  g_subprocess_force_exit (default_worker->subprocess);
+  g_clear_object (&default_worker);
 }
 
 static DexFuture *
@@ -424,6 +395,8 @@ monitor_worker_fiber (GWeakRef *wr)
               promise = NULL;
               g_hash_table_remove (self->waiting, dest_path);
             }
+          if (g_hash_table_size (self->waiting) == 0)
+            arm_idle_reap ();
 
           g_mutex_unlock (&self->read_mutex);
           g_clear_object (&self);
@@ -572,6 +545,38 @@ plumb_data_input_stream_read_line_finish (GDataInputStream *stream,
       result,
       NULL,
       user_data);
+}
+
+static gboolean
+idle_reap_timeout (gpointer user_data)
+{
+  g_autoptr (BzDownloadWorker) worker = NULL;
+
+  g_mutex_lock (&default_worker_mutex);
+  if (GPOINTER_TO_UINT (user_data) == idle_reap_generation)
+    {
+      idle_reap_source = 0;
+      worker           = g_steal_pointer (&default_worker);
+    }
+  g_mutex_unlock (&default_worker_mutex);
+
+  if (worker != NULL)
+    g_subprocess_force_exit (worker->subprocess);
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+arm_idle_reap (void)
+{
+  g_autoptr (GMutexLocker) locker = NULL;
+
+  locker = g_mutex_locker_new (&default_worker_mutex);
+
+  g_clear_handle_id (&idle_reap_source, g_source_remove);
+  idle_reap_source = g_timeout_add_seconds (
+      30, idle_reap_timeout,
+      GUINT_TO_POINTER (idle_reap_generation));
 }
 
 /* End of bz-download-worker.c */

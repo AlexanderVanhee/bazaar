@@ -268,7 +268,10 @@ http_session_fiber (DexChannel *channel)
 {
   g_autoptr (SoupSession) session = NULL;
 
-  session = soup_session_new ();
+  session = soup_session_new_with_options (
+      "max-conns", 16,
+      "max-conns-per-host", 8,
+      NULL);
   soup_session_set_proxy_resolver (session, bz_get_default_proxy_resolver ());
 
   for (;;)
