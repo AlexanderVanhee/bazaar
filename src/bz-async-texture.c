@@ -27,6 +27,7 @@
 #define MAX_LOAD_RETRIES       3
 #define RETRY_INTERVAL_SECONDS 1
 #define TEXTURE_LINGER_SECONDS 2
+#define IMGPROXY_PREFIX        "https://imgproxy.flathub.org/insecure/"
 
 #include "config.h"
 
@@ -446,6 +447,69 @@ bz_async_texture_new_lazy_with_size (GFile *source,
                                      int    height)
 {
   return bz_async_texture_new_internal (source, cache_into, width, height, TRUE);
+}
+
+BzAsyncTexture *
+bz_async_texture_dup_with_max_width (BzAsyncTexture *self,
+                                     int             max_width)
+{
+  g_autofree char *uri         = NULL;
+  g_autofree char *cache_path  = NULL;
+  g_autoptr (GFile) source     = NULL;
+  g_autoptr (GFile) cache_into = NULL;
+
+  g_return_val_if_fail (BZ_IS_ASYNC_TEXTURE (self), NULL);
+
+  if (!g_str_has_prefix (self->source_uri, IMGPROXY_PREFIX))
+    return g_object_ref (self);
+
+  uri    = g_strdup_printf (IMGPROXY_PREFIX "rs:fit:%d:0/q:90/f:avif%s",
+                            max_width, strrchr (self->source_uri, '/'));
+  source = g_file_new_for_uri (uri);
+
+  if (self->cache_into_path != NULL)
+    {
+      cache_path = g_strdup_printf ("%s-%dw", self->cache_into_path, max_width);
+      cache_into = g_file_new_for_path (cache_path);
+    }
+
+  return bz_async_texture_new_lazy (source, cache_into);
+}
+
+char *
+bz_async_texture_dup_imgproxy_uri (const char *uri,
+                                   const char *options)
+{
+  g_autofree char *src         = NULL;
+  g_autofree char *encoded_url = NULL;
+  const char      *suffix      = NULL;
+
+  if (g_str_has_prefix (uri, "https://dl.flathub.org/repo/screenshots/"))
+    {
+      suffix = uri + strlen ("https://dl.flathub.org/repo/screenshots/");
+      src    = g_strdup_printf ("https://dl.flathub.org/media/%s", suffix);
+    }
+  else if (g_str_has_prefix (uri, "https://dl.flathub.org/"))
+    {
+      src = g_strdup (uri);
+    }
+  else
+    {
+      return g_strdup (uri);
+    }
+
+  encoded_url = g_base64_encode ((const guchar *) src, strlen (src));
+  g_strdelimit (encoded_url, "=", '\0');
+
+  for (char *p = encoded_url; *p; p++)
+    {
+      if (*p == '+')
+        *p = '-';
+      if (*p == '/')
+        *p = '_';
+    }
+
+  return g_strdup_printf (IMGPROXY_PREFIX "%s/%s", options, encoded_url);
 }
 
 GFile *

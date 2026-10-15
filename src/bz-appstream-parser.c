@@ -69,44 +69,6 @@ calculate_is_mobile_friendly (guint required_controls,
          (supported_controls & BZ_CONTROL_TOUCH) != 0;
 }
 
-static char *
-proxy_screenshot_url (const char *url, gboolean high_quality)
-{
-  g_autofree char *src         = NULL;
-  g_autofree char *encoded_url = NULL;
-  const char      *suffix      = NULL;
-
-  if (g_str_has_prefix (url, "https://dl.flathub.org/repo/screenshots/"))
-    {
-      suffix = url + strlen ("https://dl.flathub.org/repo/screenshots/");
-      src    = g_strdup_printf ("https://dl.flathub.org/media/%s", suffix);
-    }
-  else if (g_str_has_prefix (url, "https://dl.flathub.org/"))
-    {
-      src = g_strdup (url);
-    }
-  else
-    {
-      return g_strdup (url);
-    }
-
-  encoded_url = g_base64_encode ((const guchar *) src, strlen (src));
-  g_strdelimit (encoded_url, "=", '\0');
-
-  for (char *p = encoded_url; *p; p++)
-    {
-      if (*p == '+')
-        *p = '-';
-      if (*p == '/')
-        *p = '_';
-    }
-
-  return g_strdup_printf (
-      "https://imgproxy.flathub.org/insecure/%s/%s",
-      high_quality ? "q:90/f:avif" : "dpr:1/f:avif/rs:fill-down",
-      encoded_url);
-}
-
 static GdkPaintable *
 find_screenshot (GPtrArray  *images,
                  const char *caption,
@@ -173,7 +135,8 @@ find_screenshot (GPtrArray  *images,
       g_autofree char *proxied_url      = NULL;
       BzAsyncTexture  *texture          = NULL;
 
-      proxied_url     = proxy_screenshot_url (best_url, match_highest);
+      proxied_url = bz_async_texture_dup_imgproxy_uri (
+          best_url, match_highest ? "q:90/f:avif" : "dpr:1/f:avif/rs:fill-down");
       screenshot_file = g_file_new_for_uri (proxied_url);
       cache_file      = g_file_new_build_filename (
           module_dir, unique_id_checksum, cache_filename, NULL);
