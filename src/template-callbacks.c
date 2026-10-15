@@ -98,11 +98,29 @@ logical_and (gpointer object,
 }
 
 static gboolean
+logical_and3 (gpointer object,
+              gboolean value1,
+              gboolean value2,
+              gboolean value3)
+{
+  return value1 && value2 && value3;
+}
+
+static gboolean
 logical_or (gpointer object,
             gboolean value1,
             gboolean value2)
 {
   return value1 || value2;
+}
+
+static gboolean
+logical_or3 (gpointer object,
+             gboolean value1,
+             gboolean value2,
+             gboolean value3)
+{
+  return value1 || value2 || value3;
 }
 
 static gboolean
@@ -227,7 +245,9 @@ bz_widget_class_bind_all_util_callbacks (GtkWidgetClass *widget_class)
   gtk_widget_class_bind_template_callback (widget_class, is_ge);
   gtk_widget_class_bind_template_callback (widget_class, is_le);
   gtk_widget_class_bind_template_callback (widget_class, logical_and);
+  gtk_widget_class_bind_template_callback (widget_class, logical_and3);
   gtk_widget_class_bind_template_callback (widget_class, logical_or);
+  gtk_widget_class_bind_template_callback (widget_class, logical_or3);
   gtk_widget_class_bind_template_callback (widget_class, is_positive);
   gtk_widget_class_bind_template_callback (widget_class, is_empty);
   gtk_widget_class_bind_template_callback (widget_class, is_empty_string);

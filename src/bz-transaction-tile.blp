@@ -185,6 +185,34 @@ template $BzTransactionTile: $BzListTile {
               }
 
               Box {
+                visible: bind $logical_and3(
+                  $is_ongoing(template.tracker as <$BzTransactionEntryTracker>.status as <$BzTransactionEntryStatus>) as <bool>,
+                  $list_has_items(template.tracker as <$BzTransactionEntryTracker>.finished-ops) as <bool>,
+                  $not($list_has_items(template.tracker as <$BzTransactionEntryTracker>.current-ops) as <bool>) as <bool>,
+                );
+                halign: start;
+                spacing: 4;
+                margin-top: 8;
+
+                styles [
+                  "grey",
+                  "colored",
+                  "small-pill",
+                  "download-size-pill",
+                ]
+
+                Label {
+                  styles [
+                    "caption-heading",
+                  ]
+
+                  valign: center;
+                  xalign: 0.0;
+                  label: _("Finishing Up");
+                }
+              }
+
+              Box {
                 visible: bind $is_completed(template.tracker as <$BzTransactionEntryTracker>.status as <$BzTransactionEntryStatus>) as <bool>;
                 halign: start;
                 spacing: 4;
