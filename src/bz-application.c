@@ -759,6 +759,23 @@ bz_application_open_location_action (GSimpleAction *action,
 }
 
 static void
+bz_application_check_for_updates_action (GSimpleAction *action,
+                                         GVariant      *parameter,
+                                         gpointer       user_data)
+{
+  BzApplication *self = user_data;
+
+  g_assert (BZ_IS_APPLICATION (self));
+
+  dex_future_disown (dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      (DexFiberFunc) check_for_updates_fiber,
+      bz_weak_ref_new (self),
+      (GDestroyNotify) bz_weak_ref_unref));
+}
+
+static void
 bz_application_sync_remotes_action (GSimpleAction *action,
                                     GVariant      *parameter,
                                     gpointer       user_data)
@@ -965,6 +982,7 @@ static const GActionEntry app_actions[] = {
   {         "preferences",         bz_application_preferences_action,     NULL },
   {               "about",               bz_application_about_action,     NULL },
   {        "sync-remotes",        bz_application_sync_remotes_action,     NULL },
+  {   "check-for-updates",   bz_application_check_for_updates_action,     NULL },
   {              "search",              bz_application_search_action,      "s" },
   {         "show-app-id",         bz_application_show_app_id_action,      "s" },
   {              "donate",              bz_application_donate_action,     NULL },
