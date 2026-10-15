@@ -49,6 +49,14 @@ bz_async_texture_new_lazy_with_size (GFile *source,
                                      int    width,
                                      int    height);
 
+BzAsyncTexture *
+bz_async_texture_dup_with_max_width (BzAsyncTexture *self,
+                                     int             max_width);
+
+char *
+bz_async_texture_dup_imgproxy_uri (const char *uri,
+                                   const char *options);
+
 GFile *
 bz_async_texture_get_source (BzAsyncTexture *self);
 

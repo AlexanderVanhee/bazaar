@@ -19,6 +19,7 @@
  */
 
 #include "bz-featured-tile.h"
+#include "bz-async-texture.h"
 #include "bz-entry.h"
 #include "bz-group-tile-css-watcher.h"
 #include "bz-screenshot.h"
@@ -201,6 +202,9 @@ static GParamSpec *props[LAST_PROP] = {
 static void bz_featured_tile_refresh (BzFeaturedTile *self);
 static void update_screenshot (BzFeaturedTile *self);
 
+static double
+get_max_monitor_scale (void);
+
 static gboolean
 bz_featured_tile_refresh_idle_cb (GWeakRef *wr)
 {
@@ -258,6 +262,24 @@ notify_properties (BzFeaturedTile *self, gboolean has_screenshot)
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_FIRST_SCREENSHOT]);
 }
 
+static double
+get_max_monitor_scale (void)
+{
+  GListModel *monitors = NULL;
+  double      scale    = 1.0;
+
+  monitors = gdk_display_get_monitors (gdk_display_get_default ());
+  for (guint i = 0; i < g_list_model_get_n_items (monitors); i++)
+    {
+      g_autoptr (GdkMonitor) monitor = NULL;
+
+      monitor = g_list_model_get_item (monitors, i);
+      scale   = MAX (scale, gdk_monitor_get_scale (monitor));
+    }
+
+  return scale;
+}
+
 static DexFuture *
 ui_entry_resolved_finally (DexFuture *future,
                            GWeakRef  *wr)
@@ -280,7 +302,11 @@ ui_entry_resolved_finally (DexFuture *future,
       if (screenshots != NULL &&
           g_list_model_get_n_items (screenshots) > 0)
         {
-          self->first_screenshot = g_list_model_get_item (screenshots, 0);
+          g_autoptr (BzAsyncTexture) first = NULL;
+
+          first                  = g_list_model_get_item (screenshots, 0);
+          self->first_screenshot = GDK_PAINTABLE (bz_async_texture_dup_with_max_width (
+              first, (int) (BZ_SCREENSHOT_TOP_HALF_WIDTH * get_max_monitor_scale () + 0.5)));
           has_screenshot         = TRUE;
         }
     }

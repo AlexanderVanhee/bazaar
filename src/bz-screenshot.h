@@ -24,6 +24,8 @@
 
 G_BEGIN_DECLS
 
+#define BZ_SCREENSHOT_TOP_HALF_WIDTH 650
+
 #define BZ_TYPE_SCREENSHOT (bz_screenshot_get_type ())
 G_DECLARE_FINAL_TYPE (BzScreenshot, bz_screenshot, BZ, SCREENSHOT, GtkWidget)
 
