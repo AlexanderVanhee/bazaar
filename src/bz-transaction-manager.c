@@ -76,6 +76,7 @@ struct _BzTransactionManager
   GtkFlattenListModel *all_trackers;
   GtkFilterListModel  *install_trackers;
   GtkFilterListModel  *removal_trackers;
+  GtkFilterListModel  *update_trackers;
 
   GQueue queue;
 };
@@ -96,6 +97,7 @@ enum
   PROP_CURRENT_PROGRESS,
   PROP_INSTALL_TRACKERS,
   PROP_REMOVAL_TRACKERS,
+  PROP_UPDATE_TRACKERS,
   PROP_ALL_TRACKERS,
 
   LAST_PROP
@@ -136,6 +138,11 @@ bz_transaction_manager_dispose (GObject *object)
   g_queue_clear_full (&self->queue, queued_schedule_data_unref);
   g_clear_pointer (&self->current, queued_schedule_data_unref);
   dex_clear (&self->loop);
+
+  g_clear_object (&self->all_trackers);
+  g_clear_object (&self->install_trackers);
+  g_clear_object (&self->removal_trackers);
+  g_clear_object (&self->update_trackers);
 
   G_OBJECT_CLASS (bz_transaction_manager_parent_class)->dispose (object);
 }
@@ -180,6 +187,9 @@ bz_transaction_manager_get_property (GObject    *object,
     case PROP_REMOVAL_TRACKERS:
       g_value_set_object (value, self->removal_trackers);
       break;
+    case PROP_UPDATE_TRACKERS:
+      g_value_set_object (value, self->update_trackers);
+      break;
     case PROP_ALL_TRACKERS:
       g_value_set_object (value, self->all_trackers);
       break;
@@ -214,6 +224,7 @@ bz_transaction_manager_set_property (GObject      *object,
     case PROP_CURRENT_PROGRESS:
     case PROP_INSTALL_TRACKERS:
     case PROP_REMOVAL_TRACKERS:
+    case PROP_UPDATE_TRACKERS:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -247,6 +258,19 @@ filter_removal_trackers (gpointer item,
     return FALSE;
 
   return bz_transaction_entry_tracker_get_kind (tracker) == BZ_TRANSACTION_ENTRY_KIND_REMOVAL;
+}
+
+static gboolean
+filter_update_trackers (gpointer item,
+                        gpointer user_data)
+{
+  BzTransactionEntryTracker *tracker = NULL;
+
+  tracker = BZ_TRANSACTION_ENTRY_TRACKER (item);
+  if (tracker == NULL)
+    return FALSE;
+
+  return bz_transaction_entry_tracker_get_kind (tracker) == BZ_TRANSACTION_ENTRY_KIND_UPDATE;
 }
 
 static gpointer
@@ -340,6 +364,13 @@ bz_transaction_manager_class_init (BzTransactionManagerClass *klass)
           G_TYPE_LIST_MODEL,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
+  props[PROP_UPDATE_TRACKERS] =
+      g_param_spec_object (
+          "update-trackers",
+          NULL, NULL,
+          G_TYPE_LIST_MODEL,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
   props[PROP_ALL_TRACKERS] =
       g_param_spec_object (
           "all-trackers",
@@ -385,6 +416,7 @@ bz_transaction_manager_init (BzTransactionManager *self)
 {
   GtkCustomFilter *install_filter;
   GtkCustomFilter *removal_filter;
+  GtkCustomFilter *update_filter;
   GtkMapListModel *map_model;
 
   self->transactions = g_list_store_new (BZ_TYPE_TRANSACTION);
@@ -412,6 +444,14 @@ bz_transaction_manager_init (BzTransactionManager *self)
   self->removal_trackers = gtk_filter_list_model_new (
       g_object_ref (G_LIST_MODEL (self->all_trackers)),
       GTK_FILTER (removal_filter));
+
+  update_filter = gtk_custom_filter_new (
+      filter_update_trackers,
+      NULL,
+      NULL);
+  self->update_trackers = gtk_filter_list_model_new (
+      g_object_ref (G_LIST_MODEL (self->all_trackers)),
+      GTK_FILTER (update_filter));
 }
 
 BzTransactionManager *

@@ -759,6 +759,23 @@ bz_application_open_location_action (GSimpleAction *action,
 }
 
 static void
+bz_application_check_for_updates_action (GSimpleAction *action,
+                                         GVariant      *parameter,
+                                         gpointer       user_data)
+{
+  BzApplication *self = user_data;
+
+  g_assert (BZ_IS_APPLICATION (self));
+
+  dex_future_disown (dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      (DexFiberFunc) check_for_updates_fiber,
+      bz_weak_ref_new (self),
+      (GDestroyNotify) bz_weak_ref_unref));
+}
+
+static void
 bz_application_sync_remotes_action (GSimpleAction *action,
                                     GVariant      *parameter,
                                     gpointer       user_data)
@@ -965,6 +982,7 @@ static const GActionEntry app_actions[] = {
   {         "preferences",         bz_application_preferences_action,     NULL },
   {               "about",               bz_application_about_action,     NULL },
   {        "sync-remotes",        bz_application_sync_remotes_action,     NULL },
+  {   "check-for-updates",   bz_application_check_for_updates_action,     NULL },
   {              "search",              bz_application_search_action,      "s" },
   {         "show-app-id",         bz_application_show_app_id_action,      "s" },
   {              "donate",              bz_application_donate_action,     NULL },
@@ -2803,12 +2821,43 @@ fiber_check_for_updates (BzApplication *self)
   if (update_ids != NULL &&
       g_hash_table_size (update_ids) > 0)
     {
-      g_autoptr (GPtrArray) unique_ids = NULL;
-      g_autoptr (GPtrArray) futures    = NULL;
-      g_autoptr (GListStore) store     = NULL;
+      g_autoptr (GListModel) update_trackers  = NULL;
+      guint n_update_trackers                 = 0;
+      g_autoptr (GHashTable) already_updating = NULL;
+      g_autoptr (GPtrArray) unique_ids        = NULL;
+      g_autoptr (GPtrArray) futures           = NULL;
+      g_autoptr (GListStore) store            = NULL;
       GHashTableIter iter;
       gpointer       key   = NULL;
       gpointer       value = NULL;
+
+      g_object_get (
+          self->transactions,
+          "update-trackers", &update_trackers,
+          NULL);
+      n_update_trackers = g_list_model_get_n_items (update_trackers);
+
+      already_updating = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+      for (guint i = 0; i < n_update_trackers; i++)
+        {
+          g_autoptr (BzTransactionEntryTracker) tracker = NULL;
+          gboolean    active                            = FALSE;
+          gboolean    pending                           = FALSE;
+          BzEntry    *entry                             = NULL;
+          const char *unique_id                         = NULL;
+
+          tracker = g_list_model_get_item (update_trackers, i);
+
+          active  = bz_transaction_entry_tracker_get_active (tracker);
+          pending = bz_transaction_entry_tracker_get_pending (tracker);
+          if (!active && !pending)
+            continue;
+
+          entry     = bz_transaction_entry_tracker_get_entry (tracker);
+          unique_id = bz_entry_get_unique_id (entry);
+
+          g_hash_table_replace (already_updating, g_strdup (unique_id), NULL);
+        }
 
       unique_ids = g_ptr_array_new ();
       futures    = g_ptr_array_new_with_free_func (dex_unref);
@@ -2818,50 +2867,59 @@ fiber_check_for_updates (BzApplication *self)
         {
           const char *unique_id = key;
 
+          if (g_hash_table_contains (already_updating, unique_id))
+            {
+              g_warning ("%s is already in an active update transaction, skipping", unique_id);
+              continue;
+            }
+
           g_ptr_array_add (unique_ids, (gpointer) unique_id);
           g_ptr_array_add (futures, bz_entry_cache_manager_get (self->cache, unique_id));
         }
 
-      dex_await (
-          dex_future_allv ((DexFuture *const *) futures->pdata, futures->len),
-          NULL);
-
-      store = g_list_store_new (BZ_TYPE_UPDATE_PERMISSION_INFO);
-      for (guint i = 0; i < futures->len; i++)
+      if (futures->len > 0)
         {
-          DexFuture    *future    = NULL;
-          const GValue *value_out = NULL;
-          const char   *unique_id = NULL;
+          dex_await (
+              dex_future_allv ((DexFuture *const *) futures->pdata, futures->len),
+              NULL);
 
-          future    = g_ptr_array_index (futures, i);
-          unique_id = g_ptr_array_index (unique_ids, i);
-          value_out = dex_future_get_value (future, &local_error);
-
-          if (value_out != NULL)
+          store = g_list_store_new (BZ_TYPE_UPDATE_PERMISSION_INFO);
+          for (guint i = 0; i < futures->len; i++)
             {
-              g_autoptr (BzUpdatePermissionInfo) info = NULL;
-              BzAppPermissions *delta                 = NULL;
+              DexFuture    *future    = NULL;
+              const GValue *value_out = NULL;
+              const char   *unique_id = NULL;
 
-              delta = g_hash_table_lookup (update_ids, unique_id);
+              future    = g_ptr_array_index (futures, i);
+              unique_id = g_ptr_array_index (unique_ids, i);
+              value_out = dex_future_get_value (future, &local_error);
 
-              info = g_object_new (
-                  BZ_TYPE_UPDATE_PERMISSION_INFO,
-                  "entry", g_value_get_object (value_out),
-                  "additional-permissions", delta,
-                  NULL);
+              if (value_out != NULL)
+                {
+                  g_autoptr (BzUpdatePermissionInfo) info = NULL;
+                  BzAppPermissions *delta                 = NULL;
 
-              g_list_store_append (store, info);
+                  delta = g_hash_table_lookup (update_ids, unique_id);
+
+                  info = g_object_new (
+                      BZ_TYPE_UPDATE_PERMISSION_INFO,
+                      "entry", g_value_get_object (value_out),
+                      "additional-permissions", delta,
+                      NULL);
+
+                  g_list_store_append (store, info);
+                }
+              else
+                {
+                  g_warning ("%s could not be resolved for the update list and thus will not be included: %s",
+                             unique_id, local_error->message);
+                  g_clear_pointer (&local_error, g_error_free);
+                }
             }
-          else
-            {
-              g_warning ("%s could not be resolved for the update list and thus will not be included: %s",
-                         unique_id, local_error->message);
-              g_clear_pointer (&local_error, g_error_free);
-            }
+
+          if (g_list_model_get_n_items (G_LIST_MODEL (store)) > 0)
+            bz_state_info_set_available_updates (self->state, G_LIST_MODEL (store));
         }
-
-      if (g_list_model_get_n_items (G_LIST_MODEL (store)) > 0)
-        bz_state_info_set_available_updates (self->state, G_LIST_MODEL (store));
     }
   else if (local_error != NULL)
     {
