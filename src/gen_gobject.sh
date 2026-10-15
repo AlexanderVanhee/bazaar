@@ -671,6 +671,8 @@ ${SNAKE}_dispose (GObject *object)
 {
   $PASCAL *self = $MACRO (object);
 
+  (void)self;
+
 $(print_dispose)
 
   G_OBJECT_CLASS (${SNAKE}_parent_class)->dispose (object);
