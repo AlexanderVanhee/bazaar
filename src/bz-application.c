@@ -4066,7 +4066,6 @@ open_generic_id (BzApplication *self,
   g_autofree char *corrected_id = NULL;
   const char      *original_id  = generic_id;
   const char      *matched_id   = generic_id;
-  gboolean         case_fixed   = FALSE;
 
   group = g_hash_table_lookup (self->ids_to_groups, generic_id);
 
@@ -4123,7 +4122,6 @@ open_generic_id (BzApplication *self,
                 {
                   group      = value;
                   matched_id = key;
-                  case_fixed = TRUE;
                   break;
                 }
             }
