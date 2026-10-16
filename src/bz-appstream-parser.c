@@ -187,7 +187,7 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
   const char    *project_url                           = NULL;
   g_autoptr (GPtrArray) as_search_tokens               = NULL;
   g_autofree char *search_tokens                       = NULL;
-  g_autoptr (GdkPaintable) icon_paintable              = NULL;
+  g_autoptr (GListStore) icon_paintables               = NULL;
   g_autoptr (GIcon) mini_icon                          = NULL;
   g_autoptr (GListStore) screenshot_paintables         = NULL;
   g_autoptr (GListStore) screenshot_captions           = NULL;
@@ -372,93 +372,82 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
   icons = as_component_get_icons (component);
   if (icons != NULL)
     {
-      g_autofree char *select          = NULL;
-      gboolean         select_is_local = FALSE;
-      int              select_width    = 0;
-      int              select_height   = 0;
+      g_autofree char *mini_icon_path = NULL;
+      guint            mini_icon_size = 0;
 
+      icon_paintables = g_list_store_new (BZ_TYPE_ASYNC_TEXTURE);
       for (guint i = 0; i < icons->len; i++)
         {
-          AsIcon  *icon     = NULL;
-          int      width    = 0;
-          int      height   = 0;
-          gboolean is_local = FALSE;
+          AsIcon *icon                       = NULL;
+          guint   scale                      = 0;
+          guint   width                      = 0;
+          guint   height                     = 0;
+          g_autoptr (GFile) source           = NULL;
+          g_autoptr (GFile) cache_into       = NULL;
+          g_autoptr (BzAsyncTexture) texture = NULL;
 
-          icon     = g_ptr_array_index (icons, i);
-          width    = as_icon_get_width (icon);
-          height   = as_icon_get_height (icon);
-          is_local = as_icon_get_kind (icon) != AS_ICON_KIND_REMOTE;
+          icon   = g_ptr_array_index (icons, i);
+          scale  = MAX (as_icon_get_scale (icon), 1);
+          width  = as_icon_get_width (icon);
+          height = as_icon_get_height (icon);
 
-          if (select == NULL ||
-              (is_local && !select_is_local) ||
-              (width > select_width && height > select_height))
+          if (as_icon_get_kind (icon) == AS_ICON_KIND_REMOTE)
             {
-              if (is_local)
-                {
-                  const char      *filename   = NULL;
-                  g_autofree char *resolution = NULL;
-                  g_autofree char *path       = NULL;
+              const char      *url        = NULL;
+              g_autofree char *cache_name = NULL;
 
-                  filename = as_icon_get_filename (icon);
-                  if (filename == NULL)
-                    continue;
+              url = as_icon_get_url (icon);
+              if (url == NULL)
+                continue;
 
-                  resolution = g_strdup_printf ("%dx%d", width, height);
-                  path       = g_build_filename (
-                      appstream_dir,
-                      "icons",
-                      "flatpak",
-                      resolution,
-                      filename,
-                      NULL);
-                  if (!g_file_test (path, G_FILE_TEST_EXISTS))
-                    continue;
+              source     = g_file_new_for_uri (url);
+              cache_name = g_strdup_printf ("icon-%u.png", i);
+              cache_into = g_file_new_build_filename (
+                  module_dir, unique_id_checksum, cache_name, NULL);
+            }
+          else
+            {
+              const char      *filename   = NULL;
+              g_autofree char *resolution = NULL;
+              g_autofree char *path       = NULL;
 
-                  g_clear_pointer (&select, g_free);
-                  select          = g_steal_pointer (&path);
-                  select_is_local = TRUE;
-                  select_width    = width;
-                  select_height   = height;
-                }
+              filename = as_icon_get_filename (icon);
+              if (filename == NULL)
+                continue;
+
+              if (scale > 1)
+                resolution = g_strdup_printf ("%ux%u@%u", width, height, scale);
               else
+                resolution = g_strdup_printf ("%ux%u", width, height);
+              path = g_build_filename (
+                  appstream_dir,
+                  "icons",
+                  "flatpak",
+                  resolution,
+                  filename,
+                  NULL);
+              if (!g_file_test (path, G_FILE_TEST_EXISTS))
+                continue;
+
+              source = g_file_new_for_path (path);
+              if (width * scale > mini_icon_size)
                 {
-                  const char *url = NULL;
-
-                  url = as_icon_get_url (icon);
-                  if (url == NULL)
-                    continue;
-
-                  g_clear_pointer (&select, g_free);
-                  select          = g_strdup (url);
-                  select_is_local = FALSE;
-                  select_width    = width;
-                  select_height   = height;
+                  g_clear_pointer (&mini_icon_path, g_free);
+                  mini_icon_path = g_steal_pointer (&path);
+                  mini_icon_size = width * scale;
                 }
             }
-        }
 
-      if (select != NULL)
-        {
-          g_autofree char *select_uri  = NULL;
-          g_autoptr (GFile) source     = NULL;
-          g_autoptr (GFile) cache_into = NULL;
-          BzAsyncTexture *texture      = NULL;
-
-          if (select_is_local)
-            select_uri = g_strdup_printf ("file://%s", select);
+          if (width > 0 && height > 0)
+            texture = bz_async_texture_new_lazy_with_size (
+                source, cache_into, width * scale, height * scale);
           else
-            select_uri = g_steal_pointer (&select);
-
-          source     = g_file_new_for_uri (select_uri);
-          cache_into = g_file_new_build_filename (
-              module_dir, unique_id_checksum, "icon-paintable.png", NULL);
-
-          texture        = bz_async_texture_new_lazy (source, cache_into);
-          icon_paintable = GDK_PAINTABLE (texture);
-
-          if (select_is_local)
-            mini_icon = bz_load_mini_icon (unique_id_checksum, select);
+            texture = bz_async_texture_new_lazy (source, cache_into);
+          g_list_store_append (icon_paintables, texture);
         }
+
+      if (mini_icon_path != NULL)
+        mini_icon = bz_load_mini_icon (unique_id_checksum, mini_icon_path);
     }
 
   branding = as_component_get_branding (component);
@@ -658,7 +647,7 @@ bz_appstream_parser_populate_entry (BzEntry     *entry,
       "project-group", project_group,
       "developer", developer,
       "developer-id", developer_id,
-      "icon-paintable", icon_paintable,
+      "icon-paintables", icon_paintables,
       "mini-icon", mini_icon,
       "screenshot-paintables", screenshot_paintables,
       "screenshot-captions", screenshot_captions,
