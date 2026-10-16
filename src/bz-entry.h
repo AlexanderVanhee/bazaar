@@ -155,6 +155,9 @@ bz_entry_get_installed_size (BzEntry *self);
 GdkPaintable *
 bz_entry_get_icon_paintable (BzEntry *self);
 
+GdkPaintable *
+bz_entry_get_large_icon_paintable (BzEntry *self);
+
 GListModel *
 bz_entry_get_screenshot_paintables (BzEntry *self);
 

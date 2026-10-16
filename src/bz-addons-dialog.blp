@@ -117,8 +117,8 @@ template $BzAddonsDialog: Adw.Dialog {
 
                   Image {
                     pixel-size: 96;
-                    paintable: bind template.parent-ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
-                    visible: bind $invert_boolean($is_null(template.parent-ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable) as <bool>) as <bool>;
+                    paintable: bind template.parent-ui-entry as <$BzResult>.object as <$BzEntry>.large-icon-paintable;
+                    visible: bind $invert_boolean($is_null(template.parent-ui-entry as <$BzResult>.object as <$BzEntry>.large-icon-paintable) as <bool>) as <bool>;
 
                     styles ["icon-dropshadow"]
                   }

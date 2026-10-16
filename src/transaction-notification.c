@@ -134,7 +134,7 @@ notify_finished_fiber (NotifyFinishedData *data)
       notification = g_notification_new (summary);
       g_notification_set_body (notification, _ ("The app is ready to be used"));
 
-      paintable = bz_entry_get_icon_paintable (entry);
+      paintable = bz_entry_get_large_icon_paintable (entry);
       if (paintable != NULL && BZ_IS_ASYNC_TEXTURE (paintable))
         icon = (GIcon *) dex_await_object (
             bz_async_texture_dup_icon_future (BZ_ASYNC_TEXTURE (paintable)),

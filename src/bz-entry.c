@@ -41,6 +41,9 @@
 #include "io.h"
 #include "util.h"
 
+#define BZ_ICON_SIZE       64
+#define BZ_LARGE_ICON_SIZE 128
+
 G_DEFINE_FLAGS_TYPE (
     BzEntryKind,
     bz_entry_kind,
@@ -90,7 +93,7 @@ typedef struct
   char             *url;
   guint64           size;
   guint64           installed_size;
-  GdkPaintable     *icon_paintable;
+  GListModel       *icon_paintables;
   GIcon            *mini_icon;
   GdkPaintable     *remote_repo_icon;
   char             *search_tokens;
@@ -159,6 +162,8 @@ enum
   PROP_SIZE,
   PROP_INSTALLED_SIZE,
   PROP_ICON_PAINTABLE,
+  PROP_LARGE_ICON_PAINTABLE,
+  PROP_ICON_PAINTABLES,
   PROP_MINI_ICON,
   PROP_SEARCH_TOKENS,
   PROP_REMOTE_REPO_ICON,
@@ -242,6 +247,10 @@ maybe_save_paintable (BzEntryPrivate  *priv,
 static GdkPaintable *
 make_async_texture (GVariant *parse);
 
+static GdkPaintable *
+pick_icon_paintable (BzEntryPrivate *priv,
+                     int             size);
+
 static void
 clear_entry (BzEntry *self);
 
@@ -321,7 +330,13 @@ bz_entry_get_property (GObject    *object,
       g_value_set_uint64 (value, priv->installed_size);
       break;
     case PROP_ICON_PAINTABLE:
-      g_value_set_object (value, priv->icon_paintable);
+      g_value_set_object (value, bz_entry_get_icon_paintable (self));
+      break;
+    case PROP_LARGE_ICON_PAINTABLE:
+      g_value_set_object (value, bz_entry_get_large_icon_paintable (self));
+      break;
+    case PROP_ICON_PAINTABLES:
+      g_value_set_object (value, priv->icon_paintables);
       break;
     case PROP_MINI_ICON:
       g_value_set_object (value, priv->mini_icon);
@@ -523,8 +538,29 @@ bz_entry_set_property (GObject      *object,
       priv->installed_size = g_value_get_uint64 (value);
       break;
     case PROP_ICON_PAINTABLE:
-      g_clear_object (&priv->icon_paintable);
-      priv->icon_paintable = g_value_dup_object (value);
+      {
+        GdkPaintable *paintable      = NULL;
+        g_autoptr (GListStore) store = NULL;
+
+        paintable = g_value_get_object (value);
+        if (paintable != NULL && paintable == bz_entry_get_icon_paintable (self))
+          break;
+
+        store = g_list_store_new (GDK_TYPE_PAINTABLE);
+        if (paintable != NULL)
+          g_list_store_append (store, paintable);
+
+        g_clear_object (&priv->icon_paintables);
+        priv->icon_paintables = G_LIST_MODEL (g_steal_pointer (&store));
+        g_object_notify_by_pspec (object, props[PROP_LARGE_ICON_PAINTABLE]);
+        g_object_notify_by_pspec (object, props[PROP_ICON_PAINTABLES]);
+      }
+      break;
+    case PROP_ICON_PAINTABLES:
+      g_clear_object (&priv->icon_paintables);
+      priv->icon_paintables = g_value_dup_object (value);
+      g_object_notify_by_pspec (object, props[PROP_ICON_PAINTABLE]);
+      g_object_notify_by_pspec (object, props[PROP_LARGE_ICON_PAINTABLE]);
       break;
     case PROP_MINI_ICON:
       g_clear_object (&priv->mini_icon);
@@ -802,6 +838,20 @@ bz_entry_class_init (BzEntryClass *klass)
           "icon-paintable",
           NULL, NULL,
           GDK_TYPE_PAINTABLE,
+          G_PARAM_READWRITE);
+
+  props[PROP_LARGE_ICON_PAINTABLE] =
+      g_param_spec_object (
+          "large-icon-paintable",
+          NULL, NULL,
+          GDK_TYPE_PAINTABLE,
+          G_PARAM_READABLE);
+
+  props[PROP_ICON_PAINTABLES] =
+      g_param_spec_object (
+          "icon-paintables",
+          NULL, NULL,
+          G_TYPE_LIST_MODEL,
           G_PARAM_READWRITE);
 
   props[PROP_MINI_ICON] =
@@ -1127,8 +1177,25 @@ bz_entry_real_serialize (BzSerializable  *serializable,
     g_variant_builder_add (builder, "{sv}", "size", g_variant_new_uint64 (priv->size));
   if (priv->installed_size > 0)
     g_variant_builder_add (builder, "{sv}", "installed-size", g_variant_new_uint64 (priv->installed_size));
-  if (priv->icon_paintable != NULL)
-    maybe_save_paintable (priv, "icon-paintable", priv->icon_paintable, builder);
+  if (priv->icon_paintables != NULL &&
+      g_list_model_get_n_items (priv->icon_paintables) > 0)
+    {
+      g_autoptr (GVariantBuilder) sub_builder = NULL;
+
+      sub_builder = g_variant_builder_new (G_VARIANT_TYPE ("a{sv}"));
+      for (guint i = 0; i < g_list_model_get_n_items (priv->icon_paintables); i++)
+        {
+          g_autoptr (GdkPaintable) paintable = NULL;
+          g_autofree char *key               = NULL;
+
+          paintable = g_list_model_get_item (priv->icon_paintables, i);
+          key       = g_strdup_printf ("icon_%d.png", i);
+
+          maybe_save_paintable (priv, key, paintable, sub_builder);
+        }
+
+      g_variant_builder_add (builder, "{sv}", "icon-paintables", g_variant_builder_end (sub_builder));
+    }
   if (priv->mini_icon != NULL)
     {
       g_autoptr (GVariant) serialized = NULL;
@@ -1474,8 +1541,28 @@ bz_entry_real_deserialize (BzSerializable *serializable,
         priv->size = g_variant_get_uint64 (value);
       else if (g_strcmp0 (key, "installed-size") == 0)
         priv->installed_size = g_variant_get_uint64 (value);
-      else if (g_strcmp0 (key, "icon-paintable") == 0)
-        priv->icon_paintable = make_async_texture (value);
+      else if (g_strcmp0 (key, "icon-paintables") == 0)
+        {
+          g_autoptr (GListStore) store       = NULL;
+          g_autoptr (GVariantIter) icon_iter = NULL;
+
+          store = g_list_store_new (BZ_TYPE_ASYNC_TEXTURE);
+
+          icon_iter = g_variant_iter_new (value);
+          for (;;)
+            {
+              g_autofree char *basename        = NULL;
+              g_autoptr (GVariant) icon        = NULL;
+              g_autoptr (GdkPaintable) texture = NULL;
+
+              if (!g_variant_iter_next (icon_iter, "{sv}", &basename, &icon))
+                break;
+              texture = make_async_texture (icon);
+              g_list_store_append (store, texture);
+            }
+
+          priv->icon_paintables = G_LIST_MODEL (g_steal_pointer (&store));
+        }
       else if (g_strcmp0 (key, "mini-icon") == 0)
         priv->mini_icon = g_icon_deserialize (value);
       else if (g_strcmp0 (key, "remote-repo-icon") == 0)
@@ -2019,7 +2106,18 @@ bz_entry_get_icon_paintable (BzEntry *self)
   g_return_val_if_fail (BZ_IS_ENTRY (self), NULL);
   priv = bz_entry_get_instance_private (self);
 
-  return priv->icon_paintable;
+  return pick_icon_paintable (priv, BZ_ICON_SIZE);
+}
+
+GdkPaintable *
+bz_entry_get_large_icon_paintable (BzEntry *self)
+{
+  BzEntryPrivate *priv = NULL;
+
+  g_return_val_if_fail (BZ_IS_ENTRY (self), NULL);
+  priv = bz_entry_get_instance_private (self);
+
+  return pick_icon_paintable (priv, BZ_LARGE_ICON_SIZE);
 }
 
 GListModel *
@@ -2315,7 +2413,7 @@ bz_entry_calc_usefulness (BzEntry *self)
   score += priv->long_description != NULL ? 5 : 0;
   score += priv->url != NULL ? 1 : 0;
   score += priv->size > 0 ? 1 : 0;
-  score += priv->icon_paintable != NULL ? 15 : 0;
+  score += bz_entry_get_icon_paintable (self) != NULL ? 15 : 0;
   score += priv->remote_repo_icon != NULL ? 1 : 0;
   score += priv->metadata_license != NULL ? 1 : 0;
   score += priv->project_license != NULL ? 1 : 0;
@@ -2914,7 +3012,7 @@ clear_entry (BzEntry *self)
   g_clear_pointer (&priv->long_description, g_free);
   g_clear_pointer (&priv->remote_repo_name, g_free);
   g_clear_pointer (&priv->url, g_free);
-  g_clear_object (&priv->icon_paintable);
+  g_clear_object (&priv->icon_paintables);
   g_clear_object (&priv->mini_icon);
   g_clear_object (&priv->remote_repo_icon);
   g_clear_pointer (&priv->search_tokens, g_free);
@@ -2940,4 +3038,39 @@ clear_entry (BzEntry *self)
   g_clear_object (&priv->content_rating);
   g_clear_object (&priv->keywords);
   g_clear_object (&priv->permissions);
+}
+
+static GdkPaintable *
+pick_icon_paintable (BzEntryPrivate *priv,
+                     int             size)
+{
+  GdkPaintable *best       = NULL;
+  int           best_width = 0;
+  int           target     = 0;
+
+  if (priv->icon_paintables == NULL)
+    return NULL;
+
+  target = (int) (size * bz_get_max_monitor_scale () + 0.5);
+  for (guint i = 0; i < g_list_model_get_n_items (priv->icon_paintables); i++)
+    {
+      g_autoptr (GdkPaintable) paintable = NULL;
+      int width                          = 0;
+
+      paintable = g_list_model_get_item (priv->icon_paintables, i);
+      if (BZ_IS_ASYNC_TEXTURE (paintable))
+        width = bz_async_texture_get_width (BZ_ASYNC_TEXTURE (paintable));
+      else
+        width = gdk_paintable_get_intrinsic_width (paintable);
+
+      if (best == NULL ||
+          (best_width < target && width > best_width) ||
+          (width >= target && width < best_width))
+        {
+          best       = paintable;
+          best_width = width;
+        }
+    }
+
+  return best;
 }
