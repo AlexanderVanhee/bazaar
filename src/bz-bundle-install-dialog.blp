@@ -61,9 +61,9 @@ template $BzBundleInstallDialog: Adw.Dialog {
                     valign: start;
 
                     Image icon {
-                      paintable: bind template.entry as <$BzEntry>.icon-paintable;
+                      paintable: bind template.entry as <$BzEntry>.large-icon-paintable;
                       visible: bind $invert_boolean(
-                        $is_null(template.entry as <$BzEntry>.icon-paintable) as <bool>
+                        $is_null(template.entry as <$BzEntry>.large-icon-paintable) as <bool>
                       ) as <bool>;
                       use-fallback: true;
                       pixel-size: 96;
@@ -322,9 +322,9 @@ template $BzBundleInstallDialog: Adw.Dialog {
                 margin-end: 48;
 
                 Image loading_icon {
-                  paintable: bind template.entry as <$BzEntry>.icon-paintable;
+                  paintable: bind template.entry as <$BzEntry>.large-icon-paintable;
                   visible: bind $invert_boolean(
-                    $is_null(template.entry as <$BzEntry>.icon-paintable) as <bool>
+                    $is_null(template.entry as <$BzEntry>.large-icon-paintable) as <bool>
                   ) as <bool>;
                   pixel-size: 128;
                   margin-bottom: 12;
@@ -375,9 +375,9 @@ template $BzBundleInstallDialog: Adw.Dialog {
                   margin-end: 24;
 
                   Image end_icon {
-                    paintable: bind template.entry as <$BzEntry>.icon-paintable;
+                    paintable: bind template.entry as <$BzEntry>.large-icon-paintable;
                     visible: bind $invert_boolean(
-                      $is_null(template.entry as <$BzEntry>.icon-paintable) as <bool>
+                      $is_null(template.entry as <$BzEntry>.large-icon-paintable) as <bool>
                     ) as <bool>;
                     pixel-size: 128;
                     margin-bottom: 12;
@@ -470,9 +470,9 @@ template $BzBundleInstallDialog: Adw.Dialog {
               margin-end: 24;
 
               Image installed_icon {
-                paintable: bind template.entry as <$BzEntry>.icon-paintable;
+                paintable: bind template.entry as <$BzEntry>.large-icon-paintable;
                 visible: bind $invert_boolean(
-                  $is_null(template.entry as <$BzEntry>.icon-paintable) as <bool>
+                  $is_null(template.entry as <$BzEntry>.large-icon-paintable) as <bool>
                 ) as <bool>;
                 pixel-size: 128;
                 margin-bottom: 12;

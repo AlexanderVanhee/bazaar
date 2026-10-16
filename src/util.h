@@ -152,6 +152,8 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (BzWeakRef, bz_weak_ref_unref);
 
 BzWeakRef *bz_weak_ref_new (gpointer object);
 
+double bz_get_max_monitor_scale (void);
+
 /* Use with dex_scheduler_spawn */
 G_GNUC_UNUSED
 static GWeakRef *

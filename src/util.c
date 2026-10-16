@@ -18,6 +18,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include <gtk/gtk.h>
+
 #include "util.h"
 
 BzWeakRef *
@@ -54,4 +56,27 @@ bz_weak_ref_new (gpointer object)
   g_weak_ref_init (&wr->ref, object);
 
   return wr;
+}
+
+double
+bz_get_max_monitor_scale (void)
+{
+  GdkDisplay *display  = NULL;
+  GListModel *monitors = NULL;
+  double      scale    = 1.0;
+
+  display = gdk_display_get_default ();
+  if (display == NULL)
+    return scale;
+
+  monitors = gdk_display_get_monitors (display);
+  for (guint i = 0; i < g_list_model_get_n_items (monitors); i++)
+    {
+      g_autoptr (GdkMonitor) monitor = NULL;
+
+      monitor = g_list_model_get_item (monitors, i);
+      scale   = MAX (scale, gdk_monitor_get_scale (monitor));
+    }
+
+  return scale;
 }
