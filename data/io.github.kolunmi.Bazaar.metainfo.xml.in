@@ -77,6 +77,28 @@
   </screenshots>
 
   <releases>
+    <release version="0.9.9" date="2026-10-16">
+      <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.9</url>
+      <description translate="no">
+        <p>
+          <em>Changes</em>
+        </p>
+        <ul>
+          <li>Added a "Finishing Up" label on transaction tiles in the library view to clarify what is happening during the period between the end of a download and the conclusion of the full transaction</li>
+          <li>Reduced download worker subprocess count while increasing the maximum connections allowed, improving memory usage</li>
+        </ul>
+        <p>
+          <em>Bug Fixes</em>
+        </p>
+        <ul>
+          <li>Fixed an issue where available app updates would sometimes duplicate when the app checks for more updates while simultaneously installing updates</li>
+          <li>Fixed a few harmless compilation warnings</li>
+        </ul>
+        <p>
+          Thanks for reading, and have a great day!
+        </p>
+      </description>
+    </release>
     <release version="0.9.8" date="2026-10-12">
       <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.8</url>
       <description translate="no">
