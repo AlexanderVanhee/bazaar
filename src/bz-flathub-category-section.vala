@@ -140,7 +140,7 @@ public class Bz.FlathubCategorySection : Gtk.Box {
     }
 
     [GtkCallback]
-    private int get_spacing (bool compact) {
+    private int calculate_spacing (bool compact) {
         return compact ? 9 : 11;
     }
 

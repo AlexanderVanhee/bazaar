@@ -29,8 +29,8 @@ template $BzFlathubCategorySection : Box {
     child-type: "BzAppTile";
     child-prop: "group";
     max-children-per-line: bind template.max-children-per-line;
-    row-spacing: bind $get_spacing(template.compact) as <int>;
-    column-spacing: bind $get_spacing(template.compact) as <int>;
+    row-spacing: bind $calculate_spacing(template.compact) as <int>;
+    column-spacing: bind $calculate_spacing(template.compact) as <int>;
   }
 
   Button more_button {
