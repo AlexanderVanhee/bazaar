@@ -2,7 +2,7 @@
 
 INSTR="$1"
 
-VERSION=0.9.9
+VERSION=0.9.10
 CACHE_VERSION=2
 
 case "$INSTR" in
