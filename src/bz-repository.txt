@@ -2,7 +2,7 @@ prefix=bz
 name=repository
 parent-prefix=g
 parent-name=object
-author=AUTOGEN
+author=The Bazaar Contributors (automatically generated with gen_gobject.sh)
 
 property=is_user gboolean G_TYPE_BOOLEAN boolean
 property=is_beta gboolean G_TYPE_BOOLEAN boolean
