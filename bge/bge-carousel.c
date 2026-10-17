@@ -425,12 +425,22 @@ bge_carousel_class_init (BgeCarouselClass *klass)
           NULL, NULL, FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * BgeCarousel:align-start:
+   *
+   * Whether to ...
+   */
   props[PROP_ALIGN_START] =
       g_param_spec_boolean (
           "align-start",
           NULL, NULL, FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * BgeCarousel:max-page-width:
+   *
+   * The ...
+   */
   props[PROP_MAX_PAGE_WIDTH] =
       g_param_spec_int (
           "max-page-width",
@@ -438,6 +448,11 @@ bge_carousel_class_init (BgeCarouselClass *klass)
           -1, G_MAXINT, -1,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * BgeCarousel:last-stop:
+   *
+   * The ...
+   */
   props[PROP_LAST_STOP] =
       g_param_spec_uint (
           "last-stop",
@@ -621,6 +636,14 @@ bge_carousel_get_allow_raise (BgeCarousel *self)
   return self->allow_raise;
 }
 
+/**
+ * bge_carousel_get_align_start:
+ * @self: a `BgeCarousel`
+ *
+ * Gets [property@Bge.Carousel:align-start].
+ *
+ * Returns: the value of the property
+ */
 gboolean
 bge_carousel_get_align_start (BgeCarousel *self)
 {
@@ -628,6 +651,14 @@ bge_carousel_get_align_start (BgeCarousel *self)
   return self->align_start;
 }
 
+/**
+ * bge_carousel_get_max_page_width:
+ * @self: a `BgeCarousel`
+ *
+ * Gets [property@Bge.Carousel:max-page-width].
+ *
+ * Returns: the value of the property
+ */
 int
 bge_carousel_get_max_page_width (BgeCarousel *self)
 {
@@ -635,6 +666,14 @@ bge_carousel_get_max_page_width (BgeCarousel *self)
   return self->max_page_width;
 }
 
+/**
+ * bge_carousel_get_last_stop:
+ * @self: a `BgeCarousel`
+ *
+ * Gets [property@Bge.Carousel:last-stop].
+ *
+ * Returns: the value of the property
+ */
 guint
 bge_carousel_get_last_stop (BgeCarousel *self)
 {
@@ -772,6 +811,13 @@ bge_carousel_set_allow_raise (BgeCarousel *self,
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ALLOW_RAISE]);
 }
 
+/**
+ * bge_carousel_set_align_start:
+ * @self: a `BgeCarousel`
+ * @align_start: a boolean
+ *
+ * Sets [property@Bge.Carousel:align-start].
+ */
 void
 bge_carousel_set_align_start (BgeCarousel *self,
                               gboolean     align_start)
@@ -788,6 +834,13 @@ bge_carousel_set_align_start (BgeCarousel *self,
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ALIGN_START]);
 }
 
+/**
+ * bge_carousel_set_max_page_width:
+ * @self: a `BgeCarousel`
+ * @max_page_width: an integer
+ *
+ * Sets [property@Bge.Carousel:max-page-width].
+ */
 void
 bge_carousel_set_max_page_width (BgeCarousel *self,
                                  int          max_page_width)
