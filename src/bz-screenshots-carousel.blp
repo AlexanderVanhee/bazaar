@@ -30,6 +30,8 @@ template $BzScreenshotsCarousel: Gtk.Widget {
         allow-overshoot: true;
         allow-scroll-wheel: true;
         allow-raise: bind $invert_boolean(template.compact) as <bool>;
+        align-start: bind $invert_boolean(template.compact) as <bool>;
+        notify::last-stop => $on_notify_selected(template);
 
         create-widget => $on_create_widget(template);
         remove-widget => $on_remove_widget(template);
