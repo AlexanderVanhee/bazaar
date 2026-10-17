@@ -58,6 +58,7 @@ struct _BgeCarousel
   gboolean            allow_scroll_wheel;
   gboolean            allow_raise;
   gboolean            align_start;
+  int                 max_page_width;
   guint               last_stop;
   GtkSingleSelection *model;
 
@@ -76,6 +77,7 @@ enum
   PROP_ALLOW_SCROLL_WHEEL,
   PROP_ALLOW_RAISE,
   PROP_ALIGN_START,
+  PROP_MAX_PAGE_WIDTH,
   PROP_LAST_STOP,
   PROP_MODEL,
 
@@ -244,6 +246,9 @@ bge_carousel_get_property (GObject    *object,
     case PROP_ALIGN_START:
       g_value_set_boolean (value, bge_carousel_get_align_start (self));
       break;
+    case PROP_MAX_PAGE_WIDTH:
+      g_value_set_int (value, bge_carousel_get_max_page_width (self));
+      break;
     case PROP_LAST_STOP:
       g_value_set_uint (value, bge_carousel_get_last_stop (self));
       break;
@@ -279,6 +284,9 @@ bge_carousel_set_property (GObject      *object,
       break;
     case PROP_ALIGN_START:
       bge_carousel_set_align_start (self, g_value_get_boolean (value));
+      break;
+    case PROP_MAX_PAGE_WIDTH:
+      bge_carousel_set_max_page_width (self, g_value_get_int (value));
       break;
     case PROP_MODEL:
       bge_carousel_set_model (self, g_value_get_object (value));
@@ -423,6 +431,13 @@ bge_carousel_class_init (BgeCarouselClass *klass)
           NULL, NULL, FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_MAX_PAGE_WIDTH] =
+      g_param_spec_int (
+          "max-page-width",
+          NULL, NULL,
+          -1, G_MAXINT, -1,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
   props[PROP_LAST_STOP] =
       g_param_spec_uint (
           "last-stop",
@@ -501,6 +516,8 @@ static void
 bge_carousel_init (BgeCarousel *self)
 {
   self->animation = bge_animation_new (GTK_WIDGET (self));
+
+  self->max_page_width = -1;
 
   self->mirror = g_ptr_array_new_with_free_func (
       (GDestroyNotify) g_object_unref);
@@ -609,6 +626,13 @@ bge_carousel_get_align_start (BgeCarousel *self)
 {
   g_return_val_if_fail (BGE_IS_CAROUSEL (self), FALSE);
   return self->align_start;
+}
+
+int
+bge_carousel_get_max_page_width (BgeCarousel *self)
+{
+  g_return_val_if_fail (BGE_IS_CAROUSEL (self), -1);
+  return self->max_page_width;
 }
 
 guint
@@ -762,6 +786,22 @@ bge_carousel_set_align_start (BgeCarousel *self,
     ensure_viewport (self, self->model, TRUE);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ALIGN_START]);
+}
+
+void
+bge_carousel_set_max_page_width (BgeCarousel *self,
+                                 int          max_page_width)
+{
+  g_return_if_fail (BGE_IS_CAROUSEL (self));
+
+  if (max_page_width == self->max_page_width)
+    return;
+
+  self->max_page_width = max_page_width;
+  if (self->model != NULL)
+    ensure_viewport (self, self->model, TRUE);
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_MAX_PAGE_WIDTH]);
 }
 
 /**
@@ -938,6 +978,8 @@ move_to_idx (BgeCarousel *self,
         widths[i] = MAX (hminimum, width);
       else
         widths[i] = CLAMP (hnatural, hminimum, width);
+      if (self->max_page_width >= 0)
+        widths[i] = MIN (widths[i], self->max_page_width);
 
       total_width += widths[i];
       if (i < idx)
@@ -1016,6 +1058,8 @@ move_to_idx (BgeCarousel *self,
               &unused,
               &unused);
           child_width = CLAMP (hnatural, hminimum, width);
+          if (child_width > rect_width)
+            child_width = round ((double) rect_width * (1.0 - RAISE_FACTOR));
 
           child_x = offset + round ((double) (rect_width - child_width) * 0.5);
           child_y = round ((double) height * (0.5 * RAISE_FACTOR));
