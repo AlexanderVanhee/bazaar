@@ -53,7 +53,6 @@ public class Bz.ScreenshotPage : Adw.Bin {
 
     private bool dragging = false;
     private double drag_y = 0.0;
-    private double drag_offset = 0.0;
     private double drag_offset_x = 0.0;
     private double hold = 0.0;
     private double release_t = 1.0;
@@ -146,7 +145,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
         click.pressed.connect ((n, x, y) => back_clicked ());
         add_controller (click);
 
-        var scroll = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.VERTICAL |
+        var scroll = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.BOTH_AXES |
                                                     Gtk.EventControllerScrollFlags.KINETIC);
         scroll.scroll.connect (on_scroll);
         scroll.decelerate.connect ((vx, vy) => {
@@ -276,25 +275,29 @@ public class Bz.ScreenshotPage : Adw.Bin {
         if (closing) {
             remove_from_overlay ();
         } else {
-            reduce_motion = get_settings ().gtk_interface_reduced_motion != Gtk.ReducedMotion.NO_PREFERENCE;
+            carousel.interactive = !is_zoomed;
             set_image_hidden (false);
         }
     }
 
     private bool can_drag () {
-        return !closing && !is_zoomed && (animation == null || animation.state == Adw.AnimationState.FINISHED);
+        return !closing && !is_zoomed && source_widget != null && carousel.position == _current_index && (animation == null || animation.state == Adw.AnimationState.FINISHED);
     }
 
     private void begin_drag () {
         dragging = true;
-        drag_y = 0.0;
-        reduce_motion = false;
+        carousel.interactive = false;
 
-        if (source_image == null && source_widget != null)
+        if (source_image == null)
             capture_source ();
 
-        if (source_image != null)
-            set_image_hidden (true);
+        set_image_hidden (true);
+
+        new Adw.TimedAnimation (this, 0.0, 1.0, DRAG_PICKUP_DURATION_MS, new Adw.CallbackAnimationTarget ((value) => {
+            if (dragging)
+                hold = value;
+            queue_draw ();
+        })).play ();
     }
 
     private void update_drag (double y) {
@@ -308,20 +311,11 @@ public class Bz.ScreenshotPage : Adw.Bin {
         dragging = false;
 
         bool fling = Math.fabs (velocity_y) > DRAG_CLOSE_VELOCITY && (velocity_y > 0) == (drag_y > 0);
-        if (Math.fabs (drag_y) > get_height () * DRAG_DISTANCE_FRACTION * (1.0 - DRAG_CLOSE_PROGRESS) || fling) {
-            if (drag_offset != 0.0)
-                spring_from_touch (true);
-            else
-                back_clicked ();
-        } else if (drag_offset != 0.0) {
-            spring_from_touch (false);
-        } else {
-            start_animation (1.0);
-        }
+        spring_from_touch (Math.fabs (drag_y) > get_height () * DRAG_DISTANCE_FRACTION * (1.0 - DRAG_CLOSE_PROGRESS) || fling);
     }
 
     private void spring_from_touch (bool close) {
-        double from_offset = drag_offset;
+        double from_offset = drag_y;
         double from_offset_x = drag_offset_x;
         double from_hold = hold;
         double from_progress = animation_progress;
@@ -335,7 +329,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
                 release_t = value;
                 animation_progress = from_progress * value;
             } else {
-                drag_offset = from_offset * value;
+                drag_y = from_offset * value;
                 drag_offset_x = from_offset_x * value;
                 hold = from_hold * value;
                 animation_progress = 1.0 - (1.0 - from_progress) * value;
@@ -359,19 +353,12 @@ public class Bz.ScreenshotPage : Adw.Bin {
         if (!dragging && can_drag () && Math.fabs (dy) >= DRAG_THRESHOLD && Math.fabs (dy) > Math.fabs (dx)) {
             gesture.set_state (Gtk.EventSequenceState.CLAIMED);
             begin_drag ();
-            new Adw.TimedAnimation (this, 0.0, 1.0, DRAG_PICKUP_DURATION_MS, new Adw.CallbackAnimationTarget ((value) => {
-                if (dragging)
-                    hold = value;
-                queue_draw ();
-            })).play ();
         }
 
         if (!dragging)
             return;
 
         update_drag (dy);
-        if (source_image != null)
-            drag_offset = dy;
         drag_offset_x = dx;
     }
 
@@ -380,7 +367,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
     }
 
     public override void snapshot (Gtk.Snapshot snapshot) {
-        if (source_image == null || (animation_progress >= 1.0 && !dragging && drag_offset == 0.0)) {
+        if (source_image == null || (animation_progress >= 1.0 && !dragging && drag_y == 0.0)) {
             base.snapshot (snapshot);
             return;
         }
@@ -401,7 +388,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
         float w = rect.size.width;
         float h = rect.size.height;
 
-        if (drag_offset != 0.0) {
+        if (drag_y != 0.0) {
             float scale = 1.0f - (float) DRAG_TOUCH_SCALE * (1.0f - p) - (float) (DRAG_PICKUP_SCALE * hold);
             float tw = target.size.width * scale;
             float th = target.size.height * scale;
@@ -409,7 +396,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
             float ay = (float) ((touch_start_y - target.origin.y) / target.size.height).clamp (0.0, 1.0);
 
             rect = Graphene.Rect ().init (target.origin.x + ax * (target.size.width - tw) + (float) drag_offset_x,
-                                          target.origin.y + ay * (target.size.height - th) + (float) drag_offset, tw, th);
+                                          target.origin.y + ay * (target.size.height - th) + (float) drag_y, tw, th);
             if (closing)
                 rect = from.interpolate (rect, (float) release_t);
 
@@ -579,11 +566,16 @@ public class Bz.ScreenshotPage : Adw.Bin {
         if (device == null || device.source != Gdk.InputSource.TOUCHPAD)
             return Gdk.EVENT_PROPAGATE;
 
-        if (!dragging && can_drag () && Math.fabs (dy) > 2.0)
+        if (!dragging && can_drag () && Math.fabs (dy) > 2.0) {
+            touch_start_x = get_width () / 2.0;
+            touch_start_y = get_height () / 2.0;
             begin_drag ();
+        }
 
-        if (dragging)
+        if (dragging) {
             update_drag (drag_y - dy);
+            drag_offset_x -= dx;
+        }
 
         return Gdk.EVENT_PROPAGATE;
     }
