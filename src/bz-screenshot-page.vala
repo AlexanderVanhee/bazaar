@@ -27,6 +27,14 @@ public class Bz.ScreenshotPage : Adw.Bin {
     private const double SPRING_STIFFNESS = 1000.0;
     private const uint FADE_DURATION_MS = 350;
 
+    private const double DRAG_THRESHOLD = 8.0;
+    private const double DRAG_DISTANCE_FRACTION = 0.5;
+    private const double DRAG_CLOSE_PROGRESS = 0.7;
+    private const double DRAG_CLOSE_VELOCITY = 500.0;
+    private const double DRAG_TOUCH_SCALE = 0.3;
+    private const double DRAG_PICKUP_SCALE = 0.20;
+    private const uint DRAG_PICKUP_DURATION_MS = 250;
+
     [GtkChild]
     private unowned Adw.Carousel carousel;
     [GtkChild]
@@ -42,6 +50,14 @@ public class Bz.ScreenshotPage : Adw.Bin {
     private Graphene.Rect source_bounds_at_map;
     private Adw.Animation? animation = null;
     private double animation_progress = 0.0;
+
+    private bool dragging = false;
+    private double drag_y = 0.0;
+    private double drag_offset_x = 0.0;
+    private double hold = 0.0;
+    private double release_t = 1.0;
+    private double touch_start_x = 0.0;
+    private double touch_start_y = 0.0;
 
     public ListModel? screenshots { get; construct; }
     public uint initial_index { get; construct; }
@@ -114,9 +130,11 @@ public class Bz.ScreenshotPage : Adw.Bin {
             propagation_phase = Gtk.PropagationPhase.CAPTURE,
             touch_only = true,
         };
+        swipe.begin.connect ((gesture, sequence) => gesture.get_point (sequence, out touch_start_x, out touch_start_y));
+        swipe.update.connect (on_swipe_update);
         swipe.swipe.connect ((vx, vy) => {
-            if (Math.fabs (vy) > 500.0)
-                back_clicked ();
+            if (dragging)
+                end_drag (vy);
         });
         add_controller (swipe);
 
@@ -127,8 +145,13 @@ public class Bz.ScreenshotPage : Adw.Bin {
         click.pressed.connect ((n, x, y) => back_clicked ());
         add_controller (click);
 
-        var scroll = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.VERTICAL);
+        var scroll = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.BOTH_AXES |
+                                                    Gtk.EventControllerScrollFlags.KINETIC);
         scroll.scroll.connect (on_scroll);
+        scroll.decelerate.connect ((vx, vy) => {
+            if (dragging)
+                end_drag (-vy);
+        });
         add_controller (scroll);
     }
 
@@ -249,10 +272,94 @@ public class Bz.ScreenshotPage : Adw.Bin {
     }
 
     private void on_animation_done () {
-        if (closing)
+        if (closing) {
             remove_from_overlay ();
-        else
+        } else {
+            carousel.interactive = !is_zoomed;
             set_image_hidden (false);
+        }
+    }
+
+    private bool can_drag () {
+        return !closing && !is_zoomed && source_widget != null && carousel.position == _current_index && (animation == null || animation.state == Adw.AnimationState.FINISHED);
+    }
+
+    private void begin_drag () {
+        dragging = true;
+        carousel.interactive = false;
+
+        if (source_image == null)
+            capture_source ();
+
+        set_image_hidden (true);
+
+        new Adw.TimedAnimation (this, 0.0, 1.0, DRAG_PICKUP_DURATION_MS, new Adw.CallbackAnimationTarget ((value) => {
+            if (dragging)
+                hold = value;
+            queue_draw ();
+        })).play ();
+    }
+
+    private void update_drag (double y) {
+        drag_y = y;
+        animation_progress = 1.0 - (Math.fabs (y) / (get_height () * DRAG_DISTANCE_FRACTION)).clamp (0.0, 1.0);
+
+        queue_draw ();
+    }
+
+    private void end_drag (double velocity_y) {
+        dragging = false;
+
+        bool fling = Math.fabs (velocity_y) > DRAG_CLOSE_VELOCITY && (velocity_y > 0) == (drag_y > 0);
+        spring_from_touch (Math.fabs (drag_y) > get_height () * DRAG_DISTANCE_FRACTION * (1.0 - DRAG_CLOSE_PROGRESS) || fling);
+    }
+
+    private void spring_from_touch (bool close) {
+        double from_offset = drag_y;
+        double from_offset_x = drag_offset_x;
+        double from_hold = hold;
+        double from_progress = animation_progress;
+        var params = new Adw.SpringParams (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
+
+        closing = close;
+        can_target = !close;
+
+        animation = new Adw.SpringAnimation (this, 1.0, 0.0, params, new Adw.CallbackAnimationTarget ((value) => {
+            if (close) {
+                release_t = value;
+                animation_progress = from_progress * value;
+            } else {
+                drag_y = from_offset * value;
+                drag_offset_x = from_offset_x * value;
+                hold = from_hold * value;
+                animation_progress = 1.0 - (1.0 - from_progress) * value;
+            }
+            queue_draw ();
+        })) {
+            clamp = true,
+            epsilon = 0.0001,
+        };
+        animation.done.connect (on_animation_done);
+        animation.play ();
+    }
+
+    private void on_swipe_update (Gtk.Gesture gesture, Gdk.EventSequence? sequence) {
+        double x, y;
+        gesture.get_point (sequence, out x, out y);
+
+        double dx = x - touch_start_x;
+        double dy = y - touch_start_y;
+
+        if (!dragging && can_drag () && Math.fabs (dy) >= DRAG_THRESHOLD && Math.fabs (dy) > Math.fabs (dx)) {
+            gesture.set_state (Gtk.EventSequenceState.CLAIMED);
+            begin_drag ();
+        }
+
+        if (!dragging)
+            return;
+
+        update_drag (dy);
+        drag_offset_x = dx;
     }
 
     private void remove_from_overlay () {
@@ -260,7 +367,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
     }
 
     public override void snapshot (Gtk.Snapshot snapshot) {
-        if (source_image == null || animation_progress >= 1.0) {
+        if (source_image == null || (animation_progress >= 1.0 && !dragging && drag_y == 0.0)) {
             base.snapshot (snapshot);
             return;
         }
@@ -276,9 +383,26 @@ public class Bz.ScreenshotPage : Adw.Bin {
         if (!get_current_scrolled_window ().compute_bounds (this, out viewport))
             viewport = page;
 
-        var rect = from.interpolate (compute_image_bounds (), p);
+        var target = compute_image_bounds ();
+        var rect = from.interpolate (target, p);
         float w = rect.size.width;
         float h = rect.size.height;
+
+        if (drag_y != 0.0) {
+            float scale = 1.0f - (float) DRAG_TOUCH_SCALE * (1.0f - p) - (float) (DRAG_PICKUP_SCALE * hold);
+            float tw = target.size.width * scale;
+            float th = target.size.height * scale;
+            float ax = (float) ((touch_start_x - target.origin.x) / target.size.width).clamp (0.0, 1.0);
+            float ay = (float) ((touch_start_y - target.origin.y) / target.size.height).clamp (0.0, 1.0);
+
+            rect = Graphene.Rect ().init (target.origin.x + ax * (target.size.width - tw) + (float) drag_offset_x,
+                                          target.origin.y + ay * (target.size.height - th) + (float) drag_y, tw, th);
+            if (closing)
+                rect = from.interpolate (rect, (float) release_t);
+
+            w = rect.size.width;
+            h = rect.size.height;
+        }
 
         snapshot.push_opacity (p);
         base.snapshot (snapshot);
@@ -439,8 +563,19 @@ public class Bz.ScreenshotPage : Adw.Bin {
 
     private bool on_scroll (Gtk.EventControllerScroll controller, double dx, double dy) {
         var device = controller.get_current_event_device ();
-        if (device != null && device.source == Gdk.InputSource.TOUCHPAD && Math.fabs (dy) > 2.0)
-            back_clicked ();
+        if (device == null || device.source != Gdk.InputSource.TOUCHPAD)
+            return Gdk.EVENT_PROPAGATE;
+
+        if (!dragging && can_drag () && Math.fabs (dy) > 2.0) {
+            touch_start_x = get_width () / 2.0;
+            touch_start_y = get_height () / 2.0;
+            begin_drag ();
+        }
+
+        if (dragging) {
+            update_drag (drag_y - dy);
+            drag_offset_x -= dx;
+        }
 
         return Gdk.EVENT_PROPAGATE;
     }
