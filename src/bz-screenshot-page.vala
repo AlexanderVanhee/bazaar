@@ -31,7 +31,9 @@ public class Bz.ScreenshotPage : Adw.Bin {
     private const double DRAG_DISTANCE_FRACTION = 0.5;
     private const double DRAG_CLOSE_PROGRESS = 0.7;
     private const double DRAG_CLOSE_VELOCITY = 500.0;
-    private const double DRAG_TOUCH_SCALE = 0.05;
+    private const double DRAG_TOUCH_SCALE = 0.3;
+    private const double DRAG_PICKUP_SCALE = 0.20;
+    private const uint DRAG_PICKUP_DURATION_MS = 250;
 
     [GtkChild]
     private unowned Adw.Carousel carousel;
@@ -52,6 +54,8 @@ public class Bz.ScreenshotPage : Adw.Bin {
     private bool dragging = false;
     private double drag_y = 0.0;
     private double drag_offset = 0.0;
+    private double drag_offset_x = 0.0;
+    private double hold = 0.0;
     private double release_t = 1.0;
     private double touch_start_x = 0.0;
     private double touch_start_y = 0.0;
@@ -318,6 +322,8 @@ public class Bz.ScreenshotPage : Adw.Bin {
 
     private void spring_from_touch (bool close) {
         double from_offset = drag_offset;
+        double from_offset_x = drag_offset_x;
+        double from_hold = hold;
         double from_progress = animation_progress;
         var params = new Adw.SpringParams (SPRING_DAMPING_RATIO, SPRING_MASS, SPRING_STIFFNESS);
 
@@ -330,6 +336,8 @@ public class Bz.ScreenshotPage : Adw.Bin {
                 animation_progress = from_progress * value;
             } else {
                 drag_offset = from_offset * value;
+                drag_offset_x = from_offset_x * value;
+                hold = from_hold * value;
                 animation_progress = 1.0 - (1.0 - from_progress) * value;
             }
             queue_draw ();
@@ -351,6 +359,11 @@ public class Bz.ScreenshotPage : Adw.Bin {
         if (!dragging && can_drag () && Math.fabs (dy) >= DRAG_THRESHOLD && Math.fabs (dy) > Math.fabs (dx)) {
             gesture.set_state (Gtk.EventSequenceState.CLAIMED);
             begin_drag ();
+            new Adw.TimedAnimation (this, 0.0, 1.0, DRAG_PICKUP_DURATION_MS, new Adw.CallbackAnimationTarget ((value) => {
+                if (dragging)
+                    hold = value;
+                queue_draw ();
+            })).play ();
         }
 
         if (!dragging)
@@ -359,6 +372,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
         update_drag (dy);
         if (source_image != null)
             drag_offset = dy;
+        drag_offset_x = dx;
     }
 
     private void remove_from_overlay () {
@@ -388,12 +402,14 @@ public class Bz.ScreenshotPage : Adw.Bin {
         float h = rect.size.height;
 
         if (drag_offset != 0.0) {
-            var center = target.get_center ();
-            float scale = 1.0f - (float) DRAG_TOUCH_SCALE * (1.0f - p);
+            float scale = 1.0f - (float) DRAG_TOUCH_SCALE * (1.0f - p) - (float) (DRAG_PICKUP_SCALE * hold);
             float tw = target.size.width * scale;
             float th = target.size.height * scale;
+            float ax = (float) ((touch_start_x - target.origin.x) / target.size.width).clamp (0.0, 1.0);
+            float ay = (float) ((touch_start_y - target.origin.y) / target.size.height).clamp (0.0, 1.0);
 
-            rect = Graphene.Rect ().init (center.x - tw / 2.0f, center.y + (float) drag_offset - th / 2.0f, tw, th);
+            rect = Graphene.Rect ().init (target.origin.x + ax * (target.size.width - tw) + (float) drag_offset_x,
+                                          target.origin.y + ay * (target.size.height - th) + (float) drag_offset, tw, th);
             if (closing)
                 rect = from.interpolate (rect, (float) release_t);
 
