@@ -413,6 +413,7 @@ vala_sources = files(
   'bz-other-sources-list.vala',
   'bz-screenshot-page.vala',
   'bz-new-permissions-dialog.vala',
+  'bz-runtime-updates-entry.vala',
 )
 
 vala_args = [

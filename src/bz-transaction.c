@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <bzvala.h>
 #include <glib/gi18n.h>
 
 #include "bz-transaction.h"
@@ -354,8 +355,9 @@ bz_transaction_new_full (BzEntry **installs,
                          guint     n_removals)
 
 {
-  g_autoptr (BzTransaction) self = NULL;
-  BzTransactionPrivate *priv     = NULL;
+  g_autoptr (BzTransaction) self        = NULL;
+  BzTransactionPrivate *priv            = NULL;
+  g_autoptr (GPtrArray) runtime_updates = NULL;
 
   g_return_val_if_fail ((installs != NULL && n_installs > 0) ||
                             (updates != NULL && n_updates > 0) ||
@@ -372,14 +374,12 @@ bz_transaction_new_full (BzEntry **installs,
   self = g_object_new (BZ_TYPE_TRANSACTION, NULL);
   priv = bz_transaction_get_instance_private (self);
 
-#define ADD_ENTRY(type, entry, transaction_type)                                           \
+#define ADD_TRACKER(entry, transaction_type)                                               \
   G_STMT_START                                                                             \
   {                                                                                        \
     g_autoptr (BzTransactionEntryTracker) tracker = NULL;                                  \
     g_autoptr (GListStore) current_ops            = NULL;                                  \
     g_autoptr (GListStore) finished_ops           = NULL;                                  \
-                                                                                           \
-    g_list_store_append (priv->type, (entry));                                             \
                                                                                            \
     tracker      = bz_transaction_entry_tracker_new ();                                    \
     current_ops  = g_list_store_new (BZ_TYPE_TRANSACTION_TASK);                            \
@@ -398,14 +398,39 @@ bz_transaction_new_full (BzEntry **installs,
   }                                                                                        \
   G_STMT_END
 
-  for (guint i = 0; i < n_installs; i++)
-    ADD_ENTRY (installs, installs[i], BZ_TRANSACTION_ENTRY_KIND_INSTALL);
-  for (guint i = 0; i < n_updates; i++)
-    ADD_ENTRY (updates, updates[i], BZ_TRANSACTION_ENTRY_KIND_UPDATE);
-  for (guint i = 0; i < n_removals; i++)
-    ADD_ENTRY (removals, removals[i], BZ_TRANSACTION_ENTRY_KIND_REMOVAL);
+  runtime_updates = g_ptr_array_new_with_free_func (g_object_unref);
 
-#undef ADD_ENTRY
+  for (guint i = 0; i < n_installs; i++)
+    {
+      g_list_store_append (priv->installs, installs[i]);
+      ADD_TRACKER (installs[i], BZ_TRANSACTION_ENTRY_KIND_INSTALL);
+    }
+  for (guint i = 0; i < n_updates; i++)
+    {
+      g_list_store_append (priv->updates, updates[i]);
+      if (!bz_entry_is_of_kinds (updates[i], BZ_ENTRY_KIND_APPLICATION))
+        g_ptr_array_add (runtime_updates, g_object_ref (updates[i]));
+      else
+        ADD_TRACKER (updates[i], BZ_TRANSACTION_ENTRY_KIND_UPDATE);
+    }
+  for (guint i = 0; i < n_removals; i++)
+    {
+      g_list_store_append (priv->removals, removals[i]);
+      ADD_TRACKER (removals[i], BZ_TRANSACTION_ENTRY_KIND_REMOVAL);
+    }
+
+  if (runtime_updates->len > 0)
+    {
+      g_autoptr (BzEntry) group = NULL;
+
+      group = BZ_ENTRY (bz_runtime_updates_entry_new (runtime_updates->len));
+      g_object_set_data_full (G_OBJECT (group), "grouped-entries",
+                              g_steal_pointer (&runtime_updates),
+                              (GDestroyNotify) g_ptr_array_unref);
+      ADD_TRACKER (group, BZ_TRANSACTION_ENTRY_KIND_UPDATE);
+    }
+
+#undef ADD_TRACKER
 
   return g_steal_pointer (&self);
 }
@@ -719,7 +744,14 @@ find_entry_eq_func (BzTransactionEntryTracker *tracker,
                     gpointer                   none,
                     BzEntry                   *entry)
 {
-  return bz_transaction_entry_tracker_get_entry (tracker) == entry;
+  BzEntry   *tracker_entry = NULL;
+  GPtrArray *grouped       = NULL;
+
+  tracker_entry = bz_transaction_entry_tracker_get_entry (tracker);
+  grouped       = g_object_get_data (G_OBJECT (tracker_entry), "grouped-entries");
+
+  return tracker_entry == entry ||
+         (grouped != NULL && g_ptr_array_find (grouped, entry, NULL));
 }
 
 /* This kinda sucks  */

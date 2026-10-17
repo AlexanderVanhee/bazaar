@@ -108,6 +108,7 @@ src/bz-rich-app-tile.c
 src/bz-safety-dialog.blp
 src/bz-safety-dialog.c
 src/bz-screenshot-page.blp
+src/bz-runtime-updates-entry.vala
 src/bz-screenshot-page.vala
 src/bz-screenshot.c
 src/bz-screenshots-carousel.blp
