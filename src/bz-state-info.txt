@@ -2,7 +2,7 @@ prefix=bz
 name=state_info
 parent-prefix=g
 parent-name=object
-author=AUTOGEN
+author=The Bazaar Contributors (automatically generated with gen_gobject.sh)
 
 include="bz-application-map-factory.h"
 include="bz-auth-state.h"

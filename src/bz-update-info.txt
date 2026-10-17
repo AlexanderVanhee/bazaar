@@ -2,7 +2,7 @@ prefix=bz
 name=update_permission_info
 parent-prefix=g
 parent-name=object
-author=AUTOGEN
+author=The Bazaar Contributors (automatically generated with gen_gobject.sh)
 
 include="bz-entry.h"
 include="bz-app-permissions.h"

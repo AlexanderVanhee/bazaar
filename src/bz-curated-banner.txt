@@ -2,7 +2,7 @@ prefix=bz
 name=curated_banner
 parent-prefix=g
 parent-name=object
-author=AUTOGEN
+author=The Bazaar Contributors (automatically generated with gen_gobject.sh)
 
 include=<gtk/gtk.h>
 

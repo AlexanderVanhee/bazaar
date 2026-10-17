@@ -2,7 +2,7 @@ prefix=bz
 name=finished_search_query
 parent-prefix=g
 parent-name=object
-author=AUTOGEN
+author=The Bazaar Contributors (automatically generated with gen_gobject.sh)
 
 property=interpreted_query char G_TYPE_STRING string
 property=results GPtrArray G_TYPE_PTR_ARRAY boxed g_ptr_array_unref g_ptr_array_ref

@@ -2,7 +2,7 @@ prefix=bz
 name=country
 parent-prefix=g
 parent-name=object
-author=AUTOGEN
+author=The Bazaar Contributors (automatically generated with gen_gobject.sh)
 
 property=name char G_TYPE_STRING string
 property=iso_code char G_TYPE_STRING string

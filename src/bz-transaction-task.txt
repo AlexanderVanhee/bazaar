@@ -2,7 +2,7 @@ prefix=bz
 name=transaction_task
 parent-prefix=g
 parent-name=object
-author=AUTOGEN
+author=The Bazaar Contributors (automatically generated with gen_gobject.sh)
 
 include="bz-backend-transaction-op-payload.h"
 include="bz-backend-transaction-op-progress-payload.h"
