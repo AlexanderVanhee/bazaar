@@ -1458,7 +1458,7 @@ finish_horizontal_gesture (BgeCarousel *self,
   last     = get_last_index (self);
   selected = MIN (gtk_single_selection_get_selected (self->model), last);
 
-  width = gtk_widget_get_width (GTK_WIDGET (self));
+  width  = gtk_widget_get_width (GTK_WIDGET (self));
   anchor = self->align_start ? 0.0 : width / 2.0;
   for (guint i = 0; i <= last; i++)
     {
