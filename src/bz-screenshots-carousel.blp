@@ -111,30 +111,5 @@ template $BzScreenshotsCarousel: Gtk.Widget {
         ]
       }
     }
-
-    [overlay]
-    Box {
-      styles [
-        "osd-box",
-        "pip-button",
-      ]
-
-      margin-end: 8;
-      margin-bottom: 8;
-      halign: end;
-      valign: end;
-      can-focus: false;
-      visible: bind $not($is_empty(template.model) as <bool>) as <bool>;
-
-      Gtk.Button {
-        icon-name: "pip-out-symbolic";
-        tooltip-text: _("Open Screenshot Viewer");
-        clicked => $on_expand_clicked() swapped;
-
-        styles [
-          "flat",
-        ]
-      }
-    }
   }
 }

@@ -232,27 +232,6 @@ on_screenshot_clicked (BzDecoratedScreenshot *screenshot,
   open_screenshot_at_index (self, index);
 }
 
-static void
-on_expand_clicked (BzScreenshotsCarousel *self)
-{
-  gdouble position;
-  guint   index;
-  guint   n_pages;
-
-  if (!self->carousel || !self->model)
-    return;
-
-  n_pages = g_list_model_get_n_items (G_LIST_MODEL (self->selection));
-  if (n_pages == 0)
-    return;
-
-  position = gtk_single_selection_get_selected (self->selection);
-  index    = (guint) round (position);
-  index    = MIN (index, n_pages - 1);
-
-  open_screenshot_at_index (self, index);
-}
-
 static int
 get_carousel_height (BzScreenshotsCarousel *self)
 {
@@ -517,7 +496,6 @@ bz_screenshots_carousel_class_init (BzScreenshotsCarouselClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_notify_model);
   gtk_widget_class_bind_template_callback (widget_class, on_create_widget);
   gtk_widget_class_bind_template_callback (widget_class, on_remove_widget);
-  gtk_widget_class_bind_template_callback (widget_class, on_expand_clicked);
   gtk_widget_class_bind_template_callback (widget_class, get_carousel_height);
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);

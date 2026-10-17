@@ -572,14 +572,6 @@ toggle-group.huge * {
   margin: 0 4px 4px 0;
 }
 
-.pip-button.osd-box {
-  padding: 0;
-}
-
-.pip-button > button {
-  margin: 5px;
-}
-
 .header-osd windowcontrols button image {
   background-color: rgba(0, 0, 0, 0.65);
   color: white;
