@@ -1640,9 +1640,9 @@ retrieve_refs_for_enumerable_remote (BzFlatpakInstance   *self,
 
   for (guint i = 0; i < children->len; i++)
     {
-      XbNode      *component_node = NULL;
-      AsComponent *component      = NULL;
-      const char  *id             = NULL;
+      XbNode *component_node            = NULL;
+      g_autoptr (AsComponent) component = NULL;
+      const char *id                    = NULL;
 
       component_node = g_ptr_array_index (children, i);
       component      = parse_component_for_node (component_node, &local_error);
@@ -1660,7 +1660,7 @@ retrieve_refs_for_enumerable_remote (BzFlatpakInstance   *self,
         }
 
       id = as_component_get_id (component);
-      g_hash_table_replace (component_hash, (gpointer) id, component);
+      g_hash_table_replace (component_hash, (gpointer) id, g_steal_pointer (&component));
     }
 
   refs = flatpak_installation_list_remote_refs_sync (
