@@ -326,7 +326,7 @@ monitor_worker_fiber (GWeakRef *wr)
 
   bz_weak_get_or_return_reject (self, wr);
   input_stream      = g_object_ref (g_subprocess_get_stdout_pipe (self->subprocess));
-  subprocess_stdout = g_data_input_stream_new (g_object_ref (input_stream));
+  subprocess_stdout = g_data_input_stream_new (input_stream);
   g_clear_object (&self);
 
   for (;;)
