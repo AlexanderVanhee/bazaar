@@ -1636,7 +1636,7 @@ retrieve_refs_for_enumerable_remote (BzFlatpakInstance   *self,
   root     = xb_silo_get_root (silo);
   children = xb_node_get_children (root);
 
-  component_hash = g_hash_table_new (g_str_hash, g_str_equal);
+  component_hash = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
 
   for (guint i = 0; i < children->len; i++)
     {
