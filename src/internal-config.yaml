@@ -5,15 +5,17 @@ search-biases:
   #   `\b` indicates a word boundary
   #   `(?i)` means case insensitive
 
+  #########################################
+  # adjustments for more sensible results #
+  #########################################
+
   - regex: ^(?i)browser$
     convert-to: web browser
     boost-appids:
-      - app.zen_browser.zen
-      - io.github.ungoogled_software.ungoogled_chromium
       - org.chromium.Chromium
+      - org.mozilla.firefox
       - org.gnome.Epiphany
       - org.kde.falkon
-      - org.mozilla.firefox
       - org.torproject.torbrowser-launcher
     linear-boost:
       slope: 1.333
@@ -31,14 +33,11 @@ search-biases:
   - regex: \b(?i)ide\b
     convert-to: develop
     boost-appids:
-      - com.visualstudio.code
-      - com.vscodium.codium
-      - dev.zed.Zed
       - org.gnome.Builder
       - org.kde.kdevelop
     linear-boost:
       slope: 1.0
-      y-intercept: 10.0
+      y-intercept: 50.0
 
   - regex: \b(?i)daw\b
     boost-appids:
@@ -71,6 +70,10 @@ search-biases:
     linear-boost:
       slope: 1.0
       y-intercept: 20.0
+
+  ################################
+  # basic abbreviation expansion #
+  ################################
 
   - regex: \b(?i)dl\b
     convert-to: download
