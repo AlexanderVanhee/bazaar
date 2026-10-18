@@ -21,11 +21,13 @@
 
 public class Bz.OtherSourceRow : Adw.PreferencesRow {
     private Gtk.Button download_button;
+    private Bz.FlatpakEntry entry;
 
-    public signal void download ();
+    public signal void download (Bz.Entry entry);
 
     public OtherSourceRow (Bz.FlatpakEntry entry, Bz.Repository? repository, Bz.EntryGroup entry_group) {
         activatable = false;
+        this.entry = entry;
 
         var title_label = new Gtk.Label (repository?.title) {
             halign = Gtk.Align.START,
@@ -77,7 +79,7 @@ public class Bz.OtherSourceRow : Adw.PreferencesRow {
         };
         download_button.add_css_class ("flat");
 
-        download_button.clicked.connect (() => download ());
+        download_button.clicked.connect (on_download_clicked);
 
         var root_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
             margin_top = 8,
@@ -89,6 +91,10 @@ public class Bz.OtherSourceRow : Adw.PreferencesRow {
         root_box.append (download_button);
 
         child = root_box;
+    }
+
+    private void on_download_clicked () {
+        download (entry);
     }
 
     private string extract_domain (string? url) {
@@ -214,7 +220,7 @@ public class Bz.OtherSourcesList : Adw.Bin {
                 repo = entry.get_repository (repositories);
 
             var row = new Bz.OtherSourceRow (flatpak_entry, repo, group);
-            row.download.connect (() => self.download (entry));
+            row.download.connect (self.on_row_download);
 
             self.listbox.append (row);
             n_shown++;
@@ -223,5 +229,9 @@ public class Bz.OtherSourcesList : Adw.Bin {
         self.visible = n_shown > 0;
 
         return null;
+    }
+
+    private void on_row_download (Bz.Entry entry) {
+        download (entry);
     }
 }

@@ -3438,6 +3438,9 @@ static void
 discard_watch (gpointer ptr);
 
 static void
+discard_child (gpointer ptr);
+
+static void
 prop_change_queue_draw (BgeWdgtRenderer *self);
 
 static void
@@ -4061,8 +4064,7 @@ bge_wdgt_renderer_init (BgeWdgtRenderer *self)
   self->objects = g_hash_table_new_full (
       g_direct_hash, g_direct_equal,
       value_data_unref, g_object_unref);
-  self->children = g_ptr_array_new_with_free_func (
-      (GDestroyNotify) gtk_widget_unparent);
+  self->children = g_ptr_array_new_with_free_func (discard_child);
   self->nonchildren = g_ptr_array_new_with_free_func (
       (GDestroyNotify) g_object_unref);
   self->allocations = g_hash_table_new_full (
@@ -6140,6 +6142,15 @@ discard_watch (gpointer ptr)
 
   /* unrefs for us */
   gtk_expression_watch_unwatch (watch);
+}
+
+static void
+discard_child (gpointer ptr)
+{
+  GtkWidget *child = ptr;
+
+  gtk_widget_unparent (child);
+  g_object_unref (child);
 }
 
 static void
