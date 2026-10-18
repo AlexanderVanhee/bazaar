@@ -5,10 +5,6 @@ search-biases:
   #   `\b` indicates a word boundary
   #   `(?i)` means case insensitive
 
-  - # stop words, see https://gist.github.com/sebleier/554280
-    regex: \b(?i)(i|me|my|myself|we|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|s|t|can|will|just|don|should|now)\b
-    convert-to: ""
-
   - regex: ^(?i)browser$
     convert-to: web browser
     boost-appids:
@@ -87,3 +83,224 @@ search-biases:
 
   - regex: \b(?i)mc\b
     convert-to: minecraft
+
+  ###########################################################
+  # stop words, see https://gist.github.com/sebleier/554280 #
+  ###########################################################
+
+  - regex: \b(?i)(myslef|mysef|mysellf)\b
+    convert-to: myself
+  - regex: \b(?i)(ourselvs|oursleves|ourselfs|ourslefs)\b
+    convert-to: ourselves
+  - regex: \b(?i)(yuo|yoiu|yoou|youu)\b
+    convert-to: you
+  - regex: \b(?i)(yuor|yoru|yourr|yur)\b
+    convert-to: your
+  - regex: \b(?i)(yuors|yourss|yors)\b
+    convert-to: yours
+  - regex: \b(?i)(youself|yorself|yoursef|yourslf)\b
+    convert-to: yourself
+  - regex: \b(?i)(youselves|yorselves|yourselfs|yourselvs)\b
+    convert-to: yourselves
+  - regex: \b(?i)(hiim|himm)\b
+    convert-to: him
+  - regex: \b(?i)(hsi|hiss)\b
+    convert-to: his
+  - regex: \b(?i)(himslef|himsef|himselve)\b
+    convert-to: himself
+  - regex: \b(?i)(seh|sge|shee)\b
+    convert-to: she
+  - regex: \b(?i)(ehr|herr)\b
+    convert-to: her
+  - regex: \b(?i)(hres|herss)\b
+    convert-to: hers
+  - regex: \b(?i)(herslef|hersef|herselve)\b
+    convert-to: herself
+  - regex: \b(?i)itt\b
+    convert-to: it
+  - regex: \b(?i)itss\b
+    convert-to: its
+  - regex: \b(?i)(itslef|itsef|itselve)\b
+    convert-to: itself
+  - regex: \b(?i)(tehy|thye|thay|theyy)\b
+    convert-to: they
+  - regex: \b(?i)(tehm|thme|htem|themm)\b
+    convert-to: them
+  - regex: \b(?i)(thier|theri|theirr)\b
+    convert-to: their
+  - regex: \b(?i)(thiers|theris|theirss)\b
+    convert-to: theirs
+  - regex: \b(?i)(themselvs|themsleves|themselfs|theirselves)\b
+    convert-to: themselves
+  - regex: \b(?i)(waht|whta|wht|whaat)\b
+    convert-to: what
+  - regex: \b(?i)(whcih|wich|whihc|whch)\b
+    convert-to: which
+  - regex: \b(?i)(woh|hwo|whoo)\b
+    convert-to: who
+  - regex: \b(?i)(whome|whon|whm|whomm)\b
+    convert-to: whom
+  - regex: \b(?i)(thsi|tihs|htis|thiss)\b
+    convert-to: this
+  - regex: \b(?i)(taht|thta|tht|thatt|tthat)\b
+    convert-to: that
+  - regex: \b(?i)(thees|thse|tehse|thesse)\b
+    convert-to: these
+  - regex: \b(?i)(thsoe|thoes|thos|thosee)\b
+    convert-to: those
+  - regex: \b(?i)amm\b
+    convert-to: am
+  - regex: \b(?i)iss\b
+    convert-to: is
+  - regex: \b(?i)(aer|aree|rae)\b
+    convert-to: are
+  - regex: \b(?i)(wsa|waas|wass)\b
+    convert-to: was
+  - regex: \b(?i)(weer|wre|weree)\b
+    convert-to: were
+  - regex: \b(?i)(benn|beeen|beenn)\b
+    convert-to: been
+  - regex: \b(?i)(beign|beng|beeing|beingg)\b
+    convert-to: being
+  - regex: \b(?i)(hvae|haev|hav|hve|havee)\b
+    convert-to: have
+  - regex: \b(?i)(hsa|hass|hase)\b
+    convert-to: has
+  - regex: \b(?i)(hda|hadd|haad)\b
+    convert-to: had
+  - regex: \b(?i)(hvaing|haveing|havng|havingg)\b
+    convert-to: having
+  - regex: \b(?i)(doess|doeas)\b
+    convert-to: does
+  - regex: \b(?i)(didd|ddi)\b
+    convert-to: did
+  - regex: \b(?i)(doign|doiing|doingg)\b
+    convert-to: doing
+  - regex: \b(?i)(teh|hte|thhe|tthe)\b
+    convert-to: the
+  - regex: \b(?i)(adn|nad|annd|andd)\b
+    convert-to: and
+  - regex: \b(?i)(btu|buut|buth)\b
+    convert-to: but
+  - regex: \b(?i)(becuase|becasue|beacuse|becouse|becase)\b
+    convert-to: because
+  - regex: \b(?i)(untill|untl|untilll|unti)\b
+    convert-to: until
+  - regex: \b(?i)(whlie|whille|whil|wihle)\b
+    convert-to: while
+  - regex: \b(?i)byy\b
+    convert-to: by
+  - regex: \b(?i)(forr|fo)\b
+    convert-to: for
+  - regex: \b(?i)(wiht|wtih|wth|withh)\b
+    convert-to: with
+  - regex: \b(?i)(abuot|abot|abaut|abotu|aboutt)\b
+    convert-to: about
+  - regex: \b(?i)(agianst|aginst|agains|againsst|agaisnt)\b
+    convert-to: against
+  - regex: \b(?i)(bewteen|betwen|betweeen|betwenn)\b
+    convert-to: between
+  - regex: \b(?i)(inot|itno|intoo)\b
+    convert-to: into
+  - regex: \b(?i)(throught|thorugh|thruogh|throug)\b
+    convert-to: through
+  - regex: \b(?i)(durring|duing|durign|duringg)\b
+    convert-to: during
+  - regex: \b(?i)(befor|befroe|beforre)\b
+    convert-to: before
+  - regex: \b(?i)(aftr|afetr|aftre|afterr)\b
+    convert-to: after
+  - regex: \b(?i)(abvoe|abouve|abov|abovee)\b
+    convert-to: above
+  - regex: \b(?i)(belwo|beow|belw|beloww)\b
+    convert-to: below
+  - regex: \b(?i)(fom|frm|fromm)\b
+    convert-to: from
+  - regex: \b(?i)upp\b
+    convert-to: up
+  - regex: \b(?i)(dwon|dwn|dowm|downn)\b
+    convert-to: down
+  - regex: \b(?i)(otu|outt)\b
+    convert-to: out
+  - regex: \b(?i)onn\b
+    convert-to: on
+  - regex: \b(?i)offf\b
+    convert-to: off
+  - regex: \b(?i)(ovre|ovr|ovver)\b
+    convert-to: over
+  - regex: \b(?i)(udner|uner|undr|underr)\b
+    convert-to: under
+  - regex: \b(?i)(agian|agin|againn)\b
+    convert-to: again
+  - regex: \b(?i)(furthur|futher|furhter|furtherr)\b
+    convert-to: further
+  - regex: \b(?i)(thne|tehn|hten|thn|thenn)\b
+    convert-to: then
+  - regex: \b(?i)(onc|oncee)\b
+    convert-to: once
+  - regex: \b(?i)(hre|heere|heree)\b
+    convert-to: here
+  - regex: \b(?i)(ther|thre|theer|theree)\b
+    convert-to: there
+  - regex: \b(?i)(whne|wehn|whn|whenn)\b
+    convert-to: when
+  - regex: \b(?i)(whre|weher|wher|wheree)\b
+    convert-to: where
+  - regex: \b(?i)whyy\b
+    convert-to: why
+  - regex: \b(?i)(ohw|howw)\b
+    convert-to: how
+  - regex: \b(?i)alll\b
+    convert-to: all
+  - regex: \b(?i)(eny|anyy)\b
+    convert-to: any
+  - regex: \b(?i)(btoh|boh|bth|bothh)\b
+    convert-to: both
+  - regex: \b(?i)(eahc|ech|eachh)\b
+    convert-to: each
+  - regex: \b(?i)(fwe|feew|feww)\b
+    convert-to: few
+  - regex: \b(?i)(mroe|moer|mor|mre|moree)\b
+    convert-to: more
+  - regex: \b(?i)(mots|mos|mst|moast|mostt)\b
+    convert-to: most
+  - regex: \b(?i)(otehr|othr|otherr)\b
+    convert-to: other
+  - regex: \b(?i)(soem|sme|som|somee)\b
+    convert-to: some
+  - regex: \b(?i)(suhc|sch|suchh)\b
+    convert-to: such
+  - regex: \b(?i)noo\b
+    convert-to: no
+  - regex: \b(?i)(nro|norr)\b
+    convert-to: nor
+  - regex: \b(?i)(nto|nott)\b
+    convert-to: not
+  - regex: \b(?i)(onyl|oly|onlly)\b
+    convert-to: only
+  - regex: \b(?i)(onw|owm|ownn)\b
+    convert-to: own
+  - regex: \b(?i)(saem|smae|samee)\b
+    convert-to: same
+  - regex: \b(?i)soo\b
+    convert-to: so
+  - regex: \b(?i)(thna|thann)\b
+    convert-to: than
+  - regex: \b(?i)tooo\b
+    convert-to: too
+  - regex: \b(?i)(verry|vrey|veryy)\b
+    convert-to: very
+  - regex: \b(?i)(cna|cann)\b
+    convert-to: can
+  - regex: \b(?i)(wiil|wll|willl)\b
+    convert-to: will
+  - regex: \b(?i)(jsut|juts|justt)\b
+    convert-to: just
+  - regex: \b(?i)(shoud|shold|shuold|shoudl|shouldd)\b
+    convert-to: should
+  - regex: \b(?i)(nwo|noww)\b
+    convert-to: now
+
+  # delete all stop words
+  - regex: \b(?i)(i|me|my|myself|we|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|s|t|can|will|just|don|should|now)\b
+    convert-to: ""
