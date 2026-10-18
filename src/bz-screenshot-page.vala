@@ -39,6 +39,10 @@ public class Bz.ScreenshotPage : Adw.Bin {
     private unowned Adw.Carousel carousel;
     [GtkChild]
     private unowned Adw.ToastOverlay toast_overlay;
+    [GtkChild]
+    private unowned Adw.HeaderBar header_bar;
+    [GtkChild]
+    private unowned Gtk.Overlay overlay;
 
     private ListModel? captions = null;
 
@@ -302,7 +306,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
 
     private void update_drag (double y) {
         drag_y = y;
-        animation_progress = 1.0 - (Math.fabs (y) / (get_height () * DRAG_DISTANCE_FRACTION)).clamp (0.0, 1.0);
+        animation_progress = 1.0 - (Math.hypot (drag_offset_x, y) / (get_height () * DRAG_DISTANCE_FRACTION)).clamp (0.0, 1.0);
 
         queue_draw ();
     }
@@ -311,7 +315,7 @@ public class Bz.ScreenshotPage : Adw.Bin {
         dragging = false;
 
         bool fling = Math.fabs (velocity_y) > DRAG_CLOSE_VELOCITY && (velocity_y > 0) == (drag_y > 0);
-        spring_from_touch (Math.fabs (drag_y) > get_height () * DRAG_DISTANCE_FRACTION * (1.0 - DRAG_CLOSE_PROGRESS) || fling);
+        spring_from_touch (animation_progress < DRAG_CLOSE_PROGRESS || fling);
     }
 
     private void spring_from_touch (bool close) {
@@ -358,8 +362,8 @@ public class Bz.ScreenshotPage : Adw.Bin {
         if (!dragging)
             return;
 
-        update_drag (dy);
         drag_offset_x = dx;
+        update_drag (dy);
     }
 
     private void remove_from_overlay () {
@@ -404,7 +408,9 @@ public class Bz.ScreenshotPage : Adw.Bin {
             h = rect.size.height;
         }
 
-        snapshot.push_opacity (p);
+        float opacity = p * (1.0f - (float) (DRAG_PICKUP_SCALE * hold));
+
+        snapshot.push_opacity (opacity);
         base.snapshot (snapshot);
         snapshot.pop ();
 
@@ -419,6 +425,26 @@ public class Bz.ScreenshotPage : Adw.Bin {
         snapshot.pop ();
 
         snapshot.restore ();
+
+        snapshot.push_clip (rect);
+        snapshot.push_opacity (opacity);
+        Gtk.Widget[] widgets = { header_bar };
+        for (var child = overlay.get_first_child (); child != null; child = child.get_next_sibling ())
+            if (child != carousel)
+                widgets += child;
+        foreach (var widget in widgets) {
+            Graphene.Point origin;
+            if (!widget.compute_point (this, { 0, 0 }, out origin))
+                continue;
+
+            snapshot.save ();
+            snapshot.translate (origin);
+            new Gtk.WidgetPaintable (widget).snapshot (snapshot, widget.get_width (), widget.get_height ());
+            snapshot.restore ();
+        }
+        snapshot.pop ();
+        snapshot.pop ();
+
         snapshot.pop ();
     }
 
@@ -573,8 +599,8 @@ public class Bz.ScreenshotPage : Adw.Bin {
         }
 
         if (dragging) {
-            update_drag (drag_y - dy);
             drag_offset_x -= dx;
+            update_drag (drag_y - dy);
         }
 
         return Gdk.EVENT_PROPAGATE;

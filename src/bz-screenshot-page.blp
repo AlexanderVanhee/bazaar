@@ -56,7 +56,7 @@ template $BzScreenshotPage: Adw.Bin {
         ]
 
         [top]
-        Adw.HeaderBar {
+        Adw.HeaderBar header_bar {
           show-end-title-buttons: false;
           show-start-title-buttons: false;
           show-back-button: false;
@@ -79,7 +79,7 @@ template $BzScreenshotPage: Adw.Bin {
           }
         }
 
-        content: Overlay {
+        content: Overlay overlay {
           [overlay]
           Box {
             halign: start;
