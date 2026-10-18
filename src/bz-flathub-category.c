@@ -174,10 +174,15 @@ create_subcategories (const Subcategory *subcategories)
   store = g_list_store_new (BZ_TYPE_FLATHUB_SUB_CATEGORY);
 
   for (gsize i = 0; subcategories[i].display_name != NULL; i++)
-    g_list_store_append (store, g_object_new (BZ_TYPE_FLATHUB_SUB_CATEGORY,
-                                              "name", _ (subcategories[i].display_name),
-                                              "id", subcategories[i].category_id,
-                                              NULL));
+    {
+      g_autoptr (BzFlathubSubCategory) subcategory = NULL;
+
+      subcategory = g_object_new (BZ_TYPE_FLATHUB_SUB_CATEGORY,
+                                  "name", _ (subcategories[i].display_name),
+                                  "id", subcategories[i].category_id,
+                                  NULL);
+      g_list_store_append (store, subcategory);
+    }
 
   return G_LIST_MODEL (store);
 }
