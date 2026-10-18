@@ -815,13 +815,15 @@ commit_pending_results (BzSearchPage *self)
 
   if (search_text && *search_text)
     {
-      const char *message = NULL;
+      g_autofree char *found   = NULL;
+      const char      *message = NULL;
 
-      message = filtered->len == 0
-                    ? _ ("No applications found")
-                    : g_strdup_printf (
-                          ngettext ("One application found", "%u applications found", filtered->len),
-                          filtered->len);
+      if (filtered->len == 0)
+        message = _ ("No applications found");
+      else
+        message = found = g_strdup_printf (
+            ngettext ("One application found", "%u applications found", filtered->len),
+            filtered->len);
 
       gtk_accessible_announce (GTK_ACCESSIBLE (self), message, GTK_ACCESSIBLE_ANNOUNCEMENT_PRIORITY_MEDIUM);
     }
