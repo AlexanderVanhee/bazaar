@@ -428,7 +428,9 @@ bge_carousel_class_init (BgeCarouselClass *klass)
   /**
    * BgeCarousel:align-start:
    *
-   * Whether to ...
+   * Whether to align the selected widget to the start of the carousel instead
+   * of centering it. If all widgets fit within the carousel, they are centered
+   * as a group.
    */
   props[PROP_ALIGN_START] =
       g_param_spec_boolean (
@@ -439,7 +441,7 @@ bge_carousel_class_init (BgeCarouselClass *klass)
   /**
    * BgeCarousel:max-page-width:
    *
-   * The ...
+   * The maximum width of each carousel widget, or -1 for no limit.
    */
   props[PROP_MAX_PAGE_WIDTH] =
       g_param_spec_int (
@@ -451,7 +453,9 @@ bge_carousel_class_init (BgeCarouselClass *klass)
   /**
    * BgeCarousel:last-stop:
    *
-   * The ...
+   * The index of the last widget the carousel can move to. When
+   * [property@Bge.Carousel:align-start] is set, this is the first widget that
+   * brings the end of the carousel into view.
    */
   props[PROP_LAST_STOP] =
       g_param_spec_uint (
@@ -700,6 +704,8 @@ bge_carousel_get_model (BgeCarousel *self)
  * bge_carousel_get_nth_page:
  * @self: a `BgeCarousel`
  * @index: Index of the page.
+ *
+ * Gets the carousel widget at @index.
  *
  * Returns: (nullable) (transfer none): the page at @index, or NULL if out of bounds
  */
