@@ -49,6 +49,11 @@ DexFuture *
 bz_search_engine_query (BzSearchEngine    *self,
                         const char *const *terms);
 
+/* string utils */
+
+GStrv
+bz_str_split_into_search_terms (const char *search_text);
+
 G_END_DECLS
 
 /* End of bz-search-engine.h */
