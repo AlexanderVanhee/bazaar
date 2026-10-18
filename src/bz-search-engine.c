@@ -565,6 +565,18 @@ query_task_fiber (QueryTaskData *data)
       g_ptr_array_add (active_biases, bias_data_ref (bias));
     }
 
+  if (active_biases->len > 0)
+    {
+      g_auto (GStrv) normalized = NULL;
+
+      normalized = bz_str_split_into_search_terms (query_utf8);
+      if (normalized == NULL)
+        goto done;
+
+      g_clear_pointer (&query_utf8, g_free);
+      query_utf8 = g_strjoinv (" ", normalized);
+    }
+
   sub_futures = g_ptr_array_new_with_free_func (dex_unref);
   for (guint i = 0; i < n_sub_tasks; i++)
     {
@@ -631,6 +643,10 @@ query_task_fiber (QueryTaskData *data)
 
       g_ptr_array_index (results, i) = g_steal_pointer (&search_result);
     }
+
+done:
+  if (results == NULL)
+    results = g_ptr_array_new_with_free_func (g_object_unref);
 
   finished = bz_finished_search_query_new ();
   bz_finished_search_query_set_interpreted_query (finished, query_utf8);
@@ -750,8 +766,23 @@ query_sub_task_fiber (QuerySubTaskData *data)
 
 #define UTF8_FOREACH_TOKEN_FORWARDS(_start_var, _end_var, _s, _token_len)                                                            \
   for (const char *_start_var = (_s), *_end_var = utf8_skip_to_next_of_class (&_start_var, G_UNICODE_SPACE_SEPARATOR, (_token_len)); \
-       _start_var != NULL && *_start_var != '\0';                                                                                    \
+       _start_var != NULL && *_start_var != '\0' && _end_var != NULL;                                                                \
        _start_var = _end_var, _end_var = utf8_skip_to_next_of_class (&_start_var, G_UNICODE_SPACE_SEPARATOR, (_token_len)))
+
+GStrv
+bz_str_split_into_search_terms (const char *search_text)
+{
+  g_autoptr (GStrvBuilder) builder = NULL;
+
+  builder = g_strv_builder_new ();
+
+  UTF8_FOREACH_TOKEN_FORWARDS (term_start, term_end, search_text, NULL)
+  {
+    g_strv_builder_take (builder, g_strndup (term_start, term_end - term_start));
+  }
+
+  return g_strv_builder_end (builder);
+}
 
 static double
 test_strings (const char *query,
@@ -868,8 +899,12 @@ utf8_skip_to_next_of_class (const char **s,
           (*read_utf8)++;
       }
   }
-  /* return the end of the string if nothing was found */
-  return *s + strlen (*s);
+
+  if (skipped)
+    /* return the end of the string if nothing was found */
+    return *s + strlen (*s);
+  else
+    return NULL;
 }
 
 static gint

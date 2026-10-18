@@ -774,6 +774,7 @@ search_query_then (DexFuture *future,
   else
     {
       delay_ms = MAX (300 - (int) (25 - MIN (self->pending_results->len, 25)) * 20, 50);
+
       self->search_update_timeout = g_timeout_add_once (
           delay_ms, (GSourceOnceFunc) commit_pending_results, self);
     }
@@ -839,13 +840,11 @@ static void
 update_filter (BzSearchPage *self,
                gboolean      skip_debounce)
 {
-  BzSearchEngine *engine           = NULL;
-  const char     *search_text      = NULL;
-  g_autoptr (GStrvBuilder) builder = NULL;
-  guint n_terms                    = 0;
-  g_auto (GStrv) terms             = NULL;
-  g_autoptr (DexFuture) future     = NULL;
-  g_autofree gchar **tokens        = NULL;
+  BzSearchEngine *engine       = NULL;
+  const char     *search_text  = NULL;
+  g_auto (GStrv) terms         = NULL;
+  g_autoptr (DexFuture) future = NULL;
+  g_autofree gchar **tokens    = NULL;
 
   g_clear_handle_id (&self->search_update_timeout, g_source_remove);
   dex_clear (&self->search_query);
@@ -874,28 +873,13 @@ update_filter (BzSearchPage *self,
       goto idle;
     }
 
-  builder = g_strv_builder_new ();
-
-  tokens = g_strsplit_set (search_text, " \t\n", -1);
-  for (gchar **token = tokens; *token != NULL; token++)
-    {
-      if (**token != '\0')
-        {
-          g_strv_builder_take (builder, *token);
-          n_terms++;
-        }
-      else
-        g_free (*token);
-    }
-
-  if (n_terms == 0)
+  terms = bz_str_split_into_search_terms (search_text);
+  if (terms == NULL)
     {
       g_list_store_remove_all (self->search_model);
       gtk_stack_set_visible_child_name (self->search_stack, "empty");
       goto idle;
     }
-
-  terms = g_strv_builder_end (builder);
 
   self->search_in_progress = TRUE;
   self->skip_debounce      = skip_debounce;
