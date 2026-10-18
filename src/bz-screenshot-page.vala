@@ -39,6 +39,10 @@ public class Bz.ScreenshotPage : Adw.Bin {
     private unowned Adw.Carousel carousel;
     [GtkChild]
     private unowned Adw.ToastOverlay toast_overlay;
+    [GtkChild]
+    private unowned Adw.HeaderBar header_bar;
+    [GtkChild]
+    private unowned Gtk.Overlay overlay;
 
     private ListModel? captions = null;
 
@@ -404,7 +408,9 @@ public class Bz.ScreenshotPage : Adw.Bin {
             h = rect.size.height;
         }
 
-        snapshot.push_opacity (p * (1.0f - (float) (DRAG_PICKUP_SCALE * hold)));
+        float opacity = p * (1.0f - (float) (DRAG_PICKUP_SCALE * hold));
+
+        snapshot.push_opacity (opacity);
         base.snapshot (snapshot);
         snapshot.pop ();
 
@@ -419,6 +425,26 @@ public class Bz.ScreenshotPage : Adw.Bin {
         snapshot.pop ();
 
         snapshot.restore ();
+
+        snapshot.push_clip (rect);
+        snapshot.push_opacity (opacity);
+        Gtk.Widget[] widgets = { header_bar };
+        for (var child = overlay.get_first_child (); child != null; child = child.get_next_sibling ())
+            if (child != carousel)
+                widgets += child;
+        foreach (var widget in widgets) {
+            Graphene.Point origin;
+            if (!widget.compute_point (this, { 0, 0 }, out origin))
+                continue;
+
+            snapshot.save ();
+            snapshot.translate (origin);
+            new Gtk.WidgetPaintable (widget).snapshot (snapshot, widget.get_width (), widget.get_height ());
+            snapshot.restore ();
+        }
+        snapshot.pop ();
+        snapshot.pop ();
+
         snapshot.pop ();
     }
 
