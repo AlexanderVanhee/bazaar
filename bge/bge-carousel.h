@@ -58,6 +58,10 @@ int
 bge_carousel_get_max_page_width (BgeCarousel *self);
 
 BGE_AVAILABLE_IN_ALL
+gboolean
+bge_carousel_get_wrap (BgeCarousel *self);
+
+BGE_AVAILABLE_IN_ALL
 guint
 bge_carousel_get_last_stop (BgeCarousel *self);
 
@@ -99,6 +103,11 @@ BGE_AVAILABLE_IN_ALL
 void
 bge_carousel_set_max_page_width (BgeCarousel *self,
                                  int          max_page_width);
+
+BGE_AVAILABLE_IN_ALL
+void
+bge_carousel_set_wrap (BgeCarousel *self,
+                       gboolean     wrap);
 
 BGE_AVAILABLE_IN_ALL
 void
