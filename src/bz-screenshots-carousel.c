@@ -85,12 +85,14 @@ update_button_visibility (BzScreenshotsCarousel *self)
 {
   gdouble position;
   guint   n_pages;
+  guint   last_stop;
 
   if (!self->carousel)
     return;
 
-  position = gtk_single_selection_get_selected (self->selection);
-  n_pages  = g_list_model_get_n_items (G_LIST_MODEL (self->selection));
+  position  = gtk_single_selection_get_selected (self->selection);
+  n_pages   = g_list_model_get_n_items (G_LIST_MODEL (self->selection));
+  last_stop = bge_carousel_get_last_stop (self->carousel);
 
   if (n_pages == 0)
     {
@@ -100,21 +102,21 @@ update_button_visibility (BzScreenshotsCarousel *self)
     }
 
   gtk_revealer_set_reveal_child (GTK_REVEALER (self->prev_button_revealer), position >= 0.5);
-  gtk_revealer_set_reveal_child (GTK_REVEALER (self->next_button_revealer), position < n_pages - 1.5);
+  gtk_revealer_set_reveal_child (GTK_REVEALER (self->next_button_revealer), position < last_stop - 0.5);
 }
 
 static void
 carousel_navigate (BzScreenshotsCarousel *self,
                    AdwNavigationDirection direction)
 {
-  guint   n_children = 0;
-  gdouble position   = 0.0;
+  guint   last_stop = 0;
+  gdouble position  = 0.0;
 
-  n_children = g_list_model_get_n_items (G_LIST_MODEL (self->selection));
-  position   = gtk_single_selection_get_selected (self->selection);
+  last_stop = bge_carousel_get_last_stop (self->carousel);
+  position  = MIN (gtk_single_selection_get_selected (self->selection), last_stop);
   position += (direction == ADW_NAVIGATION_DIRECTION_BACK) ? -1 : 1;
   position = round (position);
-  position = MIN (position, n_children - 1);
+  position = MIN (position, last_stop);
   position = MAX (0, position);
 
   gtk_single_selection_set_selected (self->selection, position);
@@ -147,11 +149,6 @@ on_notify_selected (BzScreenshotsCarousel *self)
 static void
 on_notify_model (BzScreenshotsCarousel *self)
 {
-  guint n_items = g_list_model_get_n_items (G_LIST_MODEL (self->selection));
-
-  if (!self->compact && n_items >= 3)
-    gtk_single_selection_set_selected (self->selection, 1);
-
   update_button_visibility (self);
 }
 
@@ -231,27 +228,6 @@ on_screenshot_clicked (BzDecoratedScreenshot *screenshot,
           break;
         }
     }
-
-  open_screenshot_at_index (self, index);
-}
-
-static void
-on_expand_clicked (BzScreenshotsCarousel *self)
-{
-  gdouble position;
-  guint   index;
-  guint   n_pages;
-
-  if (!self->carousel || !self->model)
-    return;
-
-  n_pages = g_list_model_get_n_items (G_LIST_MODEL (self->selection));
-  if (n_pages == 0)
-    return;
-
-  position = gtk_single_selection_get_selected (self->selection);
-  index    = (guint) round (position);
-  index    = MIN (index, n_pages - 1);
 
   open_screenshot_at_index (self, index);
 }
@@ -520,7 +496,6 @@ bz_screenshots_carousel_class_init (BzScreenshotsCarouselClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_notify_model);
   gtk_widget_class_bind_template_callback (widget_class, on_create_widget);
   gtk_widget_class_bind_template_callback (widget_class, on_remove_widget);
-  gtk_widget_class_bind_template_callback (widget_class, on_expand_clicked);
   gtk_widget_class_bind_template_callback (widget_class, get_carousel_height);
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);

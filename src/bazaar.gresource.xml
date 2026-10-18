@@ -127,7 +127,6 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/paintbrush-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/people-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/person-symbolic.svg</file>
-    <file preprocess="xml-stripblanks">icons/scalable/actions/pip-out-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/power-profile-performance-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/proprietary-code-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/puzzle-piece-symbolic.svg</file>

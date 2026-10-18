@@ -57,6 +57,9 @@ struct _BgeCarousel
   gboolean            allow_overshoot;
   gboolean            allow_scroll_wheel;
   gboolean            allow_raise;
+  gboolean            align_start;
+  int                 max_page_width;
+  guint               last_stop;
   GtkSingleSelection *model;
 
   GPtrArray *mirror;
@@ -73,6 +76,9 @@ enum
   PROP_ALLOW_OVERSHOOT,
   PROP_ALLOW_SCROLL_WHEEL,
   PROP_ALLOW_RAISE,
+  PROP_ALIGN_START,
+  PROP_MAX_PAGE_WIDTH,
+  PROP_LAST_STOP,
   PROP_MODEL,
 
   LAST_PROP
@@ -192,6 +198,9 @@ finish_horizontal_gesture (BgeCarousel *self,
                            int          offset_x,
                            int          offset_y);
 
+static guint
+get_last_index (BgeCarousel *self);
+
 static void
 bge_carousel_dispose (GObject *object)
 {
@@ -234,6 +243,15 @@ bge_carousel_get_property (GObject    *object,
     case PROP_ALLOW_RAISE:
       g_value_set_boolean (value, bge_carousel_get_allow_raise (self));
       break;
+    case PROP_ALIGN_START:
+      g_value_set_boolean (value, bge_carousel_get_align_start (self));
+      break;
+    case PROP_MAX_PAGE_WIDTH:
+      g_value_set_int (value, bge_carousel_get_max_page_width (self));
+      break;
+    case PROP_LAST_STOP:
+      g_value_set_uint (value, bge_carousel_get_last_stop (self));
+      break;
     case PROP_MODEL:
       g_value_set_object (value, bge_carousel_get_model (self));
       break;
@@ -263,6 +281,12 @@ bge_carousel_set_property (GObject      *object,
       break;
     case PROP_ALLOW_RAISE:
       bge_carousel_set_allow_raise (self, g_value_get_boolean (value));
+      break;
+    case PROP_ALIGN_START:
+      bge_carousel_set_align_start (self, g_value_get_boolean (value));
+      break;
+    case PROP_MAX_PAGE_WIDTH:
+      bge_carousel_set_max_page_width (self, g_value_get_int (value));
       break;
     case PROP_MODEL:
       bge_carousel_set_model (self, g_value_get_object (value));
@@ -402,6 +426,45 @@ bge_carousel_class_init (BgeCarouselClass *klass)
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
+   * BgeCarousel:align-start:
+   *
+   * Whether to align the selected widget to the start of the carousel instead
+   * of centering it. If all widgets fit within the carousel, they are centered
+   * as a group.
+   */
+  props[PROP_ALIGN_START] =
+      g_param_spec_boolean (
+          "align-start",
+          NULL, NULL, FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
+   * BgeCarousel:max-page-width:
+   *
+   * The maximum width of each carousel widget, or -1 for no limit.
+   */
+  props[PROP_MAX_PAGE_WIDTH] =
+      g_param_spec_int (
+          "max-page-width",
+          NULL, NULL,
+          -1, G_MAXINT, -1,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
+   * BgeCarousel:last-stop:
+   *
+   * The index of the last widget the carousel can move to. When
+   * [property@Bge.Carousel:align-start] is set, this is the first widget that
+   * brings the end of the carousel into view.
+   */
+  props[PROP_LAST_STOP] =
+      g_param_spec_uint (
+          "last-stop",
+          NULL, NULL,
+          0, G_MAXUINT, 0,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
    * BgeCarousel:model:
    *
    * The selection model for the carousel contents.
@@ -472,6 +535,8 @@ static void
 bge_carousel_init (BgeCarousel *self)
 {
   self->animation = bge_animation_new (GTK_WIDGET (self));
+
+  self->max_page_width = -1;
 
   self->mirror = g_ptr_array_new_with_free_func (
       (GDestroyNotify) g_object_unref);
@@ -576,6 +641,51 @@ bge_carousel_get_allow_raise (BgeCarousel *self)
 }
 
 /**
+ * bge_carousel_get_align_start:
+ * @self: a `BgeCarousel`
+ *
+ * Gets [property@Bge.Carousel:align-start].
+ *
+ * Returns: the value of the property
+ */
+gboolean
+bge_carousel_get_align_start (BgeCarousel *self)
+{
+  g_return_val_if_fail (BGE_IS_CAROUSEL (self), FALSE);
+  return self->align_start;
+}
+
+/**
+ * bge_carousel_get_max_page_width:
+ * @self: a `BgeCarousel`
+ *
+ * Gets [property@Bge.Carousel:max-page-width].
+ *
+ * Returns: the value of the property
+ */
+int
+bge_carousel_get_max_page_width (BgeCarousel *self)
+{
+  g_return_val_if_fail (BGE_IS_CAROUSEL (self), -1);
+  return self->max_page_width;
+}
+
+/**
+ * bge_carousel_get_last_stop:
+ * @self: a `BgeCarousel`
+ *
+ * Gets [property@Bge.Carousel:last-stop].
+ *
+ * Returns: the value of the property
+ */
+guint
+bge_carousel_get_last_stop (BgeCarousel *self)
+{
+  g_return_val_if_fail (BGE_IS_CAROUSEL (self), 0);
+  return self->last_stop;
+}
+
+/**
  * bge_carousel_get_model:
  * @self: a `BgeCarousel`
  *
@@ -594,6 +704,8 @@ bge_carousel_get_model (BgeCarousel *self)
  * bge_carousel_get_nth_page:
  * @self: a `BgeCarousel`
  * @index: Index of the page.
+ *
+ * Gets the carousel widget at @index.
  *
  * Returns: (nullable) (transfer none): the page at @index, or NULL if out of bounds
  */
@@ -703,6 +815,52 @@ bge_carousel_set_allow_raise (BgeCarousel *self,
     ensure_viewport (self, self->model, TRUE);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ALLOW_RAISE]);
+}
+
+/**
+ * bge_carousel_set_align_start:
+ * @self: a `BgeCarousel`
+ * @align_start: a boolean
+ *
+ * Sets [property@Bge.Carousel:align-start].
+ */
+void
+bge_carousel_set_align_start (BgeCarousel *self,
+                              gboolean     align_start)
+{
+  g_return_if_fail (BGE_IS_CAROUSEL (self));
+
+  if (!!align_start == !!self->align_start)
+    return;
+
+  self->align_start = align_start;
+  if (self->model != NULL)
+    ensure_viewport (self, self->model, TRUE);
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ALIGN_START]);
+}
+
+/**
+ * bge_carousel_set_max_page_width:
+ * @self: a `BgeCarousel`
+ * @max_page_width: an integer
+ *
+ * Sets [property@Bge.Carousel:max-page-width].
+ */
+void
+bge_carousel_set_max_page_width (BgeCarousel *self,
+                                 int          max_page_width)
+{
+  g_return_if_fail (BGE_IS_CAROUSEL (self));
+
+  if (max_page_width == self->max_page_width)
+    return;
+
+  self->max_page_width = max_page_width;
+  if (self->model != NULL)
+    ensure_viewport (self, self->model, TRUE);
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_MAX_PAGE_WIDTH]);
 }
 
 /**
@@ -840,9 +998,13 @@ move_to_idx (BgeCarousel *self,
              /* damping_ratio <= 0.0 means no animation */
              double damping_ratio)
 {
-  int width  = 0;
-  int height = 0;
-  int offset = 0;
+  int             width        = 0;
+  int             height       = 0;
+  int             offset       = 0;
+  g_autofree int *widths       = NULL;
+  int             total_width  = 0;
+  int             before_width = 0;
+  guint           last_stop    = 0;
 
   width  = gtk_widget_get_width (GTK_WIDGET (self));
   height = gtk_widget_get_height (GTK_WIDGET (self));
@@ -853,19 +1015,13 @@ move_to_idx (BgeCarousel *self,
       return;
     }
 
-  offset = width / 2;
-  if (self->scrolling)
-    offset += self->hscroll_start - self->hscroll_current;
-  if (self->dragging)
-    offset += self->drag_x;
-
-  for (guint i = 0; i <= idx; i++)
+  widths = g_new0 (int, self->widgets->len);
+  for (guint i = 0; i < self->widgets->len; i++)
     {
-      CarouselWidgetData *child       = NULL;
-      int                 hminimum    = 0;
-      int                 hnatural    = 0;
-      int                 unused      = 0;
-      int                 child_width = 0;
+      CarouselWidgetData *child    = NULL;
+      int                 hminimum = 0;
+      int                 hnatural = 0;
+      int                 unused   = 0;
 
       child = g_ptr_array_index (self->widgets, i);
 
@@ -878,14 +1034,50 @@ move_to_idx (BgeCarousel *self,
           &unused,
           &unused);
       if (gtk_widget_get_hexpand (child->widget))
-        child_width = MAX (hminimum, width);
+        widths[i] = MAX (hminimum, width);
       else
-        child_width = CLAMP (hnatural, hminimum, width);
+        widths[i] = CLAMP (hnatural, hminimum, width);
+      if (self->max_page_width >= 0)
+        widths[i] = MIN (widths[i], self->max_page_width);
 
-      if (i == idx)
-        offset -= child_width / 2;
+      total_width += widths[i];
+      if (i < idx)
+        before_width += widths[i];
+    }
+
+  if (self->align_start)
+    {
+      if (total_width <= width)
+        {
+          offset    = (width - total_width) / 2;
+          last_stop = 0;
+        }
       else
-        offset -= child_width;
+        {
+          int start = 0;
+
+          offset = MAX (-before_width, width - total_width);
+
+          while (last_stop < self->widgets->len - 1 &&
+                 start < total_width - width)
+            start += widths[last_stop++];
+        }
+    }
+  else
+    {
+      offset    = width / 2 - before_width - widths[idx] / 2;
+      last_stop = self->widgets->len - 1;
+    }
+
+  if (self->scrolling)
+    offset += self->hscroll_start - self->hscroll_current;
+  if (self->dragging)
+    offset += self->drag_x;
+
+  if (last_stop != self->last_stop)
+    {
+      self->last_stop = last_stop;
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_LAST_STOP]);
     }
 
   for (guint i = 0; i < self->widgets->len; i++)
@@ -902,20 +1094,8 @@ move_to_idx (BgeCarousel *self,
       graphene_rect_t     target          = { 0 };
       gboolean            avoid_animation = FALSE;
 
-      child = g_ptr_array_index (self->widgets, i);
-
-      gtk_widget_measure (
-          child->widget,
-          GTK_ORIENTATION_HORIZONTAL,
-          height,
-          &hminimum,
-          &hnatural,
-          &unused,
-          &unused);
-      if (gtk_widget_get_hexpand (child->widget))
-        rect_width = MAX (hminimum, width);
-      else
-        rect_width = CLAMP (hnatural, hminimum, width);
+      child      = g_ptr_array_index (self->widgets, i);
+      rect_width = widths[i];
 
       if (child->raised || !self->allow_raise)
         {
@@ -937,6 +1117,8 @@ move_to_idx (BgeCarousel *self,
               &unused,
               &unused);
           child_width = CLAMP (hnatural, hminimum, width);
+          if (child_width > rect_width)
+            child_width = round ((double) rect_width * (1.0 - RAISE_FACTOR));
 
           child_x = offset + round ((double) (rect_width - child_width) * 0.5);
           child_y = round ((double) height * (0.5 * RAISE_FACTOR));
@@ -1201,7 +1383,7 @@ scroll (BgeCarousel              *self,
 
             selection = gtk_single_selection_get_selected (self->model);
             if ((selection == 0 && self->hscroll_current + dx < 0) ||
-                (selection == self->widgets->len - 1 && self->hscroll_current + dx > 0))
+                (selection >= get_last_index (self) && self->hscroll_current + dx > 0))
               {
                 self->scrolling = FALSE;
                 return FALSE;
@@ -1225,9 +1407,10 @@ scroll (BgeCarousel              *self,
         if (!self->allow_scroll_wheel)
           break;
 
-        selected = gtk_single_selection_get_selected (self->model);
+        selected = MIN (gtk_single_selection_get_selected (self->model),
+                        get_last_index (self));
         if (dx > 0)
-          new_selected = MIN (selected + 1, n_items - 1);
+          new_selected = MIN (selected + 1, get_last_index (self));
         else
           {
             if (selected == 0)
@@ -1305,7 +1488,7 @@ drag_update (BgeCarousel    *self,
       selected = gtk_single_selection_get_selected (self->model);
       if (selected == 0)
         self->drag_x = MIN (self->drag_x, 0.0);
-      if (selected == self->widgets->len - 1)
+      if (selected >= get_last_index (self))
         self->drag_x = MAX (self->drag_x, 0.0);
     }
 
@@ -1319,6 +1502,8 @@ finish_horizontal_gesture (BgeCarousel *self,
 {
   guint  selected     = 0;
   double width        = 0.0;
+  double anchor       = 0.0;
+  guint  last         = 0;
   guint  new_selected = G_MAXUINT;
   int    min_distance = G_MAXINT;
 
@@ -1329,10 +1514,12 @@ finish_horizontal_gesture (BgeCarousel *self,
   if (offset_x == 0)
     return;
 
-  selected = gtk_single_selection_get_selected (self->model);
+  last     = get_last_index (self);
+  selected = MIN (gtk_single_selection_get_selected (self->model), last);
 
-  width = gtk_widget_get_width (GTK_WIDGET (self));
-  for (guint i = 0; i < self->widgets->len; i++)
+  width  = gtk_widget_get_width (GTK_WIDGET (self));
+  anchor = self->align_start ? 0.0 : width / 2.0;
+  for (guint i = 0; i <= last; i++)
     {
       CarouselWidgetData *child                = NULL;
       int                 left_distance        = 0;
@@ -1341,17 +1528,20 @@ finish_horizontal_gesture (BgeCarousel *self,
 
       child = g_ptr_array_index (self->widgets, i);
 
-      if (child->rect.origin.x > width / 2.0)
-        left_distance = child->rect.origin.x - width / 2.0;
+      if (child->rect.origin.x > anchor)
+        left_distance = child->rect.origin.x - anchor;
       else
-        left_distance = width / 2.0 - child->rect.origin.x;
+        left_distance = anchor - child->rect.origin.x;
 
-      if ((child->rect.origin.x + child->rect.size.width) > width / 2.0)
-        right_distance = (child->rect.origin.x + child->rect.size.width) - width / 2.0;
+      if ((child->rect.origin.x + child->rect.size.width) > anchor)
+        right_distance = (child->rect.origin.x + child->rect.size.width) - anchor;
       else
-        right_distance = width / 2.0 - (child->rect.origin.x + child->rect.size.width);
+        right_distance = anchor - (child->rect.origin.x + child->rect.size.width);
 
-      distance_from_center = MIN (left_distance, right_distance);
+      if (self->align_start)
+        distance_from_center = left_distance;
+      else
+        distance_from_center = MIN (left_distance, right_distance);
       if (distance_from_center < min_distance)
         {
           new_selected = i;
@@ -1366,15 +1556,25 @@ finish_horizontal_gesture (BgeCarousel *self,
          next widget */
       if (offset_x > 15 && selected > 0)
         new_selected--;
-      else if (offset_x < -15 && selected < self->widgets->len - 1)
+      else if (offset_x < -15 && selected < last)
         new_selected++;
     }
 
   if (new_selected == G_MAXUINT ||
-      new_selected == selected)
+      new_selected == gtk_single_selection_get_selected (self->model))
     ensure_viewport (self, self->model, TRUE);
   else
     gtk_single_selection_set_selected (self->model, new_selected);
+}
+
+static guint
+get_last_index (BgeCarousel *self)
+{
+  if (self->widgets->len == 0)
+    return 0;
+  if (self->align_start)
+    return MIN (self->last_stop, self->widgets->len - 1);
+  return self->widgets->len - 1;
 }
 
 /* End of bge-carousel.c */
