@@ -21,7 +21,7 @@
 #include <glib/gi18n.h>
 
 #include "bz-developer-badge.h"
-#include "bz-verification-status.h"
+#include <bzvala.h>
 
 struct _BzDeveloperBadge
 {

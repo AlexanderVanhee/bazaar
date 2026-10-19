@@ -28,7 +28,7 @@
 #include <libdex.h>
 
 #include "bz-flathub-category.h"
-#include "bz-flathub-curated-selection.h"
+#include <bzvala.h>
 #include "bz-flathub-state.h"
 #include "bz-serializable.h"
 #include "env.h"

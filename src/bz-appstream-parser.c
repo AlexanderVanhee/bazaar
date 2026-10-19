@@ -29,9 +29,7 @@
 #include "bz-async-texture.h"
 #include "bz-category-flags.h"
 #include "bz-flatpak-entry.h"
-#include "bz-release.h"
-#include "bz-url.h"
-#include "bz-verification-status.h"
+#include <bzvala.h>
 #include "io.h"
 
 static guint

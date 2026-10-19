@@ -22,6 +22,7 @@
 
 #include <json-glib/json-glib.h>
 
+#include <bzvala.h>
 #include "config.h"
 
 #include "bz-application.h"

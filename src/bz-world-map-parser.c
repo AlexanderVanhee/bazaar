@@ -20,7 +20,7 @@
 
 #include <gio/gio.h>
 
-#include "bz-country.h"
+#include <bzvala.h>
 #include "bz-world-map-parser.h"
 
 struct _BzWorldMapParser

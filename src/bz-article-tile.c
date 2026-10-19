@@ -27,8 +27,7 @@
 #include "bz-article.h"
 #include "bz-aspect-picture.h"
 #include "bz-async-texture.h"
-#include "bz-curated-article.h"
-#include "bz-curated-articles-info.h"
+#include <bzvala.h>
 #include "io.h"
 
 struct _BzArticleTile

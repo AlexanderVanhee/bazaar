@@ -24,11 +24,7 @@
 
 #include "bz-article-list-view.h"
 #include "bz-banner-view.h"
-#include "bz-curated-articles-info.h"
-#include "bz-curated-banner.h"
-#include "bz-curated-featured-carousel.h"
-#include "bz-curated-row.h"
-#include "bz-curated-section.h"
+#include <bzvala.h>
 #include "bz-entry-group.h"
 #include "bz-featured-carousel-view.h"
 #include "bz-section-view.h"

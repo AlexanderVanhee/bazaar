@@ -22,7 +22,7 @@
 
 #include "bz-application.h"
 #include "bz-apps-page.h"
-#include "bz-curated-section.h"
+#include <bzvala.h>
 #include "bz-dynamic-list-view.h"
 #include "bz-entry-group.h"
 #include "bz-rich-app-tile.h"

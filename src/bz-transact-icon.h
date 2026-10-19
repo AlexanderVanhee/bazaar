@@ -22,7 +22,7 @@
 
 #include <adwaita.h>
 
-#include "bz-transact-icon-info.h"
+#include <bzvala.h>
 
 G_BEGIN_DECLS
 

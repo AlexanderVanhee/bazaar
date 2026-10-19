@@ -21,7 +21,7 @@
 #pragma once
 
 #include "bz-entry-group.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include <adwaita.h>
 
 G_BEGIN_DECLS

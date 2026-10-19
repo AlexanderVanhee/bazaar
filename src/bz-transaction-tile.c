@@ -26,7 +26,7 @@
 #include "bz-error-dialog.h"
 #include "bz-flatpak-entry.h"
 #include "bz-list-tile.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "bz-transaction-tile.h"
 #include "bz-window.h"
 #include "error.h"

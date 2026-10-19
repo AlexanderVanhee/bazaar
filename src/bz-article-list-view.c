@@ -24,8 +24,7 @@
 
 #include "bz-article-list-view.h"
 #include "bz-article-tile.h"
-#include "bz-curated-article.h"
-#include "bz-curated-articles-info.h"
+#include <bzvala.h>
 #include "bz-dynamic-list-view.h"
 #include "bz-parser.h"
 #include "bz-yaml-parser.h"

@@ -27,7 +27,7 @@
 #include "bz-entry.h"
 #include "bz-lozenge.h"
 #include "bz-safety-dialog.h"
-#include "bz-safety-row.h"
+#include <bzvala.h>
 #include "safety-calculator.h"
 #include "template-callbacks.h"
 

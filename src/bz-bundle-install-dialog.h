@@ -23,8 +23,7 @@
 #include <adwaita.h>
 
 #include "bz-entry.h"
-#include "bz-flatpak-repo.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include <adwaita.h>
 
 G_BEGIN_DECLS

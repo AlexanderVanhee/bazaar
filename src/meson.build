@@ -201,95 +201,6 @@ bz_deps = [
 ]
 
 
-gen_gobject = find_program('./gen_gobject.sh')
-gen_gobject_header = generator(
-  gen_gobject,
-  output: '@BASENAME@.h',
-  arguments: ['--header', '@INPUT@', '@OUTPUT@'],
-)
-gen_gobject_code = generator(
-  gen_gobject,
-  output: '@BASENAME@.c',
-  arguments: ['--code', '@INPUT@', '@OUTPUT@'],
-)
-
-gobject_specs = files(
-  'bz-age-rating-attribute.txt',
-  'bz-backend-notification.txt',
-  'bz-backend-transaction-op-payload.txt',
-  'bz-backend-transaction-op-progress-payload.txt',
-  'bz-blocklist-condition-match-envvar.txt',
-  'bz-blocklist-condition-match-locale.txt',
-  'bz-blocklist-condition.txt',
-  'bz-blocklist.txt',
-  'bz-bulk-install-dialog-result.txt',
-  'bz-country-data-point.txt',
-  'bz-country.txt',
-  'bz-curated-appids-info.txt',
-  'bz-curated-article.txt',
-  'bz-curated-articles-info.txt',
-  'bz-curated-banner.txt',
-  'bz-curated-featured-carousel.txt',
-  'bz-curated-image-info.txt',
-  'bz-curated-markdown-info.txt',
-  'bz-curated-row.txt',
-  'bz-curated-section.txt',
-  'bz-data-point.txt',
-  'bz-exponential-function.txt',
-  'bz-finished-search-query.txt',
-  'bz-flathub-auth-provider.txt',
-  'bz-flathub-curated-selection.txt',
-  'bz-flathub-sub-category.txt',
-  'bz-flatpak-repo.txt',
-  'bz-flatpak-bundle-result.txt',
-  'bz-hash-table-object.txt',
-  'bz-hook-dialog-option.txt',
-  'bz-hook-dialog.txt',
-  'bz-hook.txt',
-  'bz-internal-config.txt',
-  'bz-linear-function.txt',
-  'bz-main-config.txt',
-  'bz-pride-flag-config.txt',
-  'bz-pride-flag-spec.txt',
-  'bz-pride-flag-stripe-spec.txt',
-  'bz-release.txt',
-  'bz-repository.txt',
-  'bz-root-blocklist.txt',
-  'bz-root-curated-config.txt',
-  'bz-safety-row.txt',
-  'bz-search-bias.txt',
-  'bz-search-result.txt',
-  'bz-size-result.txt',
-  'bz-state-info.txt',
-  'bz-update-history-data-point.txt',
-  'bz-update-info.txt',
-  'bz-transact-icon-info.txt',
-  'bz-transaction-dialog-result.txt',
-  'bz-transaction-entry-tracker.txt',
-  'bz-transaction-task.txt',
-  'bz-url.txt',
-  'bz-verification-status.txt',
-)
-
-gen_gobject_srcs = []
-gen_gobject_headers = []
-foreach f : gobject_specs
-  header = gen_gobject_header.process(f)
-  code = gen_gobject_code.process(f)
-  gen_gobject_srcs += [header, code]
-  gen_gobject_headers += [header]
-endforeach
-
-gen_gobjects_static = static_library(
-  'bzgengobjects', gen_gobject_srcs,
-  dependencies: bz_deps,
-)
-generated_gobjects = declare_dependency(
-  link_with: gen_gobjects_static,
-  sources: gen_gobject_headers,
-)
-bz_deps += [ generated_gobjects ]
-
 blueprints = custom_target('blueprints',
   input: files(
     'bz-addon-tile.blp',
@@ -395,7 +306,6 @@ bz_resources = gnome.compile_resources('bz-resources',
 bz_sources += bz_resources
 
 vala_deps = [
-  generated_gobjects,
   gtk_dep,
   libadwaita_dep,
   libdex_dep,
@@ -414,6 +324,15 @@ vala_sources = files(
   'bz-screenshot-page.vala',
   'bz-new-permissions-dialog.vala',
   'bz-runtime-updates-entry.vala',
+  'bz-state-info.vala',
+  'blocklist-types.vala',
+  'config-types.vala',
+  'curated-types.vala',
+  'hook-types.vala',
+  'misc-types.vala',
+  'pride-types.vala',
+  'stats-types.vala',
+  'transaction-types.vala',
 )
 
 vala_args = [
@@ -433,6 +352,7 @@ bz_vala_static = static_library(
   vala_args: vala_args,
   c_args: [
     '-DGETTEXT_PACKAGE="' + meson.project_name() + '"',
+    '-Wno-discarded-qualifiers',
   ],
 )
 bz_vala_dep = declare_dependency(
@@ -443,14 +363,19 @@ bz_deps += [bz_vala_dep]
 
 executable(bazaar_bin_name, bz_sources + ['main.c'], marshalers,
            dependencies: bz_deps,
-           link_whole: gen_gobjects_static,
            export_dynamic: true,
            install: true,
 )
 
-shared_module('bazaar-login-page', 'bz-login-page.c',
+bz_vala_header_stamp = custom_target('bzvala-header-stamp',
+  input: bz_vala_static,
+  output: 'bzvala-header-stamp.h',
+  command: ['touch', '@OUTPUT@'],
+)
+
+shared_module('bazaar-login-page', 'bz-login-page.c', bz_vala_header_stamp,
   dependencies: [
-    generated_gobjects.partial_dependency(sources: true),
+    bz_vala_dep.partial_dependency(compile_args: true, includes: true),
     libadwaita_dep,
     libdex_dep,
     json_glib_dep,

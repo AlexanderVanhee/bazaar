@@ -25,7 +25,7 @@
 
 #include "bz-async-texture.h"
 #include "bz-entry.h"
-#include "bz-transaction-entry-tracker.h"
+#include <bzvala.h>
 #include "env.h"
 #include "transaction-notification.h"
 #include "util.h"

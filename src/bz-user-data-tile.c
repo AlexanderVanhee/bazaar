@@ -23,7 +23,7 @@
 #include <glib/gi18n.h>
 
 #include "bz-entry-group.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "bz-user-data-page.h"
 #include "bz-user-data-tile.h"
 #include "env.h"

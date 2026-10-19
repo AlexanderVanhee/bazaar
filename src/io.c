@@ -19,7 +19,7 @@
  */
 
 #include "io.h"
-#include "bz-size-result.h"
+#include <bzvala.h>
 #include "env.h"
 
 static DexFuture *

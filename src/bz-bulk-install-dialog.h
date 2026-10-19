@@ -21,8 +21,7 @@
 #pragma once
 
 #include <adwaita.h>
-
-#include "bz-bulk-install-dialog-result.h"
+#include <libdex.h>
 
 G_BEGIN_DECLS
 

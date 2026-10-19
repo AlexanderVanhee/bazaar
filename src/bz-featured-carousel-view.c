@@ -23,7 +23,7 @@
 #include "bz-featured-carousel-view.h"
 
 #include "bz-application.h"
-#include "bz-curated-appids-info.h"
+#include <bzvala.h>
 #include "bz-featured-carousel.h"
 
 struct _BzFeaturedCarouselView

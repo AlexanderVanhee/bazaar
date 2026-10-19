@@ -20,11 +20,10 @@
 
 #include "config.h"
 
-#include "bz-curated-row.h"
+#include <bzvala.h>
 #include "bz-curated-view.h"
 #include "bz-dynamic-list-view.h"
 #include "bz-entry-group.h"
-#include "bz-root-curated-config.h"
 #include "bz-row-view.h"
 
 struct _BzCuratedView

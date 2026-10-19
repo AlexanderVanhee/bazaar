@@ -24,8 +24,7 @@
 
 #include <glib/gi18n.h>
 
-#include "bz-backend-transaction-op-payload.h"
-#include "bz-backend-transaction-op-progress-payload.h"
+#include <bzvala.h>
 #include "bz-marshalers.h"
 #include "bz-transaction-manager.h"
 #include "env.h"

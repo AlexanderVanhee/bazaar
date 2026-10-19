@@ -20,8 +20,9 @@
 
 #include "config.h"
 
+#include <bzvala.h>
+
 #include "bz-parser.h"
-#include "bz-pride-flag-config.h"
 #include "bz-yaml-parser.h"
 #include "pride.h"
 

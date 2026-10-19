@@ -33,7 +33,7 @@
 #include "bz-flatpak-private.h"
 #include "bz-result.h"
 #include "bz-serializable.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "io.h"
 
 #define VERSION_SUFFIX_REGEX "\\s+[0-9][0-9.]*\\s*$"

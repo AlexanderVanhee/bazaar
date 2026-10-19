@@ -26,7 +26,7 @@
 #include "bz-entry.h"
 #include "bz-releases-list.h"
 #include "bz-result.h"
-#include "bz-update-history-data-point.h"
+#include <bzvala.h>
 #include "bz-update-history-dialog.h"
 #include "env.h"
 #include "template-callbacks.h"

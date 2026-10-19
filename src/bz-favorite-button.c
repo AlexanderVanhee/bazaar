@@ -25,7 +25,7 @@
 
 #include "bz-entry.h"
 #include "bz-favorite-button.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "env.h"
 #include "error.h"
 #include "global-net.h"

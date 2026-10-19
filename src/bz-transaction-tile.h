@@ -22,7 +22,7 @@
 
 #include <adwaita.h>
 
-#include "bz-transaction-entry-tracker.h"
+#include <bzvala.h>
 
 G_BEGIN_DECLS
 

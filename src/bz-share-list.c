@@ -23,7 +23,7 @@
 #include <glib/gi18n.h>
 
 #include "bz-share-list.h"
-#include "bz-url.h"
+#include <bzvala.h>
 #include "bz-window.h"
 
 struct _BzShareList

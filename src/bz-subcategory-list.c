@@ -23,7 +23,7 @@
 
 #include "bz-apps-page.h"
 #include "bz-flathub-state.h"
-#include "bz-flathub-sub-category.h"
+#include <bzvala.h>
 #include "bz-subcategory-list.h"
 #include "bz-window.h"
 #include "util.h"

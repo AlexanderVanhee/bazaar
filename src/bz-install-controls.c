@@ -25,8 +25,7 @@
 #include <bge.h>
 
 #include "bz-install-controls.h"
-#include "bz-state-info.h"
-#include "bz-update-info.h"
+#include <bzvala.h>
 #include "progress-bar-designs/common.h"
 #include "template-callbacks.h"
 #include "util.h"

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "bz-curated-article.h"
+#include <bzvala.h>
 #include "bz-list-tile.h"
 
 G_BEGIN_DECLS

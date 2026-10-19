@@ -18,6 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include <bzvala.h>
 #include "config.h"
 
 #include <glib/gi18n.h>

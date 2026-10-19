@@ -23,7 +23,6 @@
 #include "bz-app-permissions.h"
 #include "bz-context-row.h"
 #include "bz-entry.h"
-#include "bz-safety-row.h"
 #include <gio/gio.h>
 
 G_BEGIN_DECLS

@@ -26,7 +26,7 @@
 #include "bz-entry-group.h"
 #include "bz-favorites-page.h"
 #include "bz-favorites-tile.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "bz-window.h"
 #include "env.h"
 #include "error.h"

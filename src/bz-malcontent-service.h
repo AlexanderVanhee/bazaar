@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include <appstream.h>
 #include <glib-object.h>
 

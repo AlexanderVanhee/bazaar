@@ -21,7 +21,7 @@
 #pragma once
 
 #include "bz-entry-group.h"
-#include "bz-hook.h"
+#include <bzvala.h>
 
 G_BEGIN_DECLS
 

@@ -30,7 +30,7 @@
 #include "bz-flathub-category.h"
 #include "bz-metainfo-preview.h"
 #include "bz-rich-app-tile.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "error.h"
 #include "util.h"
 

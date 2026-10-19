@@ -21,10 +21,11 @@
 #pragma once
 
 #include "bz-entry.h"
-#include "bz-transaction-entry-tracker.h"
-#include "bz-transaction-task.h"
 
 G_BEGIN_DECLS
+
+typedef struct _BzBackendTransactionOpPayload BzBackendTransactionOpPayload;
+typedef struct _BzBackendTransactionOpProgressPayload BzBackendTransactionOpProgressPayload;
 
 #define BZ_TYPE_TRANSACTION (bz_transaction_get_type ())
 G_DECLARE_DERIVABLE_TYPE (BzTransaction, bz_transaction, BZ, TRANSACTION, GObject)

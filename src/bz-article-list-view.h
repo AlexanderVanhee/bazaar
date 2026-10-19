@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "bz-curated-articles-info.h"
+#include <bzvala.h>
 #include <adwaita.h>
 
 G_BEGIN_DECLS

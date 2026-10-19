@@ -22,7 +22,7 @@
 
 #include "config.h"
 
-#include "bz-hash-table-object.h"
+#include <bzvala.h>
 #include "bz-newline-parser.h"
 #include "bz-parser.h"
 

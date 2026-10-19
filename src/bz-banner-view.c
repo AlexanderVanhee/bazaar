@@ -23,7 +23,7 @@
 #include "bz-banner-view.h"
 
 #include "bz-async-texture.h"
-#include "bz-curated-image-info.h"
+#include <bzvala.h>
 
 struct _BzBannerView
 {
