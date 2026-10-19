@@ -51,6 +51,10 @@ bge_carousel_get_allow_raise (BgeCarousel *self);
 
 BGE_AVAILABLE_IN_ALL
 gboolean
+bge_carousel_get_pass_through_start (BgeCarousel *self);
+
+BGE_AVAILABLE_IN_ALL
+gboolean
 bge_carousel_get_align_start (BgeCarousel *self);
 
 BGE_AVAILABLE_IN_ALL
@@ -93,6 +97,11 @@ BGE_AVAILABLE_IN_ALL
 void
 bge_carousel_set_allow_raise (BgeCarousel *self,
                               gboolean     allow_raise);
+
+BGE_AVAILABLE_IN_ALL
+void
+bge_carousel_set_pass_through_start (BgeCarousel *self,
+                                     gboolean     pass_through_start);
 
 BGE_AVAILABLE_IN_ALL
 void

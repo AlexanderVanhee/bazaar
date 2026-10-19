@@ -57,6 +57,7 @@ struct _BgeCarousel
   gboolean            allow_overshoot;
   gboolean            allow_scroll_wheel;
   gboolean            allow_raise;
+  gboolean            pass_through_start;
   gboolean            align_start;
   int                 max_page_width;
   gboolean            wrap;
@@ -77,6 +78,7 @@ enum
   PROP_ALLOW_OVERSHOOT,
   PROP_ALLOW_SCROLL_WHEEL,
   PROP_ALLOW_RAISE,
+  PROP_PASS_THROUGH_START,
   PROP_ALIGN_START,
   PROP_MAX_PAGE_WIDTH,
   PROP_WRAP,
@@ -206,6 +208,9 @@ get_last_index (BgeCarousel *self);
 static gboolean
 should_wrap (BgeCarousel *self);
 
+static gboolean
+is_rtl (BgeCarousel *self);
+
 static void
 bge_carousel_dispose (GObject *object)
 {
@@ -248,6 +253,9 @@ bge_carousel_get_property (GObject    *object,
     case PROP_ALLOW_RAISE:
       g_value_set_boolean (value, bge_carousel_get_allow_raise (self));
       break;
+    case PROP_PASS_THROUGH_START:
+      g_value_set_boolean (value, bge_carousel_get_pass_through_start (self));
+      break;
     case PROP_ALIGN_START:
       g_value_set_boolean (value, bge_carousel_get_align_start (self));
       break;
@@ -289,6 +297,9 @@ bge_carousel_set_property (GObject      *object,
       break;
     case PROP_ALLOW_RAISE:
       bge_carousel_set_allow_raise (self, g_value_get_boolean (value));
+      break;
+    case PROP_PASS_THROUGH_START:
+      bge_carousel_set_pass_through_start (self, g_value_get_boolean (value));
       break;
     case PROP_ALIGN_START:
       bge_carousel_set_align_start (self, g_value_get_boolean (value));
@@ -361,12 +372,17 @@ bge_carousel_size_allocate (GtkWidget *widget,
   for (guint i = 0; i < self->widgets->len; i++)
     {
       CarouselWidgetData *child          = NULL;
+      graphene_point_t    origin         = { 0 };
       g_autoptr (GskTransform) transform = NULL;
 
-      child     = g_ptr_array_index (self->widgets, i);
+      child  = g_ptr_array_index (self->widgets, i);
+      origin = child->rect.origin;
+      if (is_rtl (self))
+        origin.x = width - origin.x - child->rect.size.width;
+
       transform = gsk_transform_translate (
           gsk_transform_new (),
-          &child->rect.origin);
+          &origin);
 
       gtk_widget_allocate (
           child->widget,
@@ -433,6 +449,19 @@ bge_carousel_class_init (BgeCarouselClass *klass)
   props[PROP_ALLOW_RAISE] =
       g_param_spec_boolean (
           "allow-raise",
+          NULL, NULL, FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
+   * BgeCarousel:pass-through-start:
+   *
+   * Whether drag/touchpad swipes that start by moving back from the first
+   * widget are passed on to ancestors, such as the swipe back gesture of a
+   * navigation view, instead of overshooting.
+   */
+  props[PROP_PASS_THROUGH_START] =
+      g_param_spec_boolean (
+          "pass-through-start",
           NULL, NULL, FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
@@ -664,6 +693,21 @@ bge_carousel_get_allow_raise (BgeCarousel *self)
 }
 
 /**
+ * bge_carousel_get_pass_through_start:
+ * @self: a `BgeCarousel`
+ *
+ * Gets [property@Bge.Carousel:pass-through-start].
+ *
+ * Returns: the value of the property
+ */
+gboolean
+bge_carousel_get_pass_through_start (BgeCarousel *self)
+{
+  g_return_val_if_fail (BGE_IS_CAROUSEL (self), FALSE);
+  return self->pass_through_start;
+}
+
+/**
  * bge_carousel_get_align_start:
  * @self: a `BgeCarousel`
  *
@@ -853,6 +897,26 @@ bge_carousel_set_allow_raise (BgeCarousel *self,
     ensure_viewport (self, self->model, TRUE);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_ALLOW_RAISE]);
+}
+
+/**
+ * bge_carousel_set_pass_through_start:
+ * @self: a `BgeCarousel`
+ * @pass_through_start: a boolean
+ *
+ * Sets [property@Bge.Carousel:pass-through-start].
+ */
+void
+bge_carousel_set_pass_through_start (BgeCarousel *self,
+                                     gboolean     pass_through_start)
+{
+  g_return_if_fail (BGE_IS_CAROUSEL (self));
+
+  if (!!pass_through_start == !!self->pass_through_start)
+    return;
+
+  self->pass_through_start = pass_through_start;
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_PASS_THROUGH_START]);
 }
 
 /**
@@ -1387,6 +1451,8 @@ update_motion (BgeCarousel *self,
   graphene_point_t point  = { 0 };
   gboolean         ensure = FALSE;
 
+  if (is_rtl (self) && x >= 0.0)
+    x = gtk_widget_get_width (GTK_WIDGET (self)) - x;
   point = GRAPHENE_POINT_INIT (x, y);
 
   if (self->scrolling)
@@ -1452,6 +1518,9 @@ scroll (BgeCarousel              *self,
       return FALSE;
     }
 
+  if (is_rtl (self))
+    dx = -dx;
+
   n_items = g_list_model_get_n_items (G_LIST_MODEL (self->model));
   if (n_items == 0)
     {
@@ -1468,6 +1537,16 @@ scroll (BgeCarousel              *self,
     case GDK_SOURCE_TOUCHPAD:
     case GDK_SOURCE_TRACKPOINT:
       {
+        if (self->pass_through_start &&
+            self->hscroll_current == self->hscroll_start &&
+            dx < 0 &&
+            gtk_single_selection_get_selected (self->model) == 0 &&
+            !should_wrap (self))
+          {
+            self->scrolling = FALSE;
+            return FALSE;
+          }
+
         if (self->widgets->len > 0 &&
             !self->allow_overshoot &&
             !should_wrap (self))
@@ -1571,6 +1650,30 @@ drag_update (BgeCarousel    *self,
 {
   if (!self->dragging)
     return;
+
+  if (is_rtl (self))
+    offset_x = -offset_x;
+
+  if (self->pass_through_start &&
+      gtk_gesture_get_sequence_state (GTK_GESTURE (gesture),
+                                      gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture))) !=
+          GTK_EVENT_SEQUENCE_CLAIMED)
+    {
+      if (!gtk_drag_check_threshold (GTK_WIDGET (self), 0, 0, offset_x, offset_y))
+        return;
+
+      if (offset_x > ABS (offset_y) &&
+          self->model != NULL &&
+          gtk_single_selection_get_selected (self->model) == 0 &&
+          !should_wrap (self))
+        {
+          self->dragging = FALSE;
+          gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_DENIED);
+          return;
+        }
+
+      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+    }
 
   self->drag_x = offset_x;
   self->drag_y = offset_y;
@@ -1686,6 +1789,12 @@ should_wrap (BgeCarousel *self)
   return self->wrap &&
          !self->align_start &&
          self->widgets->len > 1;
+}
+
+static gboolean
+is_rtl (BgeCarousel *self)
+{
+  return gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL;
 }
 
 /* End of bge-carousel.c */
