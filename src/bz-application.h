@@ -22,9 +22,9 @@
 
 #include <adwaita.h>
 
-#include "bz-state-info.h"
-
 G_BEGIN_DECLS
+
+typedef struct _BzStateInfo BzStateInfo;
 
 #define BZ_TYPE_APPLICATION (bz_application_get_type ())
 G_DECLARE_FINAL_TYPE (BzApplication, bz_application, BZ, APPLICATION, AdwApplication)

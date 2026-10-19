@@ -28,7 +28,7 @@
 #include "bz-dynamic-list-view.h"
 #include "bz-entry-group.h"
 #include "bz-flathub-category.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "bz-subcategory-list.h"
 #include "env.h"
 

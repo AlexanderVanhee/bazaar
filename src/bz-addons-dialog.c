@@ -37,7 +37,6 @@
 #include "bz-license-dialog.h"
 #include "bz-result.h"
 #include "bz-share-list.h"
-#include "bz-state-info.h"
 #include "bz-stats-dialog.h"
 #include "bz-window.h"
 #include "context-tile-callbacks.h"

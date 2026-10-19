@@ -32,7 +32,6 @@
 #include "bz-async-texture.h"
 #include "bz-dynamic-list-view.h"
 #include "bz-rich-app-tile.h"
-#include "bz-state-info.h"
 #include "bz-window.h"
 #include "env.h"
 #include "global-net.h"

@@ -37,7 +37,7 @@
 #include "bz-application.h"
 #include "bz-appstream-parser.h"
 #include "bz-auth-state.h"
-#include "bz-backend-notification.h"
+#include <bzvala.h>
 #include "bz-bundle-install-dialog.h"
 #include "bz-content-provider.h"
 #include "bz-donations-dialog.h"
@@ -46,24 +46,17 @@
 #include "bz-entry-group.h"
 #include "bz-favorites-page.h"
 #include "bz-flathub-state.h"
-#include "bz-flatpak-bundle-result.h"
 #include "bz-flatpak-entry.h"
 #include "bz-flatpak-instance.h"
-#include "bz-hash-table-object.h"
 #include "bz-inspector.h"
-#include "bz-internal-config.h"
 #include "bz-malcontent-service.h"
 #include "bz-metainfo-preview.h"
 #include "bz-newline-parser.h"
 #include "bz-parser.h"
 #include "bz-preferences-dialog.h"
 #include "bz-result.h"
-#include "bz-root-blocklist.h"
-#include "bz-root-curated-config.h"
 #include "bz-serializable.h"
-#include "bz-state-info.h"
 #include "bz-transaction-manager.h"
-#include "bz-update-info.h"
 #include "bz-window.h"
 #include "bz-yaml-parser.h"
 #include "dex-utils.h"
@@ -2127,8 +2120,12 @@ respond_to_flatpak_fiber (BzWeakRef             *wr,
   if (update_labels)
     {
       if (self->n_entries_incoming > 0)
-        bz_state_info_set_background_task_label_take_printf (
-            self->state, _ ("Loading %d apps…"), self->n_entries_incoming);
+        {
+          g_autofree char *label = NULL;
+
+          label = g_strdup_printf (_ ("Loading %d apps…"), self->n_entries_incoming);
+          bz_state_info_set_background_task_label (self->state, label);
+        }
       else
         {
           fiber_check_for_updates (self);
@@ -3435,6 +3432,7 @@ init_service_struct (BzApplication *self,
   GNetworkMonitor *network = NULL;
 
   g_type_ensure (BZ_TYPE_INTERNAL_CONFIG);
+  g_type_ensure (BZ_TYPE_SEARCH_BIAS);
   internal_config_bytes = g_resources_lookup_data (
       "/io/github/kolunmi/Bazaar/internal-config.yaml",
       G_RESOURCE_LOOKUP_FLAGS_NONE,
@@ -3452,6 +3450,9 @@ init_service_struct (BzApplication *self,
   self->internal_config = g_value_dup_object (g_hash_table_lookup (internal_config_parse_results, "/"));
 
   g_type_ensure (BZ_TYPE_MAIN_CONFIG);
+  g_type_ensure (BZ_TYPE_HOOK);
+  g_type_ensure (BZ_TYPE_HOOK_DIALOG);
+  g_type_ensure (BZ_TYPE_HOOK_DIALOG_OPTION);
 #ifdef HARDCODED_MAIN_CONFIG
   config_file  = g_file_new_for_path (HARDCODED_MAIN_CONFIG);
   config_bytes = g_file_load_bytes (config_file, NULL, NULL, &local_error);
@@ -4360,10 +4361,14 @@ static void
 finish_with_background_task_label (BzApplication *self)
 {
   if (self->n_entries_incoming > 0)
-    bz_state_info_set_background_task_label_take_printf (
-        self->state,
-        ngettext ("Loading %d app…", "Loading %d apps…", self->n_entries_incoming),
-        self->n_entries_incoming);
+    {
+      g_autofree char *label = NULL;
+
+      label = g_strdup_printf (
+          ngettext ("Loading %d app…", "Loading %d apps…", self->n_entries_incoming),
+          self->n_entries_incoming);
+      bz_state_info_set_background_task_label (self->state, label);
+    }
   else if (bz_state_info_get_syncing (self->state))
     bz_state_info_set_background_task_label (self->state, _ ("Refreshing…"));
   else if (bz_state_info_get_busy (self->state))

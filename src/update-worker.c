@@ -27,7 +27,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 
-#include "bz-update-history-data-point.h"
+#include <bzvala.h>
 #include "update-worker.h"
 
 #define DAILY_WINDOW_START_HOUR    6

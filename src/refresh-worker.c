@@ -20,7 +20,7 @@
 
 #define G_LOG_DOMAIN "BAZAAR::REFRESH-WORKER"
 
-#include "bz-backend-notification.h"
+#include <bzvala.h>
 #include "bz-backend.h"
 #include "bz-entry-cache-manager.h"
 #include "bz-entry.h"

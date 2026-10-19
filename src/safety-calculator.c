@@ -25,7 +25,7 @@
 
 #include "bz-app-permissions.h"
 #include "bz-context-row.h"
-#include "bz-safety-row.h"
+#include <bzvala.h>
 #include "safety-calculator.h"
 
 static char *

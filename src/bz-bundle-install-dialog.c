@@ -26,10 +26,8 @@
 #include "bz-application.h"
 #include "bz-async-texture.h"
 #include "bz-bundle-install-dialog.h"
-#include "bz-flatpak-repo.h"
-#include "bz-release.h"
+#include <bzvala.h>
 #include "bz-safety-dialog.h"
-#include "bz-state-info.h"
 #include "context-tile-callbacks.h"
 #include "env.h"
 #include "safety-calculator.h"

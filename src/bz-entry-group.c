@@ -22,7 +22,7 @@
 #define BAZAAR_MODULE "entry-group"
 
 #include "bz-entry-group.h"
-#include "bz-size-result.h"
+#include <bzvala.h>
 #include "env.h"
 #include "io.h"
 #include "util.h"

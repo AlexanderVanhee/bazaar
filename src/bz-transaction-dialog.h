@@ -23,7 +23,6 @@
 #include <adwaita.h>
 
 #include "bz-entry-group.h"
-#include "bz-transaction-dialog-result.h"
 
 G_BEGIN_DECLS
 

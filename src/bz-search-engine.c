@@ -22,8 +22,7 @@
 
 #include "bz-search-engine.h"
 #include "bz-entry-group.h"
-#include "bz-finished-search-query.h"
-#include "bz-search-result.h"
+#include <bzvala.h>
 #include "env.h"
 #include "util.h"
 

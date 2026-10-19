@@ -25,9 +25,10 @@
 #include <libdex.h>
 
 #include "bz-category-flags.h"
-#include "bz-repository.h"
 
 G_BEGIN_DECLS
+
+typedef struct _BzRepository BzRepository;
 
 typedef enum
 {

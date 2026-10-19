@@ -22,7 +22,7 @@
 
 #include "appstream.h"
 #include "bz-flathub-category.h"
-#include "bz-flathub-sub-category.h"
+#include <bzvala.h>
 #include "bz-serializable.h"
 
 struct _BzFlathubCategory

@@ -25,7 +25,7 @@
 #include "bz-category-tile.h"
 #include "bz-dynamic-list-view.h"
 #include "bz-entry-inspector.h"
-#include "bz-finished-search-query.h"
+#include <bzvala.h>
 #include "bz-group-tile-css-watcher.h"
 #include "bz-rich-app-tile.h"
 #include "bz-screenshot.h"
@@ -33,7 +33,6 @@
 #include "bz-search-filter-popover.h"
 #include "bz-search-page.h"
 #include "bz-search-pill-list.h"
-#include "bz-search-result.h"
 #include "template-callbacks.h"
 #include "util.h"
 

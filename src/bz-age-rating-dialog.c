@@ -28,7 +28,7 @@
 #include <glib/gi18n.h>
 #include <locale.h>
 
-#include "bz-age-rating-attribute.h"
+#include <bzvala.h>
 #include "bz-age-rating-dialog.h"
 #include "bz-context-row.h"
 #include "bz-lozenge.h"

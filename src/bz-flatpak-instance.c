@@ -27,14 +27,9 @@
 #include "config.h"
 
 #include "bz-app-permissions.h"
-#include "bz-backend-notification.h"
-#include "bz-backend-transaction-op-payload.h"
-#include "bz-backend-transaction-op-progress-payload.h"
+#include <bzvala.h>
 #include "bz-backend.h"
-#include "bz-flatpak-bundle-result.h"
 #include "bz-flatpak-private.h"
-#include "bz-flatpak-repo.h"
-#include "bz-repository.h"
 #include "env.h"
 #include "global-net.h"
 #include "io.h"

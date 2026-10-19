@@ -23,8 +23,7 @@
 
 #include <adwaita.h>
 
-#include "bz-country-data-point.h"
-#include "bz-country.h"
+#include <bzvala.h>
 #include "bz-world-map-parser.h"
 #include "bz-world-map.h"
 

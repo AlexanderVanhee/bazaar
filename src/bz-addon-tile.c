@@ -24,7 +24,7 @@
 #include "bz-addons-dialog.h"
 #include "bz-entry-group.h"
 #include "bz-full-view.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include "bz-window.h"
 
 struct _BzAddonTile

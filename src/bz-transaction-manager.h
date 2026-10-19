@@ -21,10 +21,11 @@
 #pragma once
 
 #include "bz-backend.h"
-#include "bz-main-config.h"
 #include "bz-transaction.h"
 
 G_BEGIN_DECLS
+
+typedef struct _BzMainConfig BzMainConfig;
 
 #define BZ_TRANSACTION_MGR_ERROR (bz_transaction_mgr_error_quark ())
 GQuark bz_transaction_mgr_error_quark (void);

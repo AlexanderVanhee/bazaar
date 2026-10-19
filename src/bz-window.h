@@ -23,8 +23,6 @@
 #include <adwaita.h>
 #include <bzvala.h>
 
-#include "bz-state-info.h"
-
 G_BEGIN_DECLS
 
 #define BZ_TYPE_WINDOW (bz_window_get_type ())

@@ -20,6 +20,7 @@
 
 #include <bge.h>
 
+#include <bzvala.h>
 #include "bz-application.h"
 #include "bz-lazy-wdgt.h"
 #include "bz-transact-icon.h"

@@ -27,7 +27,7 @@
 #include "bz-flathub-category.h"
 #include "bz-flathub-state.h"
 #include "bz-search-filter-popover.h"
-#include "bz-state-info.h"
+#include <bzvala.h>
 
 struct _BzSearchFilterPopover
 {

@@ -23,7 +23,7 @@
 #include <adwaita.h>
 
 #include "bz-data-graph.h"
-#include "bz-data-point.h"
+#include <bzvala.h>
 #include <math.h>
 
 #define LABEL_MARGIN       75.0

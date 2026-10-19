@@ -25,8 +25,7 @@
 #include "bz-entry-group.h"
 #include "bz-installed-tile.h"
 #include "bz-library-page.h"
-#include "bz-state-info.h"
-#include "bz-transact-icon-info.h"
+#include <bzvala.h>
 #include "bz-transact-icon.h"
 #include "bz-window.h"
 #include "env.h"

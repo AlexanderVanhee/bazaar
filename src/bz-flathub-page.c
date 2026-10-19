@@ -27,7 +27,6 @@
 #include "bz-entry-group.h"
 #include "bz-featured-carousel.h"
 #include "bz-flathub-category.h"
-#include "bz-flathub-curated-selection.h"
 #include "bz-flathub-page.h"
 #include "bz-section-view.h"
 

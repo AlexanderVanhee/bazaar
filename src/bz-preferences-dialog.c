@@ -18,6 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include <bzvala.h>
 #include "bz-preferences-dialog.h"
 
 #include <gio/gio.h>

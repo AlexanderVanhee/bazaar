@@ -22,7 +22,7 @@
 
 #include "bz-appstream-description-render.h"
 #include "bz-fading-clamp.h"
-#include "bz-release.h"
+#include <bzvala.h>
 #include "bz-releases-list.h"
 #include "template-callbacks.h"
 

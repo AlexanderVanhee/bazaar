@@ -22,6 +22,7 @@
 
 #include <adwaita.h>
 
+#include <bzvala.h>
 #include "env.h"
 #include "error.h"
 #include "hooks.h"

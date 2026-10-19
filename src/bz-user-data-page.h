@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "bz-state-info.h"
+#include <bzvala.h>
 #include <adwaita.h>
 
 G_BEGIN_DECLS
