@@ -18,6 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include <bzvala.h>
 #include <glib/gi18n.h>
 
 #include "bz-addons-dialog.h"
@@ -25,8 +26,6 @@
 #include "bz-entry-group.h"
 #include "bz-installed-tile.h"
 #include "bz-library-page.h"
-#include <bzvala.h>
-#include "bz-transact-icon.h"
 #include "bz-window.h"
 #include "env.h"
 #include "error.h"
@@ -253,7 +252,6 @@ bz_installed_tile_class_init (BzInstalledTileClass *klass)
   g_type_ensure (BZ_TYPE_LIST_TILE);
   g_type_ensure (BZ_TYPE_ENTRY_GROUP);
   g_type_ensure (BZ_TYPE_TRANSACT_ICON);
-  g_type_ensure (BZ_TYPE_TRANSACT_ICON_INFO);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/io/github/kolunmi/Bazaar/bz-installed-tile.ui");
   gtk_widget_class_bind_template_child (widget_class, BzInstalledTile, title_label);

@@ -402,12 +402,6 @@ public extern class Bz.InstalledTile : GLib.Object {
     protected InstalledTile ();
 }
 
-[CCode (cheader_filename = "bz-lazy-wdgt.h", type_id = "bz_lazy_wdgt_get_type ()")]
-public extern class Bz.LazyWdgt : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected LazyWdgt ();
-}
-
 [CCode (cheader_filename = "bz-library-page.h", type_id = "bz_library_page_get_type ()")]
 public extern class Bz.LibraryPage : GLib.Object {
     [CCode (has_construct_function = false)]
@@ -587,12 +581,6 @@ public extern class Bz.StatsDialog : GLib.Object {
 public extern class Bz.SubcategoryList : GLib.Object {
     [CCode (has_construct_function = false)]
     protected SubcategoryList ();
-}
-
-[CCode (cheader_filename = "bz-transact-icon.h", type_id = "bz_transact_icon_get_type ()")]
-public extern class Bz.TransactIcon : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected TransactIcon ();
 }
 
 [CCode (cheader_filename = "bz-transaction-dialog.h", type_id = "bz_transaction_dialog_get_type ()")]

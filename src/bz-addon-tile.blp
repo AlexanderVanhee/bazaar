@@ -20,10 +20,9 @@ template $BzAddonTile: $BzListTile {
       valign: center;
       halign: center;
 
-      info: $BzTransactIconInfo {
-        group: bind template.group as <$BzEntryGroup>;
-        paintable: bind template.parent-ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
-      };
+      group: bind template.group as <$BzEntryGroup>;
+
+      paintable: bind template.parent-ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
     }
 
     Box {

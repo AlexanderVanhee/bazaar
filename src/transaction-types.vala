@@ -101,13 +101,6 @@ public sealed class Bz.BulkInstallDialogResult : GLib.Object {
     public bool confirmed { get; set; }
 }
 
-public sealed class Bz.TransactIconInfo : GLib.Object {
-    public Bz.StateInfo? state { get; set; }
-    public Bz.EntryGroup? group { get; set; }
-    public Gdk.Paintable? paintable { get; set; }
-    public Bz.TransactionEntryTracker? tracker { get; set; }
-}
-
 public sealed class Bz.UpdatePermissionInfo : GLib.Object {
     public Bz.Entry? entry { get; set; }
     public Bz.AppPermissions? additional_permissions { get; set; }

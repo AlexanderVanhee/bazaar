@@ -18,10 +18,9 @@ template $BzFavoritesTile: $BzListTile {
       width-request: 48;
       height-request: 48;
 
-      info: $BzTransactIconInfo {
-        group: bind template.group as <$BzEntryGroup>;
-        paintable: bind template.group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
-      };
+      group: bind template.group as <$BzEntryGroup>;
+
+      paintable: bind template.group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
     }
 
     Box {
