@@ -208,6 +208,9 @@ get_last_index (BgeCarousel *self);
 static gboolean
 should_wrap (BgeCarousel *self);
 
+static gboolean
+is_rtl (BgeCarousel *self);
+
 static void
 bge_carousel_dispose (GObject *object)
 {
@@ -369,12 +372,17 @@ bge_carousel_size_allocate (GtkWidget *widget,
   for (guint i = 0; i < self->widgets->len; i++)
     {
       CarouselWidgetData *child          = NULL;
+      graphene_point_t    origin         = { 0 };
       g_autoptr (GskTransform) transform = NULL;
 
-      child     = g_ptr_array_index (self->widgets, i);
+      child  = g_ptr_array_index (self->widgets, i);
+      origin = child->rect.origin;
+      if (is_rtl (self))
+        origin.x = width - origin.x - child->rect.size.width;
+
       transform = gsk_transform_translate (
           gsk_transform_new (),
-          &child->rect.origin);
+          &origin);
 
       gtk_widget_allocate (
           child->widget,
@@ -1443,6 +1451,8 @@ update_motion (BgeCarousel *self,
   graphene_point_t point  = { 0 };
   gboolean         ensure = FALSE;
 
+  if (is_rtl (self) && x >= 0.0)
+    x = gtk_widget_get_width (GTK_WIDGET (self)) - x;
   point = GRAPHENE_POINT_INIT (x, y);
 
   if (self->scrolling)
@@ -1507,6 +1517,9 @@ scroll (BgeCarousel              *self,
       self->scrolling = FALSE;
       return FALSE;
     }
+
+  if (is_rtl (self))
+    dx = -dx;
 
   n_items = g_list_model_get_n_items (G_LIST_MODEL (self->model));
   if (n_items == 0)
@@ -1637,6 +1650,9 @@ drag_update (BgeCarousel    *self,
 {
   if (!self->dragging)
     return;
+
+  if (is_rtl (self))
+    offset_x = -offset_x;
 
   if (self->pass_through_start &&
       gtk_gesture_get_sequence_state (GTK_GESTURE (gesture),
@@ -1773,6 +1789,12 @@ should_wrap (BgeCarousel *self)
   return self->wrap &&
          !self->align_start &&
          self->widgets->len > 1;
+}
+
+static gboolean
+is_rtl (BgeCarousel *self)
+{
+  return gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL;
 }
 
 /* End of bge-carousel.c */
