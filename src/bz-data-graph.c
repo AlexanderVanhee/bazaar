@@ -272,6 +272,13 @@ bz_data_graph_snapshot (GtkWidget   *widget,
   if (self->path == NULL)
     return;
 
+  gtk_snapshot_save (snapshot);
+  if (gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL)
+    {
+      gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (gtk_widget_get_width (widget), 0.0));
+      gtk_snapshot_scale (snapshot, -1.0, 1.0);
+    }
+
   if (self->graph != NULL)
     gtk_snapshot_append_node (snapshot, self->graph);
 
@@ -295,12 +302,12 @@ bz_data_graph_snapshot (GtkWidget   *widget,
     }
 
   if (self->overlay != NULL)
-    {
-      gtk_snapshot_append_node (snapshot, self->overlay);
+    gtk_snapshot_append_node (snapshot, self->overlay);
+  gtk_snapshot_restore (snapshot);
 
-      /* tooltip card */
-      gtk_widget_snapshot_child (GTK_WIDGET (self), self->tooltip_box, snapshot);
-    }
+  /* tooltip card */
+  if (self->overlay != NULL)
+    gtk_widget_snapshot_child (GTK_WIDGET (self), self->tooltip_box, snapshot);
 
   if (self->wants_animate_open)
     {
@@ -388,6 +395,8 @@ update_cursor (BzDataGraph *self,
   double widget_width  = gtk_widget_get_width (GTK_WIDGET (self));
   double widget_height = gtk_widget_get_height (GTK_WIDGET (self));
 
+  if (gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL)
+    x = widget_width - x;
   if (x >= LABEL_MARGIN &&
       y >= 0.0 &&
       x < widget_width - LABEL_MARGIN_RIGHT &&
@@ -761,6 +770,7 @@ refresh_path (BzDataGraph *self,
   double rounded_axis_max                  = 0.0;
   double tick_spacing                      = 0.0;
   int    num_ticks                         = 0;
+  gboolean rtl                             = gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL;
 
   g_clear_pointer (&self->path, gsk_path_unref);
   g_clear_pointer (&self->path_measure, gsk_path_measure_unref);
@@ -884,8 +894,16 @@ refresh_path (BzDataGraph *self,
 
           gtk_snapshot_save (snapshot);
           gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, height + LABEL_MARGIN / 10.0));
-          gtk_snapshot_rotate (snapshot, -LABEL_MARGIN_RIGHT);
-          gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (-extents.width, 0));
+          if (rtl)
+            {
+              gtk_snapshot_scale (snapshot, -1.0, 1.0);
+              gtk_snapshot_rotate (snapshot, LABEL_MARGIN_RIGHT);
+            }
+          else
+            {
+              gtk_snapshot_rotate (snapshot, -LABEL_MARGIN_RIGHT);
+              gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (-extents.width, 0));
+            }
           gtk_snapshot_append_layout (snapshot, layout, &(GdkRGBA){ 1.0, 1.0, 1.0, 1.0 });
           gtk_snapshot_restore (snapshot);
 
@@ -930,6 +948,14 @@ refresh_path (BzDataGraph *self,
 
       gtk_snapshot_save (snapshot);
       gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (0, y_pos));
+      if (rtl)
+        {
+          PangoRectangle extents;
+
+          pango_layout_get_pixel_extents (layout, NULL, &extents);
+          gtk_snapshot_scale (snapshot, -1.0, 1.0);
+          gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (-extents.width, 0));
+        }
       gtk_snapshot_append_layout (snapshot, layout, &(GdkRGBA){ 1.0, 1.0, 1.0, 1.0 });
       gtk_snapshot_restore (snapshot);
 
@@ -1154,6 +1180,7 @@ refresh_overlay (BzDataGraph *self)
 {
   double           widget_width          = 0.0;
   double           widget_height         = 0.0;
+  double           motion_x              = 0.0;
   GdkRGBA          widget_color          = { 0 };
   AdwStyleManager *style_manager         = NULL;
   g_autoptr (GdkRGBA) accent_color       = NULL;
@@ -1181,10 +1208,11 @@ refresh_overlay (BzDataGraph *self)
 
   widget_width  = gtk_widget_get_width (GTK_WIDGET (self));
   widget_height = gtk_widget_get_height (GTK_WIDGET (self));
+  motion_x      = gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL ? widget_width - self->motion_x : self->motion_x;
 
-  if (self->motion_x < LABEL_MARGIN ||
+  if (motion_x < LABEL_MARGIN ||
       self->motion_y < 0.0 ||
-      self->motion_x >= widget_width - LABEL_MARGIN_RIGHT ||
+      motion_x >= widget_width - LABEL_MARGIN_RIGHT ||
       self->motion_y >= widget_height - LABEL_MARGIN)
     {
       g_clear_pointer (&self->overlay, gsk_render_node_unref);
@@ -1197,7 +1225,7 @@ refresh_overlay (BzDataGraph *self)
 
   n_items     = g_list_model_get_n_items (self->model);
   graph_width = widget_width - LABEL_MARGIN - LABEL_MARGIN_RIGHT;
-  fraction    = (self->motion_x - LABEL_MARGIN) / graph_width;
+  fraction    = (motion_x - LABEL_MARGIN) / graph_width;
   hovered_idx = floor ((double) n_items * fraction);
   if (hovered_idx >= n_items)
     hovered_idx = n_items - 1;
@@ -1246,7 +1274,7 @@ refresh_overlay (BzDataGraph *self)
   }                                                                         \
   G_STMT_END
 
-  APPEND_LINE (self->motion_x, 0.0, self->motion_x, widget_height - LABEL_MARGIN, &line_color);
+  APPEND_LINE (motion_x, 0.0, motion_x, widget_height - LABEL_MARGIN, &line_color);
 
 #undef APPEND_LINE
 
