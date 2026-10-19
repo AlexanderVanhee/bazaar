@@ -40,7 +40,6 @@
 #include "bz-flatpak-entry.h"
 #include "bz-full-view.h"
 #include "bz-hardware-support-dialog.h"
-#include "bz-install-controls.h"
 #include "bz-license-dialog.h"
 #include "bz-metainfo-preview.h"
 #include "bz-releases-list.h"
@@ -561,8 +560,8 @@ other_source_download_cb (BzFullView *self,
   adw_timed_animation_set_easing (ADW_TIMED_ANIMATION (animation), ADW_EASE_OUT_CUBIC);
   adw_animation_play (animation);
 
-  bz_install_controls_grab_focus (BZ_INSTALL_CONTROLS (self->narrow_install_controls));
-  bz_install_controls_grab_focus (BZ_INSTALL_CONTROLS (self->wide_install_controls));
+  bz_install_controls_focus_button (BZ_INSTALL_CONTROLS (self->narrow_install_controls));
+  bz_install_controls_focus_button (BZ_INSTALL_CONTROLS (self->wide_install_controls));
 
   window = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (self)));
   if (BZ_IS_WINDOW (window))
@@ -823,8 +822,8 @@ idle_focus_install (GWeakRef *wr)
   if (self == NULL)
     return G_SOURCE_REMOVE;
 
-  bz_install_controls_grab_focus (BZ_INSTALL_CONTROLS (self->narrow_install_controls));
-  bz_install_controls_grab_focus (BZ_INSTALL_CONTROLS (self->wide_install_controls));
+  bz_install_controls_focus_button (BZ_INSTALL_CONTROLS (self->narrow_install_controls));
+  bz_install_controls_focus_button (BZ_INSTALL_CONTROLS (self->wide_install_controls));
 
   return G_SOURCE_REMOVE;
 }
