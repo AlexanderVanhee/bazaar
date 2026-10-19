@@ -188,6 +188,7 @@ setup_text_tags (GtkTextBuffer *buffer)
 {
   gtk_text_buffer_create_tag (buffer, "code",
                               "family", "monospace",
+                              "weight", PANGO_WEIGHT_SEMIBOLD,
                               NULL);
 
   gtk_text_buffer_create_tag (buffer, "emphasis",
