@@ -29,6 +29,7 @@ template $BzScreenshotsCarousel: Gtk.Widget {
 
         allow-mouse-drag: true;
         allow-overshoot: true;
+        pass-through-start: true;
         allow-scroll-wheel: true;
         allow-raise: bind $invert_boolean(template.compact) as <bool>;
         align-start: bind $invert_boolean(template.compact) as <bool>;
