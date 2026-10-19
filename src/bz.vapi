@@ -236,6 +236,12 @@ public extern class Bz.EntryGroup : GLib.Object {
     [CCode (has_construct_function = false)]
     protected EntryGroup ();
 
+    public string? id { get; }
+    public string? title { get; }
+    public string? developer { get; }
+    public int installable { get; }
+    public int removable { get; }
+
     [CCode (cname = "bz_entry_group_get_unique_id_is_eol")]
     public bool get_unique_id_is_eol (string unique_id);
 
@@ -263,6 +269,7 @@ public extern class Bz.Entry : GLib.Object {
     protected Entry ();
 
     public string? unique_id { get; set; }
+    public string? id { get; }
 
     public string? title { get; }
     public string? developer { get; }
@@ -387,12 +394,6 @@ public extern class Bz.HardwareSupportDialog : GLib.Object {
 public extern class Bz.Inspector : GLib.Object {
     [CCode (has_construct_function = false)]
     protected Inspector ();
-}
-
-[CCode (cheader_filename = "bz-install-controls.h", type_id = "bz_install_controls_get_type ()")]
-public extern class Bz.InstallControls : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected InstallControls ();
 }
 
 [CCode (cheader_filename = "bz-installed-tile.h", type_id = "bz_installed_tile_get_type ()")]
@@ -610,6 +611,9 @@ public extern class Bz.TransactionListDialog : GLib.Object {
 public extern class Bz.TransactionManager : GLib.Object {
     [CCode (has_construct_function = false)]
     protected TransactionManager ();
+
+    [NoAccessorMethod]
+    public GLib.ListModel? all_trackers { owned get; }
 }
 
 [CCode (cheader_filename = "bz-transaction-tile.h", type_id = "bz_transaction_tile_get_type ()")]

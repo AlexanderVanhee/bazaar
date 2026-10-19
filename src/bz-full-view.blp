@@ -234,8 +234,6 @@ template $BzFullView: Adw.Bin {
                           $BzInstallControls wide_install_controls {
                             wide: true;
                             entry-group: bind template.entry-group as <$BzEntryGroup>;
-                            state: bind template.state as <$BzStateInfo>;
-                            settings: bind template.state as <$BzStateInfo>.settings;
                             update => $update_cb(template);
                           }
                         }
@@ -421,8 +419,6 @@ template $BzFullView: Adw.Bin {
                           visible: false;
                           margin-top: 6;
                           entry-group: bind template.entry-group as <$BzEntryGroup>;
-                          state: bind template.state as <$BzStateInfo>;
-                          settings: bind template.state as <$BzStateInfo>.settings;
                           update => $update_cb(template);
                         }
                       }

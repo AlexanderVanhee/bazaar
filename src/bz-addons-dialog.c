@@ -33,7 +33,6 @@
 #include "bz-entry-group.h"
 #include "bz-fading-clamp.h"
 #include "bz-flatpak-entry.h"
-#include "bz-install-controls.h"
 #include "bz-license-dialog.h"
 #include "bz-result.h"
 #include "bz-share-list.h"

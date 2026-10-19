@@ -1,64 +1,94 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $BzInstallControls: Box {
-  hexpand: bind $invert_boolean(template.wide) as <bool>;
+template $BzInstallControls: Widget {
+  hexpand: bind template.wide inverted;
 
   Stack stack {
     visible: bind $is_not_empty_page(stack.visible-child-name) as <bool>;
+    visible-child-name: bind $get_visible_page(
+      template.entry-group as <$BzEntryGroup>.installable,
+      template.entry-group as <$BzEntryGroup>.removable,
+      template.state as <$BzStateInfo>.available-updates,
+      template.in-progress
+      ) as <string>;
     transition-type: crossfade;
-    visible-child-name: bind try {
-                              $get_visible_page(template.entry-group as <$BzEntryGroup>.installable, template.entry-group as <$BzEntryGroup>.removable, template.state as <$BzStateInfo>.available-updates, template.tracker as <$BzTransactionEntryTracker>.active as <bool> ) as <string>,
-                              $get_visible_page(template.entry-group as <$BzEntryGroup>.installable, template.entry-group as <$BzEntryGroup>.removable, template.state as <$BzStateInfo>.available-updates, false ) as <string>
-                              };
-    hexpand: bind $invert_boolean(template.wide) as <bool>;
+    hexpand: bind template.wide inverted;
     valign: center;
 
-    StackPage install {
+    StackPage {
       name: "install";
 
-      child: $BgeWdgtRenderer animated_button {
-        margin-top: 3;
-        margin-bottom: 3;
+      child: Button install_button {
+        styles [
+          "pill",
+          "suggested-action",
+        ]
 
-        resource: "/io/github/kolunmi/Bazaar/bz-install-controls.wdgt";
-        reference: bind template.tracker as <$BzTransactionEntryTracker>;
+        hexpand: bind template.wide inverted;
+        halign: bind $page_halign(template.wide) as <Align>;
+        margin-start: 4;
+        margin-end: 4;
+        margin-top: 7;
+        margin-bottom: 7;
+        clicked => $on_install_clicked();
 
-        state: bind try { $get_install_btn_state(
-                  template.tracker as <$BzTransactionEntryTracker>.status as <$BzTransactionEntryStatus>,
-                  template.tracker as <$BzTransactionEntryTracker>.active as <bool>,
-                  template.tracker as <$BzTransactionEntryTracker>.pending as <bool>,
-                  template.tracker as <$BzTransactionEntryTracker>.progress as <double>
-                ) as <string>, $install_btn_state_fallback() as <string>};
+        child: Stack install_label_stack {
+          transition-type: crossfade;
+          transition-duration: 200;
 
-        notify::state => $on_tracker_state_changed() swapped;
+          StackPage {
+            name: "install";
 
-        hexpand: bind $invert_boolean(template.wide) as <bool>;
-        halign: bind $choose_int(template.wide, 2, 0) as <int>;
+            child: Label {
+              label: C_("Install Controls", "Install");
+            };
+          }
+
+          StackPage {
+            name: "cancel";
+
+            child: Label {
+              label: C_("Install Controls", "Cancel");
+            };
+          }
+
+          StackPage {
+            name: "cancelling";
+
+            child: Label {
+              label: C_("Install Controls", "Cancelling");
+            };
+          }
+        };
       };
     }
 
-    StackPage open {
+    StackPage {
       name: "open";
 
       child: Box {
-        spacing: bind $choose_int(template.wide, 10, 8) as <int>;
-        homogeneous: bind $invert_boolean(template.wide) as <bool>;
-        halign: bind $choose_int(template.wide, 2, 0) as <int>;
+        spacing: bind $choose(template.wide, 10, 8) as <int>;
+        homogeneous: bind template.wide inverted;
+        halign: bind $page_halign(template.wide) as <Align>;
         valign: center;
-
         margin-top: 3;
         margin-bottom: 3;
-        Button open_button {
+
+        Button {
           styles [
             "pill",
           ]
-          visible: bind $invert_boolean($is_blocked(template.state as <$BzStateInfo>.parental-blocked-ids, template.entry-group as <$BzEntryGroup>) as <bool>) as <bool>;
-          hexpand: bind $invert_boolean(template.wide) as <bool>;
+
+          visible: bind $is_not_blocked(
+            template.state as <$BzStateInfo>.parental-blocked-ids,
+            template.entry-group
+            ) as <bool>;
+          sensitive: bind template.entry-group as <$BzEntryGroup>.removable-and-available;
+          hexpand: bind template.wide inverted;
           label: _("_Open");
           use-underline: true;
-          sensitive: bind $invert_boolean($is_zero(template.entry-group as <$BzEntryGroup>.removable-and-available) as <bool>) as <bool>;
-          clicked => $run_cb(template);
+          clicked => $on_open_clicked();
         }
 
         Button {
@@ -67,24 +97,24 @@ template $BzInstallControls: Box {
             "circular",
           ]
 
-          width-request: bind $choose_int(template.wide, 45, -1) as <int>;
-          hexpand: bind $invert_boolean(template.wide) as <bool>;
+          width-request: bind $choose(template.wide, 45, -1) as <int>;
+          hexpand: bind template.wide inverted;
           tooltip-text: _("Uninstall Application");
-          sensitive: bind $invert_boolean($is_zero(template.entry-group as <$BzEntryGroup>.removable-and-available) as <bool>) as <bool>;
-          clicked => $remove_cb(template);
+          sensitive: bind template.entry-group as <$BzEntryGroup>.removable-and-available;
+          clicked => $on_remove_clicked();
 
           child: Box {
             halign: center;
             hexpand: true;
 
             Label {
-              visible: bind $invert_boolean(template.wide) as <bool>;
+              visible: bind template.wide inverted;
               label: _("_Remove");
               use-underline: true;
             }
 
             Image {
-              visible: bind template.wide as <bool>;
+              visible: bind template.wide;
               icon-name: "user-trash-symbolic";
             }
           };
@@ -92,27 +122,26 @@ template $BzInstallControls: Box {
       };
     }
 
-    StackPage update {
+    StackPage {
       name: "update";
 
       child: Box {
-        spacing: bind $choose_int(template.wide, 10, 8) as <int>;
-        homogeneous: bind $invert_boolean(template.wide) as <bool>;
-        halign: bind $choose_int(template.wide, 2, 0) as <int>;
+        spacing: bind $choose(template.wide, 10, 8) as <int>;
+        homogeneous: bind template.wide inverted;
+        halign: bind $page_halign(template.wide) as <Align>;
         valign: center;
-
         margin-top: 3;
         margin-bottom: 3;
 
-        Button update_button {
+        Button {
           styles [
             "pill",
-            "suggested-action"
+            "suggested-action",
           ]
 
-          hexpand: bind $invert_boolean(template.wide) as <bool>;
+          hexpand: bind template.wide inverted;
           label: _("Update");
-          clicked => $update_cb(template);
+          clicked => $on_update_clicked();
         }
 
         Button {
@@ -121,23 +150,23 @@ template $BzInstallControls: Box {
             "circular",
           ]
 
-          width-request: bind $choose_int(template.wide, 45, -1) as <int>;
-          hexpand: bind $invert_boolean(template.wide) as <bool>;
+          width-request: bind $choose(template.wide, 45, -1) as <int>;
+          hexpand: bind template.wide inverted;
           tooltip-text: _("Uninstall Application");
-          sensitive: bind $invert_boolean($is_zero(template.entry-group as <$BzEntryGroup>.removable-and-available) as <bool>) as <bool>;
-          clicked => $remove_cb(template);
+          sensitive: bind template.entry-group as <$BzEntryGroup>.removable-and-available;
+          clicked => $on_remove_clicked();
 
           child: Box {
             halign: center;
             hexpand: true;
 
             Label {
-              visible: bind $invert_boolean(template.wide) as <bool>;
+              visible: bind template.wide inverted;
               label: _("Remove");
             }
 
             Image {
-              visible: bind template.wide as <bool>;
+              visible: bind template.wide;
               icon-name: "user-trash-symbolic";
             }
           };
@@ -145,9 +174,28 @@ template $BzInstallControls: Box {
       };
     }
 
-    StackPage empty {
+    StackPage {
       name: "empty";
+
       child: Adw.Bin {};
     }
+  }
+
+  Adw.Bin pending_ring {
+    styles [
+      "install-button-indicator",
+    ]
+
+    can-target: false;
+    opacity: 0;
+  }
+
+  Adw.Bin progress_ring {
+    styles [
+      "install-button-indicator",
+    ]
+
+    can-target: false;
+    opacity: 0;
   }
 }

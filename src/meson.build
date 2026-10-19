@@ -113,7 +113,6 @@ bz_sources = files(
   'bz-group-tile-css-watcher.c',
   'bz-hardware-support-dialog.c',
   'bz-inspector.c',
-  'bz-install-controls.c',
   'bz-installed-tile.c',
   'bz-lazy-wdgt.c',
   'bz-library-page.c',
@@ -316,6 +315,7 @@ vala_sources = files(
 
   'bz-cosmic-place-applet-dialog.vala',
   'bz-decorated-screenshot.vala',
+  'bz-install-controls.vala',
   'bz-themed-rect.vala',
   'bz-updates-card.vala',
   'bz-flathub-category-section.vala',
