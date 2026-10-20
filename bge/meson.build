@@ -13,8 +13,6 @@ bge_headers = [
   'bge-carousel.h',
 ]
 
-subdir('wdgt')
-
 version_split = api_version.split('.')
 version_conf = configuration_data()
 version_conf.set('VERSION', api_version)
