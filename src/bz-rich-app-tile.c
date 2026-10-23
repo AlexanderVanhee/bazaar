@@ -24,7 +24,6 @@
 #include "bz-entry.h"
 #include "bz-rich-app-tile.h"
 #include "bz-rounded-picture.h"
-#include "bz-transact-icon.h"
 #include "util.h"
 
 #include <glib/gi18n.h>
@@ -42,7 +41,6 @@ struct _BzRichAppTile
 
   GtkWidget          *picture_box;
   GtkWidget          *get_button;
-  BzTransactIconInfo *transact_icon_info;
   GtkWidget          *action_stack;
 };
 
@@ -365,7 +363,6 @@ bz_rich_app_tile_class_init (BzRichAppTileClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, cancel_button_clicked_cb);
   gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, picture_box);
   gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, get_button);
-  gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, transact_icon_info);
   gtk_widget_class_bind_template_child (widget_class, BzRichAppTile, action_stack);
 
   gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);

@@ -68,10 +68,9 @@ template $BzRichAppTile: $BzListTile {
         width-request: 64;
         height-request: 64;
 
-        info: $BzTransactIconInfo transact_icon_info {
-          group: bind template.group as <$BzEntryGroup>;
-          paintable: bind template.ui_entry as <$BzEntry>.icon-paintable;
-        };
+        group: bind template.group as <$BzEntryGroup>;
+
+        paintable: bind template.ui_entry as <$BzEntry>.icon-paintable;
       }
 
       Box {
