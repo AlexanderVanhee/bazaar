@@ -96,7 +96,6 @@ bz_sources = files(
   'bz-entry-inspector.c',
   'bz-entry.c',
   'bz-error-dialog.c',
-  'bz-fading-clamp.c',
   'bz-favorite-button.c',
   'bz-favorites-page.c',
   'bz-favorites-tile.c',
@@ -313,6 +312,7 @@ vala_sources = files(
 
   'bz-cosmic-place-applet-dialog.vala',
   'bz-decorated-screenshot.vala',
+  'bz-fading-clamp.vala',
   'bz-install-controls.vala',
   'bz-themed-rect.vala',
   'bz-transact-icon.vala',

@@ -31,7 +31,6 @@
 #include "bz-appstream-description-render.h"
 #include "bz-context-tile.h"
 #include "bz-entry-group.h"
-#include "bz-fading-clamp.h"
 #include "bz-flatpak-entry.h"
 #include "bz-license-dialog.h"
 #include "bz-result.h"

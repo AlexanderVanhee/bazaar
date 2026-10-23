@@ -289,12 +289,6 @@ public extern class Bz.ErrorDialog : GLib.Object {
     protected ErrorDialog ();
 }
 
-[CCode (cheader_filename = "bz-fading-clamp.h", type_id = "bz_fading_clamp_get_type ()")]
-public extern class Bz.FadingClamp : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected FadingClamp ();
-}
-
 [CCode (cheader_filename = "bz-favorite-button.h", type_id = "bz_favorite_button_get_type ()")]
 public extern class Bz.FavoriteButton : GLib.Object {
     [CCode (has_construct_function = false)]

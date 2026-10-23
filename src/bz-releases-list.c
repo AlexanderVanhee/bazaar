@@ -21,7 +21,6 @@
 #include <glib/gi18n.h>
 
 #include "bz-appstream-description-render.h"
-#include "bz-fading-clamp.h"
 #include <bzvala.h>
 #include "bz-releases-list.h"
 #include "template-callbacks.h"
@@ -232,7 +231,7 @@ create_release_row (const char *version,
         {
           fading_clamp = BZ_FADING_CLAMP (bz_fading_clamp_new ());
           bz_fading_clamp_set_max_height (fading_clamp, 270);
-          bz_fading_clamp_set_child (fading_clamp, GTK_WIDGET (description_widget));
+          adw_bin_set_child (ADW_BIN (fading_clamp), GTK_WIDGET (description_widget));
           gtk_widget_set_margin_top (GTK_WIDGET (fading_clamp), 10);
           gtk_box_append (content_box, GTK_WIDGET (fading_clamp));
         }
