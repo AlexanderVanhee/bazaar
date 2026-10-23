@@ -3,56 +3,56 @@ using Gio 2.0;
 using Adw 1;
 
 template $BzFullView: Adw.Bin {
-  child: Adw.ToolbarView {
+  child: Adw.BreakpointBin {
+    width-request: 360;
+    height-request: 100;
 
-    [top]
-    Adw.HeaderBar header_bar {
-      overflow: hidden;
+    Adw.Breakpoint {
+      condition ("max-width: 700px")
 
-      [title]
-      Revealer {
-        reveal-child: bind $is_scrolled_down(main_scroll.vadjustment as <Adjustment>.value) as <bool>;
-        transition-type: slide_up;
-        transition-duration: 500;
-        overflow: visible;
-        child: Label {
-          label: bind template.entry-group as <$BzEntryGroup>.title;
-          styles ["title"]
-        };
+      setters {
+        context_bar.orientation: vertical;
+        context_bar.spacing: 4;
+        context_bar.homogeneous: false;
+        header_box.spacing: 12;
+        app_name_box.spacing: 0;
+        formfactor_support_tile_wide.visible: false;
+        formfactor_support_tile_narrow.visible: true;
+        screenshots.compact: true;
+        header_bar.show-title: false;
+        link_list.dual-column: false;
       }
     }
 
-    content: Adw.ViewStack stack {
-      enable-transitions: false;
+    child: Adw.ToolbarView {
 
-      Adw.ViewStackPage {
-        name: "loading";
-        child: Adw.Bin {};
+      [top]
+      Adw.HeaderBar header_bar {
+        overflow: hidden;
+
+        [title]
+        Revealer {
+          reveal-child: bind $is_scrolled_down(main_scroll.vadjustment as <Adjustment>.value) as <bool>;
+          transition-type: slide_up;
+          transition-duration: 500;
+          overflow: visible;
+          child: Label {
+            label: bind template.entry-group as <$BzEntryGroup>.title;
+            styles ["title"]
+          };
+        }
       }
 
-      Adw.ViewStackPage {
-        name: "content";
+      content: Adw.ViewStack stack {
+        enable-transitions: false;
 
-        child: Adw.BreakpointBin {
-          width-request: 360;
-          height-request: 100;
+        Adw.ViewStackPage {
+          name: "loading";
+          child: Adw.Bin {};
+        }
 
-          Adw.Breakpoint {
-            condition ("max-width: 700px")
-
-            setters {
-              context_bar.orientation: vertical;
-              context_bar.spacing: 4;
-              context_bar.homogeneous: false;
-              header_box.spacing: 12;
-              app_name_box.spacing: 0;
-              formfactor_support_tile_wide.visible: false;
-              formfactor_support_tile_narrow.visible: true;
-              screenshots.compact: true;
-              header_bar.show-title: false;
-              link_list.dual-column: false;
-            }
-          }
+        Adw.ViewStackPage {
+          name: "content";
 
           child: Adw.BreakpointBin breakpoint_bin {
             width-request: 360;
@@ -787,8 +787,8 @@ template $BzFullView: Adw.Bin {
               };
             };
           };
-        };
-      }
+        }
+      };
     };
   };
 }
