@@ -23,6 +23,7 @@
 #include <appstream.h>
 #include <flatpak.h>
 
+#include "bz-app-permissions.h"
 #include "bz-flatpak-entry.h"
 #include "bz-flatpak-instance.h"
 
@@ -46,6 +47,11 @@ bz_flatpak_ref_parts_format_unique (const char *origin,
 char *
 bz_flatpak_ref_format_unique (FlatpakRef *ref,
                               gboolean    user);
+
+BzAppPermissions *
+bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
+                                           FlatpakInstalledRef *iref,
+                                           GCancellable        *cancellable);
 
 BzFlatpakEntry *
 bz_flatpak_entry_new_for_ref (FlatpakRef    *ref,

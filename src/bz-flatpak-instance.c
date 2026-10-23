@@ -2000,6 +2000,68 @@ should_skip_extension_ref (FlatpakInstalledRef *iref)
          g_str_has_suffix (ref_name, ".Sources");
 }
 
+BzAppPermissions *
+bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
+                                           FlatpakInstalledRef *iref,
+                                           GCancellable        *cancellable)
+{
+  const char *origin                    = NULL;
+  g_autoptr (GBytes) old_bytes          = NULL;
+  g_autoptr (GKeyFile) old_keyfile      = NULL;
+  g_autoptr (GBytes) new_bytes          = NULL;
+  g_autoptr (GKeyFile) new_keyfile      = NULL;
+  g_autoptr (BzAppPermissions) old_perm = NULL;
+  g_autoptr (BzAppPermissions) new_perm = NULL;
+  BzAppPermissions *delta               = NULL;
+  g_autoptr (GError) perm_error         = NULL;
+
+  old_bytes = flatpak_installed_ref_load_metadata (iref, cancellable, &perm_error);
+  if (old_bytes != NULL)
+    {
+      old_keyfile = g_key_file_new ();
+      if (!g_key_file_load_from_bytes (old_keyfile, old_bytes, G_KEY_FILE_NONE, NULL))
+        g_clear_pointer (&old_keyfile, g_key_file_unref);
+    }
+  else
+    {
+      g_debug ("Failed to get installed metadata for '%s': %s",
+               flatpak_ref_get_name (FLATPAK_REF (iref)), perm_error->message);
+    }
+  g_clear_error (&perm_error);
+
+  origin = flatpak_installed_ref_get_origin (iref);
+  if (old_keyfile != NULL && origin != NULL)
+    {
+      new_bytes = flatpak_installation_fetch_remote_metadata_sync (
+          installation, origin, FLATPAK_REF (iref), cancellable, &perm_error);
+      if (new_bytes != NULL)
+        {
+          new_keyfile = g_key_file_new ();
+          if (!g_key_file_load_from_bytes (new_keyfile, new_bytes, G_KEY_FILE_NONE, NULL))
+            g_clear_pointer (&new_keyfile, g_key_file_unref);
+        }
+      else
+        {
+          g_debug ("Failed to fetch remote metadata for '%s' from '%s': %s",
+                   flatpak_ref_get_name (FLATPAK_REF (iref)), origin, perm_error->message);
+        }
+    }
+  g_clear_error (&perm_error);
+
+  if (old_keyfile != NULL && new_keyfile != NULL)
+    {
+      old_perm = bz_app_permissions_new_from_metadata (old_keyfile, NULL);
+      new_perm = bz_app_permissions_new_from_metadata (new_keyfile, NULL);
+    }
+
+  if (old_perm != NULL && new_perm != NULL)
+    return bz_app_permissions_diff (old_perm, new_perm);
+
+  delta = bz_app_permissions_new ();
+  bz_app_permissions_seal (delta);
+  return delta;
+}
+
 static DexFuture *
 retrieve_updates_fiber (GatherRefsData *data)
 {
@@ -2052,15 +2114,6 @@ retrieve_updates_fiber (GatherRefsData *data)
       FlatpakInstalledRef *iref             = NULL;
       FlatpakInstallation *installation     = NULL;
       g_autofree char     *unique_id        = NULL;
-      const char          *origin           = NULL;
-      g_autoptr (GBytes) old_bytes          = NULL;
-      g_autoptr (GKeyFile) old_keyfile      = NULL;
-      g_autoptr (GBytes) new_bytes          = NULL;
-      g_autoptr (GKeyFile) new_keyfile      = NULL;
-      g_autoptr (BzAppPermissions) old_perm = NULL;
-      g_autoptr (BzAppPermissions) new_perm = NULL;
-      BzAppPermissions *delta               = NULL;
-      g_autoptr (GError) perm_error         = NULL;
 
       if (i < n_sys_refs)
         {
@@ -2080,54 +2133,8 @@ retrieve_updates_fiber (GatherRefsData *data)
 
       unique_id = bz_flatpak_ref_format_unique (FLATPAK_REF (iref), user);
 
-      old_bytes = flatpak_installed_ref_load_metadata (iref, cancellable, &perm_error);
-      if (old_bytes != NULL)
-        {
-          old_keyfile = g_key_file_new ();
-          if (!g_key_file_load_from_bytes (old_keyfile, old_bytes, G_KEY_FILE_NONE, NULL))
-            g_clear_pointer (&old_keyfile, g_key_file_unref);
-        }
-      else
-        {
-          g_debug ("Failed to get installed metadata for '%s': %s",
-                   flatpak_ref_get_name (FLATPAK_REF (iref)), perm_error->message);
-        }
-      g_clear_error (&perm_error);
-
-      origin = flatpak_installed_ref_get_origin (iref);
-      if (old_keyfile != NULL && origin != NULL)
-        {
-          new_bytes = flatpak_installation_fetch_remote_metadata_sync (
-              installation, origin, FLATPAK_REF (iref), cancellable, &perm_error);
-          if (new_bytes != NULL)
-            {
-              new_keyfile = g_key_file_new ();
-              if (!g_key_file_load_from_bytes (new_keyfile, new_bytes, G_KEY_FILE_NONE, NULL))
-                g_clear_pointer (&new_keyfile, g_key_file_unref);
-            }
-          else
-            {
-              g_debug ("Failed to fetch remote metadata for '%s' from '%s': %s",
-                       flatpak_ref_get_name (FLATPAK_REF (iref)), origin, perm_error->message);
-            }
-        }
-      g_clear_error (&perm_error);
-
-      if (old_keyfile != NULL && new_keyfile != NULL)
-        {
-          old_perm = bz_app_permissions_new_from_metadata (old_keyfile, NULL);
-          new_perm = bz_app_permissions_new_from_metadata (new_keyfile, NULL);
-        }
-
-      if (old_perm != NULL && new_perm != NULL)
-        delta = bz_app_permissions_diff (old_perm, new_perm);
-      else
-        {
-          delta = bz_app_permissions_new ();
-          bz_app_permissions_seal (delta);
-        }
-
-      g_hash_table_replace (ids, g_steal_pointer (&unique_id), delta);
+      g_hash_table_replace (ids, g_steal_pointer (&unique_id),
+                            bz_flatpak_ref_dup_additional_permissions (installation, iref, cancellable));
     }
 
   return dex_future_new_take_boxed (

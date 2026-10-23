@@ -28,6 +28,7 @@
 #include <glib/gi18n.h>
 
 #include <bzvala.h>
+#include "bz-flatpak-private.h"
 #include "update-worker.h"
 
 #define DAILY_WINDOW_START_HOUR    6
@@ -358,11 +359,12 @@ update_installation (FlatpakInstallation *installation,
 
   for (guint i = 0; i < update_refs->len; i++)
     {
-      FlatpakInstalledRef *iref    = NULL;
-      g_autofree char     *ref_fmt = NULL;
-      const char          *title   = NULL;
-      const char          *id      = NULL;
-      const char          *old_ver = NULL;
+      FlatpakInstalledRef *iref                = NULL;
+      g_autofree char     *ref_fmt             = NULL;
+      const char          *title               = NULL;
+      const char          *id                  = NULL;
+      const char          *old_ver             = NULL;
+      g_autoptr (BzAppPermissions) permissions = NULL;
 
       iref = g_ptr_array_index (update_refs, i);
       if (should_skip_extension_ref (iref))
@@ -375,6 +377,13 @@ update_installation (FlatpakInstallation *installation,
       if (title == NULL)
         title = id;
       old_ver = flatpak_installed_ref_get_appdata_version (iref);
+
+      permissions = bz_flatpak_ref_dup_additional_permissions (installation, iref, NULL);
+      if (!bz_app_permissions_is_empty (permissions))
+        {
+          g_debug ("Holding back update for %s: new permissions requested", id);
+          continue;
+        }
 
       if (flatpak_transaction_add_update (transaction, ref_fmt, NULL, NULL, &local_error))
         {
