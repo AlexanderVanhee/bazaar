@@ -28,6 +28,7 @@
 #include <glib/gi18n.h>
 
 #include <bzvala.h>
+#include "bz-flatpak-private.h"
 #include "update-worker.h"
 
 #define DAILY_WINDOW_START_HOUR    6
@@ -42,6 +43,7 @@ static gboolean timestamp_more_than_days_ago (GSettings  *settings,
                                               const char *key,
                                               guint       days);
 static void     maybe_notify_stale (GSettings *settings);
+static void     notify_stale (GSettings *settings);
 static gboolean should_skip_extension_ref (FlatpakInstalledRef *iref);
 static gboolean on_operation_error (FlatpakTransaction          *transaction,
                                     FlatpakTransactionOperation *operation,
@@ -49,7 +51,8 @@ static gboolean on_operation_error (FlatpakTransaction          *transaction,
                                     int                          details,
                                     gpointer                     user_data);
 static gboolean update_installation (FlatpakInstallation *installation,
-                                     GPtrArray           *history_out);
+                                     GPtrArray           *history_out,
+                                     gboolean            *held_back_out);
 static void     send_portal_notification (const char *id,
                                           const char *title,
                                           const char *body,
@@ -68,6 +71,7 @@ run_update_worker (int   argc,
   gboolean auto_update                        = FALSE;
   gboolean auto_update_notifications          = FALSE;
   gboolean had_error                          = FALSE;
+  gboolean held_back                          = FALSE;
   g_autoptr (GDateTime) now                   = NULL;
 
   settings                  = g_settings_new (APPLICATION_ID);
@@ -109,7 +113,7 @@ run_update_worker (int   argc,
   else
     {
       flatpak_installation_set_no_interaction (system_inst, TRUE);
-      if (!update_installation (system_inst, history))
+      if (!update_installation (system_inst, history, &held_back))
         had_error = TRUE;
     }
 
@@ -127,11 +131,14 @@ run_update_worker (int   argc,
     else
       {
         flatpak_installation_set_no_interaction (user_inst, TRUE);
-        if (!update_installation (user_inst, history))
+        if (!update_installation (user_inst, history, &held_back))
           had_error = TRUE;
       }
   }
 #endif
+
+  if (held_back)
+    notify_stale (settings);
 
   if (had_error)
     {
@@ -259,6 +266,12 @@ maybe_notify_stale (GSettings *settings)
   if (!timestamp_more_than_days_ago (settings, "last-update-check", STALE_CHECK_THRESHOLD_DAYS))
     return;
 
+  notify_stale (settings);
+}
+
+static void
+notify_stale (GSettings *settings)
+{
   if (!timestamp_more_than_days_ago (settings, "last-stale-notification", STALE_NOTIFY_THROTTLE_DAYS))
     return;
 
@@ -324,7 +337,8 @@ on_operation_error (FlatpakTransaction          *transaction,
 
 static gboolean
 update_installation (FlatpakInstallation *installation,
-                     GPtrArray           *history_out)
+                     GPtrArray           *history_out,
+                     gboolean            *held_back_out)
 {
   g_autoptr (GError) local_error             = NULL;
   g_autoptr (GPtrArray) update_refs          = NULL;
@@ -358,11 +372,12 @@ update_installation (FlatpakInstallation *installation,
 
   for (guint i = 0; i < update_refs->len; i++)
     {
-      FlatpakInstalledRef *iref    = NULL;
-      g_autofree char     *ref_fmt = NULL;
-      const char          *title   = NULL;
-      const char          *id      = NULL;
-      const char          *old_ver = NULL;
+      FlatpakInstalledRef *iref                = NULL;
+      g_autofree char     *ref_fmt             = NULL;
+      const char          *title               = NULL;
+      const char          *id                  = NULL;
+      const char          *old_ver             = NULL;
+      g_autoptr (BzAppPermissions) permissions = NULL;
 
       iref = g_ptr_array_index (update_refs, i);
       if (should_skip_extension_ref (iref))
@@ -375,6 +390,14 @@ update_installation (FlatpakInstallation *installation,
       if (title == NULL)
         title = id;
       old_ver = flatpak_installed_ref_get_appdata_version (iref);
+
+      permissions = bz_flatpak_ref_dup_additional_permissions (installation, iref, NULL);
+      if (!bz_app_permissions_is_empty (permissions))
+        {
+          g_debug ("Holding back update for %s: new permissions requested", id);
+          *held_back_out = TRUE;
+          continue;
+        }
 
       if (flatpak_transaction_add_update (transaction, ref_fmt, NULL, NULL, &local_error))
         {
