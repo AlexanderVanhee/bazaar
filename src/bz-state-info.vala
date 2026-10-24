@@ -27,6 +27,7 @@ public sealed class Bz.StateInfo : GLib.Object {
     public GLib.ListModel? filtered_entry_groups { get; set; }
     public GLib.ListModel? all_installed_entry_groups { get; set; }
     public GLib.ListModel? all_user_data_entry_groups { get; set; }
+    public GLib.HashTable<string, string>? installed_set { get; set; }
     public bool allow_manual_sync { get; set; }
     public Bz.ApplicationMapFactory? application_factory { get; set; }
     public Bz.AuthState? auth_state { get; set; }
