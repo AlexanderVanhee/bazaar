@@ -239,6 +239,7 @@ public extern class Bz.EntryGroup : GLib.Object {
     public string? id { get; }
     public string? title { get; }
     public string? developer { get; }
+    public uint64 installed_size { get; }
     public int installable { get; }
     public int removable { get; }
 
@@ -673,6 +674,15 @@ public extern class Bz.Zoom : Gtk.Widget, Gtk.Scrollable {
 
 [CCode (cheader_filename = "bz-backend.h", type_id = "bz_backend_get_type ()")]
 public extern interface Bz.Backend : GLib.Object {}
+
+[CCode (cheader_filename = "bz-flatpak-entry.h")]
+namespace Bz {
+    [CCode (cname = "bz_flatpak_remote_key")]
+    public static string flatpak_remote_key (string remote, bool user);
+
+    [CCode (cname = "bz_flatpak_unique_id_dup_remote_key")]
+    public static string? flatpak_unique_id_dup_remote_key (string unique_id);
+}
 
 [CCode (cheader_filename = "bz-context-row.h", cname = "BzImportance", cprefix = "BZ_IMPORTANCE_", type_id = "BZ_TYPE_IMPORTANCE")]
 public enum Bz.Importance {

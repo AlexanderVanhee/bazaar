@@ -24,6 +24,8 @@
 #define MAX_CONCURRENT_WRITES       16
 #define WATCH_CLEANUP_INTERVAL_MSEC 5000
 
+#include <errno.h>
+#include <glib/gstdio.h>
 #include <malloc.h>
 
 #include "bz-entry-cache-manager.h"
@@ -136,6 +138,10 @@ read_task_fiber (ReadTaskData *data);
 
 static DexFuture *
 enumerate_disk_fiber (GWeakRef *wr);
+
+static DexFuture *
+remove_fiber (BzWeakRef         *wr,
+              const char *const *unique_ids);
 
 static void
 bz_entry_cache_manager_dispose (GObject *object)
@@ -353,6 +359,26 @@ bz_entry_cache_manager_enumerate_disk (BzEntryCacheManager *self)
       (DexFiberFunc) enumerate_disk_fiber,
       bz_track_weak (self), bz_weak_release);
   return g_steal_pointer (&future);
+}
+
+DexFuture *
+bz_entry_cache_manager_remove (BzEntryCacheManager *self,
+                               const char *const   *unique_ids)
+{
+  g_autoptr (BzWeakRef) wr = NULL;
+
+  dex_return_error_if_fail (BZ_IS_ENTRY_CACHE_MANAGER (self));
+  dex_return_error_if_fail (unique_ids != NULL);
+
+  wr = bz_weak_ref_new (self);
+
+  return dex_scheduler_spawnv (
+      self->scheduler,
+      bz_get_dex_stack_size (),
+      G_CALLBACK (remove_fiber),
+      2,
+      BZ_TYPE_WEAK_REF, wr,
+      G_TYPE_STRV, unique_ids);
 }
 
 static DexFuture *
@@ -794,6 +820,37 @@ enumerate_disk_fiber (GWeakRef *wr)
 
 done:
   return dex_future_new_take_boxed (G_TYPE_HASH_TABLE, g_steal_pointer (&set));
+}
+
+static DexFuture *
+remove_fiber (BzWeakRef         *wr,
+              const char *const *unique_ids)
+{
+  g_autoptr (BzEntryCacheManager) self = NULL;
+  g_autoptr (BzGuard) guard            = NULL;
+  g_autofree char *main_cache          = NULL;
+
+  bz_weak_get_or_return_reject (self, &wr->ref);
+
+  BZ_BEGIN_GUARD_WITH_CONTEXT (&guard, &self->alive_mutex, &self->alive_gate);
+  BZ_BEGIN_GUARD_WITH_CONTEXT (&guard, &self->reading_mutex, &self->reading_gate);
+  BZ_BEGIN_GUARD_WITH_CONTEXT (&guard, &self->writing_mutex, &self->writing_gate);
+
+  main_cache = bz_dup_module_dir ();
+  for (guint i = 0; unique_ids[i] != NULL; i++)
+    {
+      g_autofree char *checksum = NULL;
+      g_autofree char *path     = NULL;
+
+      checksum = g_compute_checksum_for_string (G_CHECKSUM_MD5, unique_ids[i], -1);
+      path     = g_build_filename (main_cache, checksum, NULL);
+
+      if (g_unlink (path) != 0 && errno != ENOENT)
+        g_warning ("Failed to remove cached entry %s at %s: %s",
+                   unique_ids[i], path, g_strerror (errno));
+    }
+
+  return dex_future_new_true ();
 }
 
 static DexFuture *

@@ -21,6 +21,7 @@
 #pragma once
 
 #include <adwaita.h>
+#include <libdex.h>
 
 G_BEGIN_DECLS
 

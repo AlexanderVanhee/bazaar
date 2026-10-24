@@ -289,6 +289,12 @@ menu primary_menu {
       label: _("_Manage Leftover User Data");
       action: "window.user-data";
     }
+
+    item {
+      label: _("Manage R_emotes");
+      action: "window.remotes";
+      hidden-when: "action-disabled";
+    }
   }
   section {
     item {

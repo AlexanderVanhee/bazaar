@@ -101,6 +101,8 @@ src/bz-progress-bar.c
 src/bz-releases-dialog.blp
 src/bz-releases-list.c
 src/bz-releases-preview.blp
+src/bz-remotes-dialog.blp
+src/bz-remotes-dialog.vala
 src/bz-result.c
 src/bz-rich-app-tile.blp
 src/bz-rich-app-tile.c

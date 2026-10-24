@@ -1,0 +1,121 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $BzRemotesDialog: $BzDialog {
+  title: _("Remotes");
+  content-width: 500;
+
+  child: Adw.NavigationView navigation_view {
+    Adw.NavigationPage {
+      title: _("Remotes");
+      tag: "list";
+
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar list_header_bar {}
+
+        content: Stack list_stack {
+          StackPage {
+            name: "list";
+
+            child: Adw.PreferencesPage {
+              Adw.PreferencesGroup system_group {
+                title: _("System Installation");
+                description: _("Available to all users on this computer");
+              }
+
+              Adw.PreferencesGroup user_group {
+                title: _("User Installation");
+                description: _("Only available to you");
+              }
+            };
+          }
+
+          StackPage {
+            name: "empty";
+
+            child: Adw.StatusPage {
+              icon-name: "package-x-generic-symbolic";
+              title: _("No Remotes");
+              description: _("Add a remote to start installing apps");
+            };
+          }
+        };
+      };
+    }
+
+    Adw.NavigationPage confirm_page {
+      title: _("Remove Remote");
+      tag: "confirm";
+
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {
+          show-title: false;
+        }
+
+        content: ScrolledWindow {
+          hscrollbar-policy: never;
+          propagate-natural-height: true;
+          vexpand: true;
+
+          child: Adw.Clamp {
+            maximum-size: 582;
+
+            child: Box {
+              orientation: vertical;
+              spacing: 32;
+              margin-top: 12;
+              margin-start: 12;
+              margin-end: 12;
+
+              Box {
+                orientation: vertical;
+                spacing: 12;
+
+                Label confirm_title {
+                  wrap: true;
+                  justify: center;
+                  margin-top: 8;
+
+                  styles [
+                    "title-1",
+                  ]
+                }
+
+                Label confirm_body {
+                  wrap: true;
+                  justify: center;
+                  max-width-chars: 48;
+                }
+              }
+
+              Adw.PreferencesGroup apps_group {
+                Box apps_box {
+                  orientation: vertical;
+                  spacing: 10;
+                  margin-bottom: 5;
+                }
+              }
+            };
+          };
+        };
+
+        [bottom]
+        Button {
+          label: _("_Remove");
+          use-underline: true;
+          halign: center;
+          margin-top: 12;
+          margin-bottom: 12;
+          clicked => $on_confirm_clicked();
+
+          styles [
+            "destructive-action",
+            "pill",
+          ]
+        }
+      };
+    }
+  };
+}

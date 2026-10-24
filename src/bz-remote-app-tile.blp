@@ -1,0 +1,45 @@
+using Gtk 4.0;
+
+template $BzRemoteAppTile: Box {
+  spacing: 14;
+  height-request: 68;
+
+  styles [
+    "card",
+  ]
+
+  $BzTransactIcon {
+    margin-start: 12;
+    width-request: 48;
+    height-request: 48;
+    valign: center;
+
+    group: bind template.group;
+
+    paintable: bind template.group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.icon-paintable;
+  }
+
+  Box {
+    orientation: vertical;
+    valign: center;
+    hexpand: true;
+    margin-end: 16;
+    spacing: 3;
+
+    Label {
+      halign: start;
+      ellipsize: end;
+      label: bind template.group as <$BzEntryGroup>.title;
+    }
+
+    Label subtitle_label {
+      halign: start;
+      ellipsize: end;
+
+      styles [
+        "caption",
+        "dim-label",
+      ]
+    }
+  }
+}

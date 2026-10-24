@@ -674,11 +674,37 @@ bz_flatpak_ref_parts_format_unique (const char *origin,
                                     const char *fmt,
                                     gboolean    user)
 {
-  return g_strdup_printf (
-      "FLATPAK-%s::%s::%s",
-      user ? "USER" : "SYSTEM",
-      origin != NULL ? origin : "bundle",
-      fmt);
+  g_autofree char *key = NULL;
+
+  key = bz_flatpak_remote_key (origin != NULL ? origin : "bundle", user);
+  return g_strconcat (key, fmt, NULL);
+}
+
+char *
+bz_flatpak_remote_key (const char *remote,
+                       gboolean    user)
+{
+  return g_strdup_printf ("FLATPAK-%s::%s::", user ? "USER" : "SYSTEM", remote);
+}
+
+char *
+bz_flatpak_unique_id_dup_remote_key (const char *unique_id)
+{
+  const char *scope_end = NULL;
+  const char *name_end  = NULL;
+
+  if (unique_id == NULL || !g_str_has_prefix (unique_id, "FLATPAK-"))
+    return NULL;
+
+  scope_end = strstr (unique_id, "::");
+  if (scope_end == NULL)
+    return NULL;
+
+  name_end = strstr (scope_end + 2, "::");
+  if (name_end == NULL)
+    return NULL;
+
+  return g_strndup (unique_id, name_end + 2 - unique_id);
 }
 
 char *
