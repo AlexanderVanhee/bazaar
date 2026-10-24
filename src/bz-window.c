@@ -676,6 +676,14 @@ action_user_data (GtkWidget  *widget,
 }
 
 static void
+action_remotes (GtkWidget  *widget,
+                const char *action_name,
+                GVariant   *parameter)
+{
+  adw_dialog_present (ADW_DIALOG (bz_remotes_dialog_new ()), widget);
+}
+
+static void
 action_open_flathub_page (GtkWidget  *widget,
                           const char *action_name,
                           GVariant   *parameter)
@@ -923,6 +931,7 @@ bz_window_class_init (BzWindowClass *klass)
 
   gtk_widget_class_install_action (widget_class, "escape", NULL, action_escape);
   gtk_widget_class_install_action (widget_class, "window.user-data", NULL, action_user_data);
+  gtk_widget_class_install_action (widget_class, "window.remotes", NULL, action_remotes);
   gtk_widget_class_install_action (widget_class, "window.open-library", NULL, action_open_library);
   gtk_widget_class_install_action (widget_class, "window.open-flathub-page", NULL, action_open_flathub_page);
 
@@ -1008,6 +1017,16 @@ app_busy_changed (BzWindow    *self,
 {
   bz_search_page_refresh (self->search_page);
   set_page (self);
+}
+
+static void
+repositories_changed (BzWindow    *self,
+                      GParamSpec  *pspec,
+                      BzStateInfo *info)
+{
+  gtk_widget_action_set_enabled (
+      GTK_WIDGET (self), "window.remotes",
+      bz_remotes_dialog_should_show (bz_state_info_get_repositories (info)));
 }
 
 static void
@@ -1197,6 +1216,11 @@ bz_window_new (BzStateInfo *state)
                            "notify::busy",
                            G_CALLBACK (app_busy_changed),
                            window, G_CONNECT_SWAPPED);
+  g_signal_connect_object (state,
+                           "notify::repositories",
+                           G_CALLBACK (repositories_changed),
+                           window, G_CONNECT_SWAPPED);
+  repositories_changed (window, NULL, state);
 
   /* these seem unsafe but BzApplication never
    * changes the objects we are connecting to

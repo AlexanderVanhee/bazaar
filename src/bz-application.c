@@ -149,6 +149,11 @@ BZ_DEFINE_DATA (
     BZ_RELEASE_DATA (block, g_regex_unref);
     BZ_RELEASE_DATA (allow, g_regex_unref))
 
+static DexFuture *
+remove_repository_fiber (BzWeakRef  *wr,
+                         const char *name,
+                         gboolean    is_user);
+
 static void
 fiber_forget_remote (BzApplication *self,
                      const char    *key);
@@ -782,6 +787,31 @@ bz_application_open_location_action (GSimpleAction *action,
 }
 
 static void
+bz_application_remove_repository_action (GSimpleAction *action,
+                                         GVariant      *parameter,
+                                         gpointer       user_data)
+{
+  BzApplication *self      = user_data;
+  g_autoptr (BzWeakRef) wr = NULL;
+  const char *name         = NULL;
+  gboolean    is_user      = FALSE;
+
+  g_assert (BZ_IS_APPLICATION (self));
+
+  g_variant_get (parameter, "(&sb)", &name, &is_user);
+  wr = bz_weak_ref_new (self);
+
+  dex_future_disown (dex_scheduler_spawnv (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      G_CALLBACK (remove_repository_fiber),
+      3,
+      BZ_TYPE_WEAK_REF, wr,
+      G_TYPE_STRING, name,
+      G_TYPE_BOOLEAN, is_user));
+}
+
+static void
 bz_application_check_for_updates_action (GSimpleAction *action,
                                          GVariant      *parameter,
                                          gpointer       user_data)
@@ -1025,6 +1055,7 @@ static const GActionEntry app_actions[] = {
   {              "donate",              bz_application_donate_action,     NULL },
   {   "toggle-debug-mode",   bz_application_toggle_debug_mode_action,     NULL },
   {       "open-location",       bz_application_open_location_action,      "s" },
+  {   "remove-repository",   bz_application_remove_repository_action,   "(sb)" },
 };
 
 static void
@@ -1206,6 +1237,7 @@ init_fiber (BzWeakRef *wr,
       self->installed_set = g_hash_table_new_full (
           g_str_hash, g_str_equal, g_free, g_free);
     }
+  bz_state_info_set_installed_set (self->state, self->installed_set);
 
   repos = dex_await_object (
       bz_backend_list_repositories (BZ_BACKEND (self->flatpak), NULL),
@@ -2120,6 +2152,7 @@ respond_to_flatpak_fiber (BzWeakRef             *wr,
               }
             g_clear_pointer (&self->installed_set, g_hash_table_unref);
             self->installed_set = g_steal_pointer (&installed_set);
+            bz_state_info_set_installed_set (self->state, self->installed_set);
 
             if (repos != NULL &&
                 fiber_reconcile_remotes (self, repos, kind == BZ_BACKEND_NOTIFICATION_KIND_INVALIDATE_REMOTES))
@@ -4470,6 +4503,42 @@ state_info_set_icon_themes (BzStateInfo *state)
   system_theme = gtk_icon_theme_new ();
   gtk_icon_theme_add_search_path (system_theme, "/var/lib/flatpak/exports/share/icons");
   bz_state_info_set_system_icon_theme (state, system_theme);
+}
+
+static DexFuture *
+remove_repository_fiber (BzWeakRef  *wr,
+                         const char *name,
+                         gboolean    is_user)
+{
+  g_autoptr (BzApplication) self = NULL;
+  g_autoptr (GError) local_error = NULL;
+  gboolean result                = FALSE;
+
+  bz_weak_get_or_return_reject (self, &wr->ref);
+
+  bz_state_info_set_busy (self->state, TRUE);
+  bz_state_info_set_background_task_label (self->state, _ ("Removing remote…"));
+
+  result = dex_await (
+      bz_backend_remove_repository (BZ_BACKEND (self->flatpak), name, is_user, NULL),
+      &local_error);
+
+  bz_state_info_set_busy (self->state, FALSE);
+  finish_with_background_task_label (self);
+
+  if (!result)
+    {
+      GtkWindow *window = NULL;
+
+      g_warning ("Failed to remove remote %s: %s", name, local_error->message);
+
+      window = gtk_application_get_active_window (GTK_APPLICATION (self));
+      if (window != NULL)
+        bz_show_error_for_widget (GTK_WIDGET (window), _ ("Could not remove remote"), local_error->message);
+
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
+  return dex_future_new_true ();
 }
 
 static void

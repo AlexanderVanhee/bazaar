@@ -44,6 +44,15 @@ public class Bz.Dialog : Adw.Dialog {
         animate (height_animation, content_height, height, duration);
     }
 
+    public void resize_to_instant (int width, int height) {
+        width_animation.reset ();
+        height_animation.reset ();
+
+        sized = true;
+        content_width = width;
+        content_height = height;
+    }
+
     private static void animate (Adw.TimedAnimation animation, int from, int to, uint duration) {
         animation.value_from = from;
         animation.value_to = to;
