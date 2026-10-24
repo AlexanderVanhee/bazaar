@@ -165,6 +165,18 @@ static DexFuture *
 list_repositories_fiber (ListReposData *data);
 
 static DexFuture *
+remove_repository_fiber (BzWeakRef    *wr,
+                         const char   *name,
+                         gboolean      is_user,
+                         GCancellable *cancellable);
+
+static void
+remove_repository_new_operation (FlatpakTransaction          *transaction,
+                                 FlatpakTransactionOperation *operation,
+                                 FlatpakTransactionProgress  *progress,
+                                 BzFlatpakInstance           *self);
+
+static DexFuture *
 ensure_runtime_remote_fiber (BzFlatpakInstance   *self,
                              FlatpakInstallation *installation,
                              const char          *bundle_path,
@@ -536,6 +548,28 @@ bz_flatpak_instance_list_repositories (BzBackend    *backend,
 }
 
 static DexFuture *
+bz_flatpak_instance_remove_repository (BzBackend    *backend,
+                                       const char   *name,
+                                       gboolean      is_user,
+                                       GCancellable *cancellable)
+{
+  BzFlatpakInstance *self  = BZ_FLATPAK_INSTANCE (backend);
+  g_autoptr (BzWeakRef) wr = NULL;
+
+  wr = bz_weak_ref_new (self);
+
+  return dex_scheduler_spawnv (
+      self->scheduler,
+      bz_get_dex_stack_size (),
+      G_CALLBACK (remove_repository_fiber),
+      4,
+      BZ_TYPE_WEAK_REF, wr,
+      G_TYPE_STRING, name,
+      G_TYPE_BOOLEAN, is_user,
+      G_TYPE_CANCELLABLE, cancellable);
+}
+
+static DexFuture *
 bz_flatpak_instance_schedule_transaction (BzBackend    *backend,
                                           BzEntry     **installs,
                                           guint         n_installs,
@@ -633,6 +667,7 @@ backend_iface_init (BzBackendInterface *iface)
   iface->retrieve_install_ids        = bz_flatpak_instance_retrieve_install_ids;
   iface->retrieve_update_ids         = bz_flatpak_instance_retrieve_update_ids;
   iface->list_repositories           = bz_flatpak_instance_list_repositories;
+  iface->remove_repository           = bz_flatpak_instance_remove_repository;
   iface->schedule_transaction        = bz_flatpak_instance_schedule_transaction;
   iface->cancel_task_for_entry       = bz_flatpak_instance_cancel_task_for_entry;
 }
@@ -2171,6 +2206,7 @@ append_repos_for_installation (GListStore          *repos,
                            "url", flatpak_remote_get_url (remote),
                            "is-user", is_user,
                            "is-beta", is_beta,
+                           "noenumerate", flatpak_remote_get_noenumerate (remote),
                            NULL);
       g_list_store_append (repos, repo);
     }
@@ -2209,6 +2245,110 @@ list_repositories_fiber (ListReposData *data)
         local_error->message);
 
   return dex_future_new_for_object (repos);
+}
+
+static DexFuture *
+remove_repository_fiber (BzWeakRef    *wr,
+                         const char   *name,
+                         gboolean      is_user,
+                         GCancellable *cancellable)
+{
+  g_autoptr (BzFlatpakInstance) self         = NULL;
+  FlatpakInstallation *installation          = NULL;
+  g_autoptr (GError) local_error             = NULL;
+  g_autoptr (GPtrArray) installed            = NULL;
+  g_autoptr (FlatpakTransaction) transaction = NULL;
+  guint    n_uninstalls                      = 0;
+  gboolean result                            = FALSE;
+
+  bz_weak_get_or_return_reject (self, &wr->ref);
+
+  installation = is_user ? self->user_interactive : self->system_interactive;
+  if (installation == NULL)
+    return dex_future_new_reject (
+        BZ_FLATPAK_ERROR,
+        BZ_FLATPAK_ERROR_TRANSACTION_FAILURE,
+        "The %s installation is not available",
+        is_user ? "user" : "system");
+
+  installed = flatpak_installation_list_installed_refs (installation, cancellable, &local_error);
+  if (installed == NULL)
+    return dex_future_new_reject (
+        BZ_FLATPAK_ERROR,
+        BZ_FLATPAK_ERROR_TRANSACTION_FAILURE,
+        "Failed to enumerate installed refs: %s",
+        local_error->message);
+
+  for (guint i = 0; i < installed->len; i++)
+    {
+      FlatpakInstalledRef *iref    = NULL;
+      g_autofree char     *ref_fmt = NULL;
+
+      iref = g_ptr_array_index (installed, i);
+      if (g_strcmp0 (flatpak_installed_ref_get_origin (iref), name) != 0)
+        continue;
+
+      if (transaction == NULL)
+        {
+          transaction = flatpak_transaction_new_for_installation (
+              installation, cancellable, &local_error);
+          if (transaction == NULL)
+            return dex_future_new_reject (
+                BZ_FLATPAK_ERROR,
+                BZ_FLATPAK_ERROR_TRANSACTION_FAILURE,
+                "Failed to initialize transaction: %s",
+                local_error->message);
+          g_signal_connect (transaction, "new-operation",
+                            G_CALLBACK (remove_repository_new_operation), self);
+        }
+
+      ref_fmt = flatpak_ref_format_ref (FLATPAK_REF (iref));
+      result  = flatpak_transaction_add_uninstall (transaction, ref_fmt, &local_error);
+      if (!result)
+        return dex_future_new_reject (
+            BZ_FLATPAK_ERROR,
+            BZ_FLATPAK_ERROR_TRANSACTION_FAILURE,
+            "Failed to remove %s: %s",
+            ref_fmt, local_error->message);
+      n_uninstalls++;
+    }
+
+  if (n_uninstalls > 0)
+    {
+      g_debug ("Uninstalling %u refs installed from remote '%s'", n_uninstalls, name);
+
+      result = flatpak_transaction_run (transaction, cancellable, &local_error);
+      if (!result)
+        return dex_future_new_reject (
+            BZ_FLATPAK_ERROR,
+            BZ_FLATPAK_ERROR_TRANSACTION_FAILURE,
+            "Failed to remove apps from remote '%s': %s",
+            name, local_error->message);
+    }
+
+  result = flatpak_installation_remove_remote (installation, name, cancellable, &local_error);
+  if (!result)
+    return dex_future_new_reject (
+        BZ_FLATPAK_ERROR,
+        BZ_FLATPAK_ERROR_TRANSACTION_FAILURE,
+        "Failed to remove remote '%s': %s",
+        name, local_error->message);
+
+  return dex_future_new_true ();
+}
+
+static void
+remove_repository_new_operation (FlatpakTransaction          *transaction,
+                                 FlatpakTransactionOperation *operation,
+                                 FlatpakTransactionProgress  *progress,
+                                 BzFlatpakInstance           *self)
+{
+  g_mutex_lock (&self->mute_mutex);
+  if (self->user_interactive == flatpak_transaction_get_installation (transaction))
+    self->user_mute++;
+  else
+    self->system_mute++;
+  g_mutex_unlock (&self->mute_mutex);
 }
 
 static DexFuture *
@@ -3236,6 +3376,9 @@ installation_event (BzFlatpakInstance *self,
 
   if (!emit)
     return;
+
+  flatpak_installation_drop_caches (monitor == self->user_events ? self->user : self->system, NULL, NULL);
+  flatpak_installation_drop_caches (monitor == self->user_events ? self->user_interactive : self->system_interactive, NULL, NULL);
 
   notif = bz_backend_notification_new ();
   bz_backend_notification_set_kind (notif, BZ_BACKEND_NOTIFICATION_KIND_EXTERNAL_CHANGE);

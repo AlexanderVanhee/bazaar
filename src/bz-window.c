@@ -676,6 +676,14 @@ action_user_data (GtkWidget  *widget,
 }
 
 static void
+action_remotes (GtkWidget  *widget,
+                const char *action_name,
+                GVariant   *parameter)
+{
+  adw_dialog_present (ADW_DIALOG (bz_remotes_dialog_new ()), widget);
+}
+
+static void
 action_open_flathub_page (GtkWidget  *widget,
                           const char *action_name,
                           GVariant   *parameter)
@@ -923,6 +931,7 @@ bz_window_class_init (BzWindowClass *klass)
 
   gtk_widget_class_install_action (widget_class, "escape", NULL, action_escape);
   gtk_widget_class_install_action (widget_class, "window.user-data", NULL, action_user_data);
+  gtk_widget_class_install_action (widget_class, "window.remotes", NULL, action_remotes);
   gtk_widget_class_install_action (widget_class, "window.open-library", NULL, action_open_library);
   gtk_widget_class_install_action (widget_class, "window.open-flathub-page", NULL, action_open_flathub_page);
 

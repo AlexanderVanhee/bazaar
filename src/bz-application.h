@@ -21,6 +21,7 @@
 #pragma once
 
 #include <adwaita.h>
+#include <libdex.h>
 
 G_BEGIN_DECLS
 
@@ -31,5 +32,11 @@ G_DECLARE_FINAL_TYPE (BzApplication, bz_application, BZ, APPLICATION, AdwApplica
 
 BzStateInfo *
 bz_state_info_get_default (void);
+
+/* DexFuture* -> gboolean */
+DexFuture *
+bz_application_remove_repository (BzApplication *self,
+                                  const char    *name,
+                                  gboolean       is_user);
 
 G_END_DECLS

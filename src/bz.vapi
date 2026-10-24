@@ -76,6 +76,8 @@ public extern class Bz.ApplicationMapFactory : GLib.Object {
 public extern class Bz.Application : GLib.Object {
     [CCode (has_construct_function = false)]
     protected Application ();
+
+    public Dex.Future remove_repository (string name, bool is_user);
 }
 
 [CCode (cheader_filename = "bz-apps-page.h", type_id = "bz_apps_page_get_type ()")]
@@ -223,6 +225,8 @@ public extern class Bz.DynamicListView : GLib.Object {
 public extern class Bz.EntryCacheManager : GLib.Object {
     [CCode (has_construct_function = false)]
     protected EntryCacheManager ();
+
+    public Dex.Future get (string unique_id);
 }
 
 [CCode (cheader_filename = "bz-entry-group-util.h", type_id = "bz_entry_group_util_get_type ()")]
@@ -277,7 +281,12 @@ public extern class Bz.Entry : GLib.Object {
     [NoAccessorMethod]
     public GLib.ListModel? version_history { owned get; }
     public string? installed_version { get; }
+    public string? remote_repo_name { get; }
+    public uint64 installed_size { get; }
     public Bz.Repository? get_repository (GLib.ListModel repos);
+
+    [CCode (cname = "bz_entry_is_installed")]
+    public bool is_installed ();
 
     [CCode (cname = "bz_entry_is_of_kinds")]
     public bool is_of_kinds (Bz.EntryKind kinds);
@@ -352,6 +361,9 @@ public extern class Bz.FlatpakEntry : Bz.Entry {
     protected FlatpakEntry ();
 
     public string? flatpak_version { get; set; }
+
+    [CCode (cname = "bz_flatpak_entry_is_user")]
+    public bool is_user ();
 }
 
 [CCode (cheader_filename = "bz-flatpak-instance.h", type_id = "bz_flatpak_instance_get_type ()")]
@@ -672,7 +684,21 @@ public extern class Bz.Zoom : Gtk.Widget, Gtk.Scrollable {
 }
 
 [CCode (cheader_filename = "bz-backend.h", type_id = "bz_backend_get_type ()")]
-public extern interface Bz.Backend : GLib.Object {}
+public extern interface Bz.Backend : GLib.Object {
+    public Dex.Future retrieve_install_ids (GLib.Cancellable? cancellable);
+}
+
+[CCode (cheader_filename = "bz-flatpak-entry.h")]
+namespace Bz {
+    [CCode (cname = "bz_flatpak_remote_key")]
+    public static string flatpak_remote_key (string remote, bool user);
+
+    [CCode (cname = "bz_flatpak_unique_id_dup_remote_key")]
+    public static string? flatpak_unique_id_dup_remote_key (string unique_id);
+
+    [CCode (cname = "dex_await_boxed", cheader_filename = "libdex.h")]
+    public static GLib.HashTable<string, string> await_string_table (owned Dex.Future future) throws GLib.Error;
+}
 
 [CCode (cheader_filename = "bz-context-row.h", cname = "BzImportance", cprefix = "BZ_IMPORTANCE_", type_id = "BZ_TYPE_IMPORTANCE")]
 public enum Bz.Importance {

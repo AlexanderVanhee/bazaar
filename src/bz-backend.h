@@ -57,6 +57,12 @@ struct _BzBackendInterface
                                    GCancellable *cancellable);
 
   /* DexFuture* -> gboolean */
+  DexFuture *(*remove_repository) (BzBackend    *self,
+                                   const char   *name,
+                                   gboolean      is_user,
+                                   GCancellable *cancellable);
+
+  /* DexFuture* -> gboolean */
   DexFuture *(*schedule_transaction) (BzBackend    *self,
                                       BzEntry     **installs,
                                       guint         n_installs,
@@ -93,6 +99,12 @@ bz_backend_retrieve_update_ids (BzBackend    *self,
 
 DexFuture *
 bz_backend_list_repositories (BzBackend    *self,
+                              GCancellable *cancellable);
+
+DexFuture *
+bz_backend_remove_repository (BzBackend    *self,
+                              const char   *name,
+                              gboolean      is_user,
                               GCancellable *cancellable);
 
 DexFuture *

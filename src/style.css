@@ -1005,3 +1005,11 @@ curated-list-view list {
 .origin-rounded-box label {
 	text-transform: uppercase;
 }
+
+.remote-unused {
+  font-style: italic;
+}
+
+.remote-app-card {
+  padding: 0 16px 0 12px;
+}

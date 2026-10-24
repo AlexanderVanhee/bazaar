@@ -92,6 +92,7 @@ struct _BzApplication
   DexChannel              *flatpak_notifs;
   DexFuture               *notif_watch;
   DexFuture               *sync;
+  gboolean                 sync_again;
   DexPromise              *first_window_opened;
   DexPromise              *ready_to_open_files;
   GHashTable              *eol_runtimes;
@@ -123,6 +124,9 @@ struct _BzApplication
   GtkStringList           *txt_blocklists;
   gboolean                 flathub_remote_initialized;
   gboolean                 had_cache_on_init;
+  gboolean                 has_unsynced_remotes;
+  GStrv                    syncing_remotes;
+  GHashTable              *synced_remotes;
   gboolean                 no_window_refresh;
   gboolean                 holding_for_no_window_refresh;
   gboolean                 running;
@@ -144,6 +148,29 @@ BZ_DEFINE_DATA (
     },
     BZ_RELEASE_DATA (block, g_regex_unref);
     BZ_RELEASE_DATA (allow, g_regex_unref))
+
+static DexFuture *
+remove_repository_fiber (BzWeakRef  *wr,
+                         const char *name,
+                         gboolean    is_user);
+
+static void
+fiber_forget_remote (BzApplication *self,
+                     const char    *key);
+
+static gboolean
+fiber_reconcile_remotes (BzApplication *self,
+                         GListModel    *repos,
+                         gboolean       own_change);
+
+static void
+fiber_load_synced_remotes (BzApplication *self);
+
+static void
+save_synced_remotes (BzApplication *self);
+
+static GStrv
+dup_remote_keys (GListModel *repos);
 
 typedef enum
 {
@@ -381,6 +408,12 @@ static DexFuture *
 make_sync_future (BzApplication *self);
 
 static void
+sync_again_idle (BzWeakRef *wr);
+
+static void
+request_sync (BzApplication *self);
+
+static void
 finish_with_background_task_label (BzApplication *self);
 
 static void
@@ -396,6 +429,8 @@ bz_application_dispose (GObject *object)
   dex_clear (&self->notif_watch);
   dex_clear (&self->ready_to_open_files);
   dex_clear (&self->sync);
+  g_clear_pointer (&self->syncing_remotes, g_strfreev);
+  g_clear_pointer (&self->synced_remotes, g_hash_table_unref);
   g_clear_handle_id (&self->periodic_timeout_source, g_source_remove);
   g_clear_handle_id (&self->defer_window_present_source, g_source_remove);
   g_clear_object (&self->appid_filter);
@@ -780,6 +815,20 @@ bz_application_sync_remotes_action (GSimpleAction *action,
   if (self->sync != NULL &&
       dex_future_is_pending (self->sync))
     return;
+
+  dex_clear (&self->sync);
+  self->sync = make_sync_future (self);
+}
+
+static void
+request_sync (BzApplication *self)
+{
+  if (self->sync != NULL &&
+      dex_future_is_pending (self->sync))
+    {
+      self->sync_again = TRUE;
+      return;
+    }
 
   dex_clear (&self->sync);
   self->sync = make_sync_future (self);
@@ -1197,6 +1246,10 @@ init_fiber (BzWeakRef *wr,
           BZ_TYPE_WEAK_REF, wr,
           DEX_TYPE_FUTURE, groups),
       NULL);
+
+  fiber_load_synced_remotes (self);
+  if (repos != NULL)
+    self->has_unsynced_remotes = fiber_reconcile_remotes (self, repos, FALSE);
 
   self->had_cache_on_init = g_list_model_get_n_items (G_LIST_MODEL (self->groups)) > 0;
 
@@ -2085,6 +2138,10 @@ respond_to_flatpak_fiber (BzWeakRef             *wr,
             g_clear_pointer (&self->installed_set, g_hash_table_unref);
             self->installed_set = g_steal_pointer (&installed_set);
 
+            if (repos != NULL &&
+                fiber_reconcile_remotes (self, repos, kind == BZ_BACKEND_NOTIFICATION_KIND_INVALIDATE_REMOTES))
+              request_sync (self);
+
             fiber_check_for_updates (self);
             finish_with_background_task_label (self);
           }
@@ -2337,8 +2394,9 @@ init_fiber_finally (DexFuture *future,
       now                   = g_get_real_time () / G_USEC_PER_SEC;
       seconds_since_refresh = now - last_refresh;
 
-      if ((!bz_state_info_get_metered_connection (self->state) || !self->had_cache_on_init) &&
-          seconds_since_refresh >= MIN_STARTUP_REFRESH_INTERVAL_SECONDS)
+      if (self->has_unsynced_remotes ||
+          ((!bz_state_info_get_metered_connection (self->state) || !self->had_cache_on_init) &&
+           seconds_since_refresh >= MIN_STARTUP_REFRESH_INTERVAL_SECONDS))
         {
           g_autoptr (DexFuture) sync_future = NULL;
 
@@ -2546,9 +2604,26 @@ sync_finally (DexFuture *future,
   finish_with_background_task_label (self);
 
   if (dex_future_is_resolved (future))
-    g_settings_set_int64 (
-        self->settings, "last-refresh-time",
-        g_get_real_time () / G_USEC_PER_SEC);
+    {
+      g_settings_set_int64 (
+          self->settings, "last-refresh-time",
+          g_get_real_time () / G_USEC_PER_SEC);
+
+      if (self->syncing_remotes != NULL &&
+          self->synced_remotes != NULL &&
+          bz_state_info_get_repositories (self->state) != NULL)
+        {
+          g_auto (GStrv) current = NULL;
+
+          current = dup_remote_keys (bz_state_info_get_repositories (self->state));
+          for (guint i = 0; self->syncing_remotes[i] != NULL; i++)
+            {
+              if (g_strv_contains ((const char *const *) current, self->syncing_remotes[i]))
+                g_hash_table_add (self->synced_remotes, g_strdup (self->syncing_remotes[i]));
+            }
+          save_synced_remotes (self);
+        }
+    }
 
   dex_promise_resolve_boolean (self->ready_to_open_files, TRUE);
 
@@ -2558,7 +2633,24 @@ sync_finally (DexFuture *future,
       g_application_release (G_APPLICATION (self));
     }
 
+  if (self->sync_again)
+    {
+      self->sync_again = FALSE;
+      g_idle_add_once ((GSourceOnceFunc) sync_again_idle, bz_weak_ref_new (self));
+    }
+
   return dex_future_new_true ();
+}
+
+static void
+sync_again_idle (BzWeakRef *wr)
+{
+  g_autoptr (BzWeakRef) owned    = wr;
+  g_autoptr (BzApplication) self = NULL;
+
+  self = g_weak_ref_get (&wr->ref);
+  if (self != NULL)
+    request_sync (self);
 }
 
 static DexFuture *
@@ -4314,6 +4406,10 @@ make_sync_future (BzApplication *self)
 
   bz_state_info_set_allow_manual_sync (self->state, FALSE);
 
+  g_clear_pointer (&self->syncing_remotes, g_strfreev);
+  if (bz_state_info_get_repositories (self->state) != NULL)
+    self->syncing_remotes = dup_remote_keys (bz_state_info_get_repositories (self->state));
+
   bz_state_info_set_syncing (self->state, TRUE);
   bz_state_info_set_recently_synced (self->state, TRUE);
   finish_with_background_task_label (self);
@@ -4392,4 +4488,347 @@ state_info_set_icon_themes (BzStateInfo *state)
   system_theme = gtk_icon_theme_new ();
   gtk_icon_theme_add_search_path (system_theme, "/var/lib/flatpak/exports/share/icons");
   bz_state_info_set_system_icon_theme (state, system_theme);
+}
+
+DexFuture *
+bz_application_remove_repository (BzApplication *self,
+                                  const char    *name,
+                                  gboolean       is_user)
+{
+  g_autoptr (BzWeakRef) wr = NULL;
+
+  dex_return_error_if_fail (BZ_IS_APPLICATION (self));
+  dex_return_error_if_fail (name != NULL);
+
+  wr = bz_weak_ref_new (self);
+
+  return dex_scheduler_spawnv (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      G_CALLBACK (remove_repository_fiber),
+      3,
+      BZ_TYPE_WEAK_REF, wr,
+      G_TYPE_STRING, name,
+      G_TYPE_BOOLEAN, is_user);
+}
+
+static DexFuture *
+remove_repository_fiber (BzWeakRef  *wr,
+                         const char *name,
+                         gboolean    is_user)
+{
+  g_autoptr (BzApplication) self       = NULL;
+  g_autoptr (GError) local_error       = NULL;
+  g_autoptr (GHashTable) installed_set = NULL;
+  g_autoptr (GListModel) repos         = NULL;
+  gboolean result                      = FALSE;
+
+  bz_weak_get_or_return_reject (self, &wr->ref);
+
+  bz_state_info_set_busy (self->state, TRUE);
+  bz_state_info_set_background_task_label (self->state, _ ("Removing remote…"));
+
+  result = dex_await (
+      bz_backend_remove_repository (
+          BZ_BACKEND (self->flatpak),
+          name, is_user, NULL),
+      &local_error);
+  if (result)
+    {
+      installed_set = dex_await_boxed (
+          bz_backend_retrieve_install_ids (BZ_BACKEND (self->flatpak), NULL),
+          NULL);
+      if (installed_set != NULL)
+        {
+          g_clear_pointer (&self->installed_set, g_hash_table_unref);
+          self->installed_set = g_steal_pointer (&installed_set);
+        }
+
+      repos = dex_await_object (
+          bz_backend_list_repositories (BZ_BACKEND (self->flatpak), NULL),
+          NULL);
+      if (repos != NULL)
+        {
+          bz_state_info_set_repositories (self->state, repos);
+          fiber_reconcile_remotes (self, repos, FALSE);
+        }
+    }
+
+  bz_state_info_set_busy (self->state, FALSE);
+  finish_with_background_task_label (self);
+
+  if (!result)
+    return dex_future_new_for_error (g_steal_pointer (&local_error));
+  return dex_future_new_true ();
+}
+
+static void
+fiber_forget_remote (BzApplication *self,
+                     const char    *key)
+{
+  g_autoptr (GError) local_error  = NULL;
+  g_autoptr (GPtrArray) affected  = NULL;
+  g_autoptr (GStrvBuilder) pruned = NULL;
+  g_auto (GStrv) pruned_ids       = NULL;
+  g_autoptr (GPtrArray) kept      = NULL;
+  guint n_groups                  = 0;
+
+  affected = g_ptr_array_new_with_free_func (g_object_unref);
+  pruned   = g_strv_builder_new ();
+  kept     = g_ptr_array_new_with_free_func (g_free);
+
+  n_groups = g_list_model_get_n_items (G_LIST_MODEL (self->groups));
+  for (guint i = 0; i < n_groups; i++)
+    {
+      g_autoptr (BzEntryGroup) group = NULL;
+      g_autoptr (GPtrArray) others   = NULL;
+      GListModel *unique_ids         = NULL;
+      guint       n_ids              = 0;
+      gboolean    hit                = FALSE;
+
+      group      = g_list_model_get_item (G_LIST_MODEL (self->groups), i);
+      unique_ids = bz_entry_group_get_model (group);
+      n_ids      = g_list_model_get_n_items (unique_ids);
+      others     = g_ptr_array_new_with_free_func (g_free);
+
+      for (guint j = 0; j < n_ids; j++)
+        {
+          g_autoptr (GtkStringObject) string = NULL;
+          const char *unique_id              = NULL;
+
+          string    = g_list_model_get_item (unique_ids, j);
+          unique_id = gtk_string_object_get_string (string);
+
+          if (g_str_has_prefix (unique_id, key))
+            {
+              g_strv_builder_add (pruned, unique_id);
+              hit = TRUE;
+            }
+          else
+            g_ptr_array_add (others, g_strdup (unique_id));
+        }
+
+      if (hit)
+        {
+          g_ptr_array_extend_and_steal (kept, g_steal_pointer (&others));
+          g_ptr_array_add (affected, g_steal_pointer (&group));
+        }
+    }
+
+  for (guint i = 0; i < affected->len; i++)
+    {
+      BzEntryGroup *group = NULL;
+      const char   *id    = NULL;
+      guint         pos   = 0;
+
+      group = g_ptr_array_index (affected, i);
+      id    = bz_entry_group_get_id (group);
+
+      if (g_list_store_find (self->groups, group, &pos))
+        g_list_store_remove (self->groups, pos);
+      if (g_list_store_find (self->installed_apps, group, &pos))
+        g_list_store_remove (self->installed_apps, pos);
+      if (id != NULL &&
+          g_hash_table_lookup (self->ids_to_groups, id) == group)
+        g_hash_table_remove (self->ids_to_groups, id);
+    }
+
+  pruned_ids = g_strv_builder_end (pruned);
+  g_debug ("Forgetting remote %s: pruning %u entries, rebuilding %u groups",
+           key, g_strv_length (pruned_ids), affected->len);
+
+  if (!dex_await (
+          bz_entry_cache_manager_remove (
+              self->cache, (const char *const *) pruned_ids),
+          &local_error))
+    {
+      g_warning ("Failed to prune cached entries: %s", local_error->message);
+      g_clear_error (&local_error);
+    }
+
+  for (guint i = 0; i < kept->len; i++)
+    {
+      g_autoptr (BzEntry) entry = NULL;
+
+      entry = dex_await_object (
+          bz_entry_cache_manager_get (self->cache, g_ptr_array_index (kept, i)),
+          &local_error);
+      if (entry != NULL)
+        fiber_replace_entry (self, entry);
+      else
+        {
+          g_warning ("Unable to retrieve cached entry: %s", local_error->message);
+          g_clear_error (&local_error);
+        }
+    }
+
+  gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+
+  dex_future_disown (dex_scheduler_spawn (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      (DexFiberFunc) cache_groups_fiber,
+      bz_weak_ref_new (self),
+      (GDestroyNotify) bz_weak_ref_unref));
+}
+
+static gboolean
+fiber_reconcile_remotes (BzApplication *self,
+                         GListModel    *repos,
+                         gboolean       own_change)
+{
+  g_auto (GStrv) current       = NULL;
+  g_autoptr (GPtrArray) gone   = NULL;
+  GHashTableIter iter          = { 0 };
+  gpointer       key           = NULL;
+  gboolean       changed       = FALSE;
+  gboolean       needs_sync    = FALSE;
+  guint          n_repos       = 0;
+
+  if (self->synced_remotes == NULL)
+    return FALSE;
+
+  current = dup_remote_keys (repos);
+  gone    = g_ptr_array_new_with_free_func (g_free);
+
+  g_hash_table_iter_init (&iter, self->synced_remotes);
+  while (g_hash_table_iter_next (&iter, &key, NULL))
+    {
+      if (!g_strv_contains ((const char *const *) current, key))
+        g_ptr_array_add (gone, g_strdup (key));
+    }
+
+  for (guint i = 0; i < gone->len; i++)
+    {
+      fiber_forget_remote (self, g_ptr_array_index (gone, i));
+      g_hash_table_remove (self->synced_remotes, g_ptr_array_index (gone, i));
+      changed = TRUE;
+    }
+
+  n_repos = g_list_model_get_n_items (repos);
+  for (guint i = 0; i < n_repos; i++)
+    {
+      g_autoptr (BzRepository) repo = NULL;
+      g_autofree char *repo_key     = NULL;
+
+      repo     = g_list_model_get_item (repos, i);
+      repo_key = bz_flatpak_remote_key (bz_repository_get_name (repo), bz_repository_get_is_user (repo));
+      if (g_hash_table_contains (self->synced_remotes, repo_key))
+        continue;
+
+      if (own_change || bz_repository_get_noenumerate (repo))
+        {
+          g_hash_table_add (self->synced_remotes, g_steal_pointer (&repo_key));
+          changed = TRUE;
+        }
+      else
+        {
+          g_debug ("Remote %s has not been synced yet", repo_key);
+          needs_sync = TRUE;
+        }
+    }
+
+  if (changed)
+    save_synced_remotes (self);
+
+  return needs_sync;
+}
+
+static void
+fiber_load_synced_remotes (BzApplication *self)
+{
+  g_autofree char *path    = NULL;
+  g_autoptr (GFile) file   = NULL;
+  g_autoptr (GBytes) bytes = NULL;
+  guint n_groups           = 0;
+
+  g_clear_pointer (&self->synced_remotes, g_hash_table_unref);
+  self->synced_remotes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+  file = fiber_dup_cache_file ("synced-remotes", &path, NULL);
+  if (file != NULL)
+    bytes = dex_await_boxed (dex_file_load_contents_bytes (file), NULL);
+
+  if (bytes != NULL)
+    {
+      g_autoptr (GVariant) variant = NULL;
+      g_autoptr (GVariantIter) it  = NULL;
+      char *key                    = NULL;
+
+      variant = g_variant_new_from_bytes (G_VARIANT_TYPE_STRING_ARRAY, bytes, FALSE);
+      it      = g_variant_iter_new (variant);
+      while (g_variant_iter_next (it, "s", &key))
+        g_hash_table_add (self->synced_remotes, key);
+      return;
+    }
+
+  n_groups = g_list_model_get_n_items (G_LIST_MODEL (self->groups));
+  for (guint i = 0; i < n_groups; i++)
+    {
+      g_autoptr (BzEntryGroup) group = NULL;
+      GListModel *unique_ids         = NULL;
+      guint       n_ids              = 0;
+
+      group      = g_list_model_get_item (G_LIST_MODEL (self->groups), i);
+      unique_ids = bz_entry_group_get_model (group);
+      n_ids      = g_list_model_get_n_items (unique_ids);
+
+      for (guint j = 0; j < n_ids; j++)
+        {
+          g_autoptr (GtkStringObject) string = NULL;
+          char *key                          = NULL;
+
+          string = g_list_model_get_item (unique_ids, j);
+          key    = bz_flatpak_unique_id_dup_remote_key (gtk_string_object_get_string (string));
+          if (key != NULL && g_str_has_suffix (key, "::bundle::"))
+            g_clear_pointer (&key, g_free);
+          if (key != NULL)
+            g_hash_table_add (self->synced_remotes, key);
+        }
+    }
+}
+
+static void
+save_synced_remotes (BzApplication *self)
+{
+  g_autoptr (GError) local_error = NULL;
+  g_autofree char *module_dir    = NULL;
+  g_autofree char *path          = NULL;
+  g_autofree const char **keys   = NULL;
+  g_autoptr (GVariant) variant   = NULL;
+
+  keys    = (const char **) g_hash_table_get_keys_as_array (self->synced_remotes, NULL);
+  variant = g_variant_ref_sink (g_variant_new_strv (keys, -1));
+
+  module_dir = bz_dup_module_dir ();
+  path       = g_build_filename (module_dir, "synced-remotes", NULL);
+
+  if (!g_file_set_contents (path,
+                            g_variant_get_data (variant),
+                            g_variant_get_size (variant),
+                            &local_error))
+    g_warning ("Failed to save synced remotes to %s: %s", path, local_error->message);
+}
+
+static GStrv
+dup_remote_keys (GListModel *repos)
+{
+  g_autoptr (GStrvBuilder) builder = NULL;
+  guint n_repos                    = 0;
+
+  builder = g_strv_builder_new ();
+  n_repos = g_list_model_get_n_items (repos);
+  for (guint i = 0; i < n_repos; i++)
+    {
+      g_autoptr (BzRepository) repo = NULL;
+
+      repo = g_list_model_get_item (repos, i);
+      g_strv_builder_take (
+          builder,
+          bz_flatpak_remote_key (bz_repository_get_name (repo),
+                                 bz_repository_get_is_user (repo)));
+    }
+
+  return g_strv_builder_end (builder);
 }
