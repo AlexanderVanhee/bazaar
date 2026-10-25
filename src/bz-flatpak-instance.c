@@ -651,6 +651,46 @@ bz_flatpak_instance_get_user_installation (BzFlatpakInstance *self)
   return self->user;
 }
 
+FlatpakInstallation *
+bz_flatpak_new_user_installation (GError **error)
+{
+#ifdef SANDBOXED_LIBFLATPAK
+  g_autofree char *path  = NULL;
+  g_autoptr (GFile) file = NULL;
+
+  path = g_build_filename (g_get_home_dir (), ".local", "share", "flatpak", NULL);
+  file = g_file_new_for_path (path);
+  return flatpak_installation_new_for_path (file, TRUE, NULL, error);
+#else
+  return flatpak_installation_new_user (NULL, error);
+#endif
+}
+
+gboolean
+bz_flatpak_setup_host_environment (void)
+{
+#ifdef SANDBOXED_LIBFLATPAK
+  g_autofree char *flatpak_path = NULL;
+  gint             exit_status  = 0;
+
+  g_setenv ("FLATPAK_BWRAP", BWRAP_WRAPPER_PATH, FALSE);
+
+  if (g_getenv ("FLATPAK_BINARY") != NULL)
+    return TRUE;
+
+  g_spawn_command_line_sync ("flatpak-spawn --host sh -c 'command -v flatpak'",
+                             &flatpak_path, NULL, &exit_status, NULL);
+  if (exit_status != 0 || flatpak_path == NULL)
+    {
+      g_warning ("Failed to resolve host flatpak binary! User refs wont be updated");
+      return FALSE;
+    }
+
+  g_setenv ("FLATPAK_BINARY", g_strstrip (flatpak_path), FALSE);
+#endif
+  return TRUE;
+}
+
 DexFuture *
 bz_flatpak_instance_new (void)
 {
@@ -748,22 +788,7 @@ init_fiber (InitData *data)
       g_clear_pointer (&local_error, g_error_free);
     }
 
-#ifdef SANDBOXED_LIBFLATPAK
-  {
-    g_autoptr (GFile) user_installation_path = NULL;
-    const char      *home                    = g_get_home_dir ();
-    g_autofree char *user_flatpak_path       = g_build_filename (home, ".local", "share", "flatpak", NULL);
-
-    user_installation_path = g_file_new_for_path (user_flatpak_path);
-    self->user             = flatpak_installation_new_for_path (
-        user_installation_path,
-        TRUE,
-        NULL,
-        &local_error);
-  }
-#else
-  self->user = flatpak_installation_new_user (NULL, &local_error);
-#endif
+  self->user = bz_flatpak_new_user_installation (&local_error);
 
   if (self->user != NULL)
     {
@@ -797,21 +822,7 @@ init_fiber (InitData *data)
       g_clear_pointer (&local_error, g_error_free);
     }
 
-#ifdef SANDBOXED_LIBFLATPAK
-  if (g_getenv ("FLATPAK_BINARY") == NULL)
-    {
-      g_autofree char *flatpak_path = NULL;
-      gint             exit_status  = 0;
-
-      g_spawn_command_line_sync ("flatpak-spawn --host sh -c 'command -v flatpak'",
-                                 &flatpak_path, NULL, &exit_status, NULL);
-
-      if (exit_status == 0 && flatpak_path != NULL)
-        g_setenv ("FLATPAK_BINARY", g_strstrip (flatpak_path), FALSE);
-      else
-        g_warning ("Failed to resolve host flatpak binary! User refs wont be updated");
-    }
-#endif
+  bz_flatpak_setup_host_environment ();
 
   if (self->system == NULL && self->user == NULL)
     return dex_future_new_reject (
@@ -848,8 +859,6 @@ check_has_flathub_fiber (CheckHasFlathubData *data)
       n_system_remotes = system_remotes->len;
     }
 
-// Downloading from user remotes in the Flatpak is unsupported.
-#ifndef SANDBOXED_LIBFLATPAK
   if (self->user != NULL)
     {
       user_remotes = flatpak_installation_list_remotes (
@@ -862,7 +871,6 @@ check_has_flathub_fiber (CheckHasFlathubData *data)
             local_error->message);
       n_user_remotes = user_remotes->len;
     }
-#endif
 
   for (guint i = 0; i < n_system_remotes + n_user_remotes; i++)
     {
@@ -899,16 +907,6 @@ ensure_flathub_fiber (EnsureFlathubData *data)
 
 #define REPO_URL "https://dl.flathub.org/repo/flathub.flatpakrepo"
 
-#ifdef SANDBOXED_LIBFLATPAK
-  if (self->system_interactive != NULL)
-    {
-      remote = flatpak_installation_get_remote_by_name (
-          self->system_interactive, "flathub", cancellable, NULL);
-      installation = self->system_interactive;
-    }
-  if (installation == NULL)
-    return dex_future_new_true ();
-#else
   if (self->user != NULL)
     {
       remote = flatpak_installation_get_remote_by_name (
@@ -922,7 +920,6 @@ ensure_flathub_fiber (EnsureFlathubData *data)
       if (remote != NULL)
         installation = self->system;
     }
-#endif
 
   if (remote != NULL)
     {
@@ -1865,10 +1862,7 @@ retrieve_refs_for_remote_fiber (RetrieveRefsForRemoteData *data)
   g_autoptr (BzFlatpakInstance) self = NULL;
   const char *remote_name            = NULL;
   gboolean    is_noenumerate         = FALSE;
-#ifdef SANDBOXED_LIBFLATPAK
-  gboolean is_whitelisted_user = FALSE;
-#endif
-  g_autoptr (DexFuture) ret = NULL;
+  g_autoptr (DexFuture) ret          = NULL;
 
   bz_weak_get_or_return_reject (self, data->parent->self);
 
@@ -1879,18 +1873,7 @@ retrieve_refs_for_remote_fiber (RetrieveRefsForRemoteData *data)
   if (strstr (remote_name, "fedora") != NULL)
     is_noenumerate = TRUE;
 
-#ifdef SANDBOXED_LIBFLATPAK
-  /* Allowing this makes it possible for COSMIC users to install
-   * their applets as no system remote is available for that
-   * this remote also doesn't use extra data.
-   */
-  is_whitelisted_user = g_strcmp0 (remote_name, COSMIC_APPLET_REMOTE_NAME) == 0;
-
-  if (is_noenumerate ||
-      (installation == self->user && !is_whitelisted_user))
-#else
   if (is_noenumerate)
-#endif
     ret = retrieve_refs_for_noenumerable_remote (
         self, data->parent->cancellable,
         remote_name, installation, remote);

@@ -202,7 +202,7 @@
             "-Ddocbook_docs=disabled",
             "-Dtests=false",
             "-Dman=disabled",
-            "-Dseccomp=disabled",
+            "-Dseccomp=enabled",
             "-Dselinux_module=disabled",
             "-Dmalcontent=enabled",
             "-Dsandboxed_triggers=false",

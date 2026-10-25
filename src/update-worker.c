@@ -117,25 +117,24 @@ run_update_worker (int   argc,
         had_error = TRUE;
     }
 
-#ifndef SANDBOXED_LIBFLATPAK
-  {
-    g_autoptr (FlatpakInstallation) user_inst = NULL;
+  if (bz_flatpak_setup_host_environment ())
+    {
+      g_autoptr (FlatpakInstallation) user_inst = NULL;
 
-    user_inst = flatpak_installation_new_user (NULL, &local_error);
-    if (user_inst == NULL)
-      {
-        g_warning ("Failed to open user installation: %s", local_error->message);
-        g_clear_error (&local_error);
-        had_error = TRUE;
-      }
-    else
-      {
-        flatpak_installation_set_no_interaction (user_inst, TRUE);
-        if (!update_installation (user_inst, history, &held_back))
+      user_inst = bz_flatpak_new_user_installation (&local_error);
+      if (user_inst == NULL)
+        {
+          g_warning ("Failed to open user installation: %s", local_error->message);
+          g_clear_error (&local_error);
           had_error = TRUE;
-      }
-  }
-#endif
+        }
+      else
+        {
+          flatpak_installation_set_no_interaction (user_inst, TRUE);
+          if (!update_installation (user_inst, history, &held_back))
+            had_error = TRUE;
+        }
+    }
 
   if (held_back)
     notify_stale (settings);

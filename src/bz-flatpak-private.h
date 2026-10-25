@@ -37,6 +37,12 @@ bz_flatpak_instance_get_system_installation (BzFlatpakInstance *self);
 FlatpakInstallation *
 bz_flatpak_instance_get_user_installation (BzFlatpakInstance *self);
 
+FlatpakInstallation *
+bz_flatpak_new_user_installation (GError **error);
+
+gboolean
+bz_flatpak_setup_host_environment (void);
+
 /* BzFlatpakEntry */
 
 char *
