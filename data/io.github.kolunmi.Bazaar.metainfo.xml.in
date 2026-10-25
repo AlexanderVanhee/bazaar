@@ -77,6 +77,31 @@
   </screenshots>
 
   <releases>
+    <release version="0.9.10" date="2026-10-25">
+      <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.10</url>
+      <description translate="no">
+        <p>
+          <em>Changes</em>
+        </p>
+        <ul>
+          <li>Automatic updates no longer install app updates that request new permissions</li>
+          <li>All runtime updates are now grouped into a single entry</li>
+          <li>Improved the screenshot page closing gesture</li>
+          <li>The screenshot carousel now show more screenshots</li>
+          <li>Improved search results for queries with typos or common filler words</li>
+        </ul>
+        <p>
+          <em>Bug Fixes</em>
+        </p>
+        <ul>
+          <li>Fixed the title bar glitching on the app page when resizing the window on the app details page</li>
+          <li>Fixed several memory leaks</li>
+        </ul>
+        <p>
+          Thanks for reading, and have a great day!
+        </p>
+      </description>
+    </release>
     <release version="0.9.9" date="2026-10-16">
       <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.9</url>
       <description translate="no">
