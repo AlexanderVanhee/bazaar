@@ -4,6 +4,11 @@ using Adw 1;
 template $BzInstallControls: Widget {
   hexpand: bind template.wide inverted;
 
+  EventControllerFocus {
+    enter => $on_focus_enter();
+    leave => $on_focus_leave();
+  }
+
   Stack stack {
     visible: bind $is_not_empty_page(stack.visible-child-name) as <bool>;
     visible-child-name: bind $get_visible_page(

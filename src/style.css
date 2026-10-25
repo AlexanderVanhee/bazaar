@@ -557,6 +557,15 @@ toggle-group.huge * {
   margin: 0;
   padding: 0;
   background-color: transparent;
+  border-radius: 4px;
+}
+
+.decorated-screenshot:focus-visible {
+  outline-offset: 4px;
+}
+
+.decorated-screenshot:focus-visible > picture {
+  border-radius: 4px;
 }
 
 .indicator-box button {
