@@ -321,7 +321,7 @@ bz_search_bar_set_busy (BzSearchBar *self,
 {
   g_return_if_fail (BZ_IS_SEARCH_BAR (self));
 
-  if (self->busy == busy)
+  if (!!self->busy == !!busy)
     return;
 
   self->busy = busy;

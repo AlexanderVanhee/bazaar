@@ -20,12 +20,13 @@
 
 #include <glib/gi18n.h>
 
+#include <bzvala.h>
+
 #include "bz-apps-page.h"
 #include "bz-async-texture.h"
 #include "bz-category-tile.h"
 #include "bz-dynamic-list-view.h"
 #include "bz-entry-inspector.h"
-#include <bzvala.h>
 #include "bz-group-tile-css-watcher.h"
 #include "bz-rich-app-tile.h"
 #include "bz-screenshot.h"
@@ -308,14 +309,7 @@ static void
 search_changed (BzSearchPage *self,
                 GtkEditable  *editable)
 {
-  const char *text = NULL;
-
-  text = gtk_editable_get_text (editable);
-
   update_filter (self, FALSE);
-
-  if (text != NULL && *text != '\0')
-    bz_search_bar_set_busy (BZ_SEARCH_BAR (editable), TRUE);
 }
 
 static void
@@ -868,19 +862,11 @@ update_filter (BzSearchPage *self,
   search_text = gtk_editable_get_text (GTK_EDITABLE (self->search_bar));
 
   if (search_text == NULL || *search_text == '\0')
-    {
-      g_list_store_remove_all (self->search_model);
-      gtk_stack_set_visible_child_name (self->search_stack, "empty");
-      goto idle;
-    }
+    goto idle;
 
   terms = bz_str_split_into_search_terms (search_text);
   if (terms == NULL)
-    {
-      g_list_store_remove_all (self->search_model);
-      gtk_stack_set_visible_child_name (self->search_stack, "empty");
-      goto idle;
-    }
+    goto idle;
 
   self->search_in_progress = TRUE;
   self->skip_debounce      = skip_debounce;
@@ -899,5 +885,8 @@ update_filter (BzSearchPage *self,
   return;
 
 idle:
+  self->search_in_progress = FALSE;
+  g_list_store_remove_all (self->search_model);
+  gtk_stack_set_visible_child_name (self->search_stack, "empty");
   bz_search_bar_set_busy (self->search_bar, FALSE);
 }

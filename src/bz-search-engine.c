@@ -20,9 +20,10 @@
 
 #define G_LOG_DOMAIN "BAZAAR::SEARCH-ENGINE"
 
-#include "bz-search-engine.h"
-#include "bz-entry-group.h"
 #include <bzvala.h>
+
+#include "bz-entry-group.h"
+#include "bz-search-engine.h"
 #include "env.h"
 #include "util.h"
 
@@ -772,13 +773,18 @@ GStrv
 bz_str_split_into_search_terms (const char *search_text)
 {
   g_autoptr (GStrvBuilder) builder = NULL;
+  guint n_terms                    = 0;
 
   builder = g_strv_builder_new ();
 
   UTF8_FOREACH_TOKEN_FORWARDS (term_start, term_end, search_text, NULL)
   {
     g_strv_builder_take (builder, g_strndup (term_start, term_end - term_start));
+    n_terms++;
   }
+
+  if (n_terms == 0)
+    return NULL;
 
   return g_strv_builder_end (builder);
 }
