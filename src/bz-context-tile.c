@@ -260,14 +260,14 @@ bz_context_tile_set_lozenge_style (BzContextTile *self,
     return;
 
   if (self->lozenge_style != NULL)
-    gtk_widget_remove_css_class (GTK_WIDGET (self->lozenge), self->lozenge_style);
+    gtk_widget_remove_css_class (GTK_WIDGET (self->ring_button), self->lozenge_style);
 
   g_clear_pointer (&self->lozenge_style, g_free);
 
   if (style != NULL)
     {
       self->lozenge_style = g_strdup (style);
-      gtk_widget_add_css_class (GTK_WIDGET (self->lozenge), self->lozenge_style);
+      gtk_widget_add_css_class (GTK_WIDGET (self->ring_button), self->lozenge_style);
     }
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_LOZENGE_STYLE]);
