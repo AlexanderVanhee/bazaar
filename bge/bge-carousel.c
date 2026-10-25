@@ -59,6 +59,8 @@ struct _BgeCarousel
   gboolean            allow_raise;
   gboolean            pass_through_start;
   gboolean            align_start;
+  int                 align_offset;
+  gboolean            revealed;
   int                 max_page_width;
   gboolean            wrap;
   guint               last_stop;
@@ -807,6 +809,65 @@ bge_carousel_get_nth_page (BgeCarousel *self,
 }
 
 /**
+ * bge_carousel_reveal:
+ * @self: a `BgeCarousel`
+ * @index: the index of the widget to reveal
+ *
+ * Scrolls just far enough for the widget at @index to be fully visible when
+ * [property@Bge.Carousel:align-start] is set, otherwise selects @index.
+ */
+void
+bge_carousel_reveal (BgeCarousel *self,
+                     guint        index)
+{
+  int   width       = 0;
+  int   total_width = 0;
+  int   start       = 0;
+  int   end         = 0;
+  int   offset      = 0;
+  guint first       = 0;
+
+  g_return_if_fail (BGE_IS_CAROUSEL (self));
+
+  if (self->model == NULL ||
+      index >= self->widgets->len)
+    return;
+
+  width = gtk_widget_get_width (GTK_WIDGET (self));
+  for (guint i = 0; i < self->widgets->len; i++)
+    {
+      CarouselWidgetData *child = g_ptr_array_index (self->widgets, i);
+
+      if (i < index)
+        start += child->width;
+      else if (i == index)
+        end = start + child->width;
+      total_width += child->width;
+    }
+
+  if (!self->align_start || total_width <= width)
+    {
+      gtk_single_selection_set_selected (self->model, index);
+      return;
+    }
+
+  offset = self->align_offset;
+  if (start + offset < 0)
+    offset = -start;
+  else if (end + offset > width)
+    offset = width - end;
+  offset = CLAMP (offset, width - total_width, 0);
+
+  for (start = 0; first < self->widgets->len - 1 && start + offset < 0; first++)
+    start += ((CarouselWidgetData *) g_ptr_array_index (self->widgets, first))->width;
+
+  gtk_single_selection_set_selected (self->model, first);
+  self->align_offset = offset;
+  self->revealed     = TRUE;
+  ensure_viewport (self, self->model, TRUE);
+}
+
+/**
  * bge_carousel_set_allow_mouse_drag:
  * @self: a `BgeCarousel`
  * @allow_mouse_drag: a boolean
@@ -1050,6 +1111,7 @@ items_changed (BgeCarousel *self,
                guint        added,
                GListModel  *model)
 {
+  self->revealed = FALSE;
   for (guint i = 0; i < removed; i++)
     {
       GObject            *object = NULL;
@@ -1110,6 +1172,7 @@ model_selected_changed (BgeCarousel        *self,
 {
   guint idx = 0;
 
+  self->revealed = FALSE;
   idx = gtk_single_selection_get_selected (selection);
   if (idx != G_MAXUINT)
     move_to_idx (self, idx, ANIMATION_DAMPING_RATIO);
@@ -1183,7 +1246,10 @@ move_to_idx (BgeCarousel *self,
         {
           int start = 0;
 
-          offset = MAX (-before_width, width - total_width);
+          if (self->revealed)
+            offset = CLAMP (self->align_offset, width - total_width, 0);
+          else
+            offset = MAX (-before_width, width - total_width);
 
           while (last_stop < self->widgets->len - 1 &&
                  start < total_width - width)
@@ -1195,6 +1261,7 @@ move_to_idx (BgeCarousel *self,
       offset    = width / 2 - before_width - widths[idx] / 2;
       last_stop = self->widgets->len - 1;
     }
+  self->align_offset = offset;
 
   if (self->scrolling)
     shift += self->hscroll_start - self->hscroll_current;

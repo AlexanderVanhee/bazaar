@@ -261,7 +261,7 @@ on_screenshot_focus_changed (BzDecoratedScreenshot *screenshot,
           item = g_list_model_get_item (self->model, i);
           if (item == texture)
             {
-              gtk_single_selection_set_selected (self->selection, i);
+              bge_carousel_reveal (self->carousel, i);
               break;
             }
         }
