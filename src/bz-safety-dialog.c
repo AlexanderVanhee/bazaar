@@ -31,8 +31,6 @@
 #include "safety-calculator.h"
 #include "template-callbacks.h"
 
-#define ANIMATION_DURATION 300
-
 struct _BzSafetyDialog
 {
   AdwBin parent_instance;
@@ -42,12 +40,9 @@ struct _BzSafetyDialog
   gboolean has_sandbox_escape;
   gboolean owns_dialog;
 
-  AdwAnimation *width_animation;
-  AdwAnimation *height_animation;
-
   BzLozenge   *lozenge;
   GtkListBox  *permissions_list;
-  AdwCarousel *carousel;
+  GtkStack    *stack;
   GtkBox      *global_box;
   GtkLabel    *arbitrary_description;
 };
@@ -72,8 +67,6 @@ bz_safety_dialog_dispose (GObject *object)
   BzSafetyDialog *self = BZ_SAFETY_DIALOG (object);
 
   g_clear_object (&self->entry);
-  g_clear_object (&self->width_animation);
-  g_clear_object (&self->height_animation);
 
   G_OBJECT_CLASS (bz_safety_dialog_parent_class)->dispose (object);
 }
@@ -126,13 +119,8 @@ get_target_size (BzSafetyDialog *self,
 {
   if (page_index == 0)
     {
-      int nat    = 0;
-      *out_width = 450;
-      gtk_widget_measure (GTK_WIDGET (self->global_box),
-                          GTK_ORIENTATION_VERTICAL,
-                          *out_width,
-                          NULL, &nat, NULL, NULL);
-      *out_height = CLAMP (nat + 48, 100, 600);
+      *out_width  = 450;
+      *out_height = bz_dialog_measure_height (GTK_WIDGET (self->global_box), *out_width, 48, 100, 600);
     }
   else
     {
@@ -145,38 +133,19 @@ static void
 animate_to_page (BzSafetyDialog *self,
                  guint           page_index)
 {
-  AdwDialog *dialog        = NULL;
+  GtkWidget *dialog        = NULL;
   int        target_width  = 0;
   int        target_height = 0;
-  int        cur_w         = 0;
-  int        cur_h         = 0;
 
   if (!self->owns_dialog)
     return;
 
-  dialog = ADW_DIALOG (gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_DIALOG));
+  dialog = gtk_widget_get_ancestor (GTK_WIDGET (self), BZ_TYPE_DIALOG);
   if (dialog == NULL)
     return;
 
-  if (self->width_animation == NULL || self->height_animation == NULL)
-    return;
-
   get_target_size (self, page_index, &target_width, &target_height);
-
-  cur_w = adw_dialog_get_content_width (dialog);
-  cur_h = adw_dialog_get_content_height (dialog);
-
-  adw_animation_skip (self->width_animation);
-  adw_animation_skip (self->height_animation);
-
-  adw_timed_animation_set_duration (ADW_TIMED_ANIMATION (self->width_animation), ANIMATION_DURATION);
-  adw_timed_animation_set_duration (ADW_TIMED_ANIMATION (self->height_animation), ANIMATION_DURATION);
-  adw_timed_animation_set_value_from (ADW_TIMED_ANIMATION (self->width_animation), cur_w);
-  adw_timed_animation_set_value_to (ADW_TIMED_ANIMATION (self->width_animation), target_width);
-  adw_timed_animation_set_value_from (ADW_TIMED_ANIMATION (self->height_animation), cur_h);
-  adw_timed_animation_set_value_to (ADW_TIMED_ANIMATION (self->height_animation), target_height);
-  adw_animation_play (self->width_animation);
-  adw_animation_play (self->height_animation);
+  bz_dialog_resize_to (BZ_DIALOG (dialog), target_width, target_height);
 }
 
 static void
@@ -185,67 +154,21 @@ on_dialog_map (BzSafetyDialog *self)
   guint page_index = self->has_sandbox_escape ? 0 : 1;
 
   if (page_index == 1)
-    {
-      GtkWidget *page = NULL;
+    gtk_stack_set_visible_child_full (self->stack, "permissions", GTK_STACK_TRANSITION_TYPE_NONE);
 
-      page = gtk_widget_get_last_child (GTK_WIDGET (self->carousel));
-      adw_carousel_scroll_to (self->carousel, page, FALSE);
-    }
-
-  if (self->owns_dialog)
-    {
-      AdwDialog *dialog        = NULL;
-      int        target_width  = 0;
-      int        target_height = 0;
-
-      dialog = ADW_DIALOG (gtk_widget_get_ancestor (GTK_WIDGET (self), ADW_TYPE_DIALOG));
-      if (dialog == NULL)
-        return;
-
-      get_target_size (self, page_index, &target_width, &target_height);
-      adw_dialog_set_content_width (dialog, target_width);
-      adw_dialog_set_content_height (dialog, target_height);
-    }
-}
-
-static void
-on_height_animation_done (AdwAnimation *animation,
-                          gpointer      user_data)
-{
-  BzSafetyDialog *self = BZ_SAFETY_DIALOG (user_data);
-
-  gtk_widget_child_focus (gtk_widget_get_last_child (GTK_WIDGET (self->carousel)),
-                          GTK_DIR_TAB_FORWARD);
+  animate_to_page (self, page_index);
 }
 
 static void
 next_page (BzSafetyDialog *self,
            GtkButton      *button)
 {
-  GtkWidget *page = NULL;
-
-  page = gtk_widget_get_last_child (GTK_WIDGET (self->carousel));
-
   gtk_accessible_announce (GTK_ACCESSIBLE (self),
                            bz_lozenge_get_title (self->lozenge),
                            GTK_ACCESSIBLE_ANNOUNCEMENT_PRIORITY_MEDIUM);
 
-  adw_carousel_scroll_to (self->carousel, page, TRUE);
+  gtk_stack_set_visible_child_name (self->stack, "permissions");
   animate_to_page (self, 1);
-
-  if (self->height_animation != NULL)
-    g_signal_connect_object (self->height_animation, "done",
-                             G_CALLBACK (on_height_animation_done), self,
-                             G_CONNECT_DEFAULT);
-}
-
-static gboolean
-is_page (gpointer object,
-         gdouble  position,
-         gint     target)
-{
-  return fabs (position - (gdouble) target) < 0.5 ||
-         fabs (position - round (position)) > 0.01;
 }
 
 static void
@@ -277,11 +200,10 @@ bz_safety_dialog_class_init (BzSafetyDialogClass *klass)
 
   gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, lozenge);
   gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, permissions_list);
-  gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, carousel);
+  gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, stack);
   gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, global_box);
   gtk_widget_class_bind_template_child (widget_class, BzSafetyDialog, arbitrary_description);
   gtk_widget_class_bind_template_callback (widget_class, next_page);
-  gtk_widget_class_bind_template_callback (widget_class, is_page);
 }
 
 static void
@@ -294,26 +216,19 @@ bz_safety_dialog_init (BzSafetyDialog *self)
 AdwDialog *
 bz_safety_dialog_new (BzEntry *entry)
 {
-  BzSafetyDialog     *widget        = NULL;
-  AdwDialog          *dialog        = NULL;
-  AdwAnimationTarget *width_target  = NULL;
-  AdwAnimationTarget *height_target = NULL;
-  g_autofree char    *description   = NULL;
+  BzSafetyDialog  *widget      = NULL;
+  AdwDialog       *dialog      = NULL;
+  g_autofree char *description = NULL;
 
   widget              = g_object_new (BZ_TYPE_SAFETY_DIALOG, NULL);
   widget->owns_dialog = TRUE;
 
-  dialog = adw_dialog_new ();
+  dialog = ADW_DIALOG (bz_dialog_new ());
 
   adw_dialog_set_title (dialog, _ ("Safety"));
   adw_dialog_set_content_height (dialog, 576);
   adw_dialog_set_content_width (dialog, 640);
   adw_dialog_set_child (dialog, GTK_WIDGET (widget));
-
-  width_target             = adw_property_animation_target_new (G_OBJECT (dialog), "content-width");
-  widget->width_animation  = adw_timed_animation_new (GTK_WIDGET (widget), 0, 0, ANIMATION_DURATION, width_target);
-  height_target            = adw_property_animation_target_new (G_OBJECT (dialog), "content-height");
-  widget->height_animation = adw_timed_animation_new (GTK_WIDGET (widget), 0, 0, ANIMATION_DURATION, height_target);
 
   g_object_set (widget, "entry", entry, NULL);
 
