@@ -87,7 +87,7 @@
           <li>Automatic updates no longer install app updates that request new permissions</li>
           <li>All runtime updates are now grouped into a single entry</li>
           <li>Improved the screenshot page closing gesture</li>
-          <li>The screenshot carousel now show more screenshots</li>
+          <li>The screenshot carousel now makes more effective use of horizontal space</li>
           <li>Improved search results for queries with typos or common filler words</li>
         </ul>
         <p>
