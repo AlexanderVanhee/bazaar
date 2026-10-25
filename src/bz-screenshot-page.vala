@@ -367,7 +367,13 @@ public class Bz.ScreenshotPage : Adw.Bin {
     }
 
     private void remove_from_overlay () {
+        Gtk.Widget? focus_target = source_widget;
+        while (focus_target != null && !focus_target.focusable)
+            focus_target = focus_target.get_parent ();
+
         (get_parent () as Gtk.Overlay)?.remove_overlay (this);
+
+        focus_target?.grab_focus ();
     }
 
     public override void snapshot (Gtk.Snapshot snapshot) {

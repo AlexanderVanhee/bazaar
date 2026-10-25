@@ -91,6 +91,8 @@ public class Bz.InstallControls : Gtk.Widget {
     private Adw.SpringAnimation pending_fade;
     private Adw.SpringAnimation progress_fade;
 
+    private bool focus_within;
+
     construct {
         progress_anim = new Adw.SpringAnimation (this, 0.0, 0.0, new Adw.SpringParams (1.1, 0.1, 10.0),
                                                  progress_anim_target (this));
@@ -100,6 +102,7 @@ public class Bz.InstallControls : Gtk.Widget {
                                                  new Adw.PropertyAnimationTarget (progress_ring, "opacity"));
 
         stack.notify["visible-child"].connect (queue_allocate);
+        stack.notify["visible-child"].connect (restore_focus);
 
         all_trackers = state.transaction_manager.all_trackers;
         all_trackers.items_changed.connect (update_tracker);
@@ -124,6 +127,25 @@ public class Bz.InstallControls : Gtk.Widget {
         dispose_template (typeof (Bz.InstallControls));
 
         base.dispose ();
+    }
+
+    [GtkCallback]
+    private void on_focus_enter () {
+        focus_within = true;
+    }
+
+    [GtkCallback]
+    private void on_focus_leave () {
+        Idle.add_full (Priority.DEFAULT_IDLE, () => {
+            var focus = get_root ()?.get_focus ();
+            focus_within = focus == null || focus.is_ancestor (this);
+            return Source.REMOVE;
+        });
+    }
+
+    private void restore_focus () {
+        if (focus_within && get_root ()?.get_focus () == null)
+            focus_button ();
     }
 
     public void focus_button () {
@@ -222,6 +244,7 @@ public class Bz.InstallControls : Gtk.Widget {
                                                : new_state == InstallState.CANCELLING ? "cancelling"
                                                : "cancel";
         install_button.sensitive = new_state != InstallState.CANCELLING;
+        restore_focus ();
         if (new_state == InstallState.INACTIVE)
             install_button.add_css_class ("suggested-action");
         else
