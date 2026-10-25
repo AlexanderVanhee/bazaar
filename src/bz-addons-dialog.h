@@ -21,13 +21,14 @@
 #pragma once
 
 #include <adwaita.h>
+#include <bzvala.h>
 
 #include "bz-entry-group.h"
 
 G_BEGIN_DECLS
 
 #define BZ_TYPE_ADDONS_DIALOG (bz_addons_dialog_get_type ())
-G_DECLARE_FINAL_TYPE (BzAddonsDialog, bz_addons_dialog, BZ, ADDONS_DIALOG, AdwDialog)
+G_DECLARE_FINAL_TYPE (BzAddonsDialog, bz_addons_dialog, BZ, ADDONS_DIALOG, BzDialog)
 
 AdwDialog *
 bz_addons_dialog_new (BzEntryGroup *group);

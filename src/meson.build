@@ -312,6 +312,7 @@ vala_sources = files(
 
   'bz-cosmic-place-applet-dialog.vala',
   'bz-decorated-screenshot.vala',
+  'bz-dialog.vala',
   'bz-fading-clamp.vala',
   'bz-install-controls.vala',
   'bz-themed-rect.vala',
