@@ -130,6 +130,13 @@ else
     endif
     if get_option('sandboxed_libflatpak')
       config_h.set_quoted('SANDBOXED_LIBFLATPAK', '1')
+      config_h.set_quoted('BWRAP_WRAPPER_PATH', get_option('prefix') / get_option('libexecdir') / 'bazaar-host-bwrap')
+      install_data(
+        'build-aux/flatpak/bwrap-wrapper.sh',
+        install_dir: get_option('libexecdir'),
+        rename: 'bazaar-host-bwrap',
+        install_mode: 'rwxr-xr-x',
+      )
     endif
     config_h.set_quoted('COSMIC_APPLET_REMOTE_NAME', get_option('cosmic_applet_remote_name'))
 
