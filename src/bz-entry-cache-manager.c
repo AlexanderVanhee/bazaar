@@ -45,6 +45,7 @@ struct _BzEntryCacheManager
   guint  living_entries;
 
   DexScheduler *scheduler;
+  DexLimiter   *write_limiter;
   guint64       memory_usage;
 
   DexPromise *init;
@@ -144,6 +145,7 @@ bz_entry_cache_manager_dispose (GObject *object)
   g_mutex_clear (&self->mutex);
 
   dex_clear (&self->scheduler);
+  dex_clear (&self->write_limiter);
   dex_clear (&self->watch_task);
 
   g_clear_pointer (&self->init, dex_unref);
@@ -225,7 +227,8 @@ bz_entry_cache_manager_init (BzEntryCacheManager *self)
 {
   g_mutex_init (&self->mutex);
 
-  self->scheduler = dex_thread_pool_scheduler_new ();
+  self->scheduler     = dex_thread_pool_scheduler_new ();
+  self->write_limiter = dex_limiter_new (MAX_CONCURRENT_WRITES);
 
   self->init       = dex_promise_new ();
   self->alive_hash = g_hash_table_new_full (
@@ -281,7 +284,8 @@ bz_entry_cache_manager_add (BzEntryCacheManager *self,
   data->unique_id_checksum = g_strdup (bz_entry_get_unique_id_checksum (entry));
   data->entry              = g_object_ref (entry);
 
-  future = dex_scheduler_spawn (
+  future = dex_limiter_run (
+      self->write_limiter,
       self->scheduler,
       bz_get_dex_stack_size (),
       (DexFiberFunc) write_task_fiber,
