@@ -452,11 +452,14 @@ serialize_all_entries_fiber (BzInspector *self)
     }
 
   WRITE_STRING ("\n]\n");
+
   dex_await (
       dex_output_stream_close (
           G_OUTPUT_STREAM (output),
           G_PRIORITY_DEFAULT),
-      NULL);
+      &local_error);
+  if (local_error != NULL)
+    goto err;
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_btn), TRUE);
   gtk_widget_set_visible (GTK_WIDGET (self->serialize_all_entries_progress), FALSE);
