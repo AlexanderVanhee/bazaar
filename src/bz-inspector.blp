@@ -238,6 +238,26 @@ template $BzInspector: Adw.Bin {
               }
             }
 
+            CheckButton serialize_all_entries_open_externally {
+              label: "Open externally when finished";
+              active: true;
+            }
+
+            CheckButton serialize_all_entries_open_externally_prefer_terminal {
+              label: "Open with $EDITOR (or another program) in a terminal emulator if possible";
+              active: false;
+              visible: bind serialize_all_entries_open_externally.active;
+            }
+
+            Entry serialize_all_entries_open_externally_alt_program_entry {
+              hexpand: true;
+              placeholder-text: "Enter the command line name of an alternate program...";
+              visible: bind $logical_and(
+                serialize_all_entries_open_externally.active as <bool>,
+                serialize_all_entries_open_externally_prefer_terminal.active as <bool>,
+              ) as <bool>;
+            }
+
             ProgressBar serialize_all_entries_progress {
               visible: false;
             }
@@ -463,6 +483,16 @@ template $BzInspector: Adw.Bin {
                         column-spacing: 2;
                         row-spacing: 1;
 
+                        Separator {
+                          layout {
+                            column: 2;
+                            row: 0;
+                            column-span: 1;
+                            row-span: 6;
+                          }
+                          orientation: vertical;
+                        }
+
                         Label {
                           layout {
                             column: 0;
@@ -528,7 +558,7 @@ template $BzInspector: Adw.Bin {
 
                         Label {
                           layout {
-                            column: 2;
+                            column: 3;
                             row: 0;
                           }
                           label: "Installable:";
@@ -536,7 +566,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 3;
+                            column: 4;
                             row: 0;
                           }
                           styles [
@@ -547,7 +577,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 2;
+                            column: 3;
                             row: 1;
                           }
                           label: "Installable-And-Available:";
@@ -555,7 +585,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 3;
+                            column: 4;
                             row: 1;
                           }
                           styles [
@@ -567,7 +597,7 @@ template $BzInspector: Adw.Bin {
 
                         Label {
                           layout {
-                            column: 2;
+                            column: 3;
                             row: 2;
                           }
                           label: "Updatable:";
@@ -575,7 +605,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 3;
+                            column: 4;
                             row: 2;
                           }
                           styles [
@@ -586,7 +616,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 2;
+                            column: 3;
                             row: 3;
                           }
                           label: "Updatable-And-Available:";
@@ -594,7 +624,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 3;
+                            column: 4;
                             row: 3;
                           }
                           styles [
@@ -606,7 +636,7 @@ template $BzInspector: Adw.Bin {
 
                         Label {
                           layout {
-                            column: 2;
+                            column: 3;
                             row: 4;
                           }
                           label: "Removable:";
@@ -614,7 +644,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 3;
+                            column: 4;
                             row: 4;
                           }
                           styles [
@@ -625,7 +655,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 2;
+                            column: 3;
                             row: 5;
                           }
                           label: "Removable-And-Available:";
@@ -633,7 +663,7 @@ template $BzInspector: Adw.Bin {
                         }
                         Label {
                           layout {
-                            column: 3;
+                            column: 4;
                             row: 5;
                           }
                           styles [
