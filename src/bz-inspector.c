@@ -20,10 +20,10 @@
 
 #define G_LOG_DOMAIN "BAZAAR::INSPECTOR"
 
-#include <json-glib/json-glib.h>
+#include "config.h"
 
 #include <bzvala.h>
-#include "config.h"
+#include <json-glib/json-glib.h>
 
 #include "bz-application.h"
 #include "bz-entry-inspector.h"
