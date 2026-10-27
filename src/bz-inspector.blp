@@ -238,6 +238,26 @@ template $BzInspector: Adw.Bin {
               }
             }
 
+            CheckButton serialize_all_entries_open_externally {
+              label: "Open externally when finished";
+              active: true;
+            }
+
+            CheckButton serialize_all_entries_open_externally_prefer_terminal {
+              label: "Open with $EDITOR (or another program) in a terminal emulator if possible";
+              active: false;
+              visible: bind serialize_all_entries_open_externally.active;
+            }
+
+            Entry serialize_all_entries_open_externally_alt_program_entry {
+              hexpand: true;
+              placeholder-text: "Enter the command line name of an alternate program...";
+              visible: bind $logical_and(
+                serialize_all_entries_open_externally.active as <bool>,
+                serialize_all_entries_open_externally_prefer_terminal.active as <bool>,
+              ) as <bool>;
+            }
+
             ProgressBar serialize_all_entries_progress {
               visible: false;
             }

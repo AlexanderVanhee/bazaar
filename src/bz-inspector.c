@@ -45,6 +45,9 @@ struct _BzInspector
   GtkCheckButton     *debug_mode_check;
   GtkCheckButton     *disable_blocklists_check;
   GtkEditable        *serialize_all_entries_path_entry;
+  GtkCheckButton     *serialize_all_entries_open_externally;
+  GtkCheckButton     *serialize_all_entries_open_externally_prefer_terminal;
+  GtkEditable        *serialize_all_entries_open_externally_alt_program_entry;
   GtkButton          *serialize_all_entries_btn;
   GtkProgressBar     *serialize_all_entries_progress;
   GtkEditable        *search_entry;
@@ -265,6 +268,9 @@ bz_inspector_class_init (BzInspectorClass *klass)
   gtk_widget_class_bind_template_child (widget_class, BzInspector, debug_mode_check);
   gtk_widget_class_bind_template_child (widget_class, BzInspector, disable_blocklists_check);
   gtk_widget_class_bind_template_child (widget_class, BzInspector, serialize_all_entries_path_entry);
+  gtk_widget_class_bind_template_child (widget_class, BzInspector, serialize_all_entries_open_externally);
+  gtk_widget_class_bind_template_child (widget_class, BzInspector, serialize_all_entries_open_externally_prefer_terminal);
+  gtk_widget_class_bind_template_child (widget_class, BzInspector, serialize_all_entries_open_externally_alt_program_entry);
   gtk_widget_class_bind_template_child (widget_class, BzInspector, serialize_all_entries_btn);
   gtk_widget_class_bind_template_child (widget_class, BzInspector, serialize_all_entries_progress);
   gtk_widget_class_bind_template_child (widget_class, BzInspector, search_entry);
@@ -326,17 +332,21 @@ bz_inspector_new (void)
 static DexFuture *
 serialize_all_entries_fiber (BzInspector *self)
 {
-  g_autoptr (GError) local_error        = NULL;
-  g_autoptr (BzEntryCacheManager) cache = NULL;
-  const char      *path                 = NULL;
-  g_autofree char *path_clone           = NULL;
-  g_autoptr (GFile) initial_file        = NULL;
-  g_autoptr (GtkFileDialog) file_dialog = NULL;
-  g_autoptr (GFile) file                = NULL;
-  g_autoptr (GHashTable) cached_set     = NULL;
-  guint cached_set_size                 = 0;
-  g_autoptr (GFileOutputStream) output  = NULL;
-  GHashTableIter iter                   = { 0 };
+  g_autoptr (GError) local_error                     = NULL;
+  g_autoptr (BzEntryCacheManager) cache              = NULL;
+  const char      *path                              = NULL;
+  g_autofree char *path_clone                        = NULL;
+  gboolean         open_externally                   = FALSE;
+  gboolean         open_externally_prefer_terminal   = FALSE;
+  const char      *open_externally_alt_program       = NULL;
+  g_autofree char *open_externally_alt_program_clone = NULL;
+  g_autoptr (GFile) initial_file                     = NULL;
+  g_autoptr (GtkFileDialog) file_dialog              = NULL;
+  g_autoptr (GFile) file                             = NULL;
+  g_autoptr (GHashTable) cached_set                  = NULL;
+  guint cached_set_size                              = 0;
+  g_autoptr (GFileOutputStream) output               = NULL;
+  GHashTableIter iter                                = { 0 };
 
   cache = bz_state_info_get_cache_manager (bz_state_info_get_default ());
   if (cache == NULL)
@@ -350,6 +360,16 @@ serialize_all_entries_fiber (BzInspector *self)
       initial_file = g_file_new_for_path (path_clone);
     }
 
+  open_externally                 = gtk_check_button_get_active (self->serialize_all_entries_open_externally);
+  open_externally_prefer_terminal = gtk_check_button_get_active (self->serialize_all_entries_open_externally_prefer_terminal);
+
+  open_externally_alt_program = gtk_editable_get_text (self->serialize_all_entries_open_externally_alt_program_entry);
+  if (open_externally_alt_program != NULL && *open_externally_alt_program != '\0')
+    open_externally_alt_program_clone = g_strdup (open_externally_alt_program);
+
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally_prefer_terminal), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally_alt_program_entry), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_btn), FALSE);
   gtk_widget_set_visible (GTK_WIDGET (self->serialize_all_entries_progress), TRUE);
   gtk_progress_bar_set_fraction (self->serialize_all_entries_progress, 0.0);
@@ -461,6 +481,68 @@ serialize_all_entries_fiber (BzInspector *self)
   if (local_error != NULL)
     goto err;
 
+  if (open_externally)
+    {
+      if (open_externally_prefer_terminal)
+        {
+          g_autofree char *shell_snippet = NULL;
+
+          const char *argv[] = {
+#if defined(SANDBOXED_LIBFLATPAK)
+            "flatpak-spawn",
+            "--host",
+#endif
+            "/bin/sh",
+            "-c",
+            NULL,
+            NULL,
+          };
+
+          shell_snippet = g_strdup_printf (
+              "xdg-terminal-exec \"/bin/sh -c '%s %s'\" || "
+              "ptyxis --new-window -x \"/bin/sh -c '%s %s'\" || "
+              "xdg-open \"file://%s\"",
+              open_externally_alt_program_clone != NULL ? open_externally_alt_program_clone : "$EDITOR",
+              path_clone,
+              open_externally_alt_program_clone != NULL ? open_externally_alt_program_clone : "$EDITOR",
+              path_clone,
+              path_clone);
+
+#if defined(SANDBOXED_LIBFLATPAK)
+          argv[4] = shell_snippet;
+#else
+          argv[2] = shell_snippet;
+#endif
+
+          g_spawn_async (NULL, (char **) argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+        }
+      else
+        {
+#if defined(SANDBOXED_LIBFLATPAK)
+          const char *argv[] = {
+            "flatpak-spawn",
+            "--host",
+            "xdg-open",
+            path_clone,
+            NULL,
+          };
+
+          g_spawn_async (NULL, (char **) argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+#else
+          g_autofree char *uri                = NULL;
+          g_autoptr (GtkUriLauncher) launcher = NULL;
+
+          uri      = g_strdup_printf ("file://%s", path_clone);
+          launcher = gtk_uri_launcher_new (uri);
+
+          gtk_uri_launcher_launch (launcher, GTK_WINDOW (gtk_widget_get_root (GTK_WIDGET (self))), NULL, NULL, NULL);
+#endif
+        }
+    }
+
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally_prefer_terminal), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally_alt_program_entry), TRUE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_btn), TRUE);
   gtk_widget_set_visible (GTK_WIDGET (self->serialize_all_entries_progress), FALSE);
   return dex_future_new_true ();
@@ -468,6 +550,9 @@ serialize_all_entries_fiber (BzInspector *self)
 err:
   if (local_error != NULL)
     g_warning ("Failed to serialize: %s", local_error->message);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally_prefer_terminal), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_open_externally_alt_program_entry), TRUE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->serialize_all_entries_btn), TRUE);
   gtk_widget_set_visible (GTK_WIDGET (self->serialize_all_entries_progress), FALSE);
   return dex_future_new_for_error (g_steal_pointer (&local_error));
