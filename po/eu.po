@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-10-12 03:44+0000\n"
-"PO-Revision-Date: 2026-10-12 21:27+0200\n"
+"POT-Creation-Date: 2026-10-16 17:44+0000\n"
+"PO-Revision-Date: 2026-10-17 13:44+0200\n"
 "Last-Translator: Ibai Oihanguren Sala <ibaios@disroot.org>\n"
 "Language-Team: Basque\n"
 "Language: eu\n"
@@ -18,11 +18,17 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 51.0\n"
+"X-DL-VCS-Web: https://gitlab.gnome.org/World/bazaar\n"
+"X-DL-Lang: eu\n"
+"X-DL-Module: bazaar\n"
+"X-DL-Branch: main\n"
+"X-DL-Domain: po\n"
+"X-DL-State: Translating\n"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: data/io.github.kolunmi.Bazaar.desktop.in:3
 #: data/io.github.kolunmi.Bazaar.metainfo.xml.in:8 src/bz-window.blp:55
-#: src/bz-window.blp:211 src/bz-window.c:437 src/bz-window.c:438
+#: src/bz-window.blp:193 src/bz-window.c:437 src/bz-window.c:438
 msgid "Bazaar"
 msgstr "Bazaar"
 
@@ -71,7 +77,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Bilatu aplikazioak zuzenean GNOME Shell-etik"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:816
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:825
 msgid "The Bazaar Contributors"
 msgstr "Bazaarren kolaboratzaileak"
 
@@ -759,27 +765,27 @@ msgid "Verified"
 msgstr "Egiaztatua"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:819
+#: src/bz-application.c:828
 msgid "translator-credits"
 msgstr "Ibai Oihanguren Sala"
 
-#: src/bz-application.c:829
+#: src/bz-application.c:838
 msgid "Special Thanks"
 msgstr "Eskerrak"
 
-#: src/bz-application.c:899
+#: src/bz-application.c:908
 msgid "Logged Out Successfully!"
 msgstr "Behar bezala amaitu da saioa!"
 
-#: src/bz-application.c:1075
+#: src/bz-application.c:1080
 msgid "Performing setup…"
 msgstr "Konfigurazioa osatzen…"
 
-#: src/bz-application.c:1118
+#: src/bz-application.c:1123
 msgid "Set Up System Flathub?"
 msgstr "Sistemako Flathub konfiguratu?"
 
-#: src/bz-application.c:1121
+#: src/bz-application.c:1126
 msgid ""
 "The system Flathub remote is not set up. Bazaar requires Flathub to be "
 "configured on the system Flatpak installation to browse and install "
@@ -794,11 +800,11 @@ msgstr ""
 "Bestela, Bazaar soilik instalatutako aplikazioak nabigatu eta kentzeko "
 "erabili ahalko duzu."
 
-#: src/bz-application.c:1128
+#: src/bz-application.c:1133
 msgid "Set Up Flathub?"
 msgstr "Flathub konfiguratu?"
 
-#: src/bz-application.c:1131
+#: src/bz-application.c:1136
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -811,59 +817,59 @@ msgstr ""
 "Bazaar dagoeneko instalatutako aplikazioak nabigatu eta kentzeko erabili "
 "ahalko duzu."
 
-#: src/bz-application.c:1137
+#: src/bz-application.c:1142
 msgid "Later"
 msgstr "Geroago"
 
-#: src/bz-application.c:1138
+#: src/bz-application.c:1143
 msgid "Set Up Flathub"
 msgstr "Konfiguratu Flathub"
 
-#: src/bz-application.c:1760
+#: src/bz-application.c:1765
 msgid "A backend error occurred"
 msgstr "Backendeko errorea gertatu da"
 
-#: src/bz-application.c:1967 src/bz-application.c:4325
+#: src/bz-application.c:1972 src/bz-application.c:4368
 msgid "Refreshing…"
 msgstr "Freskatzen…"
 
-#: src/bz-application.c:2126
+#: src/bz-application.c:2131
 #, c-format
 msgid "Loading %d apps…"
 msgstr "%d aplikazioak kargatzen…"
 
-#: src/bz-application.c:2185 src/bz-application.c:2262
+#: src/bz-application.c:2190 src/bz-application.c:2267
 msgid "Failed to open file"
 msgstr "Ezin izan da fitxategia ireki"
 
-#: src/bz-application.c:2276
+#: src/bz-application.c:2281
 msgid "Failed to load metainfo"
 msgstr "Ezin izan da meta informazioa kargatu"
 
-#: src/bz-application.c:2401
+#: src/bz-application.c:2406
 msgid "An initialization error occurred"
 msgstr "Hasieratze-errore bat gertatu da"
 
-#: src/bz-application.c:2809
+#: src/bz-application.c:2814
 msgid "Checking for updates…"
 msgstr "Eguneratzeak bilatzen…"
 
-#: src/bz-application.c:2884
+#: src/bz-application.c:2929
 msgid "Failed to check for updates"
 msgstr "Ezin izan dira eguneratzeak bilatu"
 
-#: src/bz-application.c:4102
+#: src/bz-application.c:4145
 msgid "Could not find app"
 msgstr "Ez da aplikazioa aurkitu"
 
-#: src/bz-application.c:4322
+#: src/bz-application.c:4365
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
 msgstr[0] "Aplikazio %d kargatzen…"
 msgstr[1] "%d aplikazio kargatzen…"
 
-#: src/bz-application.c:4327
+#: src/bz-application.c:4370
 msgid "Writing to cache…"
 msgstr "Cachean idazten…"
 
@@ -952,7 +958,7 @@ msgstr "Behar bezala instalatu da!"
 
 #. TRANSLATORS: Button to launch an installed app
 #: src/bz-bundle-install-dialog.blp:440 src/bz-bundle-install-dialog.blp:526
-#: src/bz-rich-app-tile.blp:200 src/bz-transaction-tile.blp:300
+#: src/bz-rich-app-tile.blp:200 src/bz-transaction-tile.blp:328
 msgid "Open"
 msgstr "Ireki"
 
@@ -1145,7 +1151,7 @@ msgstr "Hasi saioa Flathub-ekin gogokoak kudeatzeko"
 msgid "Log In"
 msgstr "Hasi saioa"
 
-#: src/bz-favorites-page.blp:5 src/bz-window.blp:350
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:322
 msgid "Favorites"
 msgstr "Gogokoak"
 
@@ -1173,11 +1179,11 @@ msgstr "Kendu gogokoetatik"
 msgid "Failed to remove favorite"
 msgstr "Huts egin du gogokoa kentzeak"
 
-#: src/bz-featured-carousel.blp:32
+#: src/bz-featured-carousel.blp:33
 msgid "Previous"
 msgstr "Aurrekoa"
 
-#: src/bz-featured-carousel.blp:55
+#: src/bz-featured-carousel.blp:57
 msgid "Next"
 msgstr "Hurrengoa"
 
@@ -1864,10 +1870,6 @@ msgstr "%s hobeto dabil hardware batzuetan"
 msgid "%s works on most devices"
 msgstr "%s(e)k gailu gehienetan funtzionatzen du"
 
-#: src/bz-inspector.blp:22
-msgid "Inspector Menu"
-msgstr "Ikuskatze-menua"
-
 #: src/bz-install-controls.blp:58
 msgid "_Open"
 msgstr "_Ireki"
@@ -1945,15 +1947,15 @@ msgstr "Garbitu amaitutako atazak"
 msgid "Sort Options"
 msgstr "Ordenatze-aukerak"
 
-#: src/bz-library-page.blp:297
+#: src/bz-library-page.blp:298
 msgid "Sort By"
 msgstr "Ordenatu honela"
 
-#: src/bz-library-page.blp:311
+#: src/bz-library-page.blp:312
 msgid "Name"
 msgstr "Izena"
 
-#: src/bz-library-page.blp:317
+#: src/bz-library-page.blp:318
 msgid "Size"
 msgstr "Tamaina"
 
@@ -2164,7 +2166,7 @@ msgid "Network connection is metered — automatic store data refresh is paused"
 msgstr ""
 "Sareko konexioa neurtua da — biltegiko datuen berritze automatikoa pausatu da"
 
-#: src/bz-preferences-dialog.blp:26 src/bz-window.blp:244 src/bz-window.blp:255
+#: src/bz-preferences-dialog.blp:26 src/bz-window.blp:226 src/bz-window.blp:237
 msgid "Refresh Manually"
 msgstr "Berritu eskuz"
 
@@ -2507,23 +2509,23 @@ msgstr "Atzera"
 msgid "Previous Screenshot"
 msgstr "Aurreko pantaila-argazkia"
 
-#: src/bz-screenshot-page.blp:111
+#: src/bz-screenshot-page.blp:112
 msgid "Next Screenshot"
 msgstr "Hurrengo pantaila-argazkia"
 
-#: src/bz-screenshot-page.blp:127
+#: src/bz-screenshot-page.blp:129
 msgid "Copy Image"
 msgstr "Kopiatu irudia"
 
-#: src/bz-screenshot-page.blp:188
+#: src/bz-screenshot-page.blp:190
 msgid "Reset View"
 msgstr "Berrezarri ikuspegia"
 
-#: src/bz-screenshot-page.blp:199
+#: src/bz-screenshot-page.blp:201
 msgid "Zoom Out"
 msgstr "Urrundu"
 
-#: src/bz-screenshot-page.blp:209
+#: src/bz-screenshot-page.blp:211
 msgid "Zoom In"
 msgstr "Gerturatu"
 
@@ -2877,7 +2879,7 @@ msgstr "_Instalatu halere"
 msgid "Failed to load transaction dialog"
 msgstr "Huts egin du transakzioaren leihoa kargatzeak"
 
-#: src/bz-transaction-manager.c:796
+#: src/bz-transaction-manager.c:836
 #, c-format
 msgid "Finished in %.02f seconds"
 msgstr "%.02f segundoan amaitua"
@@ -2894,27 +2896,31 @@ msgstr "Exekuzio-ingurunea"
 msgid "In Queue"
 msgstr "Ilaran"
 
-#: src/bz-transaction-tile.blp:207
+#: src/bz-transaction-tile.blp:211
+msgid "Finishing Up"
+msgstr "Amaitzen"
+
+#: src/bz-transaction-tile.blp:235
 msgid "Done"
 msgstr "Egina"
 
-#: src/bz-transaction-tile.blp:231
+#: src/bz-transaction-tile.blp:259
 msgid "Cancelled"
 msgstr "Utzita"
 
-#: src/bz-transaction-tile.blp:255
+#: src/bz-transaction-tile.blp:283
 msgid "Error"
 msgstr "Errorea"
 
-#: src/bz-transaction-tile.blp:313
+#: src/bz-transaction-tile.blp:341
 msgid "Cancel Transaction"
 msgstr "Eten transakzioa"
 
-#: src/bz-transaction-tile.blp:323
+#: src/bz-transaction-tile.blp:351
 msgid "Show Details"
 msgstr "Erakutsi xehetasunak"
 
-#: src/bz-transaction-tile.blp:436
+#: src/bz-transaction-tile.blp:464
 msgid "Show Error Info"
 msgstr "Erakutsi errore-informazioa"
 
@@ -3012,65 +3018,65 @@ msgstr "Liburutegia"
 msgid "Search"
 msgstr "Bilaketa"
 
-#: src/bz-window.blp:223
+#: src/bz-window.blp:205
 msgid "Main Menu"
 msgstr "Menu nagusia"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:235
+#: src/bz-window.blp:217
 msgid "You are running a new version of Bazaar!"
 msgstr "Bazaarren bertsio berria ari zara erabiltzen!"
 
-#: src/bz-window.blp:236
+#: src/bz-window.blp:218
 msgid "See What's New"
 msgstr "Ikusi berritasunak"
 
-#: src/bz-window.blp:243
+#: src/bz-window.blp:225
 msgid ""
 "You have a network connection but are viewing a cached version of Flathub"
 msgstr ""
 "Sareko konexioa daukazu, baina Flathub-en bertsio cacheratua ari zara ikusten"
 
-#: src/bz-window.blp:254
+#: src/bz-window.blp:236
 msgid "Network connection is metered — automatic refreshes disabled"
 msgstr "Sareko konexioa neurtua da — berritze automatikoa ezgaitu da"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:291
+#: src/bz-window.blp:273
 msgid "_Donate to Bazaar"
 msgstr "_Lagundu Bazaar diruz"
 
-#: src/bz-window.blp:297
+#: src/bz-window.blp:279
 msgid "_Refresh"
 msgstr "_Berritu"
 
-#: src/bz-window.blp:301
+#: src/bz-window.blp:283
 msgid "_Login With Flathub"
 msgstr "Hasi saioa _Flathub-en"
 
-#: src/bz-window.blp:307
+#: src/bz-window.blp:289
 msgid "_Manage Leftover User Data"
 msgstr "_Kudeatu soberako erabiltzaile-datuak"
 
-#: src/bz-window.blp:313
+#: src/bz-window.blp:295
 msgid "_Preferences"
 msgstr "_Hobespenak"
 
-#: src/bz-window.blp:318
+#: src/bz-window.blp:300
 msgid "_Keyboard Shortcuts"
 msgstr "_Teklatuko lasterbideak"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:324
+#: src/bz-window.blp:306
 msgid "_About Bazaar"
 msgstr "B_azaarri buruz"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:331
+#: src/bz-window.blp:313
 msgid "_Quit Bazaar"
 msgstr "_Irten"
 
-#: src/bz-window.blp:357
+#: src/bz-window.blp:329
 msgid "Log Out"
 msgstr "Amaitu saioa"
 
@@ -3608,6 +3614,9 @@ msgstr "%s eta %s eguneratu dira."
 #, c-format
 msgid "Includes %s, %s and %s."
 msgstr "%s, %s eta %s barne."
+
+#~ msgid "Inspector Menu"
+#~ msgstr "Ikuskatze-menua"
 
 #~ msgid "Notice for Ubuntu Users"
 #~ msgstr "Oharra Ubuntu erabiltzaileentzat"
