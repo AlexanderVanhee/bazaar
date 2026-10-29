@@ -222,17 +222,12 @@ format_leftover_label (gpointer object, const char *name, guint64 size)
 }
 
 static gpointer
-filter_own_app_id (BzEntry *entry, GtkStringList *app_ids)
+filter_own_app_id (const char *own_id, GtkStringList *app_ids)
 {
-  const char *own_id;
   g_autoptr (GtkStringList) filtered = NULL;
   guint n_items                      = 0;
 
-  if (!BZ_IS_ENTRY (entry) || !GTK_IS_STRING_LIST (app_ids))
-    return NULL;
-
-  own_id = bz_entry_get_id (entry);
-  if (!own_id)
+  if (!own_id || !GTK_IS_STRING_LIST (app_ids))
     return NULL;
 
   filtered = gtk_string_list_new (NULL);
@@ -254,12 +249,16 @@ filter_own_app_id (BzEntry *entry, GtkStringList *app_ids)
 }
 
 static GListModel *
-get_developer_apps_entries (gpointer object, GtkStringList *app_ids, BzEntry *entry)
+get_developer_apps_entries (gpointer object, GtkStringList *app_ids)
 {
   BzFullView *self                   = BZ_FULL_VIEW (object);
-  g_autoptr (GtkStringList) filtered = filter_own_app_id (BZ_ENTRY (entry), app_ids);
+  g_autoptr (GtkStringList) filtered = NULL;
   BzApplicationMapFactory *factory;
 
+  if (self->group == NULL)
+    return NULL;
+
+  filtered = filter_own_app_id (bz_entry_group_get_id (self->group), app_ids);
   if (!filtered)
     return NULL;
 
