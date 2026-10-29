@@ -721,7 +721,7 @@ template $BzFullView: Adw.Bin {
                             model: SliceListModel similar_apps_model {
                               offset: 0;
                               size: 6;
-                              model: bind $get_developer_apps_entries(template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.similar-apps, template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>) as <Gio.ListModel>;
+                              model: bind $get_developer_apps_entries(template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.similar-apps) as <Gio.ListModel>;
                             };
                           }
 
@@ -757,7 +757,7 @@ template $BzFullView: Adw.Bin {
                             model: SliceListModel other_apps_model {
                               offset: 0;
                               size: 6;
-                              model: bind $get_developer_apps_entries(template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.developer-apps, template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>) as <Gio.ListModel>;
+                              model: bind $get_developer_apps_entries(template.entry-group as <$BzEntryGroup>.ui-entry as <$BzResult>.object as <$BzEntry>.developer-apps) as <Gio.ListModel>;
                             };
                           }
 
