@@ -227,6 +227,15 @@ description_line_amount (gpointer object,
 }
 
 static void
+bz_app_tile_clicked (GtkButton *button)
+{
+  BzAppTile *self = BZ_APP_TILE (button);
+
+  if (self->group != NULL)
+    gtk_widget_activate_action (GTK_WIDGET (self), "window.show-group", "(sb)", bz_entry_group_get_id (self->group), TRUE);
+}
+
+static void
 bz_app_tile_class_init (BzAppTileClass *klass)
 {
   GObjectClass   *object_class = G_OBJECT_CLASS (klass);
@@ -235,6 +244,8 @@ bz_app_tile_class_init (BzAppTileClass *klass)
   object_class->set_property = bz_app_tile_set_property;
   object_class->get_property = bz_app_tile_get_property;
   object_class->dispose      = bz_app_tile_dispose;
+
+  GTK_BUTTON_CLASS (klass)->clicked = bz_app_tile_clicked;
 
   props[PROP_GROUP] =
       g_param_spec_object (
@@ -293,13 +304,7 @@ bz_app_tile_set_group (BzAppTile    *self,
     self->group = g_object_ref (group);
 
   if (group != NULL)
-    {
-      gtk_actionable_set_action_target (GTK_ACTIONABLE (self), "(sb)", bz_entry_group_get_id (group), TRUE);
-      gtk_actionable_set_action_name (GTK_ACTIONABLE (self), "window.show-group");
-      g_signal_connect_swapped (group, "notify::removable", G_CALLBACK (group_removable_changed_cb), self);
-    }
-  else
-    gtk_actionable_set_action_name (GTK_ACTIONABLE (self), NULL);
+    g_signal_connect_swapped (group, "notify::removable", G_CALLBACK (group_removable_changed_cb), self);
 
   check_installed_pill (self);
 
