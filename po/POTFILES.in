@@ -122,7 +122,7 @@ src/bz-search-pill-list.c
 src/bz-section-view.blp
 src/bz-section-view.c
 src/bz-serializable.c
-src/bz-share-list.c
+src/bz-share-list.vala
 src/bz-stats-dialog.blp
 src/bz-stats-dialog.c
 src/bz-subcategory-list.c
