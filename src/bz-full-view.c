@@ -45,7 +45,6 @@
 #include "bz-safety-dialog.h"
 #include "bz-screenshots-carousel.h"
 #include "bz-section-view.h"
-#include "bz-share-list.h"
 #include "bz-stats-dialog.h"
 #include "bz-window.h"
 #include "context-tile-callbacks.h"
