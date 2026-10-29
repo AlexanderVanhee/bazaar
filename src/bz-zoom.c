@@ -295,6 +295,9 @@ on_scroll (BzZoom                   *self,
   if (source != GDK_SOURCE_MOUSE)
     return GDK_EVENT_PROPAGATE;
 
+  if (fabs (dx) >= fabs (dy))
+    return GDK_EVENT_PROPAGATE;
+
   zoom_factor = dy < 0 ? 1.1 : 0.9;
   bz_zoom_zoom_at_point (self, zoom_factor, self->mouse_x, self->mouse_y);
   return GDK_EVENT_STOP;
