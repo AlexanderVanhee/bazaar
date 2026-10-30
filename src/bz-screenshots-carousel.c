@@ -35,8 +35,6 @@
 #include "bz-window.h"
 #include "template-callbacks.h"
 
-#define LIGHT_CLASS          "screenshot-carousel-light"
-#define DARK_CLASS           "screenshot-carousel-dark"
 #define LIGHT_MIX_PERCENTAGE 15
 #define DARK_MIX_PERCENTAGE  4
 
@@ -57,8 +55,9 @@ struct _BzScreenshotsCarousel
   gboolean        compact;
   char           *light_accent_color;
   char           *dark_accent_color;
-  char           *widget_css_class;
-  GtkCssProvider *css;
+  GdkRGBA         light_bg;
+  GdkRGBA         dark_bg;
+  gboolean        has_bg;
   gulong          items_changed_id;
 };
 
@@ -77,8 +76,7 @@ enum
 
 static GParamSpec *properties[N_PROPS];
 
-static void refresh_css (BzScreenshotsCarousel *self);
-static void clear_css (BzScreenshotsCarousel *self);
+static void refresh_bg (BzScreenshotsCarousel *self);
 
 static void
 update_button_visibility (BzScreenshotsCarousel *self)
@@ -332,17 +330,23 @@ dark_changed (BzScreenshotsCarousel *self,
               GParamSpec            *pspec,
               AdwStyleManager       *mgr)
 {
-  gboolean is_dark;
+  if (self->has_bg)
+    gtk_widget_queue_draw (GTK_WIDGET (self));
+}
 
-  if (self->css == NULL)
-    return;
+static void
+bz_screenshots_carousel_snapshot (GtkWidget   *widget,
+                                  GtkSnapshot *snapshot)
+{
+  BzScreenshotsCarousel *self = BZ_SCREENSHOTS_CAROUSEL (widget);
 
-  is_dark = adw_style_manager_get_dark (adw_style_manager_get_default ());
+  if (self->has_bg)
+    gtk_snapshot_append_color (
+        snapshot,
+        adw_style_manager_get_dark (adw_style_manager_get_default ()) ? &self->dark_bg : &self->light_bg,
+        &GRAPHENE_RECT_INIT (0, 0, gtk_widget_get_width (widget), gtk_widget_get_height (widget)));
 
-  gtk_widget_remove_css_class (GTK_WIDGET (self), LIGHT_CLASS);
-  gtk_widget_remove_css_class (GTK_WIDGET (self), DARK_CLASS);
-
-  gtk_widget_add_css_class (GTK_WIDGET (self), is_dark ? DARK_CLASS : LIGHT_CLASS);
+  GTK_WIDGET_CLASS (bz_screenshots_carousel_parent_class)->snapshot (widget, snapshot);
 }
 
 static void
@@ -360,11 +364,8 @@ bz_screenshots_carousel_dispose (GObject *object)
   g_clear_object (&self->model);
   g_clear_object (&self->captions);
 
-  clear_css (self);
-
   g_clear_pointer (&self->light_accent_color, g_free);
   g_clear_pointer (&self->dark_accent_color, g_free);
-  g_clear_pointer (&self->widget_css_class, g_free);
 
   if (root_child != NULL)
     gtk_widget_unparent (root_child);
@@ -443,6 +444,7 @@ bz_screenshots_carousel_class_init (BzScreenshotsCarouselClass *klass)
   object_class->dispose      = bz_screenshots_carousel_dispose;
   object_class->get_property = bz_screenshots_carousel_get_property;
   object_class->set_property = bz_screenshots_carousel_set_property;
+  widget_class->snapshot     = bz_screenshots_carousel_snapshot;
 
   properties[PROP_MODEL] =
       g_param_spec_object ("model",
@@ -595,7 +597,7 @@ bz_screenshots_carousel_set_light_accent_color (BzScreenshotsCarousel *self,
   if (color != NULL)
     self->light_accent_color = g_strdup (color);
 
-  refresh_css (self);
+  refresh_bg (self);
 
   g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_LIGHT_ACCENT_COLOR]);
 }
@@ -622,7 +624,7 @@ bz_screenshots_carousel_set_dark_accent_color (BzScreenshotsCarousel *self,
   if (color != NULL)
     self->dark_accent_color = g_strdup (color);
 
-  refresh_css (self);
+  refresh_bg (self);
 
   g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_DARK_ACCENT_COLOR]);
 }
@@ -634,74 +636,39 @@ bz_screenshots_carousel_get_dark_accent_color (BzScreenshotsCarousel *self)
   return self->dark_accent_color;
 }
 
-static void
-refresh_css (BzScreenshotsCarousel *self)
+static gboolean
+mix_color (GdkRGBA       *out,
+           const char    *color,
+           int            percentage,
+           const GdkRGBA *base)
 {
-  g_autofree char *css_string = NULL;
-  g_autofree char *light_bg   = NULL;
-  g_autofree char *dark_bg    = NULL;
-  gboolean         is_dark;
+  GdkRGBA rgba = { 0 };
+  float   t    = percentage / 100.0f;
 
-  clear_css (self);
+  if (!gdk_rgba_parse (&rgba, color))
+    return FALSE;
 
-  if (self->light_accent_color == NULL &&
-      self->dark_accent_color == NULL)
-    return;
+  out->red   = rgba.red * t + base->red * (1 - t);
+  out->green = rgba.green * t + base->green * (1 - t);
+  out->blue  = rgba.blue * t + base->blue * (1 - t);
+  out->alpha = rgba.alpha * t + base->alpha * (1 - t);
 
-  self->widget_css_class = g_strdup_printf ("screenshot-carousel-%p", (void *) self);
-  gtk_widget_add_css_class (GTK_WIDGET (self), self->widget_css_class);
-
-  if (self->light_accent_color != NULL && self->dark_accent_color != NULL)
-    light_bg = g_strdup_printf ("color-mix(in srgb, %s %d%%, rgb(255,255,255))",
-                                self->light_accent_color, LIGHT_MIX_PERCENTAGE);
-  else if (self->light_accent_color != NULL)
-    light_bg = g_strdup (self->light_accent_color);
-  else if (self->dark_accent_color != NULL)
-    light_bg = g_strdup_printf ("color-mix(in srgb, %s %d%%, rgb(255,255,255))",
-                                self->dark_accent_color, LIGHT_MIX_PERCENTAGE);
-
-  if (self->light_accent_color != NULL && self->dark_accent_color != NULL)
-    dark_bg = g_strdup_printf ("color-mix(in srgb, %s %d%%, rgb(29,29,32))",
-                               self->dark_accent_color, DARK_MIX_PERCENTAGE);
-  else if (self->dark_accent_color != NULL)
-    dark_bg = g_strdup (self->dark_accent_color);
-  else if (self->light_accent_color != NULL)
-    dark_bg = g_strdup_printf ("color-mix(in srgb, %s %d%%, rgb(29,29,32))",
-                               self->light_accent_color, DARK_MIX_PERCENTAGE);
-
-  css_string = g_strdup_printf (
-      ".%s.%s{background-color:%s;}\n"
-      ".%s.%s{background-color:%s;}",
-      self->widget_css_class, LIGHT_CLASS, light_bg,
-      self->widget_css_class, DARK_CLASS, dark_bg);
-
-  self->css = gtk_css_provider_new ();
-  gtk_css_provider_load_from_string (self->css, css_string);
-  gtk_style_context_add_provider_for_display (
-      gdk_display_get_default (),
-      GTK_STYLE_PROVIDER (self->css),
-      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-  is_dark = adw_style_manager_get_dark (adw_style_manager_get_default ());
-
-  gtk_widget_add_css_class (GTK_WIDGET (self), is_dark ? DARK_CLASS : LIGHT_CLASS);
+  return TRUE;
 }
 
 static void
-clear_css (BzScreenshotsCarousel *self)
+refresh_bg (BzScreenshotsCarousel *self)
 {
-  gtk_widget_remove_css_class (GTK_WIDGET (self), LIGHT_CLASS);
-  gtk_widget_remove_css_class (GTK_WIDGET (self), DARK_CLASS);
+  const GdkRGBA light_base = { 1.0f, 1.0f, 1.0f, 1.0f };
+  const GdkRGBA dark_base  = { 29 / 255.0f, 29 / 255.0f, 32 / 255.0f, 1.0f };
+  const char   *light      = self->light_accent_color;
+  const char   *dark       = self->dark_accent_color;
 
-  if (self->widget_css_class != NULL)
-    {
-      gtk_widget_remove_css_class (GTK_WIDGET (self), self->widget_css_class);
-      g_clear_pointer (&self->widget_css_class, g_free);
-    }
+  self->has_bg = (light != NULL || dark != NULL) &&
+                 mix_color (&self->light_bg, light != NULL ? light : dark,
+                            dark == NULL ? 100 : LIGHT_MIX_PERCENTAGE, &light_base) &&
+                 mix_color (&self->dark_bg, dark != NULL ? dark : light,
+                            light == NULL ? 100 : DARK_MIX_PERCENTAGE, &dark_base);
 
-  if (self->css != NULL)
-    gtk_style_context_remove_provider_for_display (
-        gdk_display_get_default (),
-        GTK_STYLE_PROVIDER (self->css));
-  g_clear_pointer (&self->css, g_object_unref);
+  gtk_widget_queue_draw (GTK_WIDGET (self));
 }

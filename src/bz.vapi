@@ -559,12 +559,6 @@ public extern class Bz.Serializable : GLib.Object {
     protected Serializable ();
 }
 
-[CCode (cheader_filename = "bz-share-list.h", type_id = "bz_share_list_get_type ()")]
-public extern class Bz.ShareList : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected ShareList ();
-}
-
 [CCode (cheader_filename = "bz-stats-dialog.h", type_id = "bz_stats_dialog_get_type ()")]
 public extern class Bz.StatsDialog : GLib.Object {
     [CCode (has_construct_function = false)]
@@ -632,6 +626,7 @@ public extern class Bz.UserDataTile : GLib.Object {
 public extern class Bz.Window : GLib.Object {
     [CCode (has_construct_function = false)]
     protected Window ();
+    public void add_toast (owned Adw.Toast toast);
 }
 
 [CCode (cheader_filename = "bz-world-map-parser.h", type_id = "bz_world_map_parser_get_type ()")]
