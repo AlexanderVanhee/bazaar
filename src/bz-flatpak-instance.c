@@ -3423,7 +3423,17 @@ build_silo (XbBuilderSource *source,
 
   locales = g_get_language_names ();
   for (guint i = 0; locales[i] != NULL; i++)
-    xb_builder_add_locale (builder, locales[i]);
+    {
+      g_autofree char *bcp47 = NULL;
+
+      xb_builder_add_locale (builder, locales[i]);
+
+      /* Catalogs mostly tag translations in BCP 47 form (pt-BR), while
+       * g_get_language_names () returns POSIX locales (pt_BR), so we have
+       * to add both or most translations will not be used. */
+      bcp47 = as_utils_posix_locale_to_bcp47 (locales[i]);
+      xb_builder_add_locale (builder, bcp47);
+    }
 
   xb_builder_import_source (builder, source);
   silo = xb_builder_compile (
