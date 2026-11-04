@@ -30,3 +30,12 @@ nightly@x86_64:
 nightly@aarch64:
   extends: ".publish_nightly"
   needs: ["flatpak@aarch64"]
+
+translations:
+  stage: test
+  image: "alpine:latest"
+  interruptible: true
+  script:
+    - apk add --no-cache gettext
+    - xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --keyword=C_:1c,2 --keyword=NC_:1c,2 --files-from=po/POTFILES.in --output=/dev/null
+    - for po in po/*.po; do msgfmt --check --output-file=/dev/null "$po"; done
