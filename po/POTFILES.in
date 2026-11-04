@@ -43,6 +43,7 @@ src/bz-decorated-screenshot.blp
 src/bz-decorated-screenshot.vala
 src/bz-developer-badge.blp
 src/bz-developer-badge.c
+src/bz-distro-chart.vala
 src/bz-donations-dialog.blp
 src/bz-donations-dialog.c
 src/bz-download-worker.c
@@ -156,5 +157,6 @@ src/io.c
 src/main.c
 src/safety-calculator.c
 src/shortcuts-dialog.blp
+src/stats-types.vala
 src/transaction-notification.c
 src/update-worker.c

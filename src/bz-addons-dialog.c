@@ -391,12 +391,13 @@ dl_stats_cb (BzAddonsDialog *self,
   if (ui_entry == NULL)
     return;
 
-  bin  = bz_stats_dialog_new (NULL, NULL, 0);
+  bin  = bz_stats_dialog_new ();
   page = adw_navigation_page_new (GTK_WIDGET (bin), _ ("Download Stats"));
   adw_navigation_page_set_tag (page, "stats");
 
   g_object_bind_property (ui_entry, "download-stats", bin, "model", G_BINDING_SYNC_CREATE);
   g_object_bind_property (ui_entry, "download-stats-per-country", bin, "country-model", G_BINDING_SYNC_CREATE);
+  g_object_bind_property (ui_entry, "download-stats-per-distro", bin, "distro-model", G_BINDING_SYNC_CREATE);
   g_object_bind_property (ui_entry, "total-downloads", bin, "total-downloads", G_BINDING_SYNC_CREATE);
 
   adw_navigation_view_push (self->navigation_view, page);

@@ -121,6 +121,7 @@ typedef struct
   BzVerificationStatus *verification_status;
   GListModel           *download_stats;
   GListModel           *download_stats_per_country;
+  GListModel           *download_stats_per_distro;
   int                   recent_downloads;
   int                   total_downloads;
   int                   favorites_count;
@@ -148,6 +149,7 @@ enum
   PROP_EOL,
   PROP_DESCRIPTION,
   PROP_DOWNLOAD_STATS_PER_COUNTRY,
+  PROP_DOWNLOAD_STATS_PER_DISTRO,
   PROP_LONG_DESCRIPTION,
   PROP_REMOTE_REPO_NAME,
   PROP_URL,
@@ -421,6 +423,10 @@ bz_entry_get_property (GObject    *object,
       query_flathub (self, PROP_DOWNLOAD_STATS_PER_COUNTRY);
       g_value_set_object (value, priv->download_stats_per_country);
       break;
+    case PROP_DOWNLOAD_STATS_PER_DISTRO:
+      query_flathub (self, PROP_DOWNLOAD_STATS_PER_DISTRO);
+      g_value_set_object (value, priv->download_stats_per_distro);
+      break;
     case PROP_RECENT_DOWNLOADS:
       query_flathub (self, PROP_RECENT_DOWNLOADS);
       g_value_set_int (value, priv->recent_downloads);
@@ -651,6 +657,10 @@ bz_entry_set_property (GObject      *object,
             priv->download_stats_per_country = g_value_dup_object (value);
           }
       }
+      break;
+    case PROP_DOWNLOAD_STATS_PER_DISTRO:
+      g_clear_object (&priv->download_stats_per_distro);
+      priv->download_stats_per_distro = g_value_dup_object (value);
       break;
     case PROP_RECENT_DOWNLOADS:
       priv->recent_downloads = g_value_get_int (value);
@@ -1024,6 +1034,13 @@ bz_entry_class_init (BzEntryClass *klass)
   props[PROP_DOWNLOAD_STATS_PER_COUNTRY] =
       g_param_spec_object (
           "download-stats-per-country",
+          NULL, NULL,
+          G_TYPE_LIST_MODEL,
+          G_PARAM_READWRITE);
+
+  props[PROP_DOWNLOAD_STATS_PER_DISTRO] =
+      g_param_spec_object (
+          "download-stats-per-distro",
           NULL, NULL,
           G_TYPE_LIST_MODEL,
           G_PARAM_READWRITE);
@@ -2467,6 +2484,7 @@ query_flathub (BzEntry *self,
 
   is_download_stat = (prop == PROP_DOWNLOAD_STATS ||
                       prop == PROP_DOWNLOAD_STATS_PER_COUNTRY ||
+                      prop == PROP_DOWNLOAD_STATS_PER_DISTRO ||
                       prop == PROP_RECENT_DOWNLOADS ||
                       prop == PROP_TOTAL_DOWNLOADS);
   is_similar_apps  = (prop == PROP_SIMILAR_APPS);
@@ -2523,6 +2541,7 @@ query_flathub_fiber (QueryFlathubData *data)
     {
     case PROP_DOWNLOAD_STATS:
     case PROP_DOWNLOAD_STATS_PER_COUNTRY:
+    case PROP_DOWNLOAD_STATS_PER_DISTRO:
     case PROP_RECENT_DOWNLOADS:
     case PROP_TOTAL_DOWNLOADS:
       request = g_strdup_printf ("/stats/%s?all=false&days=175", id);
@@ -2601,6 +2620,18 @@ query_flathub_fiber (QueryFlathubData *data)
             store);
 
         return dex_future_new_for_object (store);
+      }
+      break;
+
+    case PROP_DOWNLOAD_STATS_PER_DISTRO:
+      {
+        if (!JSON_NODE_HOLDS_OBJECT (node))
+          return dex_future_new_for_error (
+              g_error_new (G_IO_ERROR, G_IO_ERROR_INVALID_DATA,
+                           "Unexpected JSON response format"));
+
+        return dex_future_new_take_object (
+            bz_distro_data_point_list_from_json (json_node_get_object (node)));
       }
       break;
 
@@ -2902,6 +2933,7 @@ clear_entry (BzEntry *self)
   g_clear_object (&priv->verification_status);
   g_clear_object (&priv->download_stats);
   g_clear_object (&priv->download_stats_per_country);
+  g_clear_object (&priv->download_stats_per_distro);
   g_clear_object (&priv->content_rating);
   g_clear_object (&priv->keywords);
   g_clear_object (&priv->permissions);

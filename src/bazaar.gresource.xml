@@ -127,6 +127,7 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/open-book-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/parent-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/paintbrush-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/penguin-alt-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/people-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/person-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/power-profile-performance-symbolic.svg</file>

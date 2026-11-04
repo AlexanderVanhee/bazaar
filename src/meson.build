@@ -304,6 +304,7 @@ vala_deps = [
   libadwaita_dep,
   libdex_dep,
   appstream_dep,
+  json_glib_dep,
 ]
 vala_sources = files(
   'bz.vapi',
@@ -314,6 +315,7 @@ vala_sources = files(
   'bz-world-map.vala',
   'bz-decorated-screenshot.vala',
   'bz-dialog.vala',
+  'bz-distro-chart.vala',
   'bz-fading-clamp.vala',
   'bz-install-controls.vala',
   'bz-themed-rect.vala',
