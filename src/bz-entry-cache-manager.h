@@ -60,6 +60,10 @@ bz_entry_cache_manager_get_by_checksum (BzEntryCacheManager *self,
 DexFuture *
 bz_entry_cache_manager_enumerate_disk (BzEntryCacheManager *self);
 
+DexFuture *
+bz_entry_cache_manager_remove (BzEntryCacheManager *self,
+                               const char *const   *unique_ids);
+
 G_END_DECLS
 
 /* End of bz-entry-cache-manager.h */
