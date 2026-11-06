@@ -184,12 +184,6 @@ public extern class Bz.CuratedView : GLib.Object {
     protected CuratedView ();
 }
 
-[CCode (cheader_filename = "bz-data-graph.h", type_id = "bz_data_graph_get_type ()")]
-public extern class Bz.DataGraph : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected DataGraph ();
-}
-
 [CCode (cheader_filename = "bz-developer-badge.h", type_id = "bz_developer_badge_get_type ()")]
 public extern class Bz.DeveloperBadge : GLib.Object {
     [CCode (has_construct_function = false)]
@@ -557,12 +551,6 @@ public extern class Bz.SectionView : GLib.Object {
 public extern class Bz.Serializable : GLib.Object {
     [CCode (has_construct_function = false)]
     protected Serializable ();
-}
-
-[CCode (cheader_filename = "bz-stats-dialog.h", type_id = "bz_stats_dialog_get_type ()")]
-public extern class Bz.StatsDialog : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected StatsDialog ();
 }
 
 [CCode (cheader_filename = "bz-subcategory-list.h", type_id = "bz_subcategory_list_get_type ()")]

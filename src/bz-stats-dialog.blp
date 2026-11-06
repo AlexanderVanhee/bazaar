@@ -10,7 +10,7 @@ template $BzStatsDialog: Adw.BreakpointBin {
     [top]
     Adw.HeaderBar {
       title-widget: Adw.ViewSwitcher switcher_title {
-        visible: bind $logical_and($model_has_enough_points(template.model) as <bool>, $invert_boolean($is_null(template.country-model) as <bool>) as <bool>) as <bool>;
+        visible: bind $should_show_switcher(template.model, template.country-model) as <bool>;
         stack: stack;
         policy: wide;
       };
@@ -29,25 +29,92 @@ template $BzStatsDialog: Adw.BreakpointBin {
           icon-name: "graph2-symbolic";
           visible: bind $model_has_enough_points(template.model) as <bool>;
 
-          child: Box {
+          child: Box graph_page {
             orientation: vertical;
+            margin-top: 12;
+            margin-start: 24;
+            margin-end: 24;
+            margin-bottom: 24;
 
-              Label {
-                label: bind $format_total_downloads(template.total-downloads) as <string>;
-                halign: end;
-                hexpand: true;
-                margin-end: 34;
-                margin-bottom: 2;
+            Grid header {
+              margin-start: 12;
+              margin-end: 12;
+              column-spacing: 60;
+              hexpand: true;
+              halign: start;
 
-                styles ["dimmed"]
+              Label total_label {
+                // TRANSLATORS: total number of installs of an app, shown in the statistics dialog
+                label: _("Total");
+                halign: start;
+
+                layout {
+                  column: 0;
+                  row: 0;
+                }
               }
 
-            $BzDataGraph graph {
+              Label {
+                label: bind $format_installs(template.total-downloads) as <string>;
+                halign: start;
+
+                layout {
+                  column: 0;
+                  row: 1;
+                }
+
+                styles [
+                  "stats-value",
+                ]
+
+                accessibility {
+                  labelled-by: [
+                    total_label,
+                  ];
+                }
+              }
+
+              Label week_label {
+                // TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
+                label: _("This Week");
+                halign: start;
+
+                layout {
+                  column: 1;
+                  row: 0;
+                }
+              }
+
+              Label {
+                label: bind $format_last_week(template.model) as <string>;
+                halign: start;
+
+                layout {
+                  column: 1;
+                  row: 1;
+                }
+
+                styles [
+                  "stats-value",
+                ]
+
+                accessibility {
+                  labelled-by: [
+                    week_label,
+                  ];
+                }
+              }
+            }
+
+            $BzDataGraph {
               model: bind template.model;
-              // TRANSLATORS: label prefix shown in graph tooltips, for example: "Installs: 42"
-              tooltip-prefix: _("Installs:");
               vexpand: true;
               hexpand: true;
+              margin-top: 12;
+
+              accessibility {
+                label: _("Installs per day");
+              }
             }
           };
         }
@@ -82,7 +149,7 @@ template $BzStatsDialog: Adw.BreakpointBin {
       }
 
       Adw.ViewSwitcherBar switcher_bar {
-        visible: bind $invert_boolean($is_null(template.country-model) as <bool>) as <bool>;
+        visible: bind $has_country_model(template.country-model) as <bool>;
         stack: stack;
       }
     };
@@ -94,6 +161,9 @@ template $BzStatsDialog: Adw.BreakpointBin {
     setters {
       switcher_title.stack: null;
       switcher_bar.reveal: true;
+      graph_page.margin-start: 0;
+      graph_page.margin-end: 0;
+      graph_page.margin-bottom: 0;
     }
   }
 }
