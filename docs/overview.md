@@ -25,8 +25,9 @@ managing software through the GUI:
 
 * Run in the background and respond to desktop search queries with application
   info, using the same search routine as in-application
-  - GNOME will work out of the box, as Bazaar implements the
-    `org.gnome.Shell.SearchProvider2` dbus interface
+  - GNOME is supported, as Bazaar implements the
+    `org.gnome.Shell.SearchProvider2` dbus interface. Flatpak installs must
+    enable it in GNOME Settings under Search
   - KDE Plasma will require a [krunner
     plugin](https://github.com/ublue-os/krunner-bazaar)
 
