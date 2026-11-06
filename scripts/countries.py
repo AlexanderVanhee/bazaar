@@ -66,7 +66,13 @@ def build_variant(json_path, linguas_path):
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    builder = GLib.VariantBuilder(GLib.VariantType.new("a(ssa{ss}aaa(dd))"))
+    points = [p for f in data["features"] for poly in f["C"] for ring in poly for p in ring]
+    min_lon = min(lon for lon, lat in points)
+    max_lat = max(lat for lon, lat in points)
+    sx = 1000 / (max(lon for lon, lat in points) - min_lon)
+    sy = 500 / (max_lat - min(lat for lon, lat in points))
+
+    builder = GLib.VariantBuilder(GLib.VariantType.new("a(ssa{ss}s)"))
 
     for feature in data.get("features", []):
         country_name = feature.get("N", "")
@@ -81,26 +87,18 @@ def build_variant(json_path, linguas_path):
             translation = get_country_translation(country_code, lang)
             translations[lang] = translation if translation else country_name
 
-        coords_raw = feature.get("C", [])
-
-        poly_builder = GLib.VariantBuilder(GLib.VariantType.new("aaa(dd)"))
-        for polygon in coords_raw:
-            ring_builder = GLib.VariantBuilder(GLib.VariantType.new("aa(dd)"))
-            for ring in polygon:
-                point_builder = GLib.VariantBuilder(GLib.VariantType.new("a(dd)"))
-                for point in ring:
-                    point_builder.add_value(GLib.Variant("(dd)", (float(point[0]), float(point[1]))))
-                ring_builder.add_value(point_builder.end())
-            poly_builder.add_value(ring_builder.end())
+        path = " ".join(
+            "M " + " L ".join(f"{(lon - min_lon) * sx:.2f} {(max_lat - lat) * sy:.2f}" for lon, lat in ring) + " Z"
+            for polygon in feature["C"] for ring in polygon
+        )
 
         trans_variant = GLib.Variant("a{ss}", translations)
-        coords_variant = poly_builder.end()
 
         entry = GLib.Variant.new_tuple(
             GLib.Variant("s", country_name),
             GLib.Variant("s", country_code),
             trans_variant,
-            coords_variant,
+            GLib.Variant("s", path),
         )
         builder.add_value(entry)
 

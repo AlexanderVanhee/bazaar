@@ -143,7 +143,7 @@ src/bz-user-data-tile.blp
 src/bz-user-data-tile.c
 src/bz-window.blp
 src/bz-window.c
-src/bz-world-map.c
+src/bz-world-map.vala
 src/bz-yaml-parser.c
 src/context-tile-callbacks.c
 src/dl-worker.c

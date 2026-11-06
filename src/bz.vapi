@@ -617,18 +617,6 @@ public extern class Bz.Window : GLib.Object {
     public void add_toast (owned Adw.Toast toast);
 }
 
-[CCode (cheader_filename = "bz-world-map-parser.h", type_id = "bz_world_map_parser_get_type ()")]
-public extern class Bz.WorldMapParser : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected WorldMapParser ();
-}
-
-[CCode (cheader_filename = "bz-world-map.h", type_id = "bz_world_map_get_type ()")]
-public extern class Bz.WorldMap : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected WorldMap ();
-}
-
 [CCode (cheader_filename = "bz-yaml-parser.h", type_id = "bz_yaml_parser_get_type ()")]
 public extern class Bz.YamlParser : GLib.Object {
     [CCode (has_construct_function = false)]
