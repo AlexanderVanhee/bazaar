@@ -1242,7 +1242,7 @@ load_local_ref_fiber (LoadLocalRefData *data)
                   if (url != NULL &&
                       g_strcmp0 (url, origin) == 0)
                     {
-                      remote              = g_object_ref (existing);
+                      g_set_object (&remote, existing);
                       add_to_installation = NULL;
                       break;
                     }
@@ -2139,15 +2139,19 @@ append_repos_for_installation (GListStore          *repos,
 
   for (guint i = 0; i < remotes->len; i++)
     {
-      FlatpakRemote *remote         = NULL;
-      g_autoptr (BzRepository) repo = NULL;
-      const char *name              = NULL;
-      const char *default_branch    = NULL;
-      gboolean    is_beta           = FALSE;
+      FlatpakRemote *remote            = NULL;
+      g_autoptr (BzRepository) repo    = NULL;
+      const char *name                 = NULL;
+      g_autofree char *default_branch  = NULL;
+      g_autofree char *title           = NULL;
+      g_autofree char *url             = NULL;
+      gboolean         is_beta         = FALSE;
 
       remote         = g_ptr_array_index (remotes, i);
       name           = flatpak_remote_get_name (remote);
       default_branch = flatpak_remote_get_default_branch (remote);
+      title          = flatpak_remote_get_title (remote);
+      url            = flatpak_remote_get_url (remote);
 
       is_beta = (g_strcmp0 (name, "flathub-beta") == 0) ||
                 (name != NULL && g_str_has_suffix (name, "nightly")) ||
@@ -2157,8 +2161,8 @@ append_repos_for_installation (GListStore          *repos,
 
       repo = g_object_new (BZ_TYPE_REPOSITORY,
                            "name", name,
-                           "title", flatpak_remote_get_title (remote),
-                           "url", flatpak_remote_get_url (remote),
+                           "title", title,
+                           "url", url,
                            "is-user", is_user,
                            "is-beta", is_beta,
                            NULL);

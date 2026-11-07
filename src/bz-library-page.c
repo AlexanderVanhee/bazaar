@@ -213,8 +213,8 @@ format_install_count (gpointer object,
 static void
 tile_activated_cb (BzListTile *tile)
 {
-  BzLibraryPage *self  = NULL;
-  BzEntryGroup  *group = NULL;
+  BzLibraryPage *self            = NULL;
+  g_autoptr (BzEntryGroup) group = NULL;
 
   g_assert (BZ_IS_LIST_TILE (tile));
 
@@ -224,7 +224,7 @@ tile_activated_cb (BzListTile *tile)
 
   if (BZ_IS_INSTALLED_TILE (tile))
     {
-      group = bz_installed_tile_get_group (BZ_INSTALLED_TILE (tile));
+      group = bz_object_maybe_ref (bz_installed_tile_get_group (BZ_INSTALLED_TILE (tile)));
     }
   else if (BZ_IS_TRANSACTION_TILE (tile))
     {

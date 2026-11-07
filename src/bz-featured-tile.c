@@ -377,6 +377,7 @@ bz_featured_tile_dispose (GObject *object)
   self = BZ_FEATURED_TILE (object);
 
   g_clear_handle_id (&self->refresh_id, g_source_remove);
+  dex_clear (&self->ui_entry_resolve);
   if (self->group != NULL)
     g_signal_handlers_disconnect_by_func (self->group, schedule_refresh, self);
 

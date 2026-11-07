@@ -147,7 +147,7 @@ fetch_blocked_ids (BzMalcontentService *self)
   g_variant_get (filter_tuple, "(bas)", &is_allowlist, &iter);
 
   blocked = gtk_string_list_new (NULL);
-  while (g_variant_iter_next (iter, "s", &ref))
+  while (g_variant_iter_next (iter, "&s", &ref))
     gtk_string_list_append (blocked, ref);
 
   g_variant_iter_free (iter);
@@ -159,8 +159,8 @@ static void
 apply_filter (BzMalcontentService *self,
               MctAppFilter        *filter)
 {
-  const char *const *oars_sections = NULL;
-  int                max_age       = -1;
+  g_autofree const char **oars_sections = NULL;
+  int                      max_age       = -1;
 
   g_clear_pointer (&self->filter, mct_app_filter_unref);
   self->filter = mct_app_filter_ref (filter);
