@@ -38,7 +38,7 @@ src/bz-context-tile.c
 src/bz-cosmic-place-applet-dialog.vala
 src/bz-curated-view.blp
 src/bz-curated-view.c
-src/bz-data-graph.c
+src/bz-data-graph.vala
 src/bz-decorated-screenshot.blp
 src/bz-decorated-screenshot.vala
 src/bz-developer-badge.blp
@@ -124,7 +124,7 @@ src/bz-section-view.c
 src/bz-serializable.c
 src/bz-share-list.vala
 src/bz-stats-dialog.blp
-src/bz-stats-dialog.c
+src/bz-stats-dialog.vala
 src/bz-subcategory-list.c
 src/bz-transaction-dialog.c
 src/bz-transaction-list-dialog.blp

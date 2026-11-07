@@ -34,7 +34,6 @@
 #include "bz-flatpak-entry.h"
 #include "bz-license-dialog.h"
 #include "bz-result.h"
-#include "bz-stats-dialog.h"
 #include "bz-window.h"
 #include "context-tile-callbacks.h"
 #include "template-callbacks.h"
@@ -392,7 +391,7 @@ dl_stats_cb (BzAddonsDialog *self,
   if (ui_entry == NULL)
     return;
 
-  bin  = BZ_STATS_DIALOG (bz_stats_dialog_new (NULL, NULL, 0));
+  bin  = bz_stats_dialog_new (NULL, NULL, 0);
   page = adw_navigation_page_new (GTK_WIDGET (bin), _ ("Download Stats"));
   adw_navigation_page_set_tag (page, "stats");
 
@@ -400,7 +399,6 @@ dl_stats_cb (BzAddonsDialog *self,
   g_object_bind_property (ui_entry, "total-downloads", bin, "total-downloads", G_BINDING_SYNC_CREATE);
 
   adw_navigation_view_push (self->navigation_view, page);
-  bz_stats_dialog_animate_open (bin);
 }
 
 static void

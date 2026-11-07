@@ -45,7 +45,6 @@
 #include "bz-safety-dialog.h"
 #include "bz-screenshots-carousel.h"
 #include "bz-section-view.h"
-#include "bz-stats-dialog.h"
 #include "bz-window.h"
 #include "context-tile-callbacks.h"
 #include "error.h"
@@ -369,7 +368,7 @@ dl_stats_cb (BzFullView *self,
              GtkButton  *button)
 {
   AdwDialog        *dialog   = NULL;
-  AdwBreakpointBin *bin      = NULL;
+  BzStatsDialog    *bin      = NULL;
   BzEntry          *ui_entry = NULL;
 
   if (self->group == NULL)
@@ -388,7 +387,6 @@ dl_stats_cb (BzFullView *self,
   g_object_bind_property (ui_entry, "total-downloads", bin, "total-downloads", G_BINDING_SYNC_CREATE);
 
   adw_dialog_present (dialog, GTK_WIDGET (self));
-  bz_stats_dialog_animate_open (BZ_STATS_DIALOG (bin));
 }
 
 static void
