@@ -73,6 +73,7 @@ public sealed class Bz.DataGraph : Gtk.Widget {
     private double pointer_y = -1;
     private double progress = 0;
     private bool animated;
+    private bool focused;
 
     private Gtk.Box card;
     private Gtk.Label title_label;
@@ -125,7 +126,15 @@ public sealed class Bz.DataGraph : Gtk.Widget {
         add_controller (drag);
 
         var focus = new Gtk.EventControllerFocus ();
-        focus.leave.connect (deselect);
+        focus.enter.connect (() => {
+            focused = true;
+            update_marker ();
+        });
+        focus.leave.connect (() => {
+            focused = false;
+            deselect ();
+            update_marker ();
+        });
         add_controller (focus);
 
         Adw.StyleManager.get_default ().notify["accent-color"].connect (queue_draw);
@@ -459,7 +468,7 @@ public sealed class Bz.DataGraph : Gtk.Widget {
     private int marked () {
         if (selected >= 0)
             return selected;
-        return progress >= 1 && points.length >= 2 ? peak : -1;
+        return focused && progress >= 1 && points.length >= 2 ? points.length - 1 : -1;
     }
 
     private void update_marker () {
@@ -512,7 +521,7 @@ public sealed class Bz.DataGraph : Gtk.Widget {
         if (self.px.length < 2)
             return;
 
-        int current = self.selected >= 0 ? self.selected : self.peak;
+        int current = self.selected >= 0 ? self.selected : self.px.length - 1;
         self.pointer_y = -1;
         self.select ((current + (horizontal && self.rtl ? -delta : delta)).clamp (0, self.px.length - 1));
     }
