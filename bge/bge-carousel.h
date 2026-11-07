@@ -80,6 +80,11 @@ bge_carousel_get_nth_page (BgeCarousel *self,
 
 BGE_AVAILABLE_IN_ALL
 void
+bge_carousel_reveal (BgeCarousel *self,
+                     guint        index);
+
+BGE_AVAILABLE_IN_ALL
+void
 bge_carousel_set_allow_mouse_drag (BgeCarousel *self,
                                    gboolean     allow_mouse_drag);
 
