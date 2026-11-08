@@ -29,6 +29,7 @@
 #include "bz-age-rating-dialog.h"
 #include "bz-app-size-dialog.h"
 #include "bz-app-tile.h"
+#include "bz-application.h"
 #include "bz-apps-page.h"
 #include "bz-appstream-description-render.h"
 #include "bz-context-tile.h"
@@ -783,6 +784,47 @@ bz_full_view_new (void)
   return g_object_new (BZ_TYPE_FULL_VIEW, NULL);
 }
 
+static gint
+cmp_group_title (BzEntryGroup **a,
+                 BzEntryGroup **b)
+{
+  return g_strcmp0 (bz_entry_group_get_title (*a), bz_entry_group_get_title (*b));
+}
+
+static gboolean
+idle_find_developer_apps (BzEntry *entry)
+{
+  g_autoptr (GListModel) existing   = NULL;
+  g_autoptr (GPtrArray) matches     = NULL;
+  g_autoptr (GtkStringList) app_ids = NULL;
+  const char *developer             = NULL;
+  GListModel *groups                = NULL;
+
+  g_object_get (entry, "developer-apps", &existing, NULL);
+  developer = bz_entry_get_developer (entry);
+  if (existing != NULL || developer == NULL || *developer == '\0')
+    return G_SOURCE_REMOVE;
+
+  groups  = bz_state_info_get_all_entry_groups (bz_state_info_get_default ());
+  matches = g_ptr_array_new_with_free_func (g_object_unref);
+  for (guint i = 0; i < g_list_model_get_n_items (groups); i++)
+    {
+      g_autoptr (BzEntryGroup) group = NULL;
+
+      group = g_list_model_get_item (groups, i);
+      if (g_strcmp0 (bz_entry_group_get_developer (group), developer) == 0)
+        g_ptr_array_add (matches, g_steal_pointer (&group));
+    }
+  g_ptr_array_sort (matches, (GCompareFunc) cmp_group_title);
+
+  app_ids = gtk_string_list_new (NULL);
+  for (guint i = 0; i < matches->len; i++)
+    gtk_string_list_append (app_ids, bz_entry_group_get_id (g_ptr_array_index (matches, i)));
+
+  g_object_set (entry, "developer-apps", app_ids, NULL);
+  return G_SOURCE_REMOVE;
+}
+
 static DexFuture *
 on_ui_entry_resolved (DexFuture *future,
                       GWeakRef  *wr)
@@ -801,6 +843,8 @@ on_ui_entry_resolved (DexFuture *future,
 
       if (BZ_IS_FLATPAK_ENTRY (ui_entry))
         self->runtime = bz_flatpak_entry_dup_runtime_result (BZ_FLATPAK_ENTRY (ui_entry));
+
+      g_idle_add_full (G_PRIORITY_LOW, (GSourceFunc) idle_find_developer_apps, g_object_ref (ui_entry), g_object_unref);
     }
 
   adw_view_stack_set_visible_child_name (self->stack, "content");
