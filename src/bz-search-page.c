@@ -53,6 +53,7 @@ struct _BzSearchPage
   GtkSelectionModel     *selection_model;
   guint                  search_update_timeout;
   DexFuture             *search_query;
+  GCancellable          *search_cancellable;
   GPtrArray             *pending_results;
   BzFinishedSearchQuery *pending_query;
   gboolean               skip_debounce;
@@ -132,6 +133,8 @@ bz_search_page_dispose (GObject *object)
 
   g_clear_handle_id (&self->search_update_timeout, g_source_remove);
   dex_clear (&self->search_query);
+  g_cancellable_cancel (self->search_cancellable);
+  g_clear_object (&self->search_cancellable);
 
   g_clear_pointer (&self->pending_results, g_ptr_array_unref);
 
@@ -843,6 +846,8 @@ update_filter (BzSearchPage *self,
 
   g_clear_handle_id (&self->search_update_timeout, g_source_remove);
   dex_clear (&self->search_query);
+  g_cancellable_cancel (self->search_cancellable);
+  g_clear_object (&self->search_cancellable);
 
   g_clear_pointer (&self->pending_results, g_ptr_array_unref);
   g_clear_object (&self->pending_query);
@@ -870,10 +875,12 @@ update_filter (BzSearchPage *self,
 
   self->search_in_progress = TRUE;
   self->skip_debounce      = skip_debounce;
+  self->search_cancellable = g_cancellable_new ();
 
   future = bz_search_engine_query (
       engine,
-      (const char *const *) terms);
+      (const char *const *) terms,
+      self->search_cancellable);
 
   bz_search_bar_set_busy (self->search_bar, !skip_debounce && dex_future_is_pending (future));
 

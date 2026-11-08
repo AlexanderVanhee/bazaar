@@ -109,13 +109,15 @@ BZ_DEFINE_DATA (
     query_task,
     QueryTask,
     {
-      char     **terms;
-      GPtrArray *snapshot;
-      GPtrArray *biases;
+      char        **terms;
+      GPtrArray    *snapshot;
+      GPtrArray    *biases;
+      GCancellable *cancellable;
     },
     BZ_RELEASE_DATA (terms, g_strfreev);
     BZ_RELEASE_DATA (snapshot, g_ptr_array_unref);
-    BZ_RELEASE_DATA (biases, g_ptr_array_unref))
+    BZ_RELEASE_DATA (biases, g_ptr_array_unref);
+    BZ_RELEASE_DATA (cancellable, g_object_unref))
 static DexFuture *
 query_task_fiber (QueryTaskData *data);
 
@@ -123,16 +125,18 @@ BZ_DEFINE_DATA (
     query_sub_task,
     QuerySubTask,
     {
-      char      *query_utf8;
-      GPtrArray *shallow_mirror;
-      double     threshold;
-      guint      work_offset;
-      guint      work_length;
-      GPtrArray *active_biases;
+      char         *query_utf8;
+      GPtrArray    *shallow_mirror;
+      double        threshold;
+      guint         work_offset;
+      guint         work_length;
+      GPtrArray    *active_biases;
+      GCancellable *cancellable;
     },
     BZ_RELEASE_DATA (query_utf8, g_free);
     BZ_RELEASE_DATA (shallow_mirror, g_ptr_array_unref);
-    BZ_RELEASE_DATA (active_biases, g_ptr_array_unref));
+    BZ_RELEASE_DATA (active_biases, g_ptr_array_unref);
+    BZ_RELEASE_DATA (cancellable, g_object_unref));
 static DexFuture *
 query_sub_task_fiber (QuerySubTaskData *data);
 
@@ -300,12 +304,14 @@ bz_search_engine_set_model (BzSearchEngine *self,
 
 DexFuture *
 bz_search_engine_query (BzSearchEngine    *self,
-                        const char *const *terms)
+                        const char *const *terms,
+                        GCancellable      *cancellable)
 {
   guint n_groups = 0;
 
   dex_return_error_if_fail (BZ_IS_SEARCH_ENGINE (self));
   dex_return_error_if_fail (terms != NULL && *terms != NULL);
+  dex_return_error_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   if (self->model != NULL)
     n_groups = g_list_model_get_n_items (self->model);
@@ -352,10 +358,11 @@ bz_search_engine_query (BzSearchEngine    *self,
       for (guint i = 0; i < snapshot->len; i++)
         g_ptr_array_index (snapshot, i) = g_list_model_get_item (self->model, i);
 
-      data           = query_task_data_new ();
-      data->terms    = g_strdupv ((gchar **) terms);
-      data->snapshot = g_steal_pointer (&snapshot);
-      data->biases   = g_ptr_array_ref (self->biases_mirror);
+      data              = query_task_data_new ();
+      data->terms       = g_strdupv ((gchar **) terms);
+      data->snapshot    = g_steal_pointer (&snapshot);
+      data->biases      = g_ptr_array_ref (self->biases_mirror);
+      data->cancellable = bz_object_maybe_ref (cancellable);
 
       return dex_scheduler_spawn (
           dex_thread_pool_scheduler_get_default (),
@@ -590,6 +597,7 @@ query_task_fiber (QueryTaskData *data)
       sub_data->work_offset    = i * scores_per_task;
       sub_data->work_length    = scores_per_task;
       sub_data->active_biases  = g_ptr_array_ref (active_biases);
+      sub_data->cancellable    = bz_object_maybe_ref (data->cancellable);
 
       if (i >= n_sub_tasks - 1)
         sub_data->work_length += shallow_mirror->len % n_sub_tasks;
@@ -677,6 +685,9 @@ query_sub_task_fiber (QuerySubTaskData *data)
       const char   *id                = NULL;
       const char   *title             = NULL;
       double        score             = 0.0;
+
+      if (i % 64 == 0 && g_cancellable_is_cancelled (data->cancellable))
+        return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_CANCELLED, "Search query cancelled");
 
       group  = g_ptr_array_index (shallow_mirror, work_offset + i);
       locker = bz_entry_group_lock (group);
