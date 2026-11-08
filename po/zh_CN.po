@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-10-15 23:00+0000\n"
-"PO-Revision-Date: 2026-10-16 08:11+0800\n"
+"POT-Creation-Date: 2026-11-08 22:42+0000\n"
+"PO-Revision-Date: 2026-11-09 07:56+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
@@ -22,7 +22,7 @@ msgstr ""
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: data/io.github.kolunmi.Bazaar.desktop.in:3
 #: data/io.github.kolunmi.Bazaar.metainfo.xml.in:8 src/bz-window.blp:55
-#: src/bz-window.blp:193 src/bz-window.c:437 src/bz-window.c:438
+#: src/bz-window.blp:192 src/bz-window.c:435 src/bz-window.c:436
 msgid "Bazaar"
 msgstr "Bazaar"
 
@@ -73,7 +73,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "直接从 GNOME Shell 搜索应用"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:825
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:862
 msgid "The Bazaar Contributors"
 msgstr "Bazaar 贡献者"
 
@@ -97,8 +97,8 @@ msgstr "搜索页面"
 msgid "Category page"
 msgstr "分类页面"
 
-#: src/bz-addon-tile.blp:63 src/bz-installed-tile.blp:54
-#: src/bz-rich-app-tile.blp:143
+#: src/bz-addon-tile.blp:62 src/bz-installed-tile.blp:53
+#: src/bz-rich-app-tile.blp:142
 msgid "Stopped Receiving Updates"
 msgstr "已停止接收更新"
 
@@ -109,7 +109,7 @@ msgstr "卸载"
 
 #: src/bz-addon-tile.c:170 src/bz-bundle-install-dialog.blp:148
 #: src/bz-bundle-install-dialog.blp:162 src/bz-favorites-tile.c:157
-#: src/bz-install-controls.wdgt:29
+#: src/bz-install-controls.blp:49
 msgctxt "Install Controls"
 msgid "Install"
 msgstr "安装"
@@ -119,7 +119,7 @@ msgid "Add-on"
 msgstr "附加组件"
 
 #: src/bz-addons-dialog.blp:15 src/bz-addons-dialog.blp:22
-#: src/bz-addons-dialog.blp:71 src/bz-installed-tile.blp:94
+#: src/bz-addons-dialog.blp:71 src/bz-installed-tile.blp:93
 msgid "Manage Add-Ons"
 msgstr "管理附加组件"
 
@@ -137,22 +137,22 @@ msgstr "您当前的筛选首选项隐藏了所有已知附加组件。请尝试
 msgid "Add-on Page"
 msgstr "附加组件页面"
 
-#: src/bz-addons-dialog.blp:172 src/bz-full-view.blp:268
+#: src/bz-addons-dialog.blp:172 src/bz-full-view.blp:266
 #: src/context-tile-callbacks.c:142
 msgid "Download"
 msgstr "下载"
 
 #. Translators: As in 'The app is installed'.
-#: src/bz-addons-dialog.blp:187 src/bz-app-tile.c:356 src/bz-full-view.blp:283
-#: src/bz-releases-list.c:204
+#: src/bz-addons-dialog.blp:187 src/bz-app-tile.c:361 src/bz-full-view.blp:281
+#: src/bz-releases-list.c:203
 msgid "Installed"
 msgstr "已安装"
 
-#: src/bz-addons-dialog.blp:221 src/bz-full-view.blp:407
+#: src/bz-addons-dialog.blp:221 src/bz-full-view.blp:405
 msgid "Downloads/Month"
 msgstr "下载/月"
 
-#: src/bz-addons-dialog.blp:247 src/bz-full-view.blp:442
+#: src/bz-addons-dialog.blp:247 src/bz-full-view.blp:438
 msgid "Stopped Receiving Core Updates"
 msgstr "已停止接收核心更新"
 
@@ -163,24 +163,24 @@ msgid ""
 msgstr ""
 "此附加组件使用的运行时已不再接收更新或安全修复。使用它可能存在安全隐患。"
 
-#: src/bz-addons-dialog.blp:346 src/bz-full-view.blp:603
+#: src/bz-addons-dialog.blp:344 src/bz-full-view.blp:599
 msgid "Other Sources"
 msgstr "其他来源"
 
-#: src/bz-addons-dialog.c:351
+#: src/bz-addons-dialog.c:331
 #, c-format
 msgid "Add-on for %s"
 msgstr "%s 的附加组件"
 
-#: src/bz-addons-dialog.c:365 src/bz-full-view.c:612
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:605
 msgid "Show Less"
 msgstr "显示更少"
 
-#: src/bz-addons-dialog.c:365 src/bz-full-view.c:612 src/bz-section-view.blp:72
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:605 src/bz-section-view.blp:72
 msgid "Show More"
 msgstr "显示更多"
 
-#: src/bz-addons-dialog.c:415
+#: src/bz-addons-dialog.c:395
 msgid "Download Stats"
 msgstr "下载统计"
 
@@ -732,7 +732,7 @@ msgstr "已安装运行时大小"
 msgid "Runtime Download Size"
 msgstr "运行时下载大小"
 
-#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:185
+#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:183
 #: src/context-tile-callbacks.c:104 src/context-tile-callbacks.c:401
 #: src/context-tile-callbacks.c:423
 msgid "N/A"
@@ -743,51 +743,34 @@ msgid "Storage"
 msgstr "存储"
 
 #: src/bz-app-tile.blp:55 src/bz-developer-badge.c:98
-#: src/bz-rich-app-tile.blp:107 src/bz-rich-app-tile.c:444
+#: src/bz-rich-app-tile.blp:106 src/bz-rich-app-tile.c:448
 msgid "Verified"
 msgstr "已验证"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:828
+#: src/bz-application.c:865
 msgid "translator-credits"
 msgstr ""
 "Shinsei <shinsei@anche.no>, 2025\n"
 "lumingzh <lumingzh@qq.com>, 2026"
 
-#: src/bz-application.c:838
+#: src/bz-application.c:875
 msgid "Special Thanks"
 msgstr "特别感谢"
 
-#: src/bz-application.c:908
+#: src/bz-application.c:945
 msgid "Logged Out Successfully!"
 msgstr "成功登出！"
 
-#: src/bz-application.c:1080
+#: src/bz-application.c:1117
 msgid "Performing setup…"
 msgstr "正在执行部署…"
 
-#: src/bz-application.c:1123
-msgid "Set Up System Flathub?"
-msgstr "部署系统 Flathub 吗？"
-
-#: src/bz-application.c:1126
-msgid ""
-"The system Flathub remote is not set up. Bazaar requires Flathub to be "
-"configured on the system Flatpak installation to browse and install "
-"applications.\n"
-"\n"
-"You can still use Bazaar to browse and remove already installed apps."
-msgstr ""
-"未部署系统 Flathub 远程仓库。Bazaar 需要在系统级 Flatpak 安装中配置 Flathub "
-"才能浏览和安装应用程序。\n"
-"\n"
-"您仍然可以使用 Bazaar 来浏览和移除已安装的应用。"
-
-#: src/bz-application.c:1133
+#: src/bz-application.c:1159
 msgid "Set Up Flathub?"
 msgstr "部署 Flathub 吗？"
 
-#: src/bz-application.c:1136
+#: src/bz-application.c:1162
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -799,62 +782,62 @@ msgstr ""
 "\n"
 "您仍可使用 Bazaar 浏览和移除已安装的应用。"
 
-#: src/bz-application.c:1142
+#: src/bz-application.c:1167
 msgid "Later"
 msgstr "稍后"
 
-#: src/bz-application.c:1143
+#: src/bz-application.c:1168
 msgid "Set Up Flathub"
 msgstr "部署 Flathub"
 
-#: src/bz-application.c:1765
+#: src/bz-application.c:1794
 msgid "A backend error occurred"
 msgstr "发生后端错误"
 
-#: src/bz-application.c:1972 src/bz-application.c:4368
+#: src/bz-application.c:2001 src/bz-application.c:4451
 msgid "Refreshing…"
 msgstr "正在刷新…"
 
-#: src/bz-application.c:2131
+#: src/bz-application.c:2166
 #, c-format
 msgid "Loading %d apps…"
 msgstr "正在加载 %d 应用…"
 
-#: src/bz-application.c:2190 src/bz-application.c:2267
+#: src/bz-application.c:2227 src/bz-application.c:2304
 msgid "Failed to open file"
 msgstr "打开文件失败"
 
-#: src/bz-application.c:2281
+#: src/bz-application.c:2318
 msgid "Failed to load metainfo"
 msgstr "加载元信息失败"
 
-#: src/bz-application.c:2406
+#: src/bz-application.c:2444
 msgid "An initialization error occurred"
 msgstr "发生初始化错误"
 
-#: src/bz-application.c:2814
+#: src/bz-application.c:2885
 msgid "Checking for updates…"
 msgstr "正在检查更新…"
 
-#: src/bz-application.c:2929
+#: src/bz-application.c:3000
 msgid "Failed to check for updates"
 msgstr "检查更新失败"
 
-#: src/bz-application.c:4145
+#: src/bz-application.c:4220
 msgid "Could not find app"
 msgstr "无法找到应用"
 
-#: src/bz-application.c:4365
+#: src/bz-application.c:4446
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
 msgstr[0] "正在加载 %d 个应用…"
 
-#: src/bz-application.c:4370
+#: src/bz-application.c:4453
 msgid "Writing to cache…"
 msgstr "正在写入缓存…"
 
-#: src/bz-apps-page.blp:97 src/bz-full-view.c:216
+#: src/bz-apps-page.blp:97 src/bz-full-view.c:211
 msgid "Show All"
 msgstr "显示全部"
 
@@ -872,41 +855,41 @@ msgstr "%d 应用程序"
 msgid "Failed to Load Article"
 msgstr "加载详情失败"
 
-#: src/bz-bulk-install-dialog.c:87
+#: src/bz-bulk-install-dialog.c:88
 msgid "All apps are already installed"
 msgstr "所有应用已经安装"
 
-#: src/bz-bulk-install-dialog.c:89
+#: src/bz-bulk-install-dialog.c:90
 msgid "_OK"
 msgstr "确定(_O)"
 
-#: src/bz-bulk-install-dialog.c:105
+#: src/bz-bulk-install-dialog.c:106
 #, c-format
 msgid "Install %u App?"
 msgid_plural "Install %u Apps?"
 msgstr[0] "安装 %u 个应用？"
 
-#: src/bz-bulk-install-dialog.c:113
+#: src/bz-bulk-install-dialog.c:114
 msgid ""
 "The following will be installed. Additional shared components may also be "
 "installed"
 msgstr "将会安装以下项目。可能同时安装额外共享组件"
 
-#: src/bz-bulk-install-dialog.c:114
+#: src/bz-bulk-install-dialog.c:115
 #, c-format
 msgid "%d addons will be installed."
 msgstr "%d 附加组件将被安装。"
 
-#: src/bz-bulk-install-dialog.c:115
+#: src/bz-bulk-install-dialog.c:116
 msgid "Additionally, addons will be installed."
 msgstr "另外，将会安装附加组件。"
 
-#: src/bz-bulk-install-dialog.c:116 src/bz-transaction-dialog.c:200
-#: src/bz-transaction-dialog.c:245
+#: src/bz-bulk-install-dialog.c:117 src/bz-transaction-dialog.c:199
+#: src/bz-transaction-dialog.c:244
 msgid "_Cancel"
 msgstr "取消(_C)"
 
-#: src/bz-bulk-install-dialog.c:117
+#: src/bz-bulk-install-dialog.c:118
 msgid "_Install All"
 msgstr "全部安装(_I)"
 
@@ -936,7 +919,7 @@ msgstr "成功安装！"
 
 #. TRANSLATORS: Button to launch an installed app
 #: src/bz-bundle-install-dialog.blp:440 src/bz-bundle-install-dialog.blp:526
-#: src/bz-rich-app-tile.blp:200 src/bz-transaction-tile.blp:328
+#: src/bz-rich-app-tile.blp:199 src/bz-transaction-tile.blp:328
 msgid "Open"
 msgstr "打开"
 
@@ -952,16 +935,16 @@ msgstr "已经安装"
 msgid "Installation Failed"
 msgstr "安装失败"
 
-#: src/bz-bundle-install-dialog.c:168
+#: src/bz-bundle-install-dialog.c:166
 msgid "Unknown install size"
 msgstr "未知安装大小"
 
-#: src/bz-bundle-install-dialog.c:171
+#: src/bz-bundle-install-dialog.c:169
 #, c-format
 msgid "About %s to install"
 msgstr "关于 %s 的安装"
 
-#: src/bz-bundle-install-dialog.c:214
+#: src/bz-bundle-install-dialog.c:212
 msgid "No special permissions"
 msgstr "无特殊权限"
 
@@ -974,7 +957,7 @@ msgid "Choose where to add this applet."
 msgstr "选择添加此小程序的位置。"
 
 #: src/bz-cosmic-place-applet-dialog.vala:29 src/bz-entry-group-util.c:80
-#: src/bz-rich-app-tile.blp:232
+#: src/bz-rich-app-tile.blp:231
 msgid "Cancel"
 msgstr "取消"
 
@@ -1003,6 +986,23 @@ msgstr "浏览 Flathub"
 #: src/bz-curated-view.blp:49
 msgid "Offline"
 msgstr "离线"
+
+#. TRANSLATORS: accessible description of the installs graph, like "14 May to 31 Oct, highest on 30 Oct with 4,600"
+#: src/bz-data-graph.vala:44
+#, c-format
+msgid "%s to %s, highest on %s with %s"
+msgstr "%s 至 %s，峰值为 %s 的 %s"
+
+#. Translators: K is the suffix for thousands
+#: src/bz-data-graph.vala:243 src/context-tile-callbacks.c:82
+#, c-format
+msgid "%.*fK"
+msgstr "%.*fK"
+
+#. TRANSLATORS: label prefix shown in graph tooltips, for example: "Installs: 42"
+#: src/bz-data-graph.vala:481
+msgid "Installs:"
+msgstr "安装："
 
 #: src/bz-developer-badge.c:94 src/bz-developer-badge.c:98
 msgid "Not Verified"
@@ -1091,7 +1091,7 @@ msgid ""
 msgstr "您已安装此应用的多个版本。您希望用哪一个继续？"
 
 #: src/bz-error-dialog.blp:36 src/bz-safety-dialog.blp:100 src/error.c:69
-#: src/error.c:88 src/update-worker.c:473
+#: src/error.c:88 src/update-worker.c:495
 msgid "Details"
 msgstr "详情"
 
@@ -1100,8 +1100,8 @@ msgstr "详情"
 msgid "Copy"
 msgstr "复制"
 
-#: src/bz-error-dialog.c:56 src/bz-screenshot-page.vala:376
-#: src/bz-share-list.c:364
+#: src/bz-error-dialog.c:56 src/bz-screenshot-page.vala:532
+#: src/bz-share-list.vala:58
 msgid "Copied!"
 msgstr "已复制！"
 
@@ -1121,7 +1121,7 @@ msgstr "登录 Flathub 以管理收藏项目"
 msgid "Log In"
 msgstr "登录"
 
-#: src/bz-favorites-page.blp:5 src/bz-window.blp:322
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:321
 msgid "Favorites"
 msgstr "收藏"
 
@@ -1137,11 +1137,11 @@ msgstr "无收藏"
 msgid "Applications you mark as favorite will appear here"
 msgstr "您标记为收藏的应用程序将在此处显示"
 
-#: src/bz-favorites-tile.blp:58
+#: src/bz-favorites-tile.blp:57
 msgid "Support This Application"
 msgstr "支持此应用程序"
 
-#: src/bz-favorites-tile.blp:105
+#: src/bz-favorites-tile.blp:104
 msgid "Remove From Favorites"
 msgstr "从收藏中移除"
 
@@ -1657,79 +1657,79 @@ msgstr "预览商店外观"
 msgid "_Support"
 msgstr "支持(_S)"
 
-#: src/bz-full-view.blp:456
+#: src/bz-full-view.blp:452
 msgid ""
 "This app uses a runtime that no longer receives updates or security fixes. "
 "It may become unsafe to use."
 msgstr "此应用使用的运行时已不再接收更新或安全修复。使用它可能存在安全隐患。"
 
-#: src/bz-full-view.blp:534
+#: src/bz-full-view.blp:530
 msgid "Trash Data"
 msgstr "垃圾数据"
 
-#: src/bz-full-view.blp:631
+#: src/bz-full-view.blp:627
 msgid "Add-ons"
 msgstr "附加组件"
 
-#: src/bz-full-view.blp:666
+#: src/bz-full-view.blp:662
 msgid "More Add-Ons"
 msgstr "更多附加组件"
 
-#: src/bz-full-view.blp:677
+#: src/bz-full-view.blp:673
 msgid "Links"
 msgstr "链接"
 
-#: src/bz-full-view.blp:708
+#: src/bz-full-view.blp:704
 msgid "Similar Apps"
 msgstr "相似应用"
 
-#: src/bz-full-view.c:183
+#: src/bz-full-view.c:178
 msgid "No URL"
 msgstr "无 URL"
 
-#: src/bz-full-view.c:201
+#: src/bz-full-view.c:196
 msgid ""
 "This app has a FLOSS license, meaning the source code can be audited for "
 "safety."
 msgstr "该应用具有 FLOSS 许可证，这意味着可以审核源代码的安全性。"
 
-#: src/bz-full-view.c:202
+#: src/bz-full-view.c:197
 msgid ""
 "This app has a proprietary license, meaning the source code is developed "
 "privately and cannot be audited by an independent third party."
 msgstr ""
 "该应用具有专有许可证，这意味着源代码是私人开发的且无法由独立第三方审核。"
 
-#: src/bz-full-view.c:209
+#: src/bz-full-view.c:204
 msgid "Other Apps From This Developer"
 msgstr "此开发者的其他应用"
 
-#: src/bz-full-view.c:210
+#: src/bz-full-view.c:205
 #, c-format
 msgid "Other Apps From %s"
 msgstr "来自 %s 的其他应用"
 
-#: src/bz-full-view.c:225
+#: src/bz-full-view.c:220
 #, c-format
 msgid "%s is not installed, but it still has <b>%s</b> of data present."
 msgstr "%s 未安装，但仍存在 <b>%s</b> 的数据。"
 
-#: src/bz-full-view.c:308
+#: src/bz-full-view.c:302
 #, c-format
 msgid "Apps by %s"
 msgstr "%s 的应用"
 
-#: src/bz-full-view.c:310
+#: src/bz-full-view.c:304
 msgid "Apps by This Developer"
 msgstr "此开发者的应用"
 
-#: src/bz-full-view.c:312
+#: src/bz-full-view.c:306
 #, c-format
 msgid "%d Application"
 msgid_plural "%d Applications"
 msgstr[0] "%d 个应用程序"
 
-#: src/bz-full-view.c:467 src/bz-user-data-tile.c:160
+#: src/bz-full-view.c:460 src/bz-user-data-tile.c:160
 msgid "Failed to Remove User Data"
 msgstr "移除用户数据失败"
 
@@ -1827,48 +1827,48 @@ msgstr "%s 在特定硬件上运行最佳"
 msgid "%s works on most devices"
 msgstr "%s 在大多数设备运行正常"
 
-#: src/bz-install-controls.blp:58
-msgid "_Open"
-msgstr "打开(_O)"
-
-#: src/bz-install-controls.blp:72 src/bz-install-controls.blp:126
-msgid "Uninstall Application"
-msgstr "卸载应用程序"
-
-#: src/bz-install-controls.blp:82 src/bz-transaction-dialog.c:201
-msgid "_Remove"
-msgstr "移除(_R)"
-
-#: src/bz-install-controls.blp:114 src/bz-updates-card.vala:178
-#: src/bz-updates-card.vala:201
-msgid "Update"
-msgstr "更新"
-
-#: src/bz-install-controls.blp:136 src/bz-installed-tile.blp:107
-msgid "Remove"
-msgstr "移除"
-
-#: src/bz-install-controls.c:672
-#, c-format
-msgid "Install %s from %s"
-msgstr "从 %2$s 安装 %1$s"
-
-#: src/bz-install-controls.c:674
-#, c-format
-msgid "Install %s"
-msgstr "安装 %s"
-
-#: src/bz-install-controls.wdgt:32
+#: src/bz-install-controls.blp:57
 msgctxt "Install Controls"
 msgid "Cancel"
 msgstr "取消"
 
-#: src/bz-install-controls.wdgt:35
+#: src/bz-install-controls.blp:65
 msgctxt "Install Controls"
 msgid "Cancelling"
 msgstr "正在取消"
 
-#: src/bz-installed-tile.blp:78
+#: src/bz-install-controls.blp:94
+msgid "_Open"
+msgstr "打开(_O)"
+
+#: src/bz-install-controls.blp:107 src/bz-install-controls.blp:160
+msgid "Uninstall Application"
+msgstr "卸载应用程序"
+
+#: src/bz-install-controls.blp:117 src/bz-transaction-dialog.c:200
+msgid "_Remove"
+msgstr "移除(_R)"
+
+#: src/bz-install-controls.blp:148 src/bz-updates-card.vala:178
+#: src/bz-updates-card.vala:201
+msgid "Update"
+msgstr "更新"
+
+#: src/bz-install-controls.blp:170 src/bz-installed-tile.blp:106
+msgid "Remove"
+msgstr "移除"
+
+#: src/bz-install-controls.vala:306
+#, c-format
+msgid "Install %s from %s"
+msgstr "从 %2$s 安装 %1$s"
+
+#: src/bz-install-controls.vala:306
+#, c-format
+msgid "Install %s"
+msgstr "安装 %s"
+
+#: src/bz-installed-tile.blp:77
 msgid "Donate"
 msgstr "捐助"
 
@@ -1933,11 +1933,11 @@ msgid "%u Installed App"
 msgid_plural "%u Installed Apps"
 msgstr[0] "%u 个已安装应用"
 
-#: src/bz-library-page.c:664 src/bz-search-page.c:820
+#: src/bz-library-page.c:664 src/bz-search-page.c:858
 msgid "No applications found"
 msgstr "未找到应用程序"
 
-#: src/bz-library-page.c:664 src/bz-search-page.c:822
+#: src/bz-library-page.c:664 src/bz-search-page.c:861
 #, c-format
 msgid "One application found"
 msgid_plural "%u applications found"
@@ -2084,20 +2084,20 @@ msgid "This update requires the following additional permission"
 msgid_plural "This update requires the following additional permissions"
 msgstr[0] "此更新需要下列附加权限"
 
-#: src/bz-other-sources-list.vala:52
+#: src/bz-other-sources-list.vala:54
 msgid "User"
 msgstr "用户"
 
-#: src/bz-other-sources-list.vala:55
+#: src/bz-other-sources-list.vala:57
 msgid "Beta"
 msgstr "测试版"
 
-#: src/bz-other-sources-list.vala:58
+#: src/bz-other-sources-list.vala:60
 msgid "End-Of-Life"
 msgstr "结束支持"
 
 #. Translators: As in, "1 Install" / "100 Installs"
-#: src/bz-other-sources-list.vala:76 src/bz-world-map.c:604
+#: src/bz-other-sources-list.vala:78 src/bz-world-map.vala:203
 msgid "Install"
 msgid_plural "Installs"
 msgstr[0] "安装"
@@ -2110,7 +2110,7 @@ msgstr "首选项"
 msgid "Network connection is metered — automatic store data refresh is paused"
 msgstr "正在使用数据网络 - 已暂停自动刷新商店数据"
 
-#: src/bz-preferences-dialog.blp:26 src/bz-window.blp:226 src/bz-window.blp:237
+#: src/bz-preferences-dialog.blp:26 src/bz-window.blp:225 src/bz-window.blp:236
 msgid "Refresh Manually"
 msgstr "手动刷新"
 
@@ -2188,96 +2188,96 @@ msgstr "隐藏其开发者不再支持的应用"
 msgid "Progress Bar Theme"
 msgstr "进度条主题"
 
-#: src/bz-preferences-dialog.c:42
+#: src/bz-preferences-dialog.c:43
 msgid "Accent Color"
 msgstr "强调色"
 
-#: src/bz-preferences-dialog.c:43
+#: src/bz-preferences-dialog.c:44
 msgid "Pride Colors"
 msgstr "骄傲色"
 
-#: src/bz-preferences-dialog.c:44
+#: src/bz-preferences-dialog.c:45
 msgid "Lesbian Pride Colors"
 msgstr "女同性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:45
+#: src/bz-preferences-dialog.c:46
 msgid "Male Homosexual Pride Colors"
 msgstr "男同性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:46
+#: src/bz-preferences-dialog.c:47
 msgid "Transgender Pride Colors"
 msgstr "跨性别骄傲色"
 
-#: src/bz-preferences-dialog.c:47
+#: src/bz-preferences-dialog.c:48
 msgid "Nonbinary Pride Colors"
 msgstr "非二元性别骄傲色"
 
-#: src/bz-preferences-dialog.c:48
+#: src/bz-preferences-dialog.c:49
 msgid "Bisexual Pride Colors"
 msgstr "双性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:49
+#: src/bz-preferences-dialog.c:50
 msgid "Asexual Pride Colors"
 msgstr "无性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:50
+#: src/bz-preferences-dialog.c:51
 msgid "Pansexual Pride Colors"
 msgstr "泛性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:51
+#: src/bz-preferences-dialog.c:52
 msgid "Aromantic Pride Colors"
 msgstr "无浪漫倾向骄傲色"
 
-#: src/bz-preferences-dialog.c:52
+#: src/bz-preferences-dialog.c:53
 msgid "Genderfluid Pride Colors"
 msgstr "性别流动骄傲色"
 
-#: src/bz-preferences-dialog.c:53
+#: src/bz-preferences-dialog.c:54
 msgid "Polysexual Pride Colors"
 msgstr "多性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:54
+#: src/bz-preferences-dialog.c:55
 msgid "Omnisexual Pride Colors"
 msgstr "全性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:55
+#: src/bz-preferences-dialog.c:56
 msgid "Aroace Pride Colors"
 msgstr "无浪漫无性恋骄傲色"
 
-#: src/bz-preferences-dialog.c:56
+#: src/bz-preferences-dialog.c:57
 msgid "Agender Pride Colors"
 msgstr "无性别骄傲色"
 
-#: src/bz-preferences-dialog.c:57
+#: src/bz-preferences-dialog.c:58
 msgid "Genderqueer Pride Colors"
 msgstr "性别酷儿骄傲色"
 
-#: src/bz-preferences-dialog.c:58
+#: src/bz-preferences-dialog.c:59
 msgid "Intersex Pride Colors"
 msgstr "双性人骄傲色"
 
-#: src/bz-preferences-dialog.c:59
+#: src/bz-preferences-dialog.c:60
 msgid "Demigender Pride Colors"
 msgstr "半性别骄傲色"
 
-#: src/bz-preferences-dialog.c:60
+#: src/bz-preferences-dialog.c:61
 msgid "Biromantic Pride Colors"
 msgstr "双浪漫骄傲色"
 
-#: src/bz-preferences-dialog.c:61
+#: src/bz-preferences-dialog.c:62
 msgid "Disability Pride Colors"
 msgstr "残疾人骄傲色"
 
-#: src/bz-preferences-dialog.c:62
+#: src/bz-preferences-dialog.c:63
 msgid "Femboy Pride Colors"
 msgstr "伪娘骄傲色"
 
-#: src/bz-preferences-dialog.c:63
+#: src/bz-preferences-dialog.c:64
 msgid "Neutrois Pride Colors"
 msgstr "中性骄傲色"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-preferences-dialog.c:286
+#: src/bz-preferences-dialog.c:287
 msgid "Bazaar needs to run in the background to check for app updates"
 msgstr "Bazaar 需要后台运行以检查应用更新"
 
@@ -2286,38 +2286,38 @@ msgid "Version History"
 msgstr "版本历史"
 
 #. Translators: something happened less than a day ago
-#: src/bz-releases-list.c:120
+#: src/bz-releases-list.c:119
 msgid "Today"
 msgstr "今天"
 
 #. Translators: something happened more than a day ago but less than 2 days ago
-#: src/bz-releases-list.c:123
+#: src/bz-releases-list.c:122
 msgid "Yesterday"
 msgstr "昨天"
 
 #. Translators: something happened days ago
-#: src/bz-releases-list.c:126
+#: src/bz-releases-list.c:125
 #, c-format
 msgid "%d day ago"
 msgid_plural "%d days ago"
 msgstr[0] "%d 天前"
 
 #. Translators: something happened weeks ago
-#: src/bz-releases-list.c:129
+#: src/bz-releases-list.c:128
 #, c-format
 msgid "%d week ago"
 msgid_plural "%d weeks ago"
 msgstr[0] "%d 周前"
 
 #. Translators: something happened months ago
-#: src/bz-releases-list.c:132
+#: src/bz-releases-list.c:131
 #, c-format
 msgid "%d month ago"
 msgid_plural "%d months ago"
 msgstr[0] "%d 月前"
 
 #. Translators: something happened years ago
-#: src/bz-releases-list.c:135
+#: src/bz-releases-list.c:134
 #, c-format
 msgid "%d year ago"
 msgid_plural "%d years ago"
@@ -2325,20 +2325,20 @@ msgstr[0] "%d 年前"
 
 #. TRANSLATORS: This is the date string with: day number, month name, year.
 #. i.e. "22 March 2026"
-#: src/bz-releases-list.c:153
+#: src/bz-releases-list.c:152
 msgid "%e %B %Y"
 msgstr "%Y年%-m月%-d日"
 
-#: src/bz-releases-list.c:194
+#: src/bz-releases-list.c:193
 #, c-format
 msgid "Version %s"
 msgstr "版本 %s"
 
-#: src/bz-releases-list.c:249
+#: src/bz-releases-list.c:248
 msgid "No details for this release"
 msgstr "此发布版本未提供详情"
 
-#: src/bz-releases-list.c:262
+#: src/bz-releases-list.c:261
 msgid "Get More Information"
 msgstr "获取更多信息"
 
@@ -2346,21 +2346,21 @@ msgstr "获取更多信息"
 msgid "_Version History"
 msgstr "版本历史(_V)"
 
-#: src/bz-rich-app-tile.blp:218
+#: src/bz-rich-app-tile.blp:217
 msgid "Uninstall"
 msgstr "卸载"
 
 #. Translators: If you can't find a short enough translation, use "/" to use an icon instead.
-#: src/bz-rich-app-tile.c:384
+#: src/bz-rich-app-tile.c:386
 msgid "Get"
 msgstr "获取"
 
-#: src/bz-safety-dialog.blp:32 src/bz-safety-dialog.c:322
+#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:237
 #: src/safety-calculator.c:158
 msgid "Arbitrary Permissions"
 msgstr "任意权限"
 
-#: src/bz-safety-dialog.blp:49
+#: src/bz-safety-dialog.blp:47
 msgid ""
 "This app has a permission that indirectly allows it to grant itself <b>any "
 "other permission it wants</b>, bypassing the Flatpak sandbox.\n"
@@ -2378,7 +2378,7 @@ msgstr ""
 "\n"
 "查看其他权限仍会让您了解该应用可能会做的事情。"
 
-#: src/bz-safety-dialog.blp:53
+#: src/bz-safety-dialog.blp:51
 msgid "View Other Permissions"
 msgstr "查看其他权限"
 
@@ -2402,31 +2402,31 @@ msgid ""
 msgstr ""
 "此应用使用了过时的软件平台（SDK）版本，可能包含不会修复的缺陷或安全漏洞。"
 
-#: src/bz-safety-dialog.c:308 src/bz-safety-dialog.c:341
+#: src/bz-safety-dialog.c:228 src/bz-safety-dialog.c:256
 msgid "Safety"
 msgstr "安全性"
 
-#: src/bz-safety-dialog.c:401
+#: src/bz-safety-dialog.c:316
 #, c-format
 msgid "%s is Safe"
 msgstr "%s 是安全的"
 
-#: src/bz-safety-dialog.c:406
+#: src/bz-safety-dialog.c:321
 #, c-format
 msgid "%s has no Unsafe Permissions"
 msgstr "%s 没有不安全权限"
 
-#: src/bz-safety-dialog.c:411
+#: src/bz-safety-dialog.c:326
 #, c-format
 msgid "%s is Probably Safe"
 msgstr "%s 可能安全"
 
-#: src/bz-safety-dialog.c:416
+#: src/bz-safety-dialog.c:331
 #, c-format
 msgid "%s is Possibly Unsafe"
 msgstr "%s 可能不安全"
 
-#: src/bz-safety-dialog.c:421
+#: src/bz-safety-dialog.c:336
 #, c-format
 msgid "%s is Unsafe"
 msgstr "%s 是不安全的"
@@ -2459,29 +2459,31 @@ msgstr "缩小"
 msgid "Zoom In"
 msgstr "放大"
 
+#: src/bz-runtime-updates-entry.vala:30 src/bz-updates-card.vala:199
+#, c-format
+msgid "%u Runtime Update"
+msgid_plural "%u Runtime Updates"
+msgstr[0] "%u 个运行时更新"
+
 #: src/bz-screenshots-carousel.blp:6
 msgid "Screenshots Carousel"
 msgstr "截图轮播"
 
-#: src/bz-screenshots-carousel.blp:104
+#: src/bz-screenshots-carousel.blp:108
 msgid "No Screenshots"
 msgstr "无截图"
 
-#: src/bz-screenshots-carousel.blp:128
-msgid "Open Screenshot Viewer"
-msgstr "打开截图查看器"
-
-#: src/bz-screenshots-carousel.c:330
+#: src/bz-screenshots-carousel.c:304
 #, c-format
 msgid "Screenshot %u %s"
 msgstr "截图 %u %s"
 
-#: src/bz-screenshots-carousel.c:332
+#: src/bz-screenshots-carousel.c:306
 #, c-format
 msgid "Screenshot %u"
 msgstr "截图 %u"
 
-#: src/bz-search-bar.blp:47 src/bz-search-bar.blp:57
+#: src/bz-search-bar.blp:41 src/bz-search-bar.blp:51
 msgid "Clear Search"
 msgstr "清除搜索"
 
@@ -2537,7 +2539,7 @@ msgstr "使用上方搜索栏搜索应用。"
 msgid "No Applications Found"
 msgstr "未找到应用程序"
 
-#: src/bz-search-page.c:253
+#: src/bz-search-page.c:269
 #, c-format
 msgid "No results found for \"%s\" in Flathub"
 msgstr "在 Flathub 中未找到“%s”的结果"
@@ -2622,100 +2624,96 @@ msgstr "种子下载"
 msgid "Emulator"
 msgstr "模拟器"
 
-#: src/bz-share-list.c:58
+#: src/bz-share-list.vala:53
+msgid "Copy Link"
+msgstr "复制链接"
+
+#: src/bz-share-list.vala:101
 msgctxt "Project URL Type"
 msgid "Flathub Page"
 msgstr "Flathub 页面"
 
-#: src/bz-share-list.c:59
+#: src/bz-share-list.vala:102
 msgctxt "Project URL Type"
 msgid "Project Website"
 msgstr "项目网站"
 
-#: src/bz-share-list.c:60
+#: src/bz-share-list.vala:103
 msgctxt "Project URL Type"
 msgid "Issue Tracker"
 msgstr "问题跟踪器"
 
-#: src/bz-share-list.c:61
+#: src/bz-share-list.vala:104
 msgctxt "Project URL Type"
 msgid "FAQ"
 msgstr "常见问题"
 
-#: src/bz-share-list.c:62
+#: src/bz-share-list.vala:105
 msgctxt "Project URL Type"
 msgid "Help"
 msgstr "帮助"
 
-#: src/bz-share-list.c:63
+#: src/bz-share-list.vala:106
 msgctxt "Project URL Type"
 msgid "Donate"
 msgstr "捐助"
 
-#: src/bz-share-list.c:64
+#: src/bz-share-list.vala:107
 msgctxt "Project URL Type"
 msgid "Translate"
 msgstr "翻译"
 
-#: src/bz-share-list.c:65
+#: src/bz-share-list.vala:108
 msgctxt "Project URL Type"
 msgid "Contact"
 msgstr "联系方式"
 
-#: src/bz-share-list.c:66
+#: src/bz-share-list.vala:109
 msgctxt "Project URL Type"
 msgid "Source Code"
 msgstr "源代码"
 
-#: src/bz-share-list.c:67
+#: src/bz-share-list.vala:110
 msgctxt "Project URL Type"
 msgid "Contribute"
 msgstr "贡献"
 
-#: src/bz-share-list.c:68
+#: src/bz-share-list.vala:111
 msgctxt "Project URL Type"
 msgid "Manifest"
 msgstr "清单"
-
-#: src/bz-share-list.c:326
-msgid "Copy Link"
-msgstr "复制链接"
 
 #. TRANSLATORS: page in the statistics dialog
 #: src/bz-stats-dialog.blp:28
 msgid "Timeline"
 msgstr "时间轴"
 
-#. TRANSLATORS: label prefix shown in graph tooltips, for example: "Installs: 42"
-#: src/bz-stats-dialog.blp:48
-msgid "Installs:"
-msgstr "安装："
+#. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
+#: src/bz-stats-dialog.blp:47
+msgid "Total"
+msgstr "总计"
+
+#. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
+#: src/bz-stats-dialog.blp:78
+msgid "This Week"
+msgstr "本周"
+
+#: src/bz-stats-dialog.blp:115
+msgid "Installs per day"
+msgstr "每日安装"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:58
+#: src/bz-stats-dialog.blp:124
 msgid "World"
 msgstr "世界"
 
-#: src/bz-stats-dialog.blp:72
+#: src/bz-stats-dialog.blp:137
+msgid "Installs per country"
+msgstr "每地区安装"
+
+#: src/bz-stats-dialog.blp:142
 msgid "Since 4/15/2024"
 msgstr "始于 2024/4/15"
-
-#. Translators: M is the suffix for millions
-#: src/bz-stats-dialog.c:126
-#, c-format
-msgid "%.2fM Total Installs"
-msgstr "%.2fM 总安装量"
-
-#. Translators: K is the suffix for thousands
-#: src/bz-stats-dialog.c:129
-#, c-format
-msgid "%.2fK Total Installs"
-msgstr "%.2fK 总安装量"
-
-#: src/bz-stats-dialog.c:131
-#, c-format
-msgid "%'d Total Installs"
-msgstr "%'d 总安装量"
 
 #: src/bz-subcategory-list.c:77
 msgid "No Results Found"
@@ -2725,48 +2723,48 @@ msgstr "未找到结果"
 msgid "Search failed"
 msgstr "搜索失败"
 
-#: src/bz-transaction-dialog.c:118 src/context-tile-callbacks.c:251
+#: src/bz-transaction-dialog.c:117 src/context-tile-callbacks.c:251
 #: src/context-tile-callbacks.c:256 src/context-tile-callbacks.c:284
 #: src/context-tile-callbacks.c:293
 msgid "Unknown"
 msgstr "未知"
 
-#: src/bz-transaction-dialog.c:148
+#: src/bz-transaction-dialog.c:147
 msgid "Keep User Data"
 msgstr "保留用户数据"
 
-#: src/bz-transaction-dialog.c:149
+#: src/bz-transaction-dialog.c:148
 msgid "Allow restoring personal settings &amp; content"
 msgstr "允许恢复个人设置 &amp; 内容"
 
-#: src/bz-transaction-dialog.c:158
+#: src/bz-transaction-dialog.c:157
 msgid "Delete All Data"
 msgstr "删除所有数据"
 
-#: src/bz-transaction-dialog.c:159
+#: src/bz-transaction-dialog.c:158
 msgid "Permanently erase user data to save space"
 msgstr "永久删除用户数据以节省空间"
 
-#: src/bz-transaction-dialog.c:189
+#: src/bz-transaction-dialog.c:188
 #, c-format
 msgid "Remove %s?"
 msgstr "移除 %s 吗？"
 
-#: src/bz-transaction-dialog.c:192
+#: src/bz-transaction-dialog.c:191
 msgid "Select which version to remove."
 msgstr "选择要移除的版本。"
 
-#: src/bz-transaction-dialog.c:194
+#: src/bz-transaction-dialog.c:193
 #, c-format
 msgid "It will not be possible to use %s after it is uninstalled."
 msgstr "卸载后将无法使用 %s。"
 
-#: src/bz-transaction-dialog.c:217
+#: src/bz-transaction-dialog.c:216
 #, c-format
 msgid "“%s” is High Risk"
 msgstr "“%s”是高风险的"
 
-#: src/bz-transaction-dialog.c:221
+#: src/bz-transaction-dialog.c:220
 msgid ""
 "This app has full access to your system, including all <b>your files, "
 "browser history, saved passwords</b>, and more. It also has access to the "
@@ -2780,7 +2778,7 @@ msgstr ""
 "\n"
 "由于该应用是专有的，其如何利用权限也无法审查。\t"
 
-#: src/bz-transaction-dialog.c:230
+#: src/bz-transaction-dialog.c:229
 msgid ""
 "This app uses the legacy X11 windowing system, which allows it to <b>record "
 "all keystrokes, capture screenshots, and monitor other applications</b>. It "
@@ -2796,15 +2794,15 @@ msgstr ""
 "\n"
 "由于该应用是专有的，其如何利用权限也无法审查。"
 
-#: src/bz-transaction-dialog.c:246
+#: src/bz-transaction-dialog.c:245
 msgid "_Install Anyway"
 msgstr "仍然安装(_I)"
 
-#: src/bz-transaction-dialog.c:298 src/bz-transaction-dialog.c:326
+#: src/bz-transaction-dialog.c:297 src/bz-transaction-dialog.c:325
 msgid "Failed to load transaction dialog"
 msgstr "加载事务对话框失败"
 
-#: src/bz-transaction-manager.c:836
+#: src/bz-transaction-manager.c:835
 #, c-format
 msgid "Finished in %.02f seconds"
 msgstr "在 %.02f 秒内完成"
@@ -2858,7 +2856,7 @@ msgstr "%s 已释放"
 msgid "Transaction Error"
 msgstr "事务错误"
 
-#: src/bz-transaction.c:344
+#: src/bz-transaction.c:345
 msgid "Pending"
 msgstr "待处理"
 
@@ -2882,12 +2880,6 @@ msgstr "全部更新(_U)"
 msgid "This update requests new permissions"
 msgstr "此更新请求新的权限"
 
-#: src/bz-updates-card.vala:199
-#, c-format
-msgid "%u Runtime Update"
-msgid_plural "%u Runtime Updates"
-msgstr[0] "%u 个运行时更新"
-
 #: src/bz-user-data-page.blp:5
 msgid "Manage Leftover User Data"
 msgstr "管理遗留用户数据"
@@ -2900,13 +2892,13 @@ msgstr "未找到遗留用户数据"
 msgid "Personal data left behind by apps that were removed will show up here"
 msgstr "已移除应用遗留的个人数据会显示在这里"
 
-#: src/bz-user-data-page.c:229
+#: src/bz-user-data-page.c:230
 #, c-format
 msgid "Trashed User Data for %u App"
 msgid_plural "Trashed User Data for %u Apps"
 msgstr[0] "已清除 %u 个应用的用户数据"
 
-#: src/bz-user-data-page.c:233
+#: src/bz-user-data-page.c:234
 #, c-format
 msgid "Trashed User Data for %s"
 msgstr "已清除 %s 的用户数据"
@@ -2919,110 +2911,122 @@ msgstr "打开用户数据文件夹"
 msgid "Trash User Data"
 msgstr "清除用户数据"
 
-#: src/bz-window.blp:80
+#: src/bz-window.blp:79
 msgid "Refreshing"
 msgstr "正在刷新"
 
-#: src/bz-window.blp:98
+#: src/bz-window.blp:97
 msgid "Curated"
 msgstr "精选"
 
-#: src/bz-window.blp:110
+#: src/bz-window.blp:109
 msgid "Explore"
 msgstr "探索"
 
 #. Translators: .
-#: src/bz-window.blp:122
+#: src/bz-window.blp:121
 msgid "Library"
 msgstr "软件库"
 
-#: src/bz-window.blp:137
+#: src/bz-window.blp:136
 msgid "Search"
 msgstr "搜索"
 
-#: src/bz-window.blp:205
+#: src/bz-window.blp:204
 msgid "Main Menu"
 msgstr "主菜单"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:217
+#: src/bz-window.blp:216
 msgid "You are running a new version of Bazaar!"
 msgstr "您正在运行新版本的 Bazaar！"
 
-#: src/bz-window.blp:218
+#: src/bz-window.blp:217
 msgid "See What's New"
 msgstr "查看新特性"
 
-#: src/bz-window.blp:225
+#: src/bz-window.blp:224
 msgid ""
 "You have a network connection but are viewing a cached version of Flathub"
 msgstr "您已连接网络，但正在查看 Flathub 的缓存版本"
 
-#: src/bz-window.blp:236
+#: src/bz-window.blp:235
 msgid "Network connection is metered — automatic refreshes disabled"
 msgstr "正在使用数据网络 — 已禁用自动刷新"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:273
+#: src/bz-window.blp:272
 msgid "_Donate to Bazaar"
 msgstr "向 Bazaar 捐助(_D)"
 
-#: src/bz-window.blp:279
+#: src/bz-window.blp:278
 msgid "_Refresh"
 msgstr "刷新(_R)"
 
-#: src/bz-window.blp:283
+#: src/bz-window.blp:282
 msgid "_Login With Flathub"
 msgstr "用 Flathub 登录(_L)"
 
-#: src/bz-window.blp:289
+#: src/bz-window.blp:288
 msgid "_Manage Leftover User Data"
 msgstr "管理遗留用户数据(_M)"
 
-#: src/bz-window.blp:295
+#: src/bz-window.blp:294
 msgid "_Preferences"
 msgstr "首选项(_P)"
 
-#: src/bz-window.blp:300
+#: src/bz-window.blp:299
 msgid "_Keyboard Shortcuts"
 msgstr "键盘快捷键(_K)"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:306
+#: src/bz-window.blp:305
 msgid "_About Bazaar"
 msgstr "关于 Bazaar(_A)"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:313
+#: src/bz-window.blp:312
 msgid "_Quit Bazaar"
 msgstr "退出 Bazaar(_Q)"
 
-#: src/bz-window.blp:329
+#: src/bz-window.blp:328
 msgid "Log Out"
 msgstr "登出"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating. %s is the title of the current page.
-#: src/bz-window.c:440
+#: src/bz-window.c:438
 #, c-format
 msgid "Bazaar — %s"
 msgstr "Bazaar — %s"
 
-#: src/bz-window.c:720 src/bz-window.c:769
+#: src/bz-window.c:718 src/bz-window.c:767
 msgid "Failed to launch application"
 msgstr "启动应用程序失败"
 
-#: src/bz-window.c:848
+#: src/bz-window.c:846
 msgid "Could not open link"
 msgstr "无法打开链接"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.c:1057
+#: src/bz-window.c:1055
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr "您无法从 Bazaar 移除 Bazaar！"
 
-#: src/bz-window.c:1441 src/bz-window.c:1475
+#: src/bz-window.c:1439 src/bz-window.c:1473
 msgid "Can't do that right now!"
 msgstr "无法立刻那么做！"
+
+#: src/bz-world-map.vala:51
+#, c-format
+msgid "%s, %'u install"
+msgid_plural "%s, %'u installs"
+msgstr[0] "%s，%'u 次安装"
+
+#. Translators: accessible description of the world map, like. "Most installs from Germany, 1,200 installs, France, 800 installs"
+#: src/bz-world-map.vala:55
+#, c-format
+msgid "Most installs from %s"
+msgstr "安装量最大来自 %s"
 
 #: src/context-tile-callbacks.c:68
 msgid "---"
@@ -3033,12 +3037,6 @@ msgstr "---"
 #, c-format
 msgid "%.*fM"
 msgstr "%.*fM"
-
-#. Translators: K is the suffix for thousands
-#: src/context-tile-callbacks.c:82
-#, c-format
-msgid "%.*fK"
-msgstr "%.*fK"
 
 #: src/context-tile-callbacks.c:92
 #, c-format
@@ -3499,34 +3497,64 @@ msgstr "%s 已安装"
 msgid "The app is ready to be used"
 msgstr "应用已就绪"
 
-#: src/update-worker.c:266
+#: src/update-worker.c:278
 msgid "Updates Are Out of Date"
 msgstr "更新已过时"
 
-#: src/update-worker.c:267
+#: src/update-worker.c:279
 msgid "Please check for available updates"
 msgstr "请检查可用的更新"
 
-#: src/update-worker.c:513
+#: src/update-worker.c:535
 #, c-format
 msgid "%u App Updated"
 msgid_plural "%u Apps Updated"
 msgstr[0] "已更新 %u 款应用"
 
-#: src/update-worker.c:516
+#: src/update-worker.c:538
 #, c-format
 msgid "%s has been updated."
 msgstr "%s 已经更新。"
 
-#: src/update-worker.c:519
+#: src/update-worker.c:541
 #, c-format
 msgid "%s and %s have been updated."
 msgstr "%s 和 %s 已经更新。"
 
-#: src/update-worker.c:523
+#: src/update-worker.c:545
 #, c-format
 msgid "Includes %s, %s and %s."
 msgstr "包括 %s、%s 和 %s。"
+
+#~ msgid "Set Up System Flathub?"
+#~ msgstr "部署系统 Flathub 吗？"
+
+#~ msgid ""
+#~ "The system Flathub remote is not set up. Bazaar requires Flathub to be "
+#~ "configured on the system Flatpak installation to browse and install "
+#~ "applications.\n"
+#~ "\n"
+#~ "You can still use Bazaar to browse and remove already installed apps."
+#~ msgstr ""
+#~ "未部署系统 Flathub 远程仓库。Bazaar 需要在系统级 Flatpak 安装中配置 "
+#~ "Flathub 才能浏览和安装应用程序。\n"
+#~ "\n"
+#~ "您仍然可以使用 Bazaar 来浏览和移除已安装的应用。"
+
+#~ msgid "Open Screenshot Viewer"
+#~ msgstr "打开截图查看器"
+
+#, c-format
+#~ msgid "%.2fM Total Installs"
+#~ msgstr "%.2fM 总安装量"
+
+#, c-format
+#~ msgid "%.2fK Total Installs"
+#~ msgstr "%.2fK 总安装量"
+
+#, c-format
+#~ msgid "%'d Total Installs"
+#~ msgstr "%'d 总安装量"
 
 #~ msgid "Notice for Ubuntu Users"
 #~ msgstr "对 Ubuntu 用户的提示"
@@ -3735,9 +3763,6 @@ msgstr "包括 %s、%s 和 %s。"
 
 #~ msgid "Download & Install Application"
 #~ msgstr "下载并安装应用程序"
-
-#~ msgid "Install Other Version"
-#~ msgstr "安装其他版本"
 
 #~ msgid "Keep Data"
 #~ msgstr "保留数据"
