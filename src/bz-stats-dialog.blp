@@ -132,6 +132,10 @@ template $BzStatsDialog: Adw.BreakpointBin {
             $BzWorldMap world_map {
               model: bind template.country-model;
               vexpand: true;
+
+              accessibility {
+                label: _("Installs per country");
+              }
             }
 
             Label {

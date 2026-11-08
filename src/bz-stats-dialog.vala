@@ -30,6 +30,7 @@ public sealed class Bz.StatsDialog : Adw.BreakpointBin {
 
     class construct {
         typeof (Bz.DataGraph).ensure ();
+        typeof (Bz.WorldMap).ensure ();
     }
 
     [GtkCallback]

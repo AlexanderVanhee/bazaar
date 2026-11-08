@@ -24,13 +24,6 @@ public sealed class Bz.DataPoint : GLib.Object {
     public string? label { get; set; }
 }
 
-public sealed class Bz.Country : GLib.Object {
-    public string? name { get; set; }
-    public string? iso_code { get; set; }
-    public GLib.Variant? coordinates { get; set; }
-    public double @value { get; set; }
-}
-
 public sealed class Bz.CountryDataPoint : GLib.Object {
     public string? country_code { get; set; }
     public uint downloads { get; set; }

@@ -277,7 +277,8 @@
 	font-size: 1em;
 }
 
-datagraph > .floating-tooltip {
+datagraph > .floating-tooltip,
+worldmap > .floating-tooltip {
 	padding: 12px;
 }
 
