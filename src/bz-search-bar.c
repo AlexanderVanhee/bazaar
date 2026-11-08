@@ -25,14 +25,12 @@ struct _BzSearchBar
 {
   GtkWidget parent_instance;
 
-  GtkImage   *search_icon;
-  GtkText    *search_text;
-  AdwSpinner *search_busy;
-  GtkButton  *clear_button;
-  AdwBin     *end_widget_bin;
+  GtkImage  *search_icon;
+  GtkText   *search_text;
+  GtkButton *clear_button;
+  AdwBin    *end_widget_bin;
 
-  gboolean busy;
-  gchar   *placeholder;
+  gchar *placeholder;
 };
 
 static void bz_search_bar_accessible_init (GtkAccessibleInterface *iface);
@@ -43,7 +41,6 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (BzSearchBar, bz_search_bar, GTK_TYPE_WIDGET, G_IM
 enum
 {
   PROP_0,
-  PROP_BUSY,
   PROP_PLACEHOLDER,
   PROP_END_WIDGET,
   N_PROPS
@@ -154,10 +151,6 @@ bz_search_bar_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_BUSY:
-      g_value_set_boolean (value, bz_search_bar_get_busy (self));
-      break;
-
     case PROP_END_WIDGET:
       g_value_set_object (value, bz_search_bar_get_end_widget (self));
       break;
@@ -193,10 +186,6 @@ bz_search_bar_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_BUSY:
-      bz_search_bar_set_busy (self, g_value_get_boolean (value));
-      break;
-
     case PROP_END_WIDGET:
       bz_search_bar_set_end_widget (self, GTK_WIDGET (g_value_get_object (value)));
       break;
@@ -224,10 +213,6 @@ bz_search_bar_class_init (BzSearchBarClass *klass)
 
   widget_class->grab_focus = bz_search_bar_grab_focus;
   widget_class->focus      = bz_search_bar_focus;
-
-  properties[PROP_BUSY] =
-      g_param_spec_boolean ("busy", NULL, NULL, FALSE,
-                            G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
 
   properties[PROP_END_WIDGET] =
       g_param_spec_object ("end-widget", NULL, NULL, GTK_TYPE_WIDGET,
@@ -260,7 +245,6 @@ bz_search_bar_class_init (BzSearchBarClass *klass)
 
   gtk_widget_class_bind_template_child (widget_class, BzSearchBar, search_icon);
   gtk_widget_class_bind_template_child (widget_class, BzSearchBar, search_text);
-  gtk_widget_class_bind_template_child (widget_class, BzSearchBar, search_busy);
   gtk_widget_class_bind_template_child (widget_class, BzSearchBar, clear_button);
   gtk_widget_class_bind_template_child (widget_class, BzSearchBar, end_widget_bin);
 
@@ -305,28 +289,6 @@ bz_search_bar_init (BzSearchBar *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   gtk_editable_init_delegate (GTK_EDITABLE (self));
-}
-
-gboolean
-bz_search_bar_get_busy (BzSearchBar *self)
-{
-  g_return_val_if_fail (BZ_IS_SEARCH_BAR (self), FALSE);
-
-  return self->busy;
-}
-
-void
-bz_search_bar_set_busy (BzSearchBar *self,
-                        gboolean     busy)
-{
-  g_return_if_fail (BZ_IS_SEARCH_BAR (self));
-
-  if (!!self->busy == !!busy)
-    return;
-
-  self->busy = busy;
-
-  g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_BUSY]);
 }
 
 GtkWidget *

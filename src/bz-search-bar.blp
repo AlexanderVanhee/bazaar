@@ -25,12 +25,6 @@ template $BzSearchBar: Widget {
     changed => $text_changed_cb(template);
   }
 
-  Adw.Spinner search_busy {
-    visible: bind template.busy;
-    width-request: 16;
-    height-request: 16;
-  }
-
   Adw.Bin end_widget_bin {
     EventControllerFocus {
       enter => $end_widget_focus_enter_cb(template);

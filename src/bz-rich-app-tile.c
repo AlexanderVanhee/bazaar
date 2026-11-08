@@ -60,6 +60,10 @@ static GParamSpec *props[LAST_PROP] = { 0 };
 
 static void update_ui_entry (BzRichAppTile *self);
 
+static void restore_action_transition (BzRichAppTile *self,
+                                       GParamSpec    *pspec,
+                                       gpointer       user_data);
+
 static void
 update_tracker (BzRichAppTile *self)
 {
@@ -376,6 +380,7 @@ bz_rich_app_tile_init (BzRichAppTile *self)
   const char           *get_label = NULL;
 
   gtk_widget_init_template (GTK_WIDGET (self));
+  g_signal_connect_after (self, "notify::group", G_CALLBACK (restore_action_transition), NULL);
 
   /* Translators: If you can't find a short enough translation, use "/" to use an icon instead. */
   get_label = _ ("Get");
@@ -419,6 +424,8 @@ bz_rich_app_tile_set_group (BzRichAppTile *self,
   g_autofree char *label              = NULL;
 
   g_return_if_fail (BZ_IS_RICH_APP_TILE (self));
+
+  gtk_stack_set_transition_type (GTK_STACK (self->action_stack), GTK_STACK_TRANSITION_TYPE_NONE);
 
   g_clear_object (&self->group);
 
@@ -467,6 +474,14 @@ bz_rich_app_tile_focus_action_button (BzRichAppTile *self)
   visible_child = gtk_stack_get_visible_child (GTK_STACK (self->action_stack));
   if (visible_child != NULL)
     gtk_widget_grab_focus (visible_child);
+}
+
+static void
+restore_action_transition (BzRichAppTile *self,
+                           GParamSpec    *pspec,
+                           gpointer       user_data)
+{
+  gtk_stack_set_transition_type (GTK_STACK (self->action_stack), GTK_STACK_TRANSITION_TYPE_CROSSFADE);
 }
 
 /* End of bz-rich-app-tile.c */

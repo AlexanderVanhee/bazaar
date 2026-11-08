@@ -32,13 +32,6 @@ G_DECLARE_FINAL_TYPE (BzSearchBar, bz_search_bar, BZ, SEARCH_BAR, GtkWidget)
 BzSearchBar *
 bz_search_bar_new (void);
 
-gboolean
-bz_search_bar_get_busy (BzSearchBar *self);
-
-void
-bz_search_bar_set_busy (BzSearchBar *self,
-                        gboolean     busy);
-
 GtkWidget *
 bz_search_bar_get_end_widget (BzSearchBar *self);
 
