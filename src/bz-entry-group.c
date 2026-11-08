@@ -163,6 +163,7 @@ bz_entry_group_dispose (GObject *object)
 
   g_clear_object (&self->unique_ids);
   g_clear_object (&self->installed_versions);
+  g_clear_object (&self->addon_group_ids);
   g_clear_pointer (&self->state_flags, g_array_unref);
 
   g_clear_pointer (&self->id, g_free);
@@ -1911,19 +1912,19 @@ bz_entry_group_deserialize (BzEntryGroup *self,
       else if (g_strcmp0 (key, "unique-ids") == 0)
         {
           g_autoptr (GVariantIter) ids_iter = NULL;
-          g_autofree char *uid              = NULL;
+          const char *uid                   = NULL;
 
           ids_iter = g_variant_iter_new (value);
-          while (g_variant_iter_next (ids_iter, "s", &uid))
+          while (g_variant_iter_next (ids_iter, "&s", &uid))
             gtk_string_list_append (self->unique_ids, uid);
         }
       else if (g_strcmp0 (key, "installed-versions") == 0)
         {
           g_autoptr (GVariantIter) iv_iter = NULL;
-          g_autofree char *iv              = NULL;
+          const char *iv                   = NULL;
 
           iv_iter = g_variant_iter_new (value);
-          while (g_variant_iter_next (iv_iter, "s", &iv))
+          while (g_variant_iter_next (iv_iter, "&s", &iv))
             gtk_string_list_append (self->installed_versions, iv);
         }
       else if (g_strcmp0 (key, "state-flags") == 0)
@@ -1938,10 +1939,10 @@ bz_entry_group_deserialize (BzEntryGroup *self,
       else if (g_strcmp0 (key, "addon-group-ids") == 0)
         {
           g_autoptr (GVariantIter) addon_iter = NULL;
-          g_autofree char *addon_id           = NULL;
+          const char *addon_id                = NULL;
 
           addon_iter = g_variant_iter_new (value);
-          while (g_variant_iter_next (addon_iter, "s", &addon_id))
+          while (g_variant_iter_next (addon_iter, "&s", &addon_id))
             bz_entry_group_append_addon_group_id (self, addon_id);
         }
       else if (g_strcmp0 (key, "mini-icon") == 0)

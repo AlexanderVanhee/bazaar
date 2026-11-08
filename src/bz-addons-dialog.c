@@ -257,7 +257,7 @@ AdwDialog *
 bz_addons_dialog_new (BzEntryGroup *group)
 {
   GListModel              *ids     = NULL;
-  GListModel              *groups  = NULL;
+  g_autoptr (GListModel) groups    = NULL;
   BzApplicationMapFactory *factory = NULL;
   BzAddonsDialog          *self    = NULL;
 
@@ -492,7 +492,7 @@ on_selected_ui_entry_resolved (DexFuture *future,
   g_auto (GStrv) parts                  = NULL;
   BzApplicationMapFactory *factory      = NULL;
   GtkStringObject         *item         = NULL;
-  BzEntryGroup            *parent_group = NULL;
+  g_autoptr (BzEntryGroup) parent_group = NULL;
 
   bz_weak_get_or_return_reject (self, wr);
 
