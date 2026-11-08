@@ -67,17 +67,17 @@ test_strings (const char *query,
               gssize      accept_min_size,
               gboolean    allow_typos);
 
-static void
-utf8_lower_chars (const char *start,
-                  const char *end,
-                  gunichar   *out);
-
 static guint
 typo_distance (const gunichar *query,
                guint           query_len,
                const gunichar *against,
                guint           against_len,
                guint           max_typos);
+
+static void
+utf8_lower_chars (const char *start,
+                  const char *end,
+                  gunichar   *out);
 
 typedef struct
 {
@@ -817,66 +817,6 @@ bz_str_split_into_search_terms (const char *search_text)
   return g_strv_builder_end (builder);
 }
 
-static void
-utf8_lower_chars (const char *start,
-                  const char *end,
-                  gunichar   *out)
-{
-  guint i = 0;
-
-  UTF8_FOREACH_FORWARD_WITH_END (ptr, start, end)
-  {
-    out[i++] = g_unichar_tolower (g_utf8_get_char (ptr));
-  }
-}
-
-static guint
-typo_distance (const gunichar *query,
-               guint           query_len,
-               const gunichar *against,
-               guint           against_len,
-               guint           max_typos)
-{
-  guint rows[3][TYPO_MAX_CHARS + 1] = { 0 };
-  guint row_min                     = 0;
-
-  for (guint j = 0; j <= against_len; j++)
-    rows[0][j] = j;
-
-  for (guint i = 1; i <= query_len; i++)
-    {
-      guint *prev2 = NULL;
-      guint *prev  = NULL;
-      guint *cur   = NULL;
-
-      prev2 = rows[(i + 1) % 3];
-      prev  = rows[(i + 2) % 3];
-      cur   = rows[i % 3];
-
-      cur[0]  = i;
-      row_min = i;
-      for (guint j = 1; j <= against_len; j++)
-        {
-          guint d = 0;
-
-          d = MIN (prev[j] + 1, cur[j - 1] + 1);
-          d = MIN (d, prev[j - 1] + (query[i - 1] == against[j - 1] ? 0 : 1));
-          if (i > 1 && j > 1 &&
-              query[i - 1] == against[j - 2] &&
-              query[i - 2] == against[j - 1])
-            d = MIN (d, prev2[j - 2] + 1);
-
-          cur[j]  = d;
-          row_min = MIN (row_min, d);
-        }
-
-      if (row_min > max_typos)
-        return max_typos + 1;
-    }
-
-  return row_min;
-}
-
 static double
 test_strings (const char *query,
               const char *against,
@@ -889,7 +829,7 @@ test_strings (const char *query,
 
   UTF8_FOREACH_TOKEN_FORWARDS (query_tok_start, query_tok_end, query, &query_tok_utf8_len)
   {
-    gboolean query_token_has_match = FALSE;
+    gboolean query_token_has_match       = FALSE;
     gunichar query_chars[TYPO_MAX_CHARS] = { 0 };
     guint    max_typos                   = 0;
 
@@ -973,6 +913,66 @@ test_strings (const char *query,
   }
 
   return score;
+}
+
+static guint
+typo_distance (const gunichar *query,
+               guint           query_len,
+               const gunichar *against,
+               guint           against_len,
+               guint           max_typos)
+{
+  guint rows[3][TYPO_MAX_CHARS + 1] = { 0 };
+  guint row_min                     = 0;
+
+  for (guint j = 0; j <= against_len; j++)
+    rows[0][j] = j;
+
+  for (guint i = 1; i <= query_len; i++)
+    {
+      guint *prev2 = NULL;
+      guint *prev  = NULL;
+      guint *cur   = NULL;
+
+      prev2 = rows[(i + 1) % 3];
+      prev  = rows[(i + 2) % 3];
+      cur   = rows[i % 3];
+
+      cur[0]  = i;
+      row_min = i;
+      for (guint j = 1; j <= against_len; j++)
+        {
+          guint d = 0;
+
+          d = MIN (prev[j] + 1, cur[j - 1] + 1);
+          d = MIN (d, prev[j - 1] + (query[i - 1] == against[j - 1] ? 0 : 1));
+          if (i > 1 && j > 1 &&
+              query[i - 1] == against[j - 2] &&
+              query[i - 2] == against[j - 1])
+            d = MIN (d, prev2[j - 2] + 1);
+
+          cur[j]  = d;
+          row_min = MIN (row_min, d);
+        }
+
+      if (row_min > max_typos)
+        return max_typos + 1;
+    }
+
+  return row_min;
+}
+
+static void
+utf8_lower_chars (const char *start,
+                  const char *end,
+                  gunichar   *out)
+{
+  guint i = 0;
+
+  UTF8_FOREACH_FORWARD_WITH_END (ptr, start, end)
+  {
+    out[i++] = g_unichar_tolower (g_utf8_get_char (ptr));
+  }
 }
 
 static inline GUnicodeType
