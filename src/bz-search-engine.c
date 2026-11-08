@@ -57,10 +57,27 @@ biases_changed (BzSearchEngine *self,
                 guint           added,
                 GListModel     *model);
 
+#define TYPO_MAX_CHARS     32
+#define TYPO_ONE_MIN_CHARS 5
+#define TYPO_TWO_MIN_CHARS 9
+
 static double
 test_strings (const char *query,
               const char *against,
-              gssize      accept_min_size);
+              gssize      accept_min_size,
+              gboolean    allow_typos);
+
+static void
+utf8_lower_chars (const char *start,
+                  const char *end,
+                  gunichar   *out);
+
+static guint
+typo_distance (const gunichar *query,
+               guint           query_len,
+               const gunichar *against,
+               guint           against_len,
+               guint           max_typos);
 
 typedef struct
 {
@@ -710,15 +727,15 @@ query_sub_task_fiber (QuerySubTaskData *data)
           description   = bz_entry_group_get_description (group);
           search_tokens = bz_entry_group_get_search_tokens (group);
 
-#define EVALUATE_STRING(_s, _accept_min_size)                  \
-  ((_s) != NULL                                                \
-       ? (test_strings (query_utf8, (_s), (_accept_min_size))) \
+#define EVALUATE_STRING(_s, _accept_min_size, _allow_typos)                    \
+  ((_s) != NULL                                                                \
+       ? (test_strings (query_utf8, (_s), (_accept_min_size), (_allow_typos))) \
        : 0.0)
 
-          score += EVALUATE_STRING (title, 2) * 2.0;
-          score += EVALUATE_STRING (developer, 2) * 1.0;
-          score += EVALUATE_STRING (description, 3) * 1.0;
-          score += EVALUATE_STRING (search_tokens, -1) * 1.5;
+          score += EVALUATE_STRING (title, 2, TRUE) * 2.0;
+          score += EVALUATE_STRING (developer, 2, TRUE) * 1.0;
+          score += EVALUATE_STRING (description, 3, FALSE) * 1.0;
+          score += EVALUATE_STRING (search_tokens, -1, TRUE) * 1.5;
 
 #undef EVALUATE_STRING
         }
@@ -800,10 +817,71 @@ bz_str_split_into_search_terms (const char *search_text)
   return g_strv_builder_end (builder);
 }
 
+static void
+utf8_lower_chars (const char *start,
+                  const char *end,
+                  gunichar   *out)
+{
+  guint i = 0;
+
+  UTF8_FOREACH_FORWARD_WITH_END (ptr, start, end)
+  {
+    out[i++] = g_unichar_tolower (g_utf8_get_char (ptr));
+  }
+}
+
+static guint
+typo_distance (const gunichar *query,
+               guint           query_len,
+               const gunichar *against,
+               guint           against_len,
+               guint           max_typos)
+{
+  guint rows[3][TYPO_MAX_CHARS + 1] = { 0 };
+  guint row_min                     = 0;
+
+  for (guint j = 0; j <= against_len; j++)
+    rows[0][j] = j;
+
+  for (guint i = 1; i <= query_len; i++)
+    {
+      guint *prev2 = NULL;
+      guint *prev  = NULL;
+      guint *cur   = NULL;
+
+      prev2 = rows[(i + 1) % 3];
+      prev  = rows[(i + 2) % 3];
+      cur   = rows[i % 3];
+
+      cur[0]  = i;
+      row_min = i;
+      for (guint j = 1; j <= against_len; j++)
+        {
+          guint d = 0;
+
+          d = MIN (prev[j] + 1, cur[j - 1] + 1);
+          d = MIN (d, prev[j - 1] + (query[i - 1] == against[j - 1] ? 0 : 1));
+          if (i > 1 && j > 1 &&
+              query[i - 1] == against[j - 2] &&
+              query[i - 2] == against[j - 1])
+            d = MIN (d, prev2[j - 2] + 1);
+
+          cur[j]  = d;
+          row_min = MIN (row_min, d);
+        }
+
+      if (row_min > max_typos)
+        return max_typos + 1;
+    }
+
+  return row_min;
+}
+
 static double
 test_strings (const char *query,
               const char *against,
-              gssize      accept_min_size)
+              gssize      accept_min_size,
+              gboolean    allow_typos)
 {
   double score                = 0.0;
   gsize  query_tok_utf8_len   = 0;
@@ -812,6 +890,16 @@ test_strings (const char *query,
   UTF8_FOREACH_TOKEN_FORWARDS (query_tok_start, query_tok_end, query, &query_tok_utf8_len)
   {
     gboolean query_token_has_match = FALSE;
+    gunichar query_chars[TYPO_MAX_CHARS] = { 0 };
+    guint    max_typos                   = 0;
+
+    if (allow_typos &&
+        query_tok_utf8_len >= TYPO_ONE_MIN_CHARS &&
+        query_tok_utf8_len <= TYPO_MAX_CHARS)
+      {
+        max_typos = query_tok_utf8_len >= TYPO_TWO_MIN_CHARS ? 2 : 1;
+        utf8_lower_chars (query_tok_start, query_tok_end, query_chars);
+      }
 
     UTF8_FOREACH_TOKEN_FORWARDS (against_tok_start, against_tok_end, against, &against_tok_utf8_len)
     {
@@ -859,6 +947,21 @@ test_strings (const char *query,
         {
           score += (double) (query_tok_utf8_len * query_tok_utf8_len) / (double) against_tok_utf8_len;
           query_token_has_match = TRUE;
+        }
+      else if (max_typos > 0 &&
+               against_tok_utf8_len <= TYPO_MAX_CHARS &&
+               g_unichar_tolower (g_utf8_get_char (against_tok_start)) == query_chars[0])
+        {
+          gunichar against_chars[TYPO_MAX_CHARS] = { 0 };
+          guint    typos                         = 0;
+
+          utf8_lower_chars (against_tok_start, against_tok_end, against_chars);
+          typos = typo_distance (query_chars, query_tok_utf8_len, against_chars, against_tok_utf8_len, max_typos);
+          if (typos <= max_typos)
+            {
+              score += (double) (query_tok_utf8_len * query_tok_utf8_len) / (double) against_tok_utf8_len / (double) (1 << typos);
+              query_token_has_match = TRUE;
+            }
         }
     }
 
