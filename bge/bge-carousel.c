@@ -835,8 +835,9 @@ bge_carousel_reveal (BgeCarousel *self,
   width = gtk_widget_get_width (GTK_WIDGET (self));
   for (guint i = 0; i < self->widgets->len; i++)
     {
-      CarouselWidgetData *child = g_ptr_array_index (self->widgets, i);
+      CarouselWidgetData *child = NULL;
 
+      child = g_ptr_array_index (self->widgets, i);
       if (i < index)
         start += child->width;
       else if (i == index)
@@ -854,7 +855,14 @@ bge_carousel_reveal (BgeCarousel *self,
   offset = CLAMP (offset, width - total_width, 0);
 
   for (start = 0; first < self->widgets->len - 1 && start + offset < 0; first++)
-    start += ((CarouselWidgetData *) g_ptr_array_index (self->widgets, first))->width;
+    {
+      CarouselWidgetData *child = NULL;
+
+      child = g_ptr_array_index (self->widgets, first);
+      start += child->width;
+    }
+  if (offset > width - total_width && start >= total_width - width)
+    first--;
 
   gtk_single_selection_set_selected (self->model, first);
   self->align_offset = offset;
