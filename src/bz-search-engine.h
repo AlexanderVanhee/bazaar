@@ -47,7 +47,8 @@ bz_search_engine_set_biases (BzSearchEngine *self,
 
 DexFuture *
 bz_search_engine_query (BzSearchEngine    *self,
-                        const char *const *terms);
+                        const char *const *terms,
+                        GCancellable      *cancellable);
 
 /* string utils */
 

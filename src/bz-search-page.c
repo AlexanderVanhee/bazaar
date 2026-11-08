@@ -37,6 +37,9 @@
 #include "template-callbacks.h"
 #include "util.h"
 
+#define SEARCH_PREVIEW_RESULTS            30
+#define SEARCH_REMAINING_RESULTS_DELAY_MS 300
+
 struct _BzSearchPage
 {
   AdwBin parent_instance;
@@ -51,11 +54,12 @@ struct _BzSearchPage
   BzContentProvider     *txt_blocklists_provider;
   GListStore            *search_model;
   GtkSelectionModel     *selection_model;
-  guint                  search_update_timeout;
+  guint                  remaining_results_timeout;
+  GPtrArray             *remaining_results;
   DexFuture             *search_query;
-  GPtrArray             *pending_results;
-  BzFinishedSearchQuery *pending_query;
+  GCancellable          *search_cancellable;
   gboolean               skip_debounce;
+  gboolean               setting_text;
 
   /* Template widgets */
   BzSearchBar           *search_bar;
@@ -104,7 +108,18 @@ search_query_then (DexFuture *future,
                    GWeakRef  *wr);
 
 static void
-commit_pending_results (BzSearchPage *self);
+set_model_results (BzSearchPage *self,
+                   GPtrArray    *results,
+                   guint         n_results);
+
+static void
+append_remaining_results (BzSearchPage *self);
+
+static void
+commit_pending_results (BzSearchPage          *self,
+                        GPtrArray             *filtered,
+                        BzFinishedSearchQuery *finished,
+                        gboolean               preview);
 
 static void
 update_filter (BzSearchPage *self,
@@ -130,15 +145,16 @@ bz_search_page_dispose (GObject *object)
   if (self->txt_blocklists_provider != NULL)
     g_signal_handlers_disconnect_by_func (self->txt_blocklists_provider, blocklists_items_changed, self);
 
-  g_clear_handle_id (&self->search_update_timeout, g_source_remove);
+  g_clear_handle_id (&self->remaining_results_timeout, g_source_remove);
   dex_clear (&self->search_query);
+  g_cancellable_cancel (self->search_cancellable);
+  g_clear_object (&self->search_cancellable);
 
-  g_clear_pointer (&self->pending_results, g_ptr_array_unref);
+  g_clear_pointer (&self->remaining_results, g_ptr_array_unref);
 
   g_clear_object (&self->state);
   g_clear_object (&self->selected);
   g_clear_object (&self->current_query);
-  g_clear_object (&self->pending_query);
   g_clear_object (&self->blocklists_provider);
   g_clear_object (&self->txt_blocklists_provider);
   g_clear_object (&self->search_model);
@@ -309,6 +325,9 @@ static void
 search_changed (BzSearchPage *self,
                 GtkEditable  *editable)
 {
+  if (self->setting_text)
+    return;
+
   update_filter (self, FALSE);
 }
 
@@ -322,9 +341,8 @@ search_activate (BzSearchPage *self,
   model   = gtk_grid_view_get_model (self->grid_view);
   n_items = g_list_model_get_n_items (G_LIST_MODEL (model));
 
-  bz_search_bar_set_busy (self->search_bar, FALSE);
-
-  if (n_items > 0)
+  if (n_items > 0 &&
+      g_strcmp0 (gtk_stack_get_visible_child_name (self->search_stack), "results") == 0)
     {
       GtkWidget *cell = NULL;
       GtkWidget *box  = NULL;
@@ -632,7 +650,11 @@ bz_search_page_set_text (BzSearchPage *self,
 {
   g_return_if_fail (BZ_IS_SEARCH_PAGE (self));
 
+  self->setting_text = TRUE;
   gtk_editable_set_text (GTK_EDITABLE (self->search_bar), text);
+  self->setting_text = FALSE;
+  update_filter (self, FALSE);
+
   if (text != NULL)
     gtk_editable_set_position (GTK_EDITABLE (self->search_bar), g_utf8_strlen (text, -1));
 
@@ -705,7 +727,6 @@ search_query_then (DexFuture *future,
   g_autoptr (GPtrArray) filtered       = NULL;
   BzFinishedSearchQuery *finished      = NULL;
   GPtrArray             *results       = NULL;
-  guint                  delay_ms      = 0;
   BzCategoryFlags        categories    = BZ_CATEGORY_FLAGS_NONE;
   gboolean               only_verified = FALSE;
   gboolean               only_free     = FALSE;
@@ -752,51 +773,73 @@ search_query_then (DexFuture *future,
       g_ptr_array_add (filtered, g_object_ref (result));
     }
 
-  g_clear_pointer (&self->pending_results, g_ptr_array_unref);
-  self->pending_results = g_ptr_array_ref (filtered);
-  g_set_object (&self->pending_query, finished);
-
   dex_clear (&self->search_query);
-  g_clear_handle_id (&self->search_update_timeout, g_source_remove);
-
-  if (self->skip_debounce)
-    {
-      self->skip_debounce = FALSE;
-      commit_pending_results (self);
-    }
-  else
-    {
-      delay_ms = MAX (300 - (int) (25 - MIN (self->pending_results->len, 25)) * 20, 50);
-
-      self->search_update_timeout = g_timeout_add_once (
-          delay_ms, (GSourceOnceFunc) commit_pending_results, self);
-    }
+  commit_pending_results (self, filtered, finished, !self->skip_debounce);
+  self->skip_debounce = FALSE;
 
   return NULL;
 }
 
 static void
-commit_pending_results (BzSearchPage *self)
+set_model_results (BzSearchPage *self,
+                   GPtrArray    *results,
+                   guint         n_results)
 {
-  GPtrArray  *filtered    = NULL;
-  guint       old_length  = 0;
+  guint old_length = 0;
+  guint n_reused   = 0;
+
+  old_length = g_list_model_get_n_items (G_LIST_MODEL (self->search_model));
+  n_reused   = MIN (old_length, n_results);
+
+  for (guint i = 0; i < n_reused; i++)
+    {
+      g_autoptr (BzSearchResult) slot = NULL;
+      BzSearchResult *result          = NULL;
+
+      slot   = g_list_model_get_item (G_LIST_MODEL (self->search_model), i);
+      result = g_ptr_array_index (results, i);
+
+      bz_search_result_set_group (slot, bz_search_result_get_group (result));
+      bz_search_result_set_score (slot, bz_search_result_get_score (result));
+      bz_search_result_set_state (slot, bz_search_result_get_state (result));
+    }
+
+  g_list_store_splice (
+      self->search_model,
+      n_reused, old_length - n_reused,
+      (gpointer *) results->pdata + n_reused, n_results - n_reused);
+}
+
+static void
+append_remaining_results (BzSearchPage *self)
+{
+  self->remaining_results_timeout = 0;
+  set_model_results (self, self->remaining_results, self->remaining_results->len);
+  g_clear_pointer (&self->remaining_results, g_ptr_array_unref);
+}
+
+static void
+commit_pending_results (BzSearchPage          *self,
+                        GPtrArray             *filtered,
+                        BzFinishedSearchQuery *finished,
+                        gboolean               preview)
+{
+  guint       n_shown     = 0;
   const char *page_name   = NULL;
   const char *search_text = NULL;
 
-  self->search_update_timeout = 0;
-
-  if (self->pending_results == NULL)
-    return;
-
-  filtered    = self->pending_results;
   search_text = gtk_editable_get_text (GTK_EDITABLE (self->search_bar));
 
-  old_length = g_list_model_get_n_items (G_LIST_MODEL (self->search_model));
-  g_list_store_splice (
-      self->search_model,
-      0, old_length,
-      (gpointer *) filtered->pdata, filtered->len);
-  bz_search_bar_set_busy (self->search_bar, FALSE);
+  n_shown = preview ? MIN (filtered->len, SEARCH_PREVIEW_RESULTS) : filtered->len;
+  set_model_results (self, filtered, n_shown);
+
+  if (n_shown < filtered->len)
+    {
+      self->remaining_results         = g_ptr_array_ref (filtered);
+      self->remaining_results_timeout = g_timeout_add_once (
+          SEARCH_REMAINING_RESULTS_DELAY_MS,
+          (GSourceOnceFunc) append_remaining_results, self);
+    }
 
   if (filtered->len > 0)
     {
@@ -822,13 +865,10 @@ commit_pending_results (BzSearchPage *self)
     }
 
   g_clear_object (&self->current_query);
-  self->current_query = g_object_ref (self->pending_query);
+  self->current_query = g_object_ref (finished);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_CURRENT_QUERY]);
 
   gtk_stack_set_visible_child_name (self->search_stack, page_name);
-
-  g_clear_pointer (&self->pending_results, g_ptr_array_unref);
-  g_clear_object (&self->pending_query);
 }
 
 static void
@@ -841,11 +881,12 @@ update_filter (BzSearchPage *self,
   g_autoptr (DexFuture) future = NULL;
   g_autofree gchar **tokens    = NULL;
 
-  g_clear_handle_id (&self->search_update_timeout, g_source_remove);
+  g_clear_handle_id (&self->remaining_results_timeout, g_source_remove);
   dex_clear (&self->search_query);
+  g_cancellable_cancel (self->search_cancellable);
+  g_clear_object (&self->search_cancellable);
 
-  g_clear_pointer (&self->pending_results, g_ptr_array_unref);
-  g_clear_object (&self->pending_query);
+  g_clear_pointer (&self->remaining_results, g_ptr_array_unref);
 
   self->skip_debounce = FALSE;
 
@@ -870,12 +911,12 @@ update_filter (BzSearchPage *self,
 
   self->search_in_progress = TRUE;
   self->skip_debounce      = skip_debounce;
+  self->search_cancellable = g_cancellable_new ();
 
   future = bz_search_engine_query (
       engine,
-      (const char *const *) terms);
-
-  bz_search_bar_set_busy (self->search_bar, !skip_debounce && dex_future_is_pending (future));
+      (const char *const *) terms,
+      self->search_cancellable);
 
   future = dex_future_then (
       future,
@@ -886,7 +927,5 @@ update_filter (BzSearchPage *self,
 
 idle:
   self->search_in_progress = FALSE;
-  g_list_store_remove_all (self->search_model);
   gtk_stack_set_visible_child_name (self->search_stack, "empty");
-  bz_search_bar_set_busy (self->search_bar, FALSE);
 }
