@@ -400,7 +400,7 @@ template $BzFullView: Adw.Bin {
 
                           $BzContextTile {
                             can-target: bind $invert_boolean($is_null(template.ui-entry) as <bool>) as <bool>;
-                            sensitive: bind $invert_boolean($is_null(template.ui-entry as <$BzResult>.object as <$BzEntry>.recent-downloads) as <bool>) as <bool>;
+                            sensitive: bind $is_longer(template.ui-entry as <$BzResult>.object as <$BzEntry>.download-stats, 4) as <bool>;
                             clicked => $dl_stats_cb(template);
                             label: _("Downloads/Month");
                             tooltip-text: bind $format_recent_downloads_tooltip(template.ui-entry as <$BzResult>.object as <$BzEntry>.recent-downloads) as <string>;

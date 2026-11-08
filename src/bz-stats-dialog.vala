@@ -33,16 +33,6 @@ public sealed class Bz.StatsDialog : Adw.BreakpointBin {
     }
 
     [GtkCallback]
-    private bool model_has_enough_points (GLib.ListModel? points) {
-        return points != null && points.get_n_items () >= 10;
-    }
-
-    [GtkCallback]
-    private bool should_show_switcher (GLib.ListModel? points, GLib.ListModel? countries) {
-        return model_has_enough_points (points) && countries != null;
-    }
-
-    [GtkCallback]
     private bool has_country_model (GLib.ListModel? countries) {
         return countries != null;
     }

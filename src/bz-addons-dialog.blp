@@ -217,7 +217,7 @@ template $BzAddonsDialog: $BzDialog {
 
                   $BzContextTile {
                     can-target: bind $invert_boolean($is_null(template.selected-ui-entry) as <bool>) as <bool>;
-                    sensitive: bind $invert_boolean($is_null(template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.recent-downloads) as <bool>) as <bool>;
+                    sensitive: bind $is_longer(template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.download-stats, 4) as <bool>;
                     label: _("Downloads/Month");
                     clicked => $dl_stats_cb(template);
                     tooltip-text: bind $format_recent_downloads_tooltip(template.selected-ui-entry as <$BzResult>.object as <$BzEntry>.recent-downloads) as <string>;
