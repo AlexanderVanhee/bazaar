@@ -396,6 +396,7 @@ dl_stats_cb (BzAddonsDialog *self,
   adw_navigation_page_set_tag (page, "stats");
 
   g_object_bind_property (ui_entry, "download-stats", bin, "model", G_BINDING_SYNC_CREATE);
+  g_object_bind_property (ui_entry, "download-stats-per-country", bin, "country-model", G_BINDING_SYNC_CREATE);
   g_object_bind_property (ui_entry, "total-downloads", bin, "total-downloads", G_BINDING_SYNC_CREATE);
 
   adw_navigation_view_push (self->navigation_view, page);
