@@ -139,6 +139,7 @@ public sealed class Bz.FlatpakRepo : GLib.Object {
 public sealed class Bz.Repository : GLib.Object {
     public bool is_user { get; set; }
     public bool is_beta { get; set; }
+    public bool noenumerate { get; set; }
     public string? title { get; set; }
     public string? url { get; set; }
     public string? name { get; set; }

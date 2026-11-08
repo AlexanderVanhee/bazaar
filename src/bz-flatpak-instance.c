@@ -2165,6 +2165,7 @@ append_repos_for_installation (GListStore          *repos,
                            "url", url,
                            "is-user", is_user,
                            "is-beta", is_beta,
+                           "noenumerate", flatpak_remote_get_noenumerate (remote),
                            NULL);
       g_list_store_append (repos, repo);
     }
@@ -3230,6 +3231,9 @@ installation_event (BzFlatpakInstance *self,
 
   if (!emit)
     return;
+
+  flatpak_installation_drop_caches (monitor == self->user_events ? self->user : self->system, NULL, NULL);
+  flatpak_installation_drop_caches (monitor == self->user_events ? self->user_interactive : self->system_interactive, NULL, NULL);
 
   notif = bz_backend_notification_new ();
   bz_backend_notification_set_kind (notif, BZ_BACKEND_NOTIFICATION_KIND_EXTERNAL_CHANGE);
