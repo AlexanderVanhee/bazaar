@@ -570,11 +570,12 @@ query_task_fiber (QueryTaskData *data)
       g_auto (GStrv) normalized = NULL;
 
       normalized = bz_str_split_into_search_terms (query_utf8);
-      if (normalized == NULL)
-        goto done;
-
       g_clear_pointer (&query_utf8, g_free);
-      query_utf8 = g_strjoinv (" ", normalized);
+
+      if (normalized == NULL)
+        query_utf8 = g_strjoinv (" ", terms);
+      else
+        query_utf8 = g_strjoinv (" ", normalized);
     }
 
   sub_futures = g_ptr_array_new_with_free_func (dex_unref);
