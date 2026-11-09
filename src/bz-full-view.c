@@ -66,6 +66,7 @@ struct _BzFullView
   BzResult             *runtime;
   BzResult             *group_model;
   gboolean              show_sidebar;
+  guint                 developer_apps_idle;
 
   /* Template widgets */
   GtkScrolledWindow *main_scroll;
@@ -104,6 +105,7 @@ bz_full_view_dispose (GObject *object)
   BzFullView *self = BZ_FULL_VIEW (object);
 
   dex_clear (&self->ui_future);
+  g_clear_handle_id (&self->developer_apps_idle, g_source_remove);
   g_clear_object (&self->state);
   g_clear_object (&self->transactions);
   g_clear_object (&self->group);
@@ -792,14 +794,17 @@ cmp_group_title (BzEntryGroup **a,
 }
 
 static gboolean
-idle_find_developer_apps (BzEntry *entry)
+idle_find_developer_apps (BzFullView *self)
 {
+  BzEntry *entry                    = NULL;
   g_autoptr (GListModel) existing   = NULL;
   g_autoptr (GPtrArray) matches     = NULL;
   g_autoptr (GtkStringList) app_ids = NULL;
   const char *developer             = NULL;
   GListModel *groups                = NULL;
 
+  self->developer_apps_idle = 0;
+  entry                     = bz_result_get_object (self->ui_entry);
   g_object_get (entry, "developer-apps", &existing, NULL);
   developer = bz_entry_get_developer (entry);
   if (existing != NULL || developer == NULL || *developer == '\0')
@@ -844,7 +849,7 @@ on_ui_entry_resolved (DexFuture *future,
       if (BZ_IS_FLATPAK_ENTRY (ui_entry))
         self->runtime = bz_flatpak_entry_dup_runtime_result (BZ_FLATPAK_ENTRY (ui_entry));
 
-      g_idle_add_full (G_PRIORITY_LOW, (GSourceFunc) idle_find_developer_apps, g_object_ref (ui_entry), g_object_unref);
+      self->developer_apps_idle = g_idle_add_full (G_PRIORITY_LOW, (GSourceFunc) idle_find_developer_apps, self, NULL);
     }
 
   adw_view_stack_set_visible_child_name (self->stack, "content");
@@ -882,6 +887,7 @@ bz_full_view_set_entry_group (BzFullView   *self,
     return;
 
   dex_clear (&self->ui_future);
+  g_clear_handle_id (&self->developer_apps_idle, g_source_remove);
   g_clear_object (&self->group);
   g_clear_object (&self->ui_entry);
   g_clear_object (&self->runtime);
