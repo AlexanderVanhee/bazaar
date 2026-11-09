@@ -50,13 +50,6 @@ struct _BzFlathubState
   DexFuture *initializing;
 };
 
-typedef enum
-{
-  QUALITY_MODE_NONE,
-  QUALITY_MODE_FIRST,
-  QUALITY_MODE_RANDOM
-} QualityMode;
-
 static void
 serializable_iface_init (BzSerializableInterface *iface);
 
@@ -716,20 +709,16 @@ add_category (BzFlathubState *self,
               JsonNode       *node,
               GHashTable     *quality_set,
               gboolean        is_toplevel_json,
-              QualityMode     quality_mode,
+              gboolean        has_carousel,
               gboolean        is_spotlight)
 {
   JsonObject    *object                   = NULL;
   JsonArray     *hits_array               = NULL;
   JsonArray     *toplevel_array           = NULL;
-  const char    *app                      = NULL;
   g_autoptr (BzFlathubCategory) category  = NULL;
   g_autoptr (GtkStringList) store         = NULL;
   g_autoptr (GtkStringList) quality_store = NULL;
-  g_autoptr (GPtrArray) quality_apps      = NULL;
   guint app_count                         = 0;
-  guint quality_count                     = 0;
-  guint random_index                      = 0;
   guint i                                 = 0;
   int   total_entries                     = 0;
 
@@ -740,9 +729,6 @@ add_category (BzFlathubState *self,
   bz_flathub_category_set_name (category, name);
   bz_flathub_category_set_is_spotlight (category, is_spotlight);
   bz_flathub_category_set_applications (category, G_LIST_MODEL (store));
-
-  if (quality_mode == QUALITY_MODE_RANDOM)
-    quality_apps = g_ptr_array_new_with_free_func (g_free);
 
   if (is_toplevel_json)
     {
@@ -756,13 +742,8 @@ add_category (BzFlathubState *self,
           app_id = json_array_get_string_element (toplevel_array, i);
           gtk_string_list_append (store, app_id);
 
-          if (g_hash_table_contains (quality_set, app_id))
-            {
-              if (quality_mode == QUALITY_MODE_RANDOM)
-                g_ptr_array_add (quality_apps, g_strdup (app_id));
-              else if (quality_mode == QUALITY_MODE_FIRST)
-                gtk_string_list_append (quality_store, app_id);
-            }
+          if (has_carousel && g_hash_table_contains (quality_set, app_id))
+            gtk_string_list_append (quality_store, app_id);
         }
       total_entries = app_count;
     }
@@ -781,27 +762,10 @@ add_category (BzFlathubState *self,
           app_id  = json_object_get_string_member (element, "app_id");
           gtk_string_list_append (store, app_id);
 
-          if (g_hash_table_contains (quality_set, app_id))
-            {
-              if (quality_mode == QUALITY_MODE_RANDOM)
-                g_ptr_array_add (quality_apps, g_strdup (app_id));
-              else if (quality_mode == QUALITY_MODE_FIRST)
-                gtk_string_list_append (quality_store, app_id);
-            }
+          if (has_carousel && g_hash_table_contains (quality_set, app_id))
+            gtk_string_list_append (quality_store, app_id);
         }
       total_entries = json_object_get_int_member (object, "totalHits");
-    }
-
-  if (quality_mode == QUALITY_MODE_RANDOM && quality_apps != NULL)
-    {
-      quality_count = MIN (7, quality_apps->len);
-      for (i = 0; i < quality_count; i++)
-        {
-          random_index = g_random_int_range (0, quality_apps->len);
-          app          = g_ptr_array_index (quality_apps, random_index);
-          gtk_string_list_append (quality_store, app);
-          g_ptr_array_remove_index_fast (quality_apps, random_index);
-        }
     }
 
   bz_flathub_category_set_total_entries (category, total_entries);
@@ -973,15 +937,15 @@ initialize_fiber (GWeakRef *wr)
       }
   }
 
-  add_category (self, "trending", GET_BOXED (trending_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
-  add_category (self, "popular", GET_BOXED (popular_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
-  add_category (self, "recently-added", GET_BOXED (added_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
-  add_category (self, "recently-updated", GET_BOXED (updated_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
-  add_category (self, "mobile", GET_BOXED (mobile_f), quality_set, FALSE, QUALITY_MODE_NONE, TRUE);
-  add_category (self, "game-only", GET_BOXED (game_only_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
-  add_category (self, "emulators", GET_BOXED (emulators_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
-  add_category (self, "launchers", GET_BOXED (launchers_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
-  add_category (self, "game-tools", GET_BOXED (game_tools_f), quality_set, FALSE, QUALITY_MODE_NONE, FALSE);
+  add_category (self, "trending", GET_BOXED (trending_f), quality_set, FALSE, FALSE, TRUE);
+  add_category (self, "popular", GET_BOXED (popular_f), quality_set, FALSE, FALSE, TRUE);
+  add_category (self, "recently-added", GET_BOXED (added_f), quality_set, FALSE, FALSE, TRUE);
+  add_category (self, "recently-updated", GET_BOXED (updated_f), quality_set, FALSE, FALSE, TRUE);
+  add_category (self, "mobile", GET_BOXED (mobile_f), quality_set, FALSE, FALSE, TRUE);
+  add_category (self, "game-only", GET_BOXED (game_only_f), quality_set, FALSE, FALSE, FALSE);
+  add_category (self, "emulators", GET_BOXED (emulators_f), quality_set, FALSE, FALSE, FALSE);
+  add_category (self, "launchers", GET_BOXED (launchers_f), quality_set, FALSE, FALSE, FALSE);
+  add_category (self, "game-tools", GET_BOXED (game_tools_f), quality_set, FALSE, FALSE, FALSE);
 
   {
     static const char *categories[] = {
@@ -1019,12 +983,12 @@ initialize_fiber (GWeakRef *wr)
         future = g_ptr_array_index (category_futures, i);
         node   = GET_BOXED (future);
 
-        add_category (self, categories[i], node, quality_set, FALSE, QUALITY_MODE_FIRST, FALSE);
+        add_category (self, categories[i], node, quality_set, FALSE, TRUE, FALSE);
       }
   }
 
   if (toolkit_f != NULL)
-    add_category (self, de, GET_BOXED (toolkit_f), quality_set, TRUE, QUALITY_MODE_RANDOM, FALSE);
+    add_category (self, de, GET_BOXED (toolkit_f), quality_set, TRUE, TRUE, FALSE);
 
   return dex_future_new_true ();
 }
