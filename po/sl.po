@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-08 21:01+0000\n"
-"PO-Revision-Date: 2026-11-08 22:13+0100\n"
+"POT-Creation-Date: 2026-11-10 18:26+0000\n"
+"PO-Revision-Date: 2026-11-10 23:13+0100\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl\n"
@@ -75,7 +75,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Programe iščite neposredno iz lupine GNOME"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:818
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
 msgid "The Bazaar Contributors"
 msgstr "Avtorji prispevkov Bazarja"
 
@@ -177,11 +177,11 @@ msgstr "Drugi viri"
 msgid "Add-on for %s"
 msgstr "Dodatek za %s"
 
-#: src/bz-addons-dialog.c:345 src/bz-full-view.c:605
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:608
 msgid "Show Less"
 msgstr "Pokaži manj"
 
-#: src/bz-addons-dialog.c:345 src/bz-full-view.c:605 src/bz-section-view.blp:72
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:608 src/bz-section-view.blp:72
 msgid "Show More"
 msgstr "Pokaži več"
 
@@ -757,27 +757,27 @@ msgid "Verified"
 msgstr "Overjeno"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:821
+#: src/bz-application.c:895
 msgid "translator-credits"
 msgstr "Martin Srebotnjak <miles@filmsi.net>"
 
-#: src/bz-application.c:831
+#: src/bz-application.c:905
 msgid "Special Thanks"
 msgstr "Posebne zahvale"
 
-#: src/bz-application.c:901
+#: src/bz-application.c:975
 msgid "Logged Out Successfully!"
 msgstr "Uspešno odjavljeni!"
 
-#: src/bz-application.c:1073
+#: src/bz-application.c:1148
 msgid "Performing setup…"
 msgstr "Izvajanje namestitve …"
 
-#: src/bz-application.c:1115
+#: src/bz-application.c:1190
 msgid "Set Up Flathub?"
 msgstr "Ali želite nastaviti flathub?"
 
-#: src/bz-application.c:1118
+#: src/bz-application.c:1193
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -790,52 +790,52 @@ msgstr ""
 "Bazar lahko še vedno uporabljate za brskanje po že nameščenih programih in "
 "njihovo odstranjevanje."
 
-#: src/bz-application.c:1123
+#: src/bz-application.c:1198
 msgid "Later"
 msgstr "Kasneje"
 
-#: src/bz-application.c:1124
+#: src/bz-application.c:1199
 msgid "Set Up Flathub"
 msgstr "Nastavi flathub"
 
-#: src/bz-application.c:1746
+#: src/bz-application.c:1826
 msgid "A backend error occurred"
 msgstr "Prišlo je do napake zaledja"
 
-#: src/bz-application.c:1953 src/bz-application.c:4361
+#: src/bz-application.c:2033 src/bz-application.c:4484
 msgid "Refreshing…"
 msgstr "Poteka osveževanje …"
 
-#: src/bz-application.c:2114
+#: src/bz-application.c:2199
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Nalaganje %d programov …"
 
-#: src/bz-application.c:2175 src/bz-application.c:2252
+#: src/bz-application.c:2260 src/bz-application.c:2337
 msgid "Failed to open file"
 msgstr "Odpiranje datoteke ni uspelo"
 
-#: src/bz-application.c:2266
+#: src/bz-application.c:2351
 msgid "Failed to load metainfo"
 msgstr "Nalaganje metapodatkov je spodletelo"
 
-#: src/bz-application.c:2391
+#: src/bz-application.c:2477
 msgid "An initialization error occurred"
 msgstr "Prišlo je do napake inicializacije"
 
-#: src/bz-application.c:2799
+#: src/bz-application.c:2918
 msgid "Checking for updates…"
 msgstr "Preverjanje posodobitev ..."
 
-#: src/bz-application.c:2914
+#: src/bz-application.c:3033
 msgid "Failed to check for updates"
 msgstr "Preverjanja obstoja posodobitev ni bilo uspešno"
 
-#: src/bz-application.c:4134
+#: src/bz-application.c:4253
 msgid "Could not find app"
 msgstr "Programa ni možno najti"
 
-#: src/bz-application.c:4356
+#: src/bz-application.c:4479
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
@@ -844,11 +844,19 @@ msgstr[1] "Nalaganje %d programa …"
 msgstr[2] "Nalaganje %d programov …"
 msgstr[3] "Nalaganje %d programov …"
 
-#: src/bz-application.c:4363
+#: src/bz-application.c:4486
 msgid "Writing to cache…"
 msgstr "Pisanje v predpomnilnik …"
 
-#: src/bz-apps-page.blp:97 src/bz-full-view.c:211
+#: src/bz-application.c:4520
+msgid "Removing remote…"
+msgstr "Odstranjevanje oddaljenega …"
+
+#: src/bz-application.c:4537
+msgid "Could not remove remote"
+msgstr "Odstranitev oddaljenega ni uspela"
+
+#: src/bz-apps-page.blp:97 src/bz-full-view.c:214
 msgid "Show All"
 msgstr "Pokaži vse"
 
@@ -899,8 +907,8 @@ msgstr "%d dodatkov bo nameščenih."
 msgid "Additionally, addons will be installed."
 msgstr "Poleg tega bodo nameščeni še dodatki."
 
-#: src/bz-bulk-install-dialog.c:117 src/bz-transaction-dialog.c:199
-#: src/bz-transaction-dialog.c:244
+#: src/bz-bulk-install-dialog.c:117 src/bz-remotes-dialog.vala:179
+#: src/bz-transaction-dialog.c:199 src/bz-transaction-dialog.c:244
 msgid "_Cancel"
 msgstr "Pre_kliči"
 
@@ -1143,7 +1151,7 @@ msgstr "Prijavite se s Flathuba, da upravljate prljubljene"
 msgid "Log In"
 msgstr "Prijavi"
 
-#: src/bz-favorites-page.blp:5 src/bz-window.blp:321
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:327
 msgid "Favorites"
 msgstr "Priljubljeni"
 
@@ -1709,11 +1717,11 @@ msgstr "Povezave"
 msgid "Similar Apps"
 msgstr "Podobni programi"
 
-#: src/bz-full-view.c:178
+#: src/bz-full-view.c:181
 msgid "No URL"
 msgstr "Ni naslova URL"
 
-#: src/bz-full-view.c:196
+#: src/bz-full-view.c:199
 msgid ""
 "This app has a FLOSS license, meaning the source code can be audited for "
 "safety."
@@ -1721,7 +1729,7 @@ msgstr ""
 "Ta program ima dovoljenje FLOSS, kar pomeni, da lahko izvorno kodo preverite "
 "glede varnosti."
 
-#: src/bz-full-view.c:197
+#: src/bz-full-view.c:200
 msgid ""
 "This app has a proprietary license, meaning the source code is developed "
 "privately and cannot be audited by an independent third party."
@@ -1729,31 +1737,31 @@ msgstr ""
 "Ta program ima lastniško dovoljenje, kar pomeni, da izvorno kodo razvijajo "
 "zasebno in je ne more preveriti nobena neodvisna tretja stran."
 
-#: src/bz-full-view.c:204
+#: src/bz-full-view.c:207
 msgid "Other Apps From This Developer"
 msgstr "Dodatni programi tega razvijalca"
 
-#: src/bz-full-view.c:205
+#: src/bz-full-view.c:208
 #, c-format
 msgid "Other Apps From %s"
 msgstr "Drugi programi %s"
 
-#: src/bz-full-view.c:220
+#: src/bz-full-view.c:223
 #, c-format
 msgid "%s is not installed, but it still has <b>%s</b> of data present."
 msgstr ""
 "Program %s trenutno ni nameščen, a ima še vedno prisotne podatke (<b>%s</b>)."
 
-#: src/bz-full-view.c:302
+#: src/bz-full-view.c:305
 #, c-format
 msgid "Apps by %s"
 msgstr "Programi %s"
 
-#: src/bz-full-view.c:304
+#: src/bz-full-view.c:307
 msgid "Apps by This Developer"
 msgstr "Programi tega razvijalca"
 
-#: src/bz-full-view.c:306
+#: src/bz-full-view.c:309
 #, c-format
 msgid "%d Application"
 msgid_plural "%d Applications"
@@ -1762,7 +1770,7 @@ msgstr[1] "%d program"
 msgstr[2] "%d programa"
 msgstr[3] "%d programi"
 
-#: src/bz-full-view.c:460 src/bz-user-data-tile.c:160
+#: src/bz-full-view.c:463 src/bz-user-data-tile.c:160
 msgid "Failed to Remove User Data"
 msgstr "Odstranjevanje uporabniških podatkov ni uspelo"
 
@@ -1878,7 +1886,8 @@ msgstr "_Odpri"
 msgid "Uninstall Application"
 msgstr "Odstrani program"
 
-#: src/bz-install-controls.blp:117 src/bz-transaction-dialog.c:200
+#: src/bz-install-controls.blp:117 src/bz-remotes-dialog.blp:123
+#: src/bz-remotes-dialog.vala:180 src/bz-transaction-dialog.c:200
 msgid "_Remove"
 msgstr "O_dstrani"
 
@@ -2422,6 +2431,94 @@ msgstr "Pridobiti več informacij"
 #: src/bz-releases-preview.blp:30
 msgid "_Version History"
 msgstr "_Zgodovina različic"
+
+#: src/bz-remotes-dialog.blp:5 src/bz-remotes-dialog.blp:24
+msgid "Remotes"
+msgstr "Oddaljeni"
+
+#: src/bz-remotes-dialog.blp:49
+msgid "System Installation"
+msgstr "Sistemska namestitev"
+
+#: src/bz-remotes-dialog.blp:50
+msgid "Available to all users on this computer"
+msgstr "Na voljo vsem uporabnikom tega računalnika"
+
+#: src/bz-remotes-dialog.blp:55
+msgid "User Installation"
+msgstr "Uporabniška namestitev"
+
+#: src/bz-remotes-dialog.blp:56
+msgid "Only available to you"
+msgstr "Na voljo samo vam"
+
+#: src/bz-remotes-dialog.blp:65
+msgid "Remove Remote"
+msgstr "Odstrani oddaljenega"
+
+#: src/bz-remotes-dialog.vala:31
+#, c-format
+msgid "Remove %s"
+msgstr "Odstrani %s"
+
+#: src/bz-remotes-dialog.vala:42
+msgid "Unused"
+msgstr "Neporabljeno"
+
+#: src/bz-remotes-dialog.vala:42
+#, c-format
+msgid "%u app installed"
+msgid_plural "%u apps installed"
+msgstr[0] "%u nameščenih programov"
+msgstr[1] "%u nameščen program"
+msgstr[2] "%u nameščena programa"
+msgstr[3] "%u nameščeni programi"
+
+#: src/bz-remotes-dialog.vala:174 src/bz-remotes-dialog.vala:193
+#, c-format
+msgid "Remove “%s”?"
+msgstr "Ali želite odstraniti »%s«?"
+
+#: src/bz-remotes-dialog.vala:176
+msgid "You will no longer be able to install apps from this user remote."
+msgstr ""
+
+#: src/bz-remotes-dialog.vala:177
+msgid "You will no longer be able to install apps from this system remote."
+msgstr ""
+
+#: src/bz-remotes-dialog.vala:194
+#, c-format
+msgid "%u App to Remove"
+msgid_plural "%u Apps to Remove"
+msgstr[0] "%u programov za odstanitev"
+msgstr[1] "%u program za odstanitev"
+msgstr[2] "%u programa za odstanitev"
+msgstr[3] "%u programi za odstanitev"
+
+#: src/bz-remotes-dialog.vala:197
+msgid ""
+"The app below was installed from this remote and will be removed from your "
+"account along with it."
+msgid_plural ""
+"These apps were installed from this remote and will be removed from your "
+"account along with it."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: src/bz-remotes-dialog.vala:201
+msgid ""
+"The app below was installed from this remote and will be removed for all "
+"users along with it."
+msgid_plural ""
+"These apps were installed from this remote and will be removed for all users "
+"along with it."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
 
 #: src/bz-rich-app-tile.blp:217
 msgid "Uninstall"
@@ -3066,25 +3163,29 @@ msgstr "_Prijavi prek flathuba"
 msgid "_Manage Leftover User Data"
 msgstr "_Upravljaj preostanle uporabniške podatke"
 
-#: src/bz-window.blp:294
+#: src/bz-window.blp:293
+msgid "Manage R_emotes"
+msgstr "Upravljaj _oddaljene"
+
+#: src/bz-window.blp:300
 msgid "_Preferences"
 msgstr "_Nastavitve"
 
-#: src/bz-window.blp:299
+#: src/bz-window.blp:305
 msgid "_Keyboard Shortcuts"
 msgstr "_Tipkovne bližnjice"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:305
+#: src/bz-window.blp:311
 msgid "_About Bazaar"
 msgstr "_O programu Bazar"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:312
+#: src/bz-window.blp:318
 msgid "_Quit Bazaar"
 msgstr "_Končaj Bazar"
 
-#: src/bz-window.blp:328
+#: src/bz-window.blp:334
 msgid "Log Out"
 msgstr "Odjavi"
 
@@ -3094,20 +3195,20 @@ msgstr "Odjavi"
 msgid "Bazaar — %s"
 msgstr "Bazar — %s"
 
-#: src/bz-window.c:718 src/bz-window.c:767
+#: src/bz-window.c:726 src/bz-window.c:775
 msgid "Failed to launch application"
 msgstr "Zagon programa ni uspel"
 
-#: src/bz-window.c:846
+#: src/bz-window.c:854
 msgid "Could not open link"
 msgstr "Ni mogoče odpreti povezave"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.c:1055
+#: src/bz-window.c:1074
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr "Ne morete odstraniti Bazarja v Bazarju!"
 
-#: src/bz-window.c:1439 src/bz-window.c:1473
+#: src/bz-window.c:1463 src/bz-window.c:1497
 msgid "Can't do that right now!"
 msgstr "Tega zdaj ni možno narediti!"
 
