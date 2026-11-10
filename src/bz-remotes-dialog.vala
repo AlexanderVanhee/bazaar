@@ -52,7 +52,6 @@ public class Bz.RemoteRow : Adw.ActionRow {
             sensitive = removable,
         };
         remove_button.add_css_class ("flat");
-        remove_button.update_property (Gtk.AccessibleProperty.LABEL, remove_label);
         remove_button.clicked.connect (() => remove_requested ());
 
         var suffix_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
