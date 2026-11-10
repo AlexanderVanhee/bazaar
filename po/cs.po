@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-07 11:00+0000\n"
-"PO-Revision-Date: 2026-11-08 12:54+0100\n"
+"POT-Creation-Date: 2026-11-09 09:35+0000\n"
+"PO-Revision-Date: 2026-11-10 12:24+0100\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech\n"
 "Language: cs\n"
@@ -76,7 +76,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Vyhledávejte aplikace přímo z GNOME Shellu"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:818
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:862
 msgid "The Bazaar Contributors"
 msgstr "Přispěvatelé aplikace Bazaar"
 
@@ -178,11 +178,11 @@ msgstr "Další zdroje"
 msgid "Add-on for %s"
 msgstr "Doplněk pro %s"
 
-#: src/bz-addons-dialog.c:345 src/bz-full-view.c:605
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:608
 msgid "Show Less"
 msgstr "Zobrazit méně"
 
-#: src/bz-addons-dialog.c:345 src/bz-full-view.c:605 src/bz-section-view.blp:72
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:608 src/bz-section-view.blp:72
 msgid "Show More"
 msgstr "Zobrazit více"
 
@@ -751,35 +751,35 @@ msgid "Storage"
 msgstr "Úložiště"
 
 #: src/bz-app-tile.blp:55 src/bz-developer-badge.c:98
-#: src/bz-rich-app-tile.blp:106 src/bz-rich-app-tile.c:441
+#: src/bz-rich-app-tile.blp:106 src/bz-rich-app-tile.c:448
 msgid "Verified"
 msgstr "Ověřeno"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:821
+#: src/bz-application.c:865
 msgid "translator-credits"
 msgstr ""
 "Vlastimil Dědek <dedek.vlastimil2@proton.me>, 2025\n"
 "Pavel Borecki <pavel@borecki.cz>, 2026\n"
 "Daniel Rusek <mail@asciiwolf.com>, 2026"
 
-#: src/bz-application.c:831
+#: src/bz-application.c:875
 msgid "Special Thanks"
 msgstr "Zvláštní poděkování patří"
 
-#: src/bz-application.c:901
+#: src/bz-application.c:945
 msgid "Logged Out Successfully!"
 msgstr "Úspěšně odhlášeni!"
 
-#: src/bz-application.c:1073
+#: src/bz-application.c:1117
 msgid "Performing setup…"
 msgstr "Provádí se nastavení…"
 
-#: src/bz-application.c:1115
+#: src/bz-application.c:1159
 msgid "Set Up Flathub?"
 msgstr "Nastavit Flathub?"
 
-#: src/bz-application.c:1118
+#: src/bz-application.c:1162
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -792,52 +792,52 @@ msgstr ""
 "Bazaar můžete i nadále používat k procházení a odstraňování již "
 "nainstalovaných aplikací."
 
-#: src/bz-application.c:1123
+#: src/bz-application.c:1167
 msgid "Later"
 msgstr "Později"
 
-#: src/bz-application.c:1124
+#: src/bz-application.c:1168
 msgid "Set Up Flathub"
 msgstr "Nastavit Flathub"
 
-#: src/bz-application.c:1746
+#: src/bz-application.c:1794
 msgid "A backend error occurred"
 msgstr "Došlo k chybě backendu"
 
-#: src/bz-application.c:1953 src/bz-application.c:4361
+#: src/bz-application.c:2001 src/bz-application.c:4451
 msgid "Refreshing…"
 msgstr "Obnovuje se…"
 
-#: src/bz-application.c:2114
+#: src/bz-application.c:2166
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Načítá se %d aplikací…"
 
-#: src/bz-application.c:2175 src/bz-application.c:2252
+#: src/bz-application.c:2227 src/bz-application.c:2304
 msgid "Failed to open file"
 msgstr "Nezdařilo se otevřít soubor"
 
-#: src/bz-application.c:2266
+#: src/bz-application.c:2318
 msgid "Failed to load metainfo"
 msgstr "Nezdařilo se načíst metainfo"
 
-#: src/bz-application.c:2391
+#: src/bz-application.c:2444
 msgid "An initialization error occurred"
 msgstr "Došlo k chybě inicializace"
 
-#: src/bz-application.c:2799
+#: src/bz-application.c:2885
 msgid "Checking for updates…"
 msgstr "Kontrolují se aktualizace…"
 
-#: src/bz-application.c:2914
+#: src/bz-application.c:3000
 msgid "Failed to check for updates"
 msgstr "Nezdařilo se zkontrolovat aktualizace"
 
-#: src/bz-application.c:4134
+#: src/bz-application.c:4220
 msgid "Could not find app"
 msgstr "Nezdařilo se najít aplikaci"
 
-#: src/bz-application.c:4356
+#: src/bz-application.c:4446
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
@@ -845,11 +845,11 @@ msgstr[0] "Načítá se %d aplikace…"
 msgstr[1] "Načítají se %d aplikace…"
 msgstr[2] "Načítá se %d aplikací…"
 
-#: src/bz-application.c:4363
+#: src/bz-application.c:4453
 msgid "Writing to cache…"
 msgstr "Zapisuje se do mezipaměti…"
 
-#: src/bz-apps-page.blp:97 src/bz-full-view.c:211
+#: src/bz-apps-page.blp:97 src/bz-full-view.c:214
 msgid "Show All"
 msgstr "Zobrazit vše"
 
@@ -1710,11 +1710,11 @@ msgstr "Odkazy"
 msgid "Similar Apps"
 msgstr "Podobné aplikace"
 
-#: src/bz-full-view.c:178
+#: src/bz-full-view.c:181
 msgid "No URL"
 msgstr "Žádná adresa URL"
 
-#: src/bz-full-view.c:196
+#: src/bz-full-view.c:199
 msgid ""
 "This app has a FLOSS license, meaning the source code can be audited for "
 "safety."
@@ -1722,7 +1722,7 @@ msgstr ""
 "Tato aplikace má licenci FLOSS. To znamená, že její zdrojový kód může být "
 "ověřen pro bezpečnost."
 
-#: src/bz-full-view.c:197
+#: src/bz-full-view.c:200
 msgid ""
 "This app has a proprietary license, meaning the source code is developed "
 "privately and cannot be audited by an independent third party."
@@ -1730,31 +1730,31 @@ msgstr ""
 "Tato aplikace má proprietární licenci. To znamená, že její zdrojový kód je "
 "vyvíjen v soukromí a nemůže být ověřen nezávislou třetí stranou."
 
-#: src/bz-full-view.c:204
+#: src/bz-full-view.c:207
 msgid "Other Apps From This Developer"
 msgstr "Další aplikace od tohoto vývojáře"
 
-#: src/bz-full-view.c:205
+#: src/bz-full-view.c:208
 #, c-format
 msgid "Other Apps From %s"
 msgstr "Další aplikace od %s"
 
-#: src/bz-full-view.c:220
+#: src/bz-full-view.c:223
 #, c-format
 msgid "%s is not installed, but it still has <b>%s</b> of data present."
 msgstr ""
 "Aplikace %s není nainstalována, ale má stále k dispozici <b>%s</b> dat."
 
-#: src/bz-full-view.c:302
+#: src/bz-full-view.c:305
 #, c-format
 msgid "Apps by %s"
 msgstr "Aplikace od %s"
 
-#: src/bz-full-view.c:304
+#: src/bz-full-view.c:307
 msgid "Apps by This Developer"
 msgstr "Aplikace od tohoto vývojáře"
 
-#: src/bz-full-view.c:306
+#: src/bz-full-view.c:309
 #, c-format
 msgid "%d Application"
 msgid_plural "%d Applications"
@@ -1762,7 +1762,7 @@ msgstr[0] "%d aplikace"
 msgstr[1] "%d aplikace"
 msgstr[2] "%d aplikací"
 
-#: src/bz-full-view.c:460 src/bz-user-data-tile.c:160
+#: src/bz-full-view.c:463 src/bz-user-data-tile.c:160
 msgid "Failed to Remove User Data"
 msgstr "Nezdařilo se odstranit uživatelská data"
 
@@ -1970,11 +1970,11 @@ msgstr[0] "%u nainstalovaná aplikace"
 msgstr[1] "%u nainstalované aplikace"
 msgstr[2] "%u nainstalovaných aplikací"
 
-#: src/bz-library-page.c:664 src/bz-search-page.c:815
+#: src/bz-library-page.c:664 src/bz-search-page.c:858
 msgid "No applications found"
 msgstr "Nenalezeny žádné aplikace"
 
-#: src/bz-library-page.c:664 src/bz-search-page.c:818
+#: src/bz-library-page.c:664 src/bz-search-page.c:861
 #, c-format
 msgid "One application found"
 msgid_plural "%u applications found"
@@ -2144,7 +2144,7 @@ msgid "End-Of-Life"
 msgstr "Podpora skončila"
 
 #. Translators: As in, "1 Install" / "100 Installs"
-#: src/bz-other-sources-list.vala:78 src/bz-world-map.c:603
+#: src/bz-other-sources-list.vala:78 src/bz-world-map.vala:203
 msgid "Install"
 msgid_plural "Installs"
 msgstr[0] "instalace"
@@ -2411,7 +2411,7 @@ msgid "Uninstall"
 msgstr "Odinstalovat"
 
 #. Translators: If you can't find a short enough translation, use "/" to use an icon instead.
-#: src/bz-rich-app-tile.c:381
+#: src/bz-rich-app-tile.c:386
 msgid "Get"
 msgstr "Získat"
 
@@ -2548,7 +2548,7 @@ msgstr "Snímek %u %s"
 msgid "Screenshot %u"
 msgstr "Snímek %u"
 
-#: src/bz-search-bar.blp:47 src/bz-search-bar.blp:57
+#: src/bz-search-bar.blp:41 src/bz-search-bar.blp:51
 msgid "Clear Search"
 msgstr "Vymazat hledání"
 
@@ -2588,23 +2588,23 @@ msgstr "hledat aplikace, hry, software"
 msgid "Search Filters"
 msgstr "Filtry vyhledávání"
 
-#: src/bz-search-page.blp:174
+#: src/bz-search-page.blp:171
 msgid "Browse Categories"
 msgstr "Procházet kategorie"
 
-#: src/bz-search-page.blp:210
+#: src/bz-search-page.blp:207
 msgid "Categories Unavailable"
 msgstr "Kategorie nejsou k dispozici"
 
-#: src/bz-search-page.blp:211
+#: src/bz-search-page.blp:208
 msgid "Search for apps using the search bar above."
 msgstr "Vyhledejte aplikace pomocí vyhledávacího panelu výše."
 
-#: src/bz-search-page.blp:329
+#: src/bz-search-page.blp:326
 msgid "No Applications Found"
 msgstr "Nenalezeny žádné aplikace"
 
-#: src/bz-search-page.c:253
+#: src/bz-search-page.c:269
 #, c-format
 msgid "No results found for \"%s\" in Flathub"
 msgstr "Žádné výsledky pro „%s“ v Flathubu"
@@ -2754,25 +2754,29 @@ msgid "Timeline"
 msgstr "Časová osa"
 
 #. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:48
+#: src/bz-stats-dialog.blp:47
 msgid "Total"
 msgstr "Celkem"
 
 #. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:79
+#: src/bz-stats-dialog.blp:78
 msgid "This Week"
 msgstr "Tento týden"
 
-#: src/bz-stats-dialog.blp:116
+#: src/bz-stats-dialog.blp:115
 msgid "Installs per day"
 msgstr "Instalací za den"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:125
+#: src/bz-stats-dialog.blp:124
 msgid "World"
 msgstr "Svět"
 
-#: src/bz-stats-dialog.blp:139
+#: src/bz-stats-dialog.blp:137
+msgid "Installs per country"
+msgstr "Instalací podle země"
+
+#: src/bz-stats-dialog.blp:142
 msgid "Since 4/15/2024"
 msgstr "Od 15. 4. 2024"
 
@@ -3084,6 +3088,21 @@ msgstr "Bazaar nelze odstranit z Bazaaru!"
 #: src/bz-window.c:1439 src/bz-window.c:1473
 msgid "Can't do that right now!"
 msgstr "Toto teď nelze provést!"
+
+#: src/bz-world-map.vala:51
+#, c-format
+#| msgid "%s Installed"
+msgid "%s, %'u install"
+msgid_plural "%s, %'u installs"
+msgstr[0] "%s, %'u instalace"
+msgstr[1] "%s, %'u instalací"
+msgstr[2] "%s, %'u instalací"
+
+#. Translators: accessible description of the world map, like. "Most installs from Germany, 1,200 installs, France, 800 installs"
+#: src/bz-world-map.vala:55
+#, c-format
+msgid "Most installs from %s"
+msgstr "Nejvíce instalací z %s"
 
 #: src/context-tile-callbacks.c:68
 msgid "---"
