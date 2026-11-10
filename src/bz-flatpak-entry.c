@@ -688,6 +688,26 @@ bz_flatpak_remote_key (const char *remote,
 }
 
 char *
+bz_flatpak_unique_id_dup_remote_key (const char *unique_id)
+{
+  const char *scope_end = NULL;
+  const char *name_end  = NULL;
+
+  if (unique_id == NULL || !g_str_has_prefix (unique_id, "FLATPAK-"))
+    return NULL;
+
+  scope_end = strstr (unique_id, "::");
+  if (scope_end == NULL)
+    return NULL;
+
+  name_end = strstr (scope_end + 2, "::");
+  if (name_end == NULL)
+    return NULL;
+
+  return g_strndup (unique_id, name_end + 2 - unique_id);
+}
+
+char *
 bz_flatpak_ref_format_unique (FlatpakRef *ref,
                               gboolean    user)
 {
