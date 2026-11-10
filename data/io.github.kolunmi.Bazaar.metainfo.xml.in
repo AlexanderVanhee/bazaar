@@ -77,6 +77,25 @@
   </screenshots>
 
   <releases>
+    <release version="0.10.0" date="2026-11-09">
+      <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.10.0</url>
+      <description translate="no">
+        <p>
+          <em>Changes</em>
+        </p>
+        <ul>
+          <li>User remotes now fully work in the Flatpak version of Bazaar</li>
+          <li>Added a dialog to manage and remove remotes</li>
+          <li>Remotes added or removed outside of Bazaar are now detected &amp; handled</li>
+          <li>Redesigned the download statistics, with improved accessibility</li>
+          <li>Improved search speed and added typo tolerance</li>
+          <li>Improved support for regional language variants in app descriptions</li>
+        </ul>
+        <p>
+          Thanks for reading, and have a great day!
+        </p>
+      </description>
+    </release>
     <release version="0.9.10" date="2026-10-25">
       <url type="details">https://gitlab.gnome.org/World/bazaar/-/releases/v0.9.10</url>
       <description translate="no">
