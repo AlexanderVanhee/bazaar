@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-09 09:35+0000\n"
-"PO-Revision-Date: 2026-11-10 12:24+0100\n"
+"POT-Creation-Date: 2026-11-10 18:26+0000\n"
+"PO-Revision-Date: 2026-11-10 20:46+0100\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech\n"
 "Language: cs\n"
@@ -76,7 +76,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Vyhledávejte aplikace přímo z GNOME Shellu"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:862
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
 msgid "The Bazaar Contributors"
 msgstr "Přispěvatelé aplikace Bazaar"
 
@@ -756,30 +756,30 @@ msgid "Verified"
 msgstr "Ověřeno"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:865
+#: src/bz-application.c:895
 msgid "translator-credits"
 msgstr ""
 "Vlastimil Dědek <dedek.vlastimil2@proton.me>, 2025\n"
 "Pavel Borecki <pavel@borecki.cz>, 2026\n"
 "Daniel Rusek <mail@asciiwolf.com>, 2026"
 
-#: src/bz-application.c:875
+#: src/bz-application.c:905
 msgid "Special Thanks"
 msgstr "Zvláštní poděkování patří"
 
-#: src/bz-application.c:945
+#: src/bz-application.c:975
 msgid "Logged Out Successfully!"
 msgstr "Úspěšně odhlášeni!"
 
-#: src/bz-application.c:1117
+#: src/bz-application.c:1148
 msgid "Performing setup…"
 msgstr "Provádí se nastavení…"
 
-#: src/bz-application.c:1159
+#: src/bz-application.c:1190
 msgid "Set Up Flathub?"
 msgstr "Nastavit Flathub?"
 
-#: src/bz-application.c:1162
+#: src/bz-application.c:1193
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -792,52 +792,52 @@ msgstr ""
 "Bazaar můžete i nadále používat k procházení a odstraňování již "
 "nainstalovaných aplikací."
 
-#: src/bz-application.c:1167
+#: src/bz-application.c:1198
 msgid "Later"
 msgstr "Později"
 
-#: src/bz-application.c:1168
+#: src/bz-application.c:1199
 msgid "Set Up Flathub"
 msgstr "Nastavit Flathub"
 
-#: src/bz-application.c:1794
+#: src/bz-application.c:1826
 msgid "A backend error occurred"
 msgstr "Došlo k chybě backendu"
 
-#: src/bz-application.c:2001 src/bz-application.c:4451
+#: src/bz-application.c:2033 src/bz-application.c:4484
 msgid "Refreshing…"
 msgstr "Obnovuje se…"
 
-#: src/bz-application.c:2166
+#: src/bz-application.c:2199
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Načítá se %d aplikací…"
 
-#: src/bz-application.c:2227 src/bz-application.c:2304
+#: src/bz-application.c:2260 src/bz-application.c:2337
 msgid "Failed to open file"
 msgstr "Nezdařilo se otevřít soubor"
 
-#: src/bz-application.c:2318
+#: src/bz-application.c:2351
 msgid "Failed to load metainfo"
 msgstr "Nezdařilo se načíst metainfo"
 
-#: src/bz-application.c:2444
+#: src/bz-application.c:2477
 msgid "An initialization error occurred"
 msgstr "Došlo k chybě inicializace"
 
-#: src/bz-application.c:2885
+#: src/bz-application.c:2918
 msgid "Checking for updates…"
 msgstr "Kontrolují se aktualizace…"
 
-#: src/bz-application.c:3000
+#: src/bz-application.c:3033
 msgid "Failed to check for updates"
 msgstr "Nezdařilo se zkontrolovat aktualizace"
 
-#: src/bz-application.c:4220
+#: src/bz-application.c:4253
 msgid "Could not find app"
 msgstr "Nezdařilo se najít aplikaci"
 
-#: src/bz-application.c:4446
+#: src/bz-application.c:4479
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
@@ -845,9 +845,17 @@ msgstr[0] "Načítá se %d aplikace…"
 msgstr[1] "Načítají se %d aplikace…"
 msgstr[2] "Načítá se %d aplikací…"
 
-#: src/bz-application.c:4453
+#: src/bz-application.c:4486
 msgid "Writing to cache…"
 msgstr "Zapisuje se do mezipaměti…"
+
+#: src/bz-application.c:4520
+msgid "Removing remote…"
+msgstr "Odebírá se repozitář…"
+
+#: src/bz-application.c:4537
+msgid "Could not remove remote"
+msgstr "Odebrání repozitáře se nezdařilo"
 
 #: src/bz-apps-page.blp:97 src/bz-full-view.c:214
 msgid "Show All"
@@ -900,8 +908,8 @@ msgstr "Bude nainstalováno %d doplňků."
 msgid "Additionally, addons will be installed."
 msgstr "Kromě toho budou nainstalovány doplňky."
 
-#: src/bz-bulk-install-dialog.c:117 src/bz-transaction-dialog.c:199
-#: src/bz-transaction-dialog.c:244
+#: src/bz-bulk-install-dialog.c:117 src/bz-remotes-dialog.vala:179
+#: src/bz-transaction-dialog.c:199 src/bz-transaction-dialog.c:244
 msgid "_Cancel"
 msgstr "_Zrušit"
 
@@ -1145,7 +1153,7 @@ msgstr "Přihlaste se pomocí Flathubu pro správu oblíbených aplikací"
 msgid "Log In"
 msgstr "Přihlásit se"
 
-#: src/bz-favorites-page.blp:5 src/bz-window.blp:321
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:327
 msgid "Favorites"
 msgstr "Oblíbené"
 
@@ -1878,7 +1886,8 @@ msgstr "_Otevřít"
 msgid "Uninstall Application"
 msgstr "Odinstalovat aplikaci"
 
-#: src/bz-install-controls.blp:117 src/bz-transaction-dialog.c:200
+#: src/bz-install-controls.blp:117 src/bz-remotes-dialog.blp:123
+#: src/bz-remotes-dialog.vala:180 src/bz-transaction-dialog.c:200
 msgid "_Remove"
 msgstr "Odeb_rat"
 
@@ -2405,6 +2414,103 @@ msgstr "Získat více informací"
 #: src/bz-releases-preview.blp:30
 msgid "_Version History"
 msgstr "Historie _verzí"
+
+#: src/bz-remotes-dialog.blp:5 src/bz-remotes-dialog.blp:24
+msgid "Remotes"
+msgstr "Repozitáře"
+
+#: src/bz-remotes-dialog.blp:49
+msgid "System Installation"
+msgstr "Systémová instalace"
+
+#: src/bz-remotes-dialog.blp:50
+msgid "Available to all users on this computer"
+msgstr "K dispozici všem uživatelům v tomto počítači"
+
+#: src/bz-remotes-dialog.blp:55
+msgid "User Installation"
+msgstr "Uživatelská instalace"
+
+#: src/bz-remotes-dialog.blp:56
+msgid "Only available to you"
+msgstr "K dispozici pouze vám"
+
+#: src/bz-remotes-dialog.blp:65
+msgid "Remove Remote"
+msgstr "Odebrat repozitář"
+
+#: src/bz-remotes-dialog.vala:31
+#, c-format
+msgid "Remove %s"
+msgstr "Odebrat %s"
+
+#: src/bz-remotes-dialog.vala:42
+msgid "Unused"
+msgstr "Nepoužito"
+
+#: src/bz-remotes-dialog.vala:42
+#, c-format
+msgid "%u app installed"
+msgid_plural "%u apps installed"
+msgstr[0] "%u aplikace nainstalována"
+msgstr[1] "%u aplikace nainstalovány"
+msgstr[2] "%u aplikací nainstalováno"
+
+#: src/bz-remotes-dialog.vala:174 src/bz-remotes-dialog.vala:193
+#, c-format
+msgid "Remove “%s”?"
+msgstr "Odebrat „%s“?"
+
+#: src/bz-remotes-dialog.vala:176
+msgid "You will no longer be able to install apps from this user remote."
+msgstr ""
+"Z tohoto uživatelského repozitáře již nebudete moci instalovat aplikace."
+
+#: src/bz-remotes-dialog.vala:177
+msgid "You will no longer be able to install apps from this system remote."
+msgstr "Z tohoto systémového repozitáře již nebudete moci instalovat aplikace."
+
+#: src/bz-remotes-dialog.vala:194
+#, c-format
+msgid "%u App to Remove"
+msgid_plural "%u Apps to Remove"
+msgstr[0] "%u aplikace k odebrání"
+msgstr[1] "%u aplikace k odebrání"
+msgstr[2] "%u aplikací k odebrání"
+
+#: src/bz-remotes-dialog.vala:197
+msgid ""
+"The app below was installed from this remote and will be removed from your "
+"account along with it."
+msgid_plural ""
+"These apps were installed from this remote and will be removed from your "
+"account along with it."
+msgstr[0] ""
+"Níže uvedená aplikace byla nainstalována z tohoto repozitáře a bude z vašeho "
+"účtu odstraněna společně s ním."
+msgstr[1] ""
+"Níže uvedené aplikace byly nainstalovány z tohoto repozitáře a budou z "
+"vašeho účtu odstraněny společně s ním."
+msgstr[2] ""
+"Níže uvedené aplikace byly nainstalovány z tohoto repozitáře a budou z "
+"vašeho účtu odstraněny společně s ním."
+
+#: src/bz-remotes-dialog.vala:201
+msgid ""
+"The app below was installed from this remote and will be removed for all "
+"users along with it."
+msgid_plural ""
+"These apps were installed from this remote and will be removed for all users "
+"along with it."
+msgstr[0] ""
+"Níže uvedená aplikace byla nainstalována z tohoto repozitáře a bude společně "
+"s ním odstraněna pro všechny uživatele."
+msgstr[1] ""
+"Níže uvedené aplikace byly nainstalovány z tohoto repozitáře a budou "
+"společně s ním odstraněny pro všechny uživatele."
+msgstr[2] ""
+"Níže uvedené aplikace byly nainstalovány z tohoto repozitáře a budou "
+"společně s ním odstraněny pro všechny uživatele."
 
 #: src/bz-rich-app-tile.blp:217
 msgid "Uninstall"
@@ -3044,25 +3150,29 @@ msgstr "Přih_lásit se pomocí Flathubu"
 msgid "_Manage Leftover User Data"
 msgstr "Sp_ravovat zbylá uživatelská data"
 
-#: src/bz-window.blp:294
+#: src/bz-window.blp:293
+msgid "Manage R_emotes"
+msgstr "Spravovat r_epozitáře"
+
+#: src/bz-window.blp:300
 msgid "_Preferences"
 msgstr "_Předvolby"
 
-#: src/bz-window.blp:299
+#: src/bz-window.blp:305
 msgid "_Keyboard Shortcuts"
 msgstr "_Klávesové zkratky"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:305
+#: src/bz-window.blp:311
 msgid "_About Bazaar"
 msgstr "O _aplikaci Bazaar"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:312
+#: src/bz-window.blp:318
 msgid "_Quit Bazaar"
 msgstr "_Ukončit Bazaar"
 
-#: src/bz-window.blp:328
+#: src/bz-window.blp:334
 msgid "Log Out"
 msgstr "Odhlásit se"
 
@@ -3072,26 +3182,25 @@ msgstr "Odhlásit se"
 msgid "Bazaar — %s"
 msgstr "Bazaar – %s"
 
-#: src/bz-window.c:718 src/bz-window.c:767
+#: src/bz-window.c:726 src/bz-window.c:775
 msgid "Failed to launch application"
 msgstr "Aplikaci se nezdařilo spustit"
 
-#: src/bz-window.c:846
+#: src/bz-window.c:854
 msgid "Could not open link"
 msgstr "Nezdařilo se otevřít odkaz"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.c:1055
+#: src/bz-window.c:1074
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr "Bazaar nelze odstranit z Bazaaru!"
 
-#: src/bz-window.c:1439 src/bz-window.c:1473
+#: src/bz-window.c:1463 src/bz-window.c:1497
 msgid "Can't do that right now!"
 msgstr "Toto teď nelze provést!"
 
 #: src/bz-world-map.vala:51
 #, c-format
-#| msgid "%s Installed"
 msgid "%s, %'u install"
 msgid_plural "%s, %'u installs"
 msgstr[0] "%s, %'u instalace"
@@ -3609,66 +3718,3 @@ msgstr "Aplikace %s a %s byly aktualizovány."
 #, c-format
 msgid "Includes %s, %s and %s."
 msgstr "Včetně %s, %s a %s."
-
-#~ msgid "Set Up System Flathub?"
-#~ msgstr "Nastavit systémový Flathub?"
-
-#~ msgid ""
-#~ "The system Flathub remote is not set up. Bazaar requires Flathub to be "
-#~ "configured on the system Flatpak installation to browse and install "
-#~ "applications.\n"
-#~ "\n"
-#~ "You can still use Bazaar to browse and remove already installed apps."
-#~ msgstr ""
-#~ "Systémový repozitář Flathub není nastaven. Bazaar vyžaduje, aby byl "
-#~ "Flathub nastaven na systémové Flatpak instalaci pro procházení a "
-#~ "instalaci aplikací.\n"
-#~ "\n"
-#~ "Bazaar můžete i nadále používat k procházení a odstraňování již "
-#~ "nainstalovaných aplikací."
-
-#~ msgid "Open Screenshot Viewer"
-#~ msgstr "Otevřít prohlížeč snímků obrazovky"
-
-#, c-format
-#~ msgid "%.2fM Total Installs"
-#~ msgstr "%.2f mil. celkových instalací"
-
-#, c-format
-#~ msgid "%.2fK Total Installs"
-#~ msgstr "%.2f tis. celkových instalací"
-
-#, c-format
-#~ msgid "%'d Total Installs"
-#~ msgstr "%'d celkových instalací"
-
-#~ msgid "Notice for Ubuntu Users"
-#~ msgstr "Upozornění pro uživatele Ubuntu"
-
-#~ msgid ""
-#~ "Ubuntu 25.10 and newer have changed default security rules in a way that "
-#~ "makes it <b>impossible to install apps</b> from the Flatpak version of "
-#~ "Bazaar. For the time being, please use the apt package instead. Install "
-#~ "it with\n"
-#~ "\n"
-#~ "<tt>sudo apt install bazaar</tt>\n"
-#~ "\n"
-#~ "You can then remove this Flatpak version with\n"
-#~ "\n"
-#~ "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"
-#~ msgstr ""
-#~ "Ubuntu 25.10 a novější změnily výchozí bezpečnostní pravidla tak, že "
-#~ "<b>není možné instalovat aplikace</b> z Flatpak verze Bazaaru. Prozatím "
-#~ "prosím použijte místo toho balíček apt. Nainstalujte jej pomocí\n"
-#~ "\n"
-#~ "<tt>sudo apt install bazaar</tt>\n"
-#~ "\n"
-#~ "Tuto Flatpak verzi pak můžete odstranit pomocí\n"
-#~ "\n"
-#~ "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"
-
-#~ msgid "Continue Anyway"
-#~ msgstr "Přesto pokračovat"
-
-#~ msgid "Inspector Menu"
-#~ msgstr "Nabídka inspektora"
