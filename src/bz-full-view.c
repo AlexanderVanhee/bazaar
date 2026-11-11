@@ -379,14 +379,14 @@ dl_stats_cb (BzFullView *self,
 
   ui_entry = bz_result_get_object (self->ui_entry);
 
-  bin    = bz_stats_dialog_new (NULL, NULL, 0);
-  dialog = adw_dialog_new ();
-  adw_dialog_set_content_width (dialog, 1250);
-  adw_dialog_set_content_height (dialog, 750);
+  bin    = bz_stats_dialog_new ();
+  dialog = ADW_DIALOG (bz_dialog_new ());
+  bz_dialog_resize_to (BZ_DIALOG (dialog), 1250, 750);
   adw_dialog_set_child (dialog, GTK_WIDGET (bin));
 
   g_object_bind_property (ui_entry, "download-stats", bin, "model", G_BINDING_SYNC_CREATE);
   g_object_bind_property (ui_entry, "download-stats-per-country", bin, "country-model", G_BINDING_SYNC_CREATE);
+  g_object_bind_property (ui_entry, "download-stats-per-distro", bin, "distro-model", G_BINDING_SYNC_CREATE);
   g_object_bind_property (ui_entry, "total-downloads", bin, "total-downloads", G_BINDING_SYNC_CREATE);
 
   adw_dialog_present (dialog, GTK_WIDGET (self));

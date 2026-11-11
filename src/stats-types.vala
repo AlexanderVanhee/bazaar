@@ -24,6 +24,52 @@ public sealed class Bz.DataPoint : GLib.Object {
     public string? label { get; set; }
 }
 
+public sealed class Bz.DistroDataPoint : GLib.Object {
+    private const uint MAX_DISTROS = 8;
+
+    public string? label { get; set; }
+    public int64 installs { get; set; }
+    public bool is_other { get; set; }
+    public bool is_unreported { get; set; }
+
+    public static GLib.ListStore list_from_json (Json.Object root) {
+        var store = new GLib.ListStore (typeof (DistroDataPoint));
+        if (!root.has_member ("installs_per_distro"))
+            return store;
+
+        var distros = root.get_array_member ("installs_per_distro");
+        var other = root.get_int_member_with_default ("installs_other_distros", 0);
+        for (uint i = 0; i < distros.get_length (); i++) {
+            var distro = distros.get_object_element (i);
+            var installs = distro.get_int_member ("installs");
+            if (i < MAX_DISTROS)
+                store.append (new DistroDataPoint () {
+                    label = distro.get_string_member ("name"),
+                    installs = installs
+                });
+            else
+                other += installs;
+        }
+
+        if (other > 0)
+            store.append (new DistroDataPoint () {
+                /* Translators: The other Linux distributions, in the install statistics */
+                label = C_("Distribution", "Other"),
+                installs = other,
+                is_other = true
+            });
+
+        var unreported = root.get_int_member_with_default ("installs_unreported_distro", 0);
+        if (unreported > 0)
+            store.append (new DistroDataPoint () {
+                installs = unreported,
+                is_unreported = true
+            });
+
+        return store;
+    }
+}
+
 public sealed class Bz.CountryDataPoint : GLib.Object {
     public string? country_code { get; set; }
     public uint downloads { get; set; }

@@ -1018,3 +1018,18 @@ curated-list-view list {
 .origin-rounded-box label {
 	text-transform: uppercase;
 }
+
+distro-chart-row {
+	border-radius: 8px;
+	transition: background-color 150ms;
+}
+
+distro-chart-row:hover,
+distro-chart-row:focus-visible {
+	background-color: alpha(currentColor, 0.07);
+}
+
+distro-chart-row:focus-visible {
+	outline: 2px solid alpha(var(--accent-color), 0.5);
+	outline-offset: -2px;
+}

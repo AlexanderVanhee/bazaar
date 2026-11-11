@@ -19,13 +19,17 @@
  */
 
 public class Bz.Dialog : Adw.Dialog {
-    private Adw.TimedAnimation width_animation;
-    private Adw.TimedAnimation height_animation;
+    private Adw.SpringAnimation width_animation;
+    private Adw.SpringAnimation height_animation;
     private bool sized;
+    private int target_width;
+    private int target_height;
 
     construct {
-        width_animation = new Adw.TimedAnimation (this, 0, 0, 0, new Adw.PropertyAnimationTarget (this, "content-width"));
-        height_animation = new Adw.TimedAnimation (this, 0, 0, 0, new Adw.PropertyAnimationTarget (this, "content-height"));
+        width_animation = new Adw.SpringAnimation (this, 0, 0, new Adw.SpringParams (1, 1, 400), new Adw.PropertyAnimationTarget (this, "content-width"));
+        height_animation = new Adw.SpringAnimation (this, 0, 0, new Adw.SpringParams (1, 1, 400), new Adw.PropertyAnimationTarget (this, "content-height"));
+        width_animation.done.connect (() => content_width = target_width);
+        height_animation.done.connect (() => content_height = target_height);
     }
 
     public void resize_to (int width, int height) {
@@ -36,12 +40,11 @@ public class Bz.Dialog : Adw.Dialog {
             return;
         }
 
-        int delta = int.max ((width - content_width).abs (), (height - content_height).abs ());
-        bool shrinking = width < content_width || height < content_height;
-        uint duration = (uint) (delta * 0.6).clamp (200, shrinking ? 300 : 600);
+        target_width = width;
+        target_height = height;
 
-        animate (width_animation, content_width, width, duration);
-        animate (height_animation, content_height, height, duration);
+        animate (width_animation, content_width, width, get_width (), 30);
+        animate (height_animation, content_height, height, get_height (), 20);
     }
 
     public void resize_to_instant (int width, int height) {
@@ -53,11 +56,19 @@ public class Bz.Dialog : Adw.Dialog {
         content_height = height;
     }
 
-    private static void animate (Adw.TimedAnimation animation, int from, int to, uint duration) {
-        animation.value_from = from;
-        animation.value_to = to;
-        animation.duration = duration;
+    private void animate (Adw.SpringAnimation animation, int from, int to, int available, int min_padding) {
+        animation.value_from = clamp_to_sheet (from, available, min_padding);
+        animation.value_to = clamp_to_sheet (to, available, min_padding);
+        animation.epsilon = 0.000001;
         animation.play ();
+    }
+
+    private int clamp_to_sheet (int size, int available, int min_padding) {
+        if (available == 0 || !has_css_class ("floating"))
+            return size;
+
+        double t = double.max (0, (available - 720) / 720.0);
+        return int.min (size, available - 2 * (int) (min_padding + (120 - min_padding) * t));
     }
 
     public static int measure_height (Gtk.Widget widget, int for_width, int padding, int min, int max) {
