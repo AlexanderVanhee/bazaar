@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the bazaar package.
 # Automatically generated, 2025.
 # Goudarz Jafari <me@goudarzjafari.com>, 2025.
-# Danial Behzadi <dani.behzi@ubuntu.com>,  2006.
+# Danial Behzadi <dani.behzi@ubuntu.com>,  2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-09 09:35+0000\n"
-"PO-Revision-Date: 2026-11-09 17:25+0330\n"
+"POT-Creation-Date: 2026-11-11 20:34+0000\n"
+"PO-Revision-Date: 2026-11-12 02:35+0330\n"
 "Last-Translator: Danial Behzadi <dani.behzi@ubuntu.com>\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.10\n"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: data/io.github.kolunmi.Bazaar.desktop.in:3 data/io.github.kolunmi.Bazaar.metainfo.xml.in:8 src/bz-window.blp:55
@@ -69,7 +69,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr ""
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:862
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
 msgid "The Bazaar Contributors"
 msgstr ""
 
@@ -728,29 +728,29 @@ msgid "Verified"
 msgstr "تأیید شده"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:865
+#: src/bz-application.c:895
 msgid "translator-credits"
 msgstr ""
 "Goudarz Jafari\n"
 "Danial Behzadi <dani.behzi@ubuntu.com>"
 
-#: src/bz-application.c:875
+#: src/bz-application.c:905
 msgid "Special Thanks"
 msgstr "سپاس ویژه"
 
-#: src/bz-application.c:945
+#: src/bz-application.c:975
 msgid "Logged Out Successfully!"
 msgstr "با موفّقیت خارج شد!"
 
-#: src/bz-application.c:1117
+#: src/bz-application.c:1148
 msgid "Performing setup…"
 msgstr "اجرا کردن برپایی…"
 
-#: src/bz-application.c:1159
+#: src/bz-application.c:1190
 msgid "Set Up Flathub?"
 msgstr "برپایی فلت‌هاب؟"
 
-#: src/bz-application.c:1162
+#: src/bz-application.c:1193
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and install applications in Bazaar if its "
 "unavailable.\n"
@@ -758,61 +758,69 @@ msgid ""
 "You can still use Bazaar to browse and remove already installed apps."
 msgstr ""
 
-#: src/bz-application.c:1167
+#: src/bz-application.c:1198
 msgid "Later"
 msgstr "بعداً"
 
-#: src/bz-application.c:1168
+#: src/bz-application.c:1199
 msgid "Set Up Flathub"
 msgstr "برپایی فلت‌هاب"
 
-#: src/bz-application.c:1794
+#: src/bz-application.c:1826
 msgid "A backend error occurred"
 msgstr "خطای پسانه‌ای رخ داد"
 
-#: src/bz-application.c:2001 src/bz-application.c:4451
+#: src/bz-application.c:2033 src/bz-application.c:4484
 msgid "Refreshing…"
 msgstr "تازه سازی…"
 
-#: src/bz-application.c:2166
+#: src/bz-application.c:2199
 #, c-format
 msgid "Loading %d apps…"
 msgstr "بار کردن %Id کاره…"
 
-#: src/bz-application.c:2227 src/bz-application.c:2304
+#: src/bz-application.c:2260 src/bz-application.c:2337
 msgid "Failed to open file"
 msgstr "شکست در گشودن پرونده"
 
-#: src/bz-application.c:2318
+#: src/bz-application.c:2351
 msgid "Failed to load metainfo"
 msgstr "شکست در بار کردن فراداده"
 
-#: src/bz-application.c:2444
+#: src/bz-application.c:2477
 msgid "An initialization error occurred"
 msgstr "خطای راه‌اندازی رخ داد"
 
-#: src/bz-application.c:2885
+#: src/bz-application.c:2918
 msgid "Checking for updates…"
 msgstr "درحال بررسی برای به‌روز رسانی‌ها…"
 
-#: src/bz-application.c:3000
+#: src/bz-application.c:3033
 msgid "Failed to check for updates"
 msgstr "شکست در بررسی به‌روز رسانی‌ها"
 
-#: src/bz-application.c:4220
+#: src/bz-application.c:4253
 msgid "Could not find app"
 msgstr "نتوانست کاره را بیابد"
 
-#: src/bz-application.c:4446
+#: src/bz-application.c:4479
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
 msgstr[0] "بار کردن %Id کاره…"
 msgstr[1] "بار کردن %Id کاره…"
 
-#: src/bz-application.c:4453
+#: src/bz-application.c:4486
 msgid "Writing to cache…"
 msgstr "نوشتن روی انباره…"
+
+#: src/bz-application.c:4520
+msgid "Removing remote…"
+msgstr "برداشتن دوردست‌ها…"
+
+#: src/bz-application.c:4537
+msgid "Could not remove remote"
+msgstr "نتوانست دوردست را بردارد"
 
 #: src/bz-apps-page.blp:97 src/bz-full-view.c:214
 msgid "Show All"
@@ -860,7 +868,8 @@ msgstr "تعداد %Id افزنه نصب خواهد شد."
 msgid "Additionally, addons will be installed."
 msgstr "به علاوه افزونه‌هایی نصب خواهند شد."
 
-#: src/bz-bulk-install-dialog.c:117 src/bz-transaction-dialog.c:199 src/bz-transaction-dialog.c:244
+#: src/bz-bulk-install-dialog.c:117 src/bz-remotes-dialog.vala:179 src/bz-transaction-dialog.c:199
+#: src/bz-transaction-dialog.c:244
 msgid "_Cancel"
 msgstr "_لغو"
 
@@ -1004,6 +1013,23 @@ msgstr ""
 msgid "The ownership of the %s app ID has been verified."
 msgstr ""
 
+#. Translators: A row of the install statistics, for example: Fedora, 28%
+#: src/bz-distro-chart.vala:40
+#, c-format
+msgid "%s, %s"
+msgstr "‏‏%s،‏ %s"
+
+#. Translators: Shown for values smaller than 1 percent
+#: src/bz-distro-chart.vala:161
+msgid "<1%"
+msgstr ""
+
+#. Translators: A percentage, for example: 42%
+#: src/bz-distro-chart.vala:163
+#, c-format
+msgid "%.0f%%"
+msgstr ""
+
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: src/bz-donations-dialog.blp:8
 msgid "Bazaar Release"
@@ -1075,7 +1101,7 @@ msgstr "ورود به فلت‌ّاب برای مدیریت برگزیده‌ه�
 msgid "Log In"
 msgstr "ورود"
 
-#: src/bz-favorites-page.blp:5 src/bz-window.blp:321
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:327
 msgid "Favorites"
 msgstr "برگزیده‌ها"
 
@@ -1791,7 +1817,8 @@ msgstr "_گشودن"
 msgid "Uninstall Application"
 msgstr "حذف نصب برنامه"
 
-#: src/bz-install-controls.blp:117 src/bz-transaction-dialog.c:200
+#: src/bz-install-controls.blp:117 src/bz-remotes-dialog.blp:123 src/bz-remotes-dialog.vala:180
+#: src/bz-transaction-dialog.c:200
 msgid "_Remove"
 msgstr "_برداشتن"
 
@@ -2284,6 +2311,78 @@ msgstr "دریافت اطّلاعات بیش‌تر"
 msgid "_Version History"
 msgstr ""
 
+#: src/bz-remotes-dialog.blp:5 src/bz-remotes-dialog.blp:24
+msgid "Remotes"
+msgstr "دوردست‌ها"
+
+#: src/bz-remotes-dialog.blp:49
+msgid "System Installation"
+msgstr "نصب سامانه"
+
+#: src/bz-remotes-dialog.blp:50
+msgid "Available to all users on this computer"
+msgstr ""
+
+#: src/bz-remotes-dialog.blp:55
+msgid "User Installation"
+msgstr "نصب کاربر"
+
+#: src/bz-remotes-dialog.blp:56
+msgid "Only available to you"
+msgstr ""
+
+#: src/bz-remotes-dialog.blp:65
+msgid "Remove Remote"
+msgstr "برداشتن دوردست"
+
+#: src/bz-remotes-dialog.vala:31
+#, c-format
+msgid "Remove %s"
+msgstr "برداشتن %s"
+
+#: src/bz-remotes-dialog.vala:42
+msgid "Unused"
+msgstr "استفاده نشده"
+
+#: src/bz-remotes-dialog.vala:42
+#, c-format
+msgid "%u app installed"
+msgid_plural "%u apps installed"
+msgstr[0] "%Iu کاره نصب شد"
+msgstr[1] "%Iu کاره نصب شدند"
+
+#: src/bz-remotes-dialog.vala:174 src/bz-remotes-dialog.vala:193
+#, c-format
+msgid "Remove “%s”?"
+msgstr "برداشتن «%s»؟"
+
+#: src/bz-remotes-dialog.vala:176
+msgid "You will no longer be able to install apps from this user remote."
+msgstr ""
+
+#: src/bz-remotes-dialog.vala:177
+msgid "You will no longer be able to install apps from this system remote."
+msgstr ""
+
+#: src/bz-remotes-dialog.vala:194
+#, c-format
+msgid "%u App to Remove"
+msgid_plural "%u Apps to Remove"
+msgstr[0] "%Iu کاره برای برداشتن"
+msgstr[1] "‏%Iu کاره برای برداشتن"
+
+#: src/bz-remotes-dialog.vala:197
+msgid "The app below was installed from this remote and will be removed from your account along with it."
+msgid_plural "These apps were installed from this remote and will be removed from your account along with it."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/bz-remotes-dialog.vala:201
+msgid "The app below was installed from this remote and will be removed for all users along with it."
+msgid_plural "These apps were installed from this remote and will be removed for all users along with it."
+msgstr[0] ""
+msgstr[1] ""
+
 #: src/bz-rich-app-tile.blp:217
 msgid "Uninstall"
 msgstr "حذف"
@@ -2338,27 +2437,27 @@ msgstr "امنیت"
 #: src/bz-safety-dialog.c:316
 #, c-format
 msgid "%s is Safe"
-msgstr ""
+msgstr "‏%s امن است"
 
 #: src/bz-safety-dialog.c:321
 #, c-format
 msgid "%s has no Unsafe Permissions"
-msgstr ""
+msgstr "‏%s هیچ اجازهٔ ناامنی ندارد"
 
 #: src/bz-safety-dialog.c:326
 #, c-format
 msgid "%s is Probably Safe"
-msgstr ""
+msgstr "‏%s احتمالاً امن است"
 
 #: src/bz-safety-dialog.c:331
 #, c-format
 msgid "%s is Possibly Unsafe"
-msgstr ""
+msgstr "‏%s بالقوه ناامن است"
 
 #: src/bz-safety-dialog.c:336
 #, c-format
 msgid "%s is Unsafe"
-msgstr ""
+msgstr "‏%s ناامن است"
 
 #: src/bz-screenshot-page.blp:73
 msgid "Back"
@@ -2374,11 +2473,11 @@ msgstr "نماگرفت بعدی"
 
 #: src/bz-screenshot-page.blp:129
 msgid "Copy Image"
-msgstr ""
+msgstr "رونوشت از تصویر"
 
 #: src/bz-screenshot-page.blp:190
 msgid "Reset View"
-msgstr ""
+msgstr "بازنشانی نما"
 
 #: src/bz-screenshot-page.blp:201
 msgid "Zoom Out"
@@ -2397,7 +2496,7 @@ msgstr[1] "‏%Iu به‌روز رسانی زمان اجرا"
 
 #: src/bz-screenshots-carousel.blp:6
 msgid "Screenshots Carousel"
-msgstr ""
+msgstr "چرخ و فلک نماگرفت‌ها"
 
 #: src/bz-screenshots-carousel.blp:108
 msgid "No Screenshots"
@@ -2406,12 +2505,12 @@ msgstr "بدون نماگرفت"
 #: src/bz-screenshots-carousel.c:304
 #, c-format
 msgid "Screenshot %u %s"
-msgstr ""
+msgstr "نماگرفت %Iu‏ %s"
 
 #: src/bz-screenshots-carousel.c:306
 #, c-format
 msgid "Screenshot %u"
-msgstr ""
+msgstr "نماگرفت %Iu"
 
 #: src/bz-search-bar.blp:41 src/bz-search-bar.blp:51
 msgid "Clear Search"
@@ -2423,23 +2522,23 @@ msgstr "پالایه‌ها"
 
 #: src/bz-search-filter-popover.blp:35
 msgid "_Verified"
-msgstr ""
+msgstr "_تأیید شده"
 
 #: src/bz-search-filter-popover.blp:42
 msgid "_Free/Open"
-msgstr ""
+msgstr "_آزاد"
 
 #: src/bz-search-filter-popover.blp:49
 msgid "Non-_EOL"
-msgstr ""
+msgstr "بدون پایان عمر"
 
 #: src/bz-search-filter-popover.blp:52
 msgid "Filter out End-of-Life apps"
-msgstr ""
+msgstr "پالودن کاره‌هایی که عمرشان پایان یافته"
 
 #: src/bz-search-filter-popover.blp:57
 msgid "_Mobile Friendly"
-msgstr ""
+msgstr "_دوستدار همراه"
 
 #: src/bz-search-filter-popover.blp:64
 msgid "Categories"
@@ -2447,7 +2546,7 @@ msgstr "دسته‌ها"
 
 #: src/bz-search-page.blp:45
 msgid "Search Apps, Games, Software"
-msgstr ""
+msgstr "جست‌وجوی کاره‌ها، بازی‌ها و نرم‌افزارها"
 
 #: src/bz-search-page.blp:52
 msgid "Search Filters"
@@ -2455,7 +2554,7 @@ msgstr "پالایه‌های جست‌وجو"
 
 #: src/bz-search-page.blp:171
 msgid "Browse Categories"
-msgstr ""
+msgstr "مرور دسته‌ها"
 
 #: src/bz-search-page.blp:207
 msgid "Categories Unavailable"
@@ -2463,7 +2562,7 @@ msgstr "دسته‌ها موحود نیستند"
 
 #: src/bz-search-page.blp:208
 msgid "Search for apps using the search bar above."
-msgstr ""
+msgstr "جست‌وجوی کاره‌ها با استفاده از نوار جست‌وجوی بالا"
 
 #: src/bz-search-page.blp:326
 msgid "No Applications Found"
@@ -2472,7 +2571,7 @@ msgstr "هیچ برنامه‌ای پیدا نشد"
 #: src/bz-search-page.c:269
 #, c-format
 msgid "No results found for \"%s\" in Flathub"
-msgstr ""
+msgstr "هیچ نتیجه‌ای برای «%s» در فلت‌هاب پیدا نشد"
 
 #. Translators: Search suggestion: the english text will be used for the
 #. search regardless of what you put here, so don't worry about the string
@@ -2520,7 +2619,7 @@ msgstr "تقویم"
 #. etc
 #: src/bz-search-pill-list.c:97
 msgid "Messaging"
-msgstr ""
+msgstr "پیام‌رسانی"
 
 #. Translators: Search suggestion: the english text will be used for the
 #. search regardless of what you put here, so don't worry about the string
@@ -2544,7 +2643,7 @@ msgstr "وی‌پی‌ان"
 #. etc
 #: src/bz-search-pill-list.c:112
 msgid "Torrent"
-msgstr ""
+msgstr "تورنت"
 
 #. Translators: Search suggestion: the english text will be used for the
 #. search regardless of what you put here, so don't worry about the string
@@ -2552,7 +2651,7 @@ msgstr ""
 #. etc
 #: src/bz-search-pill-list.c:117
 msgid "Emulator"
-msgstr ""
+msgstr "شبیه‌ساز"
 
 #: src/bz-share-list.vala:53
 msgid "Copy Link"
@@ -2614,36 +2713,54 @@ msgid "Manifest"
 msgstr "بیانیه"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:28
+#: src/bz-stats-dialog.blp:30
 msgid "Timeline"
 msgstr "خط زمانی"
 
 #. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:47
+#: src/bz-stats-dialog.blp:49
 msgid "Total"
-msgstr ""
+msgstr "مجموع"
 
 #. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:78
+#: src/bz-stats-dialog.blp:80
 msgid "This Week"
-msgstr ""
+msgstr "این هفته"
 
-#: src/bz-stats-dialog.blp:115
+#: src/bz-stats-dialog.blp:117
 msgid "Installs per day"
 msgstr "نصب در روز"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:124
+#: src/bz-stats-dialog.blp:126
 msgid "World"
 msgstr "جهان"
 
-#: src/bz-stats-dialog.blp:137
+#: src/bz-stats-dialog.blp:139
 msgid "Installs per country"
-msgstr ""
+msgstr "نصب به ازای کشور"
 
-#: src/bz-stats-dialog.blp:142
+#: src/bz-stats-dialog.blp:144
 msgid "Since 4/15/2024"
-msgstr ""
+msgstr "از ۲۷ فروردین ۱۴۰۳"
+
+#: src/bz-stats-dialog.blp:157
+msgid "Distros"
+msgstr "توزیع‌ها"
+
+#: src/bz-stats-dialog.blp:183
+msgid "Installs per distro"
+msgstr "نصب به ازای توزیع"
+
+#: src/bz-stats-dialog.vala:106
+msgid "Last 30 days"
+msgstr "۳۰ روز اخیر"
+
+#. Translators: Shown below the install statistics, for example: Last 30 days, 42% of installs don't yet report a distro
+#: src/bz-stats-dialog.vala:108
+#, c-format
+msgid "Last 30 days, %.0f%% of installs don't yet report a distro"
+msgstr "۳۰ روز اخیر. %I.0f٪ از نصب‌ها هنوز توزیعی گزارش نکرده‌اند"
 
 #: src/bz-subcategory-list.c:77
 msgid "No Results Found"
@@ -2660,19 +2777,19 @@ msgstr "ناشناخته"
 
 #: src/bz-transaction-dialog.c:147
 msgid "Keep User Data"
-msgstr ""
+msgstr "نگه داشتن داده‌های کاربری"
 
 #: src/bz-transaction-dialog.c:148
 msgid "Allow restoring personal settings &amp; content"
-msgstr ""
+msgstr "اجازهٔ بازگردانی محتوا و تنظمیات کاره را می‌دهد"
 
 #: src/bz-transaction-dialog.c:157
 msgid "Delete All Data"
-msgstr ""
+msgstr "حذف همهٔ داده‌ها"
 
 #: src/bz-transaction-dialog.c:158
 msgid "Permanently erase user data to save space"
-msgstr ""
+msgstr "داده‌های کاربری را برای ذخیرهٔ فضای دیسک به صورت همیشگی حذف می‌کند"
 
 #: src/bz-transaction-dialog.c:188
 #, c-format
@@ -2681,17 +2798,17 @@ msgstr "برداشتن %s؟"
 
 #: src/bz-transaction-dialog.c:191
 msgid "Select which version to remove."
-msgstr ""
+msgstr "گزینش نگارش برای برداشتن."
 
 #: src/bz-transaction-dialog.c:193
 #, c-format
 msgid "It will not be possible to use %s after it is uninstalled."
-msgstr ""
+msgstr "پس از برداشتن %s دیگر قابل استفاده نیست."
 
 #: src/bz-transaction-dialog.c:216
 #, c-format
 msgid "“%s” is High Risk"
-msgstr ""
+msgstr "ریسک «%s» زیاد است"
 
 #: src/bz-transaction-dialog.c:220
 msgid ""
@@ -2700,6 +2817,10 @@ msgid ""
 "\n"
 "Because the app is proprietary, it can not be audited for what it does with these permissions."
 msgstr ""
+"این کاره دسترسی کاملی به سامانه‌تان دارد. از جمله به همهٔ <b>پرونده‌ها، تاریخچهٔ مرورگر، گذرواژه‌ها</b>ی ذخیره شده و بیش‌تر. "
+"همچنین به اینترنت دسترسی دارد که یعنی می‌تواند داده‌هایتان را برای دیگران بفرستد.\n"
+"\n"
+"از آن‌جا که این کاره مالکیتی است نمی‌توان بررسی کرد که با این اجازه‌ها چه‌کار می‌کند."
 
 #: src/bz-transaction-dialog.c:229
 msgid ""
@@ -2708,6 +2829,10 @@ msgid ""
 "\n"
 "Because the app is proprietary, it can not be audited for what it does with these permissions."
 msgstr ""
+"این کاره از سامانهٔ پنجرهٔ قدیمی X11 استفاده می‌کند که می‌گذارد <b>تمامی کلیدهای زده شده را ضبط کند، نماگرفت ذخیره کند و دیگر "
+"برنامه‌ها را بپاید</b>. همچنین به اینترنت دسترسی دارد که یعنی می‌تواند داده‌هایتان را برای دیگران بفرستد.\r\n"
+"\r\n"
+"از آن‌جا که این کاره مالکیتی است نمی‌توان بررسی کرد که با این اجازه‌ها چه‌کار می‌کند."
 
 #: src/bz-transaction-dialog.c:245
 msgid "_Install Anyway"
@@ -2715,7 +2840,7 @@ msgstr "_نصب به هر روی"
 
 #: src/bz-transaction-dialog.c:297 src/bz-transaction-dialog.c:325
 msgid "Failed to load transaction dialog"
-msgstr ""
+msgstr "شکست در بار کردن گفت‌وگوی تراکنش"
 
 #: src/bz-transaction-manager.c:835
 #, c-format
@@ -2724,7 +2849,7 @@ msgstr "اتمام در %.02f ثانیه"
 
 #: src/bz-transaction-tile.blp:130
 msgid "App Add-On"
-msgstr ""
+msgstr "افزونهٔ کاره"
 
 #: src/bz-transaction-tile.blp:159
 msgid "Runtime"
@@ -2732,11 +2857,11 @@ msgstr "سامانه زمان اجرا"
 
 #: src/bz-transaction-tile.blp:183
 msgid "In Queue"
-msgstr ""
+msgstr "در صف"
 
 #: src/bz-transaction-tile.blp:211
 msgid "Finishing Up"
-msgstr ""
+msgstr "پایان دادن"
 
 #: src/bz-transaction-tile.blp:235
 msgid "Done"
@@ -2886,25 +3011,29 @@ msgstr ""
 msgid "_Manage Leftover User Data"
 msgstr ""
 
-#: src/bz-window.blp:294
+#: src/bz-window.blp:293
+msgid "Manage R_emotes"
+msgstr "مدیریت _دوردست‌ها"
+
+#: src/bz-window.blp:300
 msgid "_Preferences"
 msgstr "_ترجیحات"
 
-#: src/bz-window.blp:299
+#: src/bz-window.blp:305
 msgid "_Keyboard Shortcuts"
 msgstr "_میان‌برهای صفحه‌کلید"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:305
+#: src/bz-window.blp:311
 msgid "_About Bazaar"
 msgstr "_دربارهٔ بازار"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:312
+#: src/bz-window.blp:318
 msgid "_Quit Bazaar"
 msgstr "_خروج از بازار"
 
-#: src/bz-window.blp:328
+#: src/bz-window.blp:334
 msgid "Log Out"
 msgstr "خروج"
 
@@ -2914,20 +3043,20 @@ msgstr "خروج"
 msgid "Bazaar — %s"
 msgstr "بازار— %s"
 
-#: src/bz-window.c:718 src/bz-window.c:767
+#: src/bz-window.c:726 src/bz-window.c:775
 msgid "Failed to launch application"
 msgstr "شکست در اجرای برنامه"
 
-#: src/bz-window.c:846
+#: src/bz-window.c:854
 msgid "Could not open link"
 msgstr ""
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.c:1055
+#: src/bz-window.c:1074
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr ""
 
-#: src/bz-window.c:1439 src/bz-window.c:1473
+#: src/bz-window.c:1463 src/bz-window.c:1497
 msgid "Can't do that right now!"
 msgstr "فعلا امکان انجام این کار وجود ندارد!"
 
@@ -2946,28 +3075,28 @@ msgstr "بیش‌ترین نصب‌ها از %s"
 
 #: src/context-tile-callbacks.c:68
 msgid "---"
-msgstr ""
+msgstr "---"
 
 #. Translators: M is the suffix for millions
 #: src/context-tile-callbacks.c:75
 #, c-format
 msgid "%.*fM"
-msgstr ""
+msgstr "‏%I.*f‬م"
 
 #: src/context-tile-callbacks.c:92
 #, c-format
 msgid "%d downloads in the last month"
-msgstr ""
+msgstr "‏%Id‬ بارگیری در ماه گذشته"
 
 #. TRANSLATORS: %s is a formatted file size, for example: "128 MB"
 #: src/context-tile-callbacks.c:139
 #, c-format
 msgid "+%s Runtime"
-msgstr ""
+msgstr "‏+ %s زمان اجرا"
 
 #: src/context-tile-callbacks.c:151 src/context-tile-callbacks.c:163
 msgid "Size information unavailable"
-msgstr ""
+msgstr "اطّلاعات اندازه نیست"
 
 #: src/context-tile-callbacks.c:154
 #, c-format
@@ -2981,43 +3110,43 @@ msgstr "اندازهٔ نصب شدهٔ %s"
 
 #: src/context-tile-callbacks.c:199
 msgid "All Ages"
-msgstr ""
+msgstr "همهٔ سنین"
 
 #: src/context-tile-callbacks.c:211
 msgid "Age rating information unavailable"
-msgstr ""
+msgstr "اطّلاعات رتبه‌بندی سنی موجود نیست"
 
 #: src/context-tile-callbacks.c:216
 msgid "Suitable for all ages"
-msgstr ""
+msgstr "مناسب برای تمامی سنین"
 
 #: src/context-tile-callbacks.c:218
 #, c-format
 msgid "Suitable for ages %d and up"
-msgstr ""
+msgstr "مناسب برای سنین %Id و بالاتر"
 
 #: src/context-tile-callbacks.c:261
 #, c-format
 msgid "Free software licensed under %s"
-msgstr ""
+msgstr "نرم‌افزار آزاد با پروانهٔ %s"
 
 #: src/context-tile-callbacks.c:266
 msgid "Free software"
-msgstr ""
+msgstr "نرم‌افزار آزاد"
 
 #: src/context-tile-callbacks.c:269
 msgid "Proprietary Software"
-msgstr ""
+msgstr "نرم‌افزار مالکیتی"
 
 #: src/context-tile-callbacks.c:272
 #, c-format
 msgid "Special License: %s"
-msgstr ""
+msgstr "پروانهٔ خاص: %s"
 
 #. TRANSLATORS: You can omit the "software" part if your translation makes it obvious we're talking about "libre" and not "gratis"
 #: src/context-tile-callbacks.c:290
 msgid "Free Software"
-msgstr ""
+msgstr "نرم‌افزار آزاد"
 
 #: src/context-tile-callbacks.c:318
 msgid "Adaptive"
@@ -3029,11 +3158,11 @@ msgstr "فقط میزکار"
 
 #: src/context-tile-callbacks.c:324
 msgid "Works on desktop, tablets, and phones"
-msgstr ""
+msgstr "کار روی تلفن‌ها، رایانک‌ها و میزکارها"
 
 #: src/context-tile-callbacks.c:325
 msgid "May not work on mobile devices"
-msgstr ""
+msgstr "شایسد روی افزاره‌های همراه کار نکند"
 
 #. TRANSLATORS: short app safety rating label
 #: src/context-tile-callbacks.c:412 src/context-tile-callbacks.c:415
@@ -3400,6 +3529,12 @@ msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "خروج از بازار"
 
+#. Translators: The other Linux distributions, in the install statistics
+#: src/stats-types.vala:57
+msgctxt "Distribution"
+msgid "Other"
+msgstr "دیگر"
+
 #: src/transaction-notification.c:133
 #, c-format
 msgid "%s Installed"
@@ -3579,9 +3714,6 @@ msgstr "شامل %s، %s و %s."
 
 #~ msgid "Maximize Upper Bound"
 #~ msgstr "افزایش حد بالا"
-
-#~ msgid "Removing"
-#~ msgstr "در حال حذف"
 
 #~ msgid "The following applications are eligible for updates. Would you like to install them?"
 #~ msgstr "برنامه‌های زیر واجد شرایط به‌روزرسانی هستند. آیا مایل به نصب آن‌ها هستید؟"
