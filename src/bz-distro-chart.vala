@@ -93,7 +93,7 @@ public sealed class Bz.DistroChart : Gtk.Widget {
             progress = value;
             queue_draw ();
         });
-        new Adw.SpringAnimation (this, 0, 1, new Adw.SpringParams (1, 1, 120), target).play ();
+        new Adw.SpringAnimation (this, 0, 1, new Adw.SpringParams (1, 1, 120), target) { epsilon = 0.00001 }.play ();
     }
 
     private bool on_key_pressed (uint keyval, uint keycode, Gdk.ModifierType state) {
