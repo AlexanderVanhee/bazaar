@@ -5,21 +5,22 @@
 # Vlastimil Dědek <dedek.vlastimil2@proton.me>, 2025.
 # Pavel Borecki <pavel@borecki.cz>, 2026.
 # Daniel Rusek <mail@asciiwolf.com>, 2026.
+# Patrik Sivek <patriksivek@gnome.org>, 2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-10 18:26+0000\n"
-"PO-Revision-Date: 2026-11-10 20:46+0100\n"
-"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
+"POT-Creation-Date: 2026-11-11 20:34+0000\n"
+"PO-Revision-Date: 2026-11-11 22:15+0100\n"
+"Last-Translator: Patrik Sivek <patriksivek@gnome.org>\n"
 "Language-Team: Czech\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 3.10\n"
+"X-Generator: Gtranslator 51.0\n"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: data/io.github.kolunmi.Bazaar.desktop.in:3
@@ -761,7 +762,8 @@ msgid "translator-credits"
 msgstr ""
 "Vlastimil Dědek <dedek.vlastimil2@proton.me>, 2025\n"
 "Pavel Borecki <pavel@borecki.cz>, 2026\n"
-"Daniel Rusek <mail@asciiwolf.com>, 2026"
+"Daniel Rusek <mail@asciiwolf.com>, 2026\n"
+"Patrik Sivek <patriksivek@gnome.org>, 2026"
 
 #: src/bz-application.c:905
 msgid "Special Thanks"
@@ -1072,6 +1074,23 @@ msgstr "Vlastnictví ID aplikace %1$s bylo ověřeno pomocí %2$s."
 #, c-format
 msgid "The ownership of the %s app ID has been verified."
 msgstr "Vlastnictví ID aplikace %s bylo ověřeno."
+
+#. Translators: A row of the install statistics, for example: Fedora, 28%
+#: src/bz-distro-chart.vala:40
+#, c-format
+msgid "%s, %s"
+msgstr "%s, %s"
+
+#. Translators: Shown for values smaller than 1 percent
+#: src/bz-distro-chart.vala:161
+msgid "<1%"
+msgstr "<1 %"
+
+#. Translators: A percentage, for example: 42%
+#: src/bz-distro-chart.vala:163
+#, c-format
+msgid "%.0f%%"
+msgstr "%.0f %%"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: src/bz-donations-dialog.blp:8
@@ -2855,36 +2874,55 @@ msgid "Manifest"
 msgstr "Manifest"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:28
+#: src/bz-stats-dialog.blp:30
 msgid "Timeline"
 msgstr "Časová osa"
 
 #. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:47
+#: src/bz-stats-dialog.blp:49
 msgid "Total"
 msgstr "Celkem"
 
 #. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:78
+#: src/bz-stats-dialog.blp:80
 msgid "This Week"
 msgstr "Tento týden"
 
-#: src/bz-stats-dialog.blp:115
+#: src/bz-stats-dialog.blp:117
 msgid "Installs per day"
 msgstr "Instalací za den"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:124
+#: src/bz-stats-dialog.blp:126
 msgid "World"
 msgstr "Svět"
 
-#: src/bz-stats-dialog.blp:137
+#: src/bz-stats-dialog.blp:139
 msgid "Installs per country"
 msgstr "Instalací podle země"
 
-#: src/bz-stats-dialog.blp:142
+#: src/bz-stats-dialog.blp:144
 msgid "Since 4/15/2024"
 msgstr "Od 15. 4. 2024"
+
+#: src/bz-stats-dialog.blp:157
+msgid "Distros"
+msgstr "Distribuce"
+
+#: src/bz-stats-dialog.blp:183
+msgid "Installs per distro"
+msgstr "Instalací na distribuci"
+
+#: src/bz-stats-dialog.vala:106
+msgid "Last 30 days"
+msgstr "Posledních 30 dní"
+
+#. Translators: Shown below the install statistics, for example: Last 30 days, 42% of installs don't yet report a distro
+#: src/bz-stats-dialog.vala:108
+#, c-format
+msgid "Last 30 days, %.0f%% of installs don't yet report a distro"
+msgstr ""
+"Posledních 30 dní, %.0f %% instalací neposkytuje informace o distribuci"
 
 #: src/bz-subcategory-list.c:77
 msgid "No Results Found"
@@ -3678,6 +3716,12 @@ msgstr "Zavřít okno"
 msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "Ukončit Bazaar"
+
+#. Translators: The other Linux distributions, in the install statistics
+#: src/stats-types.vala:57
+msgctxt "Distribution"
+msgid "Other"
+msgstr "Ostatní"
 
 #: src/transaction-notification.c:133
 #, c-format
