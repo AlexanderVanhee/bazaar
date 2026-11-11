@@ -21,6 +21,8 @@ template $BzStatsDialog: Adw.BreakpointBin {
 
       Adw.ViewStack stack {
         vexpand: true;
+        enable-transitions: true;
+        transition-duration: 150;
 
         Adw.ViewStackPage {
           name: "graph";
