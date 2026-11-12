@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-09 09:35+0000\n"
-"PO-Revision-Date: 2026-11-09 19:14+0200\n"
+"POT-Creation-Date: 2026-11-12 02:28+0000\n"
+"PO-Revision-Date: 2026-11-12 20:52+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -75,7 +75,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Шукайте застосунки безпосередньо з оболонки GNOME"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:862
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
 msgid "The Bazaar Contributors"
 msgstr "Внесники Базару"
 
@@ -764,27 +764,27 @@ msgid "Verified"
 msgstr "Підтверджено"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:865
+#: src/bz-application.c:895
 msgid "translator-credits"
 msgstr "faoquad <faoquad@noreply.codeberg.org>, 2025"
 
-#: src/bz-application.c:875
+#: src/bz-application.c:905
 msgid "Special Thanks"
 msgstr "Особливі подяки"
 
-#: src/bz-application.c:945
+#: src/bz-application.c:975
 msgid "Logged Out Successfully!"
 msgstr "Ви вийшли з Flathub"
 
-#: src/bz-application.c:1117
+#: src/bz-application.c:1148
 msgid "Performing setup…"
 msgstr "Налаштовуємо…"
 
-#: src/bz-application.c:1159
+#: src/bz-application.c:1190
 msgid "Set Up Flathub?"
 msgstr "Налаштувати Flathub?"
 
-#: src/bz-application.c:1162
+#: src/bz-application.c:1193
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -795,52 +795,52 @@ msgstr ""
 "застосунки в Базарі. Проте, Ви зможете користати Базар для огляду та "
 "керування вже встановленими застосунками."
 
-#: src/bz-application.c:1167
+#: src/bz-application.c:1198
 msgid "Later"
 msgstr "Пізніше"
 
-#: src/bz-application.c:1168
+#: src/bz-application.c:1199
 msgid "Set Up Flathub"
 msgstr "Налаштувати Flathub"
 
-#: src/bz-application.c:1794
+#: src/bz-application.c:1826
 msgid "A backend error occurred"
 msgstr "Виникла помилка на боці серверу"
 
-#: src/bz-application.c:2001 src/bz-application.c:4451
+#: src/bz-application.c:2033 src/bz-application.c:4484
 msgid "Refreshing…"
 msgstr "Освіжаємо…"
 
-#: src/bz-application.c:2166
+#: src/bz-application.c:2199
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Провантажуємо %d застосунків…"
 
-#: src/bz-application.c:2227 src/bz-application.c:2304
+#: src/bz-application.c:2260 src/bz-application.c:2337
 msgid "Failed to open file"
 msgstr "Не вдалося відкрити файл"
 
-#: src/bz-application.c:2318
+#: src/bz-application.c:2351
 msgid "Failed to load metainfo"
 msgstr "Не вдалося завантажити метадані"
 
-#: src/bz-application.c:2444
+#: src/bz-application.c:2477
 msgid "An initialization error occurred"
 msgstr "Виникла помилка ініціалізації"
 
-#: src/bz-application.c:2885
+#: src/bz-application.c:2918
 msgid "Checking for updates…"
 msgstr "Шукаємо оновлення…"
 
-#: src/bz-application.c:3000
+#: src/bz-application.c:3033
 msgid "Failed to check for updates"
 msgstr "Помилка пошуку оновлень"
 
-#: src/bz-application.c:4220
+#: src/bz-application.c:4253
 msgid "Could not find app"
 msgstr "Не вдалося знайти застосунок"
 
-#: src/bz-application.c:4446
+#: src/bz-application.c:4479
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
@@ -849,9 +849,18 @@ msgstr[1] "Завантажуємо %d застосунки…"
 msgstr[2] "Завантажуємо %d застосунків…"
 msgstr[3] "Завантажуємо %d застосунок…"
 
-#: src/bz-application.c:4453
+#: src/bz-application.c:4486
 msgid "Writing to cache…"
 msgstr "Кешуємо…"
+
+#: src/bz-application.c:4520
+msgid "Removing remote…"
+msgstr "Вилучення віддаленого сховища…"
+
+#: src/bz-application.c:4537
+#| msgid "Failed to remove favorite"
+msgid "Could not remove remote"
+msgstr "Не вдалося вилучити віддалене сховище"
 
 #: src/bz-apps-page.blp:97 src/bz-full-view.c:214
 msgid "Show All"
@@ -905,8 +914,8 @@ msgstr "Буде встановлено %d розширень."
 msgid "Additionally, addons will be installed."
 msgstr "Крім того, будуть установлені розширення."
 
-#: src/bz-bulk-install-dialog.c:117 src/bz-transaction-dialog.c:199
-#: src/bz-transaction-dialog.c:244
+#: src/bz-bulk-install-dialog.c:117 src/bz-remotes-dialog.vala:179
+#: src/bz-transaction-dialog.c:199 src/bz-transaction-dialog.c:244
 msgid "_Cancel"
 msgstr "_Скасувати"
 
@@ -1071,6 +1080,23 @@ msgstr "Володіння ідентифікатором %1$s було підт
 msgid "The ownership of the %s app ID has been verified."
 msgstr "Володіння ідентифікатором %s було підтверджено."
 
+#. Translators: A row of the install statistics, for example: Fedora, 28%
+#: src/bz-distro-chart.vala:40
+#, c-format
+msgid "%s, %s"
+msgstr "%s, %s"
+
+#. Translators: Shown for values smaller than 1 percent
+#: src/bz-distro-chart.vala:161
+msgid "<1%"
+msgstr "<1%"
+
+#. Translators: A percentage, for example: 42%
+#: src/bz-distro-chart.vala:163
+#, c-format
+msgid "%.0f%%"
+msgstr "%.0f%%"
+
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: src/bz-donations-dialog.blp:8
 msgid "Bazaar Release"
@@ -1153,7 +1179,7 @@ msgstr "Увійдіть із допомогою Flathub, аби керуват�
 msgid "Log In"
 msgstr "Увійти"
 
-#: src/bz-favorites-page.blp:5 src/bz-window.blp:321
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:327
 msgid "Favorites"
 msgstr "Вподобані"
 
@@ -1900,9 +1926,10 @@ msgstr "_Запустити"
 msgid "Uninstall Application"
 msgstr "Видалити цей застосунок"
 
-#: src/bz-install-controls.blp:117 src/bz-transaction-dialog.c:200
+#: src/bz-install-controls.blp:117 src/bz-remotes-dialog.blp:123
+#: src/bz-remotes-dialog.vala:180 src/bz-transaction-dialog.c:200
 msgid "_Remove"
-msgstr "_Видалити"
+msgstr "_Вилучити"
 
 #: src/bz-install-controls.blp:148 src/bz-updates-card.vala:178
 #: src/bz-updates-card.vala:201
@@ -2445,9 +2472,127 @@ msgstr "Докладніше про випуск"
 msgid "_Version History"
 msgstr "_Історія версій"
 
+#: src/bz-remotes-dialog.blp:5 src/bz-remotes-dialog.blp:24
+#| msgctxt "shortcut window"
+#| msgid "Remotes"
+msgid "Remotes"
+msgstr "Віддалені сховища"
+
+#: src/bz-remotes-dialog.blp:49
+#| msgid "Bundle Installation"
+msgid "System Installation"
+msgstr "Загальносистемне встановлення"
+
+#: src/bz-remotes-dialog.blp:50
+msgid "Available to all users on this computer"
+msgstr "Доступне для усіх користувачів на цьому комп'ютері"
+
+#: src/bz-remotes-dialog.blp:55
+#| msgid "Bundle Installation"
+msgid "User Installation"
+msgstr "Встановлення для користувача"
+
+#: src/bz-remotes-dialog.blp:56
+msgid "Only available to you"
+msgstr "Доступно лише для вас"
+
+#: src/bz-remotes-dialog.blp:65
+#| msgid "Remove From Favorites"
+msgid "Remove Remote"
+msgstr "Вилучити віддалене сховище"
+
+#: src/bz-remotes-dialog.vala:31
+#, c-format
+#| msgid "Remove %s?"
+msgid "Remove %s"
+msgstr "Вилучити %s"
+
+#: src/bz-remotes-dialog.vala:42
+msgid "Unused"
+msgstr "Не використано"
+
+#: src/bz-remotes-dialog.vala:42
+#, c-format
+#| msgid "%s Installed"
+msgid "%u app installed"
+msgid_plural "%u apps installed"
+msgstr[0] "Встановлено %u програму"
+msgstr[1] "Встановлено %u програми"
+msgstr[2] "Встановлено %u програм"
+msgstr[3] "Встановлено одну програму"
+
+#: src/bz-remotes-dialog.vala:174 src/bz-remotes-dialog.vala:193
+#, c-format
+#| msgid "Remove %s?"
+msgid "Remove “%s”?"
+msgstr "Вилучити «%s»?"
+
+#: src/bz-remotes-dialog.vala:176
+msgid "You will no longer be able to install apps from this user remote."
+msgstr ""
+"Ви більше не зможете встановлювати програми з цього віддаленого сховища корис"
+"тувача."
+
+#: src/bz-remotes-dialog.vala:177
+msgid "You will no longer be able to install apps from this system remote."
+msgstr ""
+"Ви більше не зможете встановлювати програми з цього загальносистемного віддал"
+"еного сховища."
+
+#: src/bz-remotes-dialog.vala:194
+#, c-format
+#| msgid "%u App Updated"
+#| msgid_plural "%u Apps Updated"
+msgid "%u App to Remove"
+msgid_plural "%u Apps to Remove"
+msgstr[0] "%u програма для вилучення"
+msgstr[1] "%u програми для вилучення"
+msgstr[2] "%u програм для вилучення"
+msgstr[3] "%u програма для вилучення"
+
+#: src/bz-remotes-dialog.vala:197
+msgid ""
+"The app below was installed from this remote and will be removed from your "
+"account along with it."
+msgid_plural ""
+"These apps were installed from this remote and will be removed from your "
+"account along with it."
+msgstr[0] ""
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
+" вилучено з вашого облікового запису разом із ним."
+msgstr[1] ""
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
+" вилучено з вашого облікового запису разом із ним."
+msgstr[2] ""
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
+" вилучено з вашого облікового запису разом із ним."
+msgstr[3] ""
+"Наведену нижче програму було встановлено з цього віддаленого сховища; її буде"
+" вилучено з вашого облікового запису разом із ним."
+
+#: src/bz-remotes-dialog.vala:201
+msgid ""
+"The app below was installed from this remote and will be removed for all "
+"users along with it."
+msgid_plural ""
+"These apps were installed from this remote and will be removed for all users "
+"along with it."
+msgstr[0] ""
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
+" вилучено для усіх користувачів разом із ним."
+msgstr[1] ""
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
+" вилучено для усіх користувачів разом із ним."
+msgstr[2] ""
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
+" вилучено для усіх користувачів разом із ним."
+msgstr[3] ""
+"Наведену нижче програму було встановлено з цього віддаленого сховища; її буде"
+" вилучено для усіх користувачів разом із ним."
+
 #: src/bz-rich-app-tile.blp:217
 msgid "Uninstall"
-msgstr "Видалити"
+msgstr "Вилучити"
 
 # Сирець підказує, що це кнопка завантаження
 #. Translators: If you can't find a short enough translation, use "/" to use an icon instead.
@@ -2792,37 +2937,56 @@ msgstr "Маніфест"
 
 # https://slovotvir.org.ua/words/taimlain
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:28
+#: src/bz-stats-dialog.blp:30
 msgid "Timeline"
 msgstr "Часоряд"
 
 #. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:47
+#: src/bz-stats-dialog.blp:49
 msgid "Total"
 msgstr "Загалом"
 
 #. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:78
+#: src/bz-stats-dialog.blp:80
 msgid "This Week"
 msgstr "Цього тижня"
 
-#: src/bz-stats-dialog.blp:115
+#: src/bz-stats-dialog.blp:117
 msgid "Installs per day"
 msgstr "Встановлень за день"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:124
+#: src/bz-stats-dialog.blp:126
 msgid "World"
 msgstr "Світ"
 
-#: src/bz-stats-dialog.blp:137
-#| msgid "Installs per day"
+#: src/bz-stats-dialog.blp:139
 msgid "Installs per country"
 msgstr "Встановлень за країнами"
 
-#: src/bz-stats-dialog.blp:142
+#: src/bz-stats-dialog.blp:144
 msgid "Since 4/15/2024"
 msgstr "Від 15 квітня 2024 р."
+
+#: src/bz-stats-dialog.blp:157
+msgid "Distros"
+msgstr "Дистрибутиви"
+
+#: src/bz-stats-dialog.blp:183
+#| msgid "Installs per day"
+msgid "Installs per distro"
+msgstr "Встановлень за дистрибутивами"
+
+#: src/bz-stats-dialog.vala:106
+msgid "Last 30 days"
+msgstr "Попередні 30 днів"
+
+#. Translators: Shown below the install statistics, for example: Last 30 days, 42% of installs don't yet report a distro
+#: src/bz-stats-dialog.vala:108
+#, c-format
+msgid "Last 30 days, %.0f%% of installs don't yet report a distro"
+msgstr ""
+"Попередні 30 днів, %.0f%% встановлень ще не повідомили про дистрибутив"
 
 #: src/bz-subcategory-list.c:77
 msgid "No Results Found"
@@ -3088,25 +3252,31 @@ msgstr "_Увійти з допомогою Flathub"
 msgid "_Manage Leftover User Data"
 msgstr "_Керувати залишковими даними"
 
-#: src/bz-window.blp:294
+#: src/bz-window.blp:293
+#| msgctxt "shortcut window"
+#| msgid "Sync Remotes"
+msgid "Manage R_emotes"
+msgstr "Керування _віддаленими сховищами"
+
+#: src/bz-window.blp:300
 msgid "_Preferences"
 msgstr "_Налаштування"
 
-#: src/bz-window.blp:299
+#: src/bz-window.blp:305
 msgid "_Keyboard Shortcuts"
 msgstr "_Клавіатурні скорочення"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:305
+#: src/bz-window.blp:311
 msgid "_About Bazaar"
 msgstr "_Про Базар"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:312
+#: src/bz-window.blp:318
 msgid "_Quit Bazaar"
 msgstr "_Вийти"
 
-#: src/bz-window.blp:328
+#: src/bz-window.blp:334
 msgid "Log Out"
 msgstr "Вийти"
 
@@ -3116,26 +3286,25 @@ msgstr "Вийти"
 msgid "Bazaar — %s"
 msgstr "Базар — %s"
 
-#: src/bz-window.c:718 src/bz-window.c:767
+#: src/bz-window.c:726 src/bz-window.c:775
 msgid "Failed to launch application"
 msgstr "Не вдалося запустити застосунок"
 
-#: src/bz-window.c:846
+#: src/bz-window.c:854
 msgid "Could not open link"
 msgstr "Не вдалося відкрити посилання"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.c:1055
+#: src/bz-window.c:1074
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr "Ви не можете видалити Базар у Базарі!"
 
-#: src/bz-window.c:1439 src/bz-window.c:1473
+#: src/bz-window.c:1463 src/bz-window.c:1497
 msgid "Can't do that right now!"
 msgstr "Наразі цього не можна зробити!"
 
 #: src/bz-world-map.vala:51
 #, c-format
-#| msgid "%s Installed"
 msgid "%s, %'u install"
 msgid_plural "%s, %'u installs"
 msgstr[0] "%s, %'u встановлення"
@@ -3146,7 +3315,6 @@ msgstr[3] "%s, %'u встановлення"
 #. Translators: accessible description of the world map, like. "Most installs from Germany, 1,200 installs, France, 800 installs"
 #: src/bz-world-map.vala:55
 #, c-format
-#| msgid "Install %s from %s"
 msgid "Most installs from %s"
 msgstr "Більшість встановлень з %s"
 
@@ -3621,6 +3789,12 @@ msgstr "Закрити вікно"
 msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "Вийти з Базару"
+
+#. Translators: The other Linux distributions, in the install statistics
+#: src/stats-types.vala:59
+msgctxt "Distribution"
+msgid "Other"
+msgstr "Інший"
 
 #: src/transaction-notification.c:133
 #, c-format
