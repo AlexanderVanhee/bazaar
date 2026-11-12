@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-10 18:26+0000\n"
-"PO-Revision-Date: 2026-11-11 17:14+0100\n"
+"POT-Creation-Date: 2026-11-12 02:28+0000\n"
+"PO-Revision-Date: 2026-11-12 09:53+0100\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl\n"
@@ -1069,6 +1069,23 @@ msgstr "Lastništvo ID programa %1$s je bilo preverjeno s pomočjo %2$s."
 #, c-format
 msgid "The ownership of the %s app ID has been verified."
 msgstr "Lastništvo programa %s je bilo preverjeno."
+
+#. Translators: A row of the install statistics, for example: Fedora, 28%
+#: src/bz-distro-chart.vala:40
+#, c-format
+msgid "%s, %s"
+msgstr "%s, %s"
+
+#. Translators: Shown for values smaller than 1 percent
+#: src/bz-distro-chart.vala:161
+msgid "<1%"
+msgstr "<1%"
+
+#. Translators: A percentage, for example: 42%
+#: src/bz-distro-chart.vala:163
+#, c-format
+msgid "%.0f%%"
+msgstr "%.0f %%"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: src/bz-donations-dialog.blp:8
@@ -2883,36 +2900,54 @@ msgid "Manifest"
 msgstr "Manifest"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:28
+#: src/bz-stats-dialog.blp:30
 msgid "Timeline"
 msgstr "Časovnica"
 
 #. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:47
+#: src/bz-stats-dialog.blp:49
 msgid "Total"
 msgstr "Skupaj"
 
 #. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:78
+#: src/bz-stats-dialog.blp:80
 msgid "This Week"
 msgstr "Ta teden"
 
-#: src/bz-stats-dialog.blp:115
+#: src/bz-stats-dialog.blp:117
 msgid "Installs per day"
 msgstr "Namestitve na dan"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:124
+#: src/bz-stats-dialog.blp:126
 msgid "World"
 msgstr "Cel svet"
 
-#: src/bz-stats-dialog.blp:137
+#: src/bz-stats-dialog.blp:139
 msgid "Installs per country"
 msgstr "Namestitve po državah"
 
-#: src/bz-stats-dialog.blp:142
+#: src/bz-stats-dialog.blp:144
 msgid "Since 4/15/2024"
 msgstr "Od 15. 4. 2024"
+
+#: src/bz-stats-dialog.blp:157
+msgid "Distros"
+msgstr "Distribucije"
+
+#: src/bz-stats-dialog.blp:183
+msgid "Installs per distro"
+msgstr "Namestitve na distribucijo"
+
+#: src/bz-stats-dialog.vala:106
+msgid "Last 30 days"
+msgstr "Zadnjih 30 dni"
+
+#. Translators: Shown below the install statistics, for example: Last 30 days, 42% of installs don't yet report a distro
+#: src/bz-stats-dialog.vala:108
+#, c-format
+msgid "Last 30 days, %.0f%% of installs don't yet report a distro"
+msgstr "Zadnjih 30 dni, %.0f %% namestitev ni poročalo o distribuciji"
 
 #: src/bz-subcategory-list.c:77
 msgid "No Results Found"
@@ -3710,6 +3745,12 @@ msgstr "Zapre okno"
 msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "Konča Bazar"
+
+#. Translators: The other Linux distributions, in the install statistics
+#: src/stats-types.vala:59
+msgctxt "Distribution"
+msgid "Other"
+msgstr "Drugo"
 
 #: src/transaction-notification.c:133
 #, c-format
