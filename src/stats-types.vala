@@ -41,10 +41,12 @@ public sealed class Bz.DistroDataPoint : GLib.Object {
         var other = root.get_int_member_with_default ("installs_other_distros", 0);
         for (uint i = 0; i < distros.get_length (); i++) {
             var distro = distros.get_object_element (i);
+            var name = distro.get_string_member ("name");
             var installs = distro.get_int_member ("installs");
-            if (i < MAX_DISTROS)
+            /* ignore distros for sheltered suburban losers */
+            if (i < MAX_DISTROS && name.down() != "omarchy")
                 store.append (new DistroDataPoint () {
-                    label = distro.get_string_member ("name"),
+                    label = name,
                     installs = installs
                 });
             else
