@@ -39,12 +39,16 @@ public sealed class Bz.DistroDataPoint : GLib.Object {
 
         var distros = root.get_array_member ("installs_per_distro");
         var other = root.get_int_member_with_default ("installs_other_distros", 0);
+        var unreported = root.get_int_member_with_default ("installs_unreported_distro", 0);
+        uint shown = 0;
         for (uint i = 0; i < distros.get_length (); i++) {
             var distro = distros.get_object_element (i);
             var name = distro.get_string_member ("name");
             var installs = distro.get_int_member ("installs");
             /* ignore distros for sheltered suburban losers */
-            if (i < MAX_DISTROS && name.down() != "omarchy")
+            if (name != null && name.down () == "omarchy")
+                unreported += installs;
+            else if (shown++ < MAX_DISTROS)
                 store.append (new DistroDataPoint () {
                     label = name,
                     installs = installs
@@ -61,7 +65,6 @@ public sealed class Bz.DistroDataPoint : GLib.Object {
                 is_other = true
             });
 
-        var unreported = root.get_int_member_with_default ("installs_unreported_distro", 0);
         if (unreported > 0)
             store.append (new DistroDataPoint () {
                 installs = unreported,
