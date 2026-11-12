@@ -215,6 +215,9 @@ cache_flathub_fiber (BzWeakRef *wr);
 static DexFuture *
 cache_groups_fiber (BzWeakRef *wr);
 
+static void
+write_search_index (BzApplication *self);
+
 static DexFuture *
 respond_to_flatpak_fiber (BzWeakRef             *wr,
                           BzBackendNotification *notif);
@@ -1518,6 +1521,7 @@ enumerate_disk_groups_fiber (BzWeakRef *wr,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_LESS_STRICT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_LESS_STRICT);
+  write_search_index (self);
 
   dex_future_disown (dex_scheduler_spawn (
       dex_scheduler_get_default (),
@@ -1717,9 +1721,6 @@ cache_groups_fiber (BzWeakRef *wr)
   g_autoptr (GVariant) variant        = NULL;
   g_autoptr (GBytes) bytes            = NULL;
   guint n_groups                      = 0;
-  g_autoptr (GError) index_error      = NULL;
-  g_autofree char *module_dir         = NULL;
-  g_autofree char *index_path         = NULL;
 
   bz_weak_get_or_return_reject (self, &wr->ref);
 
@@ -1757,13 +1758,26 @@ cache_groups_fiber (BzWeakRef *wr)
   if (!result)
     g_warning ("Failed to cache groups to %s: %s", groups_cache, local_error->message);
 
+  write_search_index (self);
+
+  return dex_future_new_true ();
+}
+
+static void
+write_search_index (BzApplication *self)
+{
+  g_autoptr (GError) local_error = NULL;
+  g_autofree char *module_dir    = NULL;
+  g_autofree char *index_path    = NULL;
+
+  if (g_list_model_get_n_items (G_LIST_MODEL (self->groups)) == 0)
+    return;
+
   module_dir = bz_dup_module_dir ();
   index_path = g_build_filename (module_dir, "search-index", NULL);
 
-  if (!bz_write_search_index (G_LIST_MODEL (self->groups), index_path, &index_error))
-    g_warning ("Failed to write search index to %s: %s", index_path, index_error->message);
-
-  return dex_future_new_true ();
+  if (!bz_write_search_index (G_LIST_MODEL (self->group_filter_model), index_path, &local_error))
+    g_warning ("Failed to write search index to %s: %s", index_path, local_error->message);
 }
 
 static DexFuture *
@@ -3158,6 +3172,7 @@ disable_blocklists_changed (BzApplication *self,
 {
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 }
 
 static void
@@ -3185,6 +3200,7 @@ show_hide_app_setting_changed (BzApplication *self,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 
   g_object_thaw_notify (G_OBJECT (self->state));
 }
@@ -3491,6 +3507,7 @@ blocklists_changed (BzApplication *self,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 }
 
 static void
@@ -3518,6 +3535,7 @@ txt_blocklists_changed (BzApplication *self,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 }
 
 static void
