@@ -9,9 +9,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-03 15:21+0700\n"
-"PO-Revision-Date: 2026-07-03 17:38+0700\n"
+"Report-Msgid-Bugs-To: https://github.com/bazaar-org/bazaar/issues\n"
+"POT-Creation-Date: 2026-07-31 01:49+0000\n"
+"PO-Revision-Date: 2026-07-31 13:47+0700\n"
 "Last-Translator: KiKaraage <kikaraage@tuta.io>\n"
 "Language-Team: Indonesian\n"
 "Language: id\n"
@@ -20,23 +20,33 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Gtranslator 50.0\n"
+"X-DL-VCS-Web: https://github.com/bazaar-org/bazaar\n"
+"X-DL-Lang: id\n"
+"X-DL-Module: bazaar\n"
+"X-DL-Branch: main\n"
+"X-DL-Domain: po\n"
+"X-DL-State: Translating\n"
 
 #: data/io.github.kolunmi.Bazaar.desktop.in:2
 #: data/io.github.kolunmi.Bazaar.metainfo.xml.in:7 src/bz-window.blp:47
-#: src/bz-window.blp:203 src/bz-window.c:386 src/bz-window.c:387
+#: src/bz-window.blp:203 src/bz-window.c:387 src/bz-window.c:388
 msgid "Bazaar"
 msgstr "Bazaar"
 
 #: data/io.github.kolunmi.Bazaar.desktop.in:3
+msgid "App Store"
+msgstr "Toko Aplikasi"
+
+#: data/io.github.kolunmi.Bazaar.desktop.in:4
 msgid "Add, remove or update flatpak software on this computer"
 msgstr "Tambah, hapus atau perbarui aplikasi Flatpak pada komputer ini"
 
 # Added "Aplikasi" and "Pusat Aplikasi" (App Center) to search queries
-#: data/io.github.kolunmi.Bazaar.desktop.in:9
-msgid "GTK;System;PackageManager;Discover;Flatpak;Software;Store;"
-msgstr "GTK;Sistem;PackageManager;Discover;Flatpak;Aplikasi;Toko;PerangkatLunak;PusatAplikasi;ManajerPaket;"
+#: data/io.github.kolunmi.Bazaar.desktop.in:10
+msgid "System;Package;Manager;Discover;Flatpak;Software;App;Store;"
+msgstr "Sistem;Package;Manager;Discover;Flatpak;Aplikasi;Toko;Pusat;Manajer;Paket;"
 
-#: data/io.github.kolunmi.Bazaar.desktop.in:16
+#: data/io.github.kolunmi.Bazaar.desktop.in:17
 msgid "New Window"
 msgstr "Jendela Baru"
 
@@ -68,7 +78,7 @@ msgstr "Masuk dengan Flathub untuk lihat dan kelola aplikasi favoritmu"
 msgid "Search apps directly from GNOME Shell"
 msgstr "Cari aplikasi langsung dari bilah pencarian GNOME"
 
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:30 src/bz-application.c:787
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:30 src/bz-application.c:766
 msgid "The Bazaar Contributors"
 msgstr "Kontributor Bazaar"
 
@@ -130,11 +140,11 @@ msgstr ""
 msgid "Add-on Page"
 msgstr "Halaman Modul Tambahan"
 
-#: src/bz-addons-dialog.blp:204 src/bz-full-view.blp:411
+#: src/bz-addons-dialog.blp:204 src/bz-full-view.blp:408
 msgid "Downloads/Month"
 msgstr "Unduhan/Bulan"
 
-#: src/bz-addons-dialog.blp:231 src/bz-full-view.blp:447
+#: src/bz-addons-dialog.blp:231 src/bz-full-view.blp:444
 msgid "Stopped Receiving Core Updates"
 msgstr "Berhenti Menerima Pembaruan Utama"
 
@@ -147,26 +157,26 @@ msgstr ""
 "menerima pembaruan maupun perbaikan keamanan, dan kemungkinan tidak aman "
 "untuk digunakan."
 
-#: src/bz-addons-dialog.c:333
+#: src/bz-addons-dialog.c:346
 #, c-format
 msgid "Add-on for %s"
 msgstr "Modul Tambahan untuk %s"
 
-#: src/bz-addons-dialog.c:347 src/bz-full-view.c:626
+#: src/bz-addons-dialog.c:360 src/bz-full-view.c:618
 msgid "Show Less"
 msgstr "Sembunyikan"
 
-#: src/bz-addons-dialog.c:347 src/bz-full-view.c:626 src/bz-section-view.blp:72
+#: src/bz-addons-dialog.c:360 src/bz-full-view.c:618 src/bz-section-view.blp:72
 msgid "Show More"
 msgstr "Tampilkan Lebih Banyak"
 
-#: src/bz-addons-dialog.c:397
+#: src/bz-addons-dialog.c:410
 msgid "Download Stats"
 msgstr "Statistik Unduhan"
 
 #: src/bz-age-rating-dialog.blp:7 src/bz-age-rating-dialog.blp:31
-#: src/bz-age-rating-dialog.c:736 src/context-tile-callbacks.c:186
-#: src/context-tile-callbacks.c:193
+#: src/bz-age-rating-dialog.c:736 src/context-tile-callbacks.c:187
+#: src/context-tile-callbacks.c:194
 msgid "Age Rating"
 msgstr "Peringkat Usia"
 
@@ -496,7 +506,7 @@ msgid "Violence"
 msgstr "Kekerasan"
 
 #. Translators: Age rating format, e.g. "12+" for ages 12 and up
-#: src/bz-age-rating-dialog.c:686 src/context-tile-callbacks.c:176
+#: src/bz-age-rating-dialog.c:686 src/context-tile-callbacks.c:177
 #, c-format
 msgid "%d+"
 msgstr "%d+"
@@ -672,43 +682,43 @@ msgstr "Akses sistem file ke %s"
 msgid "Unknown filesystem path"
 msgstr "Jalur sistem file tidak diketahui"
 
-#: src/bz-app-size-dialog.blp:26 src/bz-app-size-dialog.blp:60
+#: src/bz-app-size-dialog.blp:30 src/bz-app-size-dialog.blp:71
 msgid "Download Size"
 msgstr "Ukuran Unduh"
 
-#: src/bz-app-size-dialog.blp:33 src/bz-app-size-dialog.blp:81
+#: src/bz-app-size-dialog.blp:40 src/bz-app-size-dialog.blp:99
 msgid "Installed Size"
 msgstr "Ukuran Terpasang"
 
-#: src/bz-app-size-dialog.blp:61
+#: src/bz-app-size-dialog.blp:72
 msgid "Amount to download from the internet"
 msgstr "Ukuran yang diunduh dari internet"
 
-#: src/bz-app-size-dialog.blp:82
+#: src/bz-app-size-dialog.blp:100
 msgid "Size on Disk"
 msgstr "Ukuran Tersimpan"
 
-#: src/bz-app-size-dialog.blp:133
+#: src/bz-app-size-dialog.blp:203
 msgid "Open user data folder"
-msgstr "Buka folder data pengguna"
+msgstr "Buka direktori data pengguna"
 
-#: src/bz-app-size-dialog.blp:143
+#: src/bz-app-size-dialog.blp:213
 msgid "Your User Data"
 msgstr "Data Pengguna"
 
-#: src/bz-app-size-dialog.blp:144
+#: src/bz-app-size-dialog.blp:214
 msgid "Caches, settings, and other app data"
 msgstr "Cache, konfigurasi, dan data aplikasi lainnya"
 
-#: src/bz-app-size-dialog.blp:165
+#: src/bz-app-size-dialog.blp:234
 msgid "Cache"
 msgstr "Cache"
 
-#: src/bz-app-size-dialog.blp:166
+#: src/bz-app-size-dialog.blp:235
 msgid "Temporary cached data"
 msgstr "Data cache temporer"
 
-#: src/bz-app-size-dialog.blp:176
+#: src/bz-app-size-dialog.blp:247
 msgid "Clear Cache"
 msgstr "Bersihkan cache"
 
@@ -721,44 +731,44 @@ msgid "Runtime Download Size"
 msgstr "Ukuran Unduh Tempokerja"
 
 #: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:185
-#: src/context-tile-callbacks.c:104 src/context-tile-callbacks.c:393
-#: src/context-tile-callbacks.c:410
+#: src/context-tile-callbacks.c:104 src/context-tile-callbacks.c:394
+#: src/context-tile-callbacks.c:416
 msgid "N/A"
 msgstr "Nihil"
 
-#: src/bz-app-size-dialog.c:226
+#: src/bz-app-size-dialog.c:207
 msgid "App Size"
 msgstr "Ukuran Aplikasi"
 
-#: src/bz-app-tile.blp:57 src/bz-developer-badge.c:98
+#: src/bz-app-tile.blp:56 src/bz-developer-badge.c:98
 #: src/bz-rich-app-tile.blp:106 src/bz-rich-app-tile.c:443
 msgid "Verified"
 msgstr "Terverifikasi"
 
 #. Translators: As in 'The app is installed'.
-#: src/bz-app-tile.blp:88 src/context-tile-callbacks.c:135
-#: src/bz-releases-list.c:206
+#: src/bz-app-tile.blp:87 src/bz-releases-list.c:206
+#: src/context-tile-callbacks.c:136
 msgid "Installed"
 msgstr "Terpasang"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:790
+#: src/bz-application.c:769
 msgid "translator-credits"
 msgstr "KiKaraage <kikaraage@tuta.io>, 2025"
 
-#: src/bz-application.c:800
+#: src/bz-application.c:779
 msgid "Special Thanks"
 msgstr "Terima Kasih Khusus"
 
-#: src/bz-application.c:858
+#: src/bz-application.c:837
 msgid "Logged Out Successfully!"
 msgstr "Akun Berhasil Dikeluarkan!"
 
-#: src/bz-application.c:1038
+#: src/bz-application.c:1027
 msgid "Ubuntu Troubles!"
 msgstr "Masalah dengan Ubuntu!"
 
-#: src/bz-application.c:1041
+#: src/bz-application.c:1030
 msgid ""
 "The more recent versions of Ubuntu have messed up default security rules, "
 "making it <b>impossible to install apps</b> from the Flatpak version of "
@@ -780,19 +790,19 @@ msgstr ""
 "\n"
 "<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"
 
-#: src/bz-application.c:1047
+#: src/bz-application.c:1036
 msgid "Continue Anyway"
 msgstr "Tetap Pasang"
 
-#: src/bz-application.c:1063
+#: src/bz-application.c:1052
 msgid "Performing setup…"
 msgstr "Melakukan pengaturan..."
 
-#: src/bz-application.c:1155
+#: src/bz-application.c:1144
 msgid "Set Up System Flathub?"
 msgstr "Atur Flathub pada Sistem?"
 
-#: src/bz-application.c:1158
+#: src/bz-application.c:1147
 msgid ""
 "The system Flathub remote is not set up. Bazaar requires Flathub to be "
 "configured on the system Flatpak installation to browse and install "
@@ -807,11 +817,11 @@ msgstr ""
 "Anda masih dapat menggunakan Bazaar untuk mencari dan menghapus aplikasi "
 "terpasang."
 
-#: src/bz-application.c:1165
+#: src/bz-application.c:1154
 msgid "Set Up Flathub?"
 msgstr "Atur Flathub?"
 
-#: src/bz-application.c:1168
+#: src/bz-application.c:1157
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -824,48 +834,52 @@ msgstr ""
 "Anda masih dapat menggunakan Bazaar untuk mencari dan menghapus aplikasi "
 "terpasang."
 
-#: src/bz-application.c:1174
+#: src/bz-application.c:1163
 msgid "Later"
 msgstr "Nanti"
 
-#: src/bz-application.c:1175
+#: src/bz-application.c:1164
 msgid "Set Up Flathub"
 msgstr "Atur Flathub"
 
-#: src/bz-application.c:1699
+#: src/bz-application.c:1697
 msgid "A backend error occurred"
 msgstr "Terjadi kegagalan latar belakang"
 
-#: src/bz-application.c:1899 src/bz-application.c:4114
+#: src/bz-application.c:1905 src/bz-application.c:4152
 msgid "Refreshing…"
 msgstr "Memuat ulang..."
 
-#: src/bz-application.c:2063 src/bz-application.c:4112
+#: src/bz-application.c:2069 src/bz-application.c:4150
 #, c-format
 msgid "Loading %d apps…"
 msgstr "%d aplikasi dimuat..."
 
-#: src/bz-application.c:2116
+#: src/bz-application.c:2122 src/bz-application.c:2196
 msgid "Failed to open file"
 msgstr "Gagal membuka berkas"
 
-#: src/bz-application.c:2237
+#: src/bz-application.c:2210
+msgid "Failed to load metainfo"
+msgstr "Gagal memuat berkas metainfo"
+
+#: src/bz-application.c:2304
 msgid "An initialization error occurred"
 msgstr "Terjadi kegagalan initialisasi"
 
-#: src/bz-application.c:2631
+#: src/bz-application.c:2703
 msgid "Checking for updates…"
 msgstr "Memeriksa pembaruan..."
 
-#: src/bz-application.c:2687
+#: src/bz-application.c:2759
 msgid "Failed to check for updates"
 msgstr "Gagal memeriksa pembaruan"
 
-#: src/bz-application.c:3824
+#: src/bz-application.c:3925
 msgid "Malformed Link"
 msgstr "Format Tautan Salah"
 
-#: src/bz-application.c:3825
+#: src/bz-application.c:3926
 msgid ""
 "The link used to open this app has incorrect capitalization and may stop "
 "working in the future.\n"
@@ -878,15 +892,11 @@ msgstr ""
 "Hal ini kemungkinan disebabkan oleh terkirimnya ID aplikasi yang tidak tepat "
 "oleh KRunner"
 
-#: src/bz-application.c:3833
+#: src/bz-application.c:3934
 msgid "Could not find app"
 msgstr "Tidak dapat mencari aplikasi"
 
-#: src/bz-application.c:3864
-msgid "Failed to load metainfo"
-msgstr "Gagal memuat berkas metainfo"
-
-#: src/bz-application.c:4116
+#: src/bz-application.c:4154
 msgid "Writing to cache…"
 msgstr "Menulis cache..."
 
@@ -932,20 +942,21 @@ msgstr ""
 msgid "Successfully Installed!"
 msgstr "Sukses Terpasang!"
 
-#: src/bz-bundle-install-dialog.blp:437 src/bz-bundle-install-dialog.blp:522
-#: src/bz-rich-app-tile.blp:199 src/bz-transaction-tile.blp:298
+#. TRANSLATORS: Button to launch an installed app
+#: src/bz-bundle-install-dialog.blp:438 src/bz-bundle-install-dialog.blp:524
+#: src/bz-rich-app-tile.blp:199 src/bz-transaction-tile.blp:299
 msgid "Open"
 msgstr "Buka"
 
-#: src/bz-bundle-install-dialog.blp:447 src/bz-bundle-install-dialog.blp:532
+#: src/bz-bundle-install-dialog.blp:448 src/bz-bundle-install-dialog.blp:534
 msgid "Show App Details"
 msgstr "Lihat Detail Aplikasi"
 
-#: src/bz-bundle-install-dialog.blp:498
+#: src/bz-bundle-install-dialog.blp:499
 msgid "Already Installed"
 msgstr "Telah Terpasang"
 
-#: src/bz-bundle-install-dialog.blp:544
+#: src/bz-bundle-install-dialog.blp:546
 msgid "Installation Failed"
 msgstr "Pemasangan Gagal"
 
@@ -962,141 +973,11 @@ msgstr "Sekitar %s untuk memasang"
 msgid "No special permissions"
 msgstr "Tidak ada izin khusus"
 
-#: src/context-tile-callbacks.c:68
-msgid "---"
-msgstr "---"
-
-#. Translators: M is the suffix for millions
-#: src/context-tile-callbacks.c:75
-#, c-format
-msgid "%.*fM"
-msgstr "%.*fjt"
-
-#. Translators: K is the suffix for thousands
-#: src/context-tile-callbacks.c:82
-#, c-format
-msgid "%.*fK"
-msgstr "%.*frb"
-
-#: src/context-tile-callbacks.c:92
-#, c-format
-msgid "%d downloads in the last month"
-msgstr "%d unduhan dalam sebulan terakhir"
-
-#: src/context-tile-callbacks.c:132
-#, c-format
-msgid "+%s runtime"
-msgstr "+%s Tempokerja (Runtime)"
-
-#: src/context-tile-callbacks.c:135
-msgid "Download"
-msgstr "Ukuran Unduh"
-
-#: src/context-tile-callbacks.c:155
-msgid "Size information unavailable"
-msgstr "Info ukuran apl tidak tersedia"
-
-#: src/context-tile-callbacks.c:158
-#, c-format
-msgid "Download size of %s"
-msgstr "Ukuran unduhan %s"
-
-#: src/context-tile-callbacks.c:191
-msgid "All Ages"
-msgstr "Semua Usia"
-
-#: src/context-tile-callbacks.c:203
-msgid "Age rating information unavailable"
-msgstr "Info panduan usia tidak tersedia"
-
-#: src/context-tile-callbacks.c:208
-msgid "Suitable for all ages"
-msgstr "Cocok untuk semua usia"
-
-#: src/context-tile-callbacks.c:210
-#, c-format
-msgid "Suitable for ages %d and up"
-msgstr "Cocok untuk usia %d ke atas"
-
-#: src/context-tile-callbacks.c:243 src/context-tile-callbacks.c:248
-#: src/context-tile-callbacks.c:276 src/context-tile-callbacks.c:285
-msgid "Unknown"
-msgstr "Tidak Diketahui"
-
-#: src/context-tile-callbacks.c:253
-#, c-format
-msgid "Free software licensed under %s"
-msgstr "Aplikasi bebas di bawah lisensi %s"
-
-#: src/context-tile-callbacks.c:258
-msgid "Free software"
-msgstr "Aplikasi bebas"
-
-#: src/context-tile-callbacks.c:261
-msgid "Proprietary Software"
-msgstr "Aplikasi dengan hak cipta khusus"
-
-#: src/context-tile-callbacks.c:264
-#, c-format
-msgid "Special License: %s"
-msgstr "Lisensi Khusus: %s"
-
-#. TRANSLATORS: You can omit the "software" part if your translation makes it obvious we're talking about "libre" and not "gratis"
-#: src/context-tile-callbacks.c:282
-msgid "Free Software"
-msgstr "Aplikasi Bebas"
-
-#: src/context-tile-callbacks.c:288 src/bz-license-dialog.c:133
-msgid "Proprietary"
-msgstr "Proprietari"
-
-#: src/context-tile-callbacks.c:290 src/bz-license-dialog.c:135
-msgid "Special License"
-msgstr "Lisensi Khusus"
-
-#: src/context-tile-callbacks.c:310
-msgid "Adaptive"
-msgstr "Adaptif"
-
-#: src/context-tile-callbacks.c:310
-msgid "Desktop Only"
-msgstr "Hanya Desktop"
-
-#: src/context-tile-callbacks.c:316
-msgid "Works on desktop, tablets, and phones"
-msgstr "Bekerja di desktop, tablet dan ponsel"
-
-#: src/context-tile-callbacks.c:317
-msgid "May not work on mobile devices"
-msgstr "Mungkin tidak bekerja optimal di ponsel"
-
-#: src/context-tile-callbacks.c:400 src/bz-safety-dialog.blp:79
-msgid "Safe"
-msgstr "Aman"
-
-#: src/context-tile-callbacks.c:402 src/context-tile-callbacks.c:404
-msgid "Low Risk"
-msgstr "Risiko Rendah"
-
-#: src/context-tile-callbacks.c:406
-msgid "Medium Risk"
-msgstr "Risiko Sedang"
-
-#: src/context-tile-callbacks.c:408
-msgid "High Risk"
-msgstr "Risiko Tinggi"
-
-#: src/bz-curated-view.blp:24 src/bz-favorites-page.blp:46
-#: src/bz-flathub-page.blp:19 src/bz-full-view.blp:30 src/bz-full-view.blp:41
-#: src/bz-library-page.blp:67 src/bz-user-data-page.blp:30
-msgid "Empty"
-msgstr "Kosong"
-
-#: src/bz-curated-view.blp:28
+#: src/bz-curated-view.blp:27
 msgid "No Curation"
 msgstr "Pilihan Belum Tersedia"
 
-#: src/bz-curated-view.blp:30
+#: src/bz-curated-view.blp:29
 msgid ""
 "There is no curation information provided on this system. You can still "
 "browse apps on Flathub"
@@ -1104,22 +985,13 @@ msgstr ""
 "Info kurasi tidak tersedia pada sistem ini. Anda masih dapat menjelajahi "
 "aplikasi dari Flathub"
 
-#: src/bz-curated-view.blp:34
+#: src/bz-curated-view.blp:33
 msgid "Browse Flathub"
 msgstr "Jelajah Flathub"
 
-#: src/bz-curated-view.blp:47 src/bz-curated-view.blp:51
+#: src/bz-curated-view.blp:49
 msgid "Offline"
 msgstr "Tidak Ada Jaringan"
-
-#. Translators: Search suggestion: the english text will be used for the
-#. search regardless of what you put here, so don't worry about the string
-#. yielding poor search results. Focus on correctness and friendliness,
-#. etc
-#: src/bz-curated-view.blp:57 src/bz-flathub-page.blp:61
-#: src/bz-search-pill-list.c:67
-msgid "Browser"
-msgstr "Peramban"
 
 #: src/bz-developer-badge.c:94 src/bz-developer-badge.c:98
 msgid "Not Verified"
@@ -1225,16 +1097,17 @@ msgstr "pengguna ini"
 msgid "all users"
 msgstr "semua pengguna"
 
-#: src/bz-error-dialog.blp:36 src/error.c:69 src/error.c:88
-#: src/bz-safety-dialog.blp:98
+#: src/bz-error-dialog.blp:36 src/bz-safety-dialog.blp:98 src/error.c:69
+#: src/error.c:88
 msgid "Details"
 msgstr "Rincian"
 
-#: src/bz-error-dialog.blp:47
+#. TRANSLATORS: tooltip for a button that copies text to the clipboard
+#: src/bz-error-dialog.blp:48
 msgid "Copy"
 msgstr "Salin"
 
-#: src/bz-error-dialog.c:56 src/bz-screenshot-page.c:415
+#: src/bz-error-dialog.c:56 src/bz-screenshot-page.c:446
 #: src/bz-share-list.c:364
 msgid "Copied!"
 msgstr "Tersalin!"
@@ -1255,8 +1128,7 @@ msgstr "Masuk dengan Flathub dan kelola aplikasi favorit"
 msgid "Log In"
 msgstr "Masuk"
 
-#: src/bz-favorites-page.blp:5 src/bz-favorites-page.blp:56
-#: src/bz-window.blp:348
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:348
 msgid "Favorites"
 msgstr "Aplikasi Favorit"
 
@@ -1264,15 +1136,11 @@ msgstr "Aplikasi Favorit"
 msgid "Install All"
 msgstr "Pasang Semua"
 
-#: src/bz-favorites-page.blp:34 src/bz-user-data-page.blp:19
-msgid "Loading"
-msgstr "Memuat"
-
-#: src/bz-favorites-page.blp:49
+#: src/bz-favorites-page.blp:47
 msgid "No Favorites"
 msgstr "Tidak Ada Favorit"
 
-#: src/bz-favorites-page.blp:50
+#: src/bz-favorites-page.blp:48
 msgid "Applications you mark as favorite will appear here"
 msgstr "Aplikasi yang Anda tandai sebagai favorit akan muncul di sini"
 
@@ -1512,7 +1380,7 @@ msgstr "Apl Sistem Lain"
 msgid "Utilities"
 msgstr "Utilitas"
 
-#: src/bz-flathub-category.c:143 src/bz-flathub-page.blp:437
+#: src/bz-flathub-category.c:143 src/bz-flathub-page.blp:434
 msgid "Tools"
 msgstr "Alat"
 
@@ -1520,8 +1388,8 @@ msgstr "Alat"
 msgid "More Utilities"
 msgstr "Apl Utilitas Lain"
 
-#: src/bz-flathub-category.c:144 src/bz-flathub-page.blp:109
-#: src/bz-flathub-page.blp:141
+#: src/bz-flathub-category.c:144 src/bz-flathub-page.blp:106
+#: src/bz-flathub-page.blp:138
 msgid "Trending"
 msgstr "Sedang Tren"
 
@@ -1529,8 +1397,8 @@ msgstr "Sedang Tren"
 msgid "More Trending"
 msgstr "Aplikasi Tren Lainnya"
 
-#: src/bz-flathub-category.c:145 src/bz-flathub-page.blp:115
-#: src/bz-flathub-page.blp:174
+#: src/bz-flathub-category.c:145 src/bz-flathub-page.blp:112
+#: src/bz-flathub-page.blp:171
 msgid "Popular"
 msgstr "Populer"
 
@@ -1538,11 +1406,11 @@ msgstr "Populer"
 msgid "More Popular"
 msgstr "Apl Populer Lainnya"
 
-#: src/bz-flathub-category.c:146 src/bz-flathub-page.blp:163
+#: src/bz-flathub-category.c:146 src/bz-flathub-page.blp:160
 msgid "Recently Added"
 msgstr "Baru Saja Rilis"
 
-#: src/bz-flathub-category.c:146 src/bz-flathub-page.blp:121
+#: src/bz-flathub-category.c:146 src/bz-flathub-page.blp:118
 msgid "New"
 msgstr "Baru"
 
@@ -1550,11 +1418,11 @@ msgstr "Baru"
 msgid "More New"
 msgstr "Apl Baru Lainnya"
 
-#: src/bz-flathub-category.c:147 src/bz-flathub-page.blp:152
+#: src/bz-flathub-category.c:147 src/bz-flathub-page.blp:149
 msgid "Recently Updated"
 msgstr "Baru Dimutakhirkan"
 
-#: src/bz-flathub-category.c:147 src/bz-flathub-page.blp:127
+#: src/bz-flathub-category.c:147 src/bz-flathub-page.blp:124
 msgid "Updated"
 msgstr "Diperbarui"
 
@@ -1586,15 +1454,15 @@ msgstr "Aplikasi KDE"
 msgid "More KDE Apps"
 msgstr "Apl KDE Lainnya"
 
-#: src/bz-flathub-category.c:151 src/bz-flathub-page.blp:419
+#: src/bz-flathub-category.c:151 src/bz-flathub-page.blp:416
 msgid "Games"
 msgstr "Permainan"
 
-#: src/bz-flathub-category.c:151 src/bz-flathub-page.blp:479
+#: src/bz-flathub-category.c:151 src/bz-flathub-page.blp:476
 msgid "More Games"
 msgstr "Permainan Lainnya"
 
-#: src/bz-flathub-category.c:152 src/bz-flathub-page.blp:425
+#: src/bz-flathub-category.c:152 src/bz-flathub-page.blp:422
 msgid "Emulators"
 msgstr "Emulator"
 
@@ -1602,7 +1470,7 @@ msgstr "Emulator"
 msgid "More Emulators"
 msgstr "Emulator Lainnya"
 
-#: src/bz-flathub-category.c:153 src/bz-flathub-page.blp:431
+#: src/bz-flathub-category.c:153 src/bz-flathub-page.blp:428
 msgid "Launchers"
 msgstr "Peluncur"
 
@@ -1618,87 +1486,78 @@ msgstr "Alat Permainan"
 msgid "More Game Tools"
 msgstr "Alat Permainan Lainnya"
 
-#: src/bz-flathub-page.blp:23
+#: src/bz-flathub-page.blp:22
 msgid "Flathub Not Added"
 msgstr "Flathub Belum Ditambahkan"
 
-#: src/bz-flathub-page.blp:24
+#: src/bz-flathub-page.blp:23
 msgid "The Flathub remote was not found on any of your Flatpak installations"
 msgstr "Remote Flathub tidak ditemukan pada seluruh pemasangan Flatpak Anda"
 
-#: src/bz-flathub-page.blp:30
-msgid "Flathub Unavailable"
-msgstr "Flathub Tidak Tersedia"
-
-#: src/bz-flathub-page.blp:34
+#: src/bz-flathub-page.blp:32
 msgid "Can't Reach Flathub"
 msgstr "Tidak Dapat Menjangkau Flathub"
 
-#: src/bz-flathub-page.blp:35
+#: src/bz-flathub-page.blp:33
 msgid "You can still manage and search for apps."
 msgstr "Anda masih dapat mencari dan mengelola aplikasi."
 
-#: src/bz-flathub-page.blp:41
+#: src/bz-flathub-page.blp:39
 msgid "Search Apps"
 msgstr "Cari Aplikasi"
 
-#: src/bz-flathub-page.blp:52
+#: src/bz-flathub-page.blp:50
 msgid "Reconnect"
 msgstr "Tautkan Kembali"
 
-#: src/bz-flathub-page.blp:202
+#: src/bz-flathub-page.blp:199
 msgid "App of the Day"
 msgstr "Aplikasi Hari Ini"
 
-#: src/bz-flathub-page.blp:265
+#: src/bz-flathub-page.blp:262
 msgid "On the Go"
 msgstr "Di Mana Saja"
 
-#: src/bz-flathub-page.blp:277
+#: src/bz-flathub-page.blp:274
 msgid "Apps for your Linux phones and tablets"
 msgstr "Aplikasi untuk ponsel dan tablet Linux Anda"
 
-#: src/bz-flathub-page.blp:288 src/bz-flathub-page.blp:323
+#: src/bz-flathub-page.blp:285 src/bz-flathub-page.blp:320
 msgid "More Mobile Apps"
 msgstr "Apl Ponsel Lainnya"
 
-#: src/bz-flathub-page.blp:381
+#: src/bz-flathub-page.blp:378
 msgid "We​ ♥​ Games"
 msgstr "Kita ♥​ Main"
 
-#: src/bz-flathub-page.blp:394
+#: src/bz-flathub-page.blp:391
 msgid "Games and apps to run your favorite titles"
 msgstr "Permainan dan aplikasi untuk memainkan judul-judul favoritmu"
 
-#: src/bz-full-view.blp:34 src/bz-library-page.blp:78
-#: src/bz-library-page.blp:82
+#: src/bz-full-view.blp:33
 msgid "No Results"
 msgstr "Tidak Ada Hasil"
 
-#: src/bz-full-view.blp:35
+#: src/bz-full-view.blp:34
 msgid "Try a different search query"
 msgstr "Coba gunakan kata kunci lainnya"
 
-#: src/bz-full-view.blp:47
-msgid "Content"
-msgstr "Konten"
-
-#: src/bz-full-view.blp:106
+#: src/bz-full-view.blp:103
 msgid ""
 "This is a local preview, some details may differ from the published listing"
 msgstr ""
 "Ini merupakan pratinjau lokal, beberapa detail mungkin berbeda dari entri "
 "daftar setelah terbit"
 
-#: src/bz-full-view.blp:109
+#: src/bz-full-view.blp:106
 msgid "Preview Store Appearance"
 msgstr "Pratinjau Tampilan Toko"
 
-#: src/bz-full-view.blp:236
+#: src/bz-full-view.blp:233
 msgid "_Support"
 msgstr "_Dukung"
 
-#: src/bz-full-view.blp:461
+#: src/bz-full-view.blp:458
 msgid ""
 "This app uses a runtime that no longer receives updates or security fixes. "
 "It may become unsafe to use."
@@ -1707,21 +1566,25 @@ msgstr ""
 "pembaruan maupun perbaikan keamanan. Aplikasi ini mungkin tidak aman saat "
 "digunakan."
 
-#: src/bz-full-view.blp:539
+#: src/bz-full-view.blp:536
 msgid "Trash Data"
 msgstr "Buang Data"
 
-#: src/bz-full-view.blp:602
+#: src/bz-full-view.blp:599
 msgid "Add-ons"
 msgstr "Modul Tambahan"
 
-#: src/bz-full-view.blp:637
+#: src/bz-full-view.blp:634
 msgid "More Add-Ons"
 msgstr "Lebih Banyak Modul Tambahan"
 
-#: src/bz-full-view.blp:648
+#: src/bz-full-view.blp:645
 msgid "Links"
 msgstr "Tautan"
+
+#: src/bz-full-view.blp:676
+msgid "Similar Apps"
+msgstr "Aplikasi Serupa"
 
 #: src/bz-full-view.c:181
 msgid "No URL"
@@ -1756,7 +1619,7 @@ msgstr "Aplikasi Lain dari %s"
 msgid "Other Apps by this Developer"
 msgstr "Jelajah lebih dari pengembang ini"
 
-#: src/bz-full-view.c:217 src/bz-full-view.c:317
+#: src/bz-full-view.c:217 src/bz-full-view.c:309
 #, c-format
 msgid "Other Apps by %s"
 msgstr "Jelajah lebih dari %s"
@@ -1767,17 +1630,17 @@ msgid "%s is not installed, but it still has <b>%s</b> of data present."
 msgstr ""
 "%s sudah tidak terpasang, namun masih memiliki <b>%s</b> data tersimpan."
 
-#: src/bz-full-view.c:319
+#: src/bz-full-view.c:311
 msgid "Other Apps"
 msgstr "Aplikasi Lain"
 
-#: src/bz-full-view.c:321
+#: src/bz-full-view.c:313
 #, c-format
 msgid "%d Application"
 msgid_plural "%d Applications"
 msgstr[0] "%d Aplikasi"
 
-#: src/bz-full-view.c:506 src/bz-user-data-tile.c:144
+#: src/bz-full-view.c:498 src/bz-user-data-tile.c:160
 msgid "Failed to Remove User Data"
 msgstr "Gagal Menghapus Data Pengguna"
 
@@ -1875,6 +1738,10 @@ msgstr "%s bekerja optimal pada perangkat tertentu"
 msgid "%s works on most devices"
 msgstr "%s bekerja baik pada sebagian besar perangkat"
 
+#: src/bz-inspector.blp:23
+msgid "Inspector Menu"
+msgstr "Menu Pemeriksa"
+
 #: src/bz-install-controls.blp:58
 msgid "_Open"
 msgstr "_Buka"
@@ -1920,75 +1787,76 @@ msgstr "Membatalkan"
 msgid "Donate Button"
 msgstr "Tombol Sumbang"
 
-#: src/bz-library-page.blp:32
+#: src/bz-library-page.blp:17
 msgid "Search installed apps"
 msgstr "Cari aplikasi terpasang"
 
-#: src/bz-library-page.blp:50
-msgid "Clear search"
-msgstr "Bersihkan pencarian"
-
-#: src/bz-library-page.blp:71
+#: src/bz-library-page.blp:32
 msgid "No Apps Found"
 msgstr "Tidak Ada Aplikasi Tersedia"
 
-#: src/bz-library-page.blp:90
+#: src/bz-library-page.blp:49
 msgid "Search Store Instead"
 msgstr "Coba Cari di Toko"
 
-#. Translators: .
-#: src/bz-library-page.blp:100 src/bz-window.blp:114
-msgid "Library"
-msgstr "Pustaka"
-
-#: src/bz-library-page.blp:129
+#: src/bz-library-page.blp:86
 msgid "Pending Updates"
 msgstr "Pembaruan Tertunda"
 
-#: src/bz-library-page.blp:156
+#: src/bz-library-page.blp:113
 msgid "Downloads"
 msgstr "Unduhan"
 
-#: src/bz-library-page.blp:199
+#: src/bz-library-page.blp:156
 msgid "Recently Uninstalled"
 msgstr "Baru Dihapus"
 
-#: src/bz-library-page.blp:250
+#: src/bz-library-page.blp:207
 msgid "Clear Finished Tasks"
 msgstr "Bersihkan Transaksi Lama"
 
-#: src/bz-library-page.blp:277
+#: src/bz-library-page.blp:234
 msgid "Sort Options"
 msgstr "Opsi Saring"
 
-#: src/bz-library-page.blp:336
+#: src/bz-library-page.blp:293
 msgid "Sort By"
 msgstr "Urutkan"
 
-#: src/bz-library-page.blp:350
+#: src/bz-library-page.blp:307
 msgid "Name"
 msgstr "Nama"
 
-#: src/bz-library-page.blp:356
+#: src/bz-library-page.blp:313
 msgid "Size"
 msgstr "Ukuran"
 
-#: src/bz-library-page.c:180
+#: src/bz-library-page.c:181
 #, c-format
 msgid "No matches found for \"%s\" in the list of installed apps"
 msgstr "Tidak ada hasil yang cocok untuk \"%s\" dari aplikasi terpasang"
 
-#: src/bz-library-page.c:193 src/bz-updates-card.c:437
+#: src/bz-library-page.c:194 src/bz-updates-card.c:437
 #, c-format
 msgid "%u Available Update"
 msgid_plural "%u Available Updates"
 msgstr[0] "%u Pembaruan Tersedia"
 
-#: src/bz-library-page.c:203
+#: src/bz-library-page.c:204
 #, c-format
 msgid "%u Installed App"
 msgid_plural "%u Installed Apps"
 msgstr[0] "%u Aplikasi Terpasang"
+
+#: src/bz-library-page.c:629 src/bz-search-page.c:786
+msgid "No applications found"
+msgstr "Tidak ada aplikasi tersedia"
+
+#: src/bz-library-page.c:629 src/bz-search-page.c:788
+#, c-format
+msgid "One application found"
+msgid_plural "%u applications found"
+msgstr[0] "%u aplikasi ditemukan"
 
 #: src/bz-license-dialog.blp:87
 msgid "Get Involved"
@@ -2005,6 +1873,14 @@ msgstr "Lisensi Tidak Diketahui"
 #: src/bz-license-dialog.c:130
 msgid "Community Built"
 msgstr "Dibangun Bersama"
+
+#: src/bz-license-dialog.c:133 src/context-tile-callbacks.c:289
+msgid "Proprietary"
+msgstr "Proprietari"
+
+#: src/bz-license-dialog.c:135 src/context-tile-callbacks.c:291
+msgid "Special License"
+msgstr "Lisensi Khusus"
 
 #: src/bz-license-dialog.c:203
 msgid ""
@@ -2083,25 +1959,29 @@ msgstr "Selesai"
 msgid "Hello, %s!"
 msgstr "Halo, %s!"
 
-#: src/bz-metainfo-preview.c:84
-msgid "Select Metainfo File"
-msgstr "Pilih Berkas Metainfo"
+#: src/bz-metainfo-preview.c:105
+msgid "Add Icon to Metainfo Preview?"
+msgstr "Tambah Ikon ke Pratinjau Infometa?"
 
-#: src/bz-metainfo-preview.c:87
-msgid "Metainfo Files"
-msgstr "Berkas Metainfo"
+#: src/bz-metainfo-preview.c:108
+msgid ""
+"Metainfo files don't include app icons by themselves. Would you like to "
+"select one manually?"
+msgstr ""
+"Berkas informasi metadata belum mencakup ikon aplikasi. Apakah Anda ingin "
+"memilih ikon secara manual?"
 
-#: src/bz-metainfo-preview.c:141
-msgid "Select Icon (Optional)"
-msgstr "Pilih Ikon (Opsional)"
+#: src/bz-metainfo-preview.c:111
+msgid "Skip"
+msgstr "Lewati"
 
-#: src/bz-metainfo-preview.c:144
+#: src/bz-metainfo-preview.c:112 src/bz-metainfo-preview.c:163
+msgid "Select Icon"
+msgstr "Pilih Ikon"
+
+#: src/bz-metainfo-preview.c:166
 msgid "Image Files"
 msgstr "Berkas Gambar"
-
-#: src/bz-metainfo-preview.c:231
-msgid "Preview"
-msgstr "Pratinjau"
 
 #: src/bz-preferences-dialog.blp:19
 msgid "Preferences"
@@ -2116,130 +1996,168 @@ msgid "Refresh Manually"
 msgstr "Segarkan Langsung"
 
 #: src/bz-preferences-dialog.blp:31
+msgid "App Updates"
+msgstr "Pembaruan Aplikasi"
+
+#: src/bz-preferences-dialog.blp:47
+msgid ""
+"Checking for and downloading app updates uses data and power. Automatic app "
+"update features are therefore paused when on metered network connections and "
+"when power saver is on."
+msgstr ""
+"Proses cek dan unduh pembaruan aplikasi membutuhkan daya dan koneksi, "
+"sehingga pembaruan otomatis akan dijeda saat perangkat berada dalam mode "
+"hemat daya atau terhubung pada internet berbatas."
+
+#: src/bz-preferences-dialog.blp:53
+msgid "_Automatic"
+msgstr "_Otomatis"
+
+#: src/bz-preferences-dialog.blp:54
+msgid "Automatically check for and download app updates"
+msgstr "Cek dan unduh pembaruan aplikasi secara otomatis"
+
+#: src/bz-preferences-dialog.blp:63
+msgid "_Manual"
+msgstr "_Manual"
+
+#: src/bz-preferences-dialog.blp:64
+msgid "Checking for and downloading app updates must be done manually"
+msgstr "Proses cek dan unduh pembaruan aplikasi harus dilakukan secara manual"
+
+#: src/bz-preferences-dialog.blp:80
+msgid "Automatic Update _Notifications"
+msgstr "_Notifikasi Pembaruan Otomatis"
+
+#: src/bz-preferences-dialog.blp:81
+msgid "Notify when updates have been automatically installed"
+msgstr "Beritahu jika aplikasi telah diperbarui secara otomatis"
+
+#: src/bz-preferences-dialog.blp:86
 msgid "Content Filters"
 msgstr "Saringan Konten"
 
-#: src/bz-preferences-dialog.blp:34
-msgid "Free Software Only"
-msgstr "Sembunyikan Aplikasi Sumber Tertutup"
+#: src/bz-preferences-dialog.blp:89
+msgid "_Free Software Only"
+msgstr "Sembunyikan Aplikasi Sumber _Tertutup"
 
-#: src/bz-preferences-dialog.blp:35
+#: src/bz-preferences-dialog.blp:90
 msgid "Hide proprietary apps when browsing and searching"
 msgstr "Hanya tampilkan aplikasi bersumber terbuka pada hasil cari/jelajah"
 
-#: src/bz-preferences-dialog.blp:39
-msgid "Flathub Results Only"
-msgstr "Hanya Tampilkan Aplikasi Flathub"
+#: src/bz-preferences-dialog.blp:95
+msgid "F_lathub Results Only"
+msgstr "Hanya Tampilkan Aplikasi _Flathub"
 
-#: src/bz-preferences-dialog.blp:40
+#: src/bz-preferences-dialog.blp:96
 msgid "Limit search and browse results to apps only available on Flathub"
 msgstr "Batasi hasil cari/jelajah hanya pada aplikasi dari Flathub"
 
-#: src/bz-preferences-dialog.blp:44
-msgid "Verified Results Only"
-msgstr "Hanya Tampilkan Apl Terverifikasi"
+#: src/bz-preferences-dialog.blp:101
+msgid "_Verified Results Only"
+msgstr "Hanya Tampilkan Apl Ter_verifikasi"
 
-#: src/bz-preferences-dialog.blp:45
+#: src/bz-preferences-dialog.blp:102
 msgid "Hide results that are not verified on Flathub"
 msgstr "Sembunyikan aplikasi tanpa verifikasi Flathub"
 
-#: src/bz-preferences-dialog.blp:49
-msgid "Hide End-of-Life Apps"
-msgstr "Sembunyikan Aplikasi Tanpa Dukungan"
+#: src/bz-preferences-dialog.blp:107
+msgid "Hide _End-of-Life Apps"
+msgstr "Sembunyikan Aplikasi Tanpa _Dukungan"
 
-#: src/bz-preferences-dialog.blp:50
+#: src/bz-preferences-dialog.blp:108
 msgid "Hide apps which are no longer supported by their developers"
 msgstr "Sembunyikan aplikasi yang sudah tidak didukung oleh para pengembangnya"
 
-#: src/bz-preferences-dialog.blp:55
+#: src/bz-preferences-dialog.blp:114
 msgid "Progress Bar Theme"
 msgstr "Tema Bilah Kemajuan"
 
-#: src/bz-preferences-dialog.c:32
+#: src/bz-preferences-dialog.c:33
 msgid "Accent Color"
 msgstr "Warna Aksen"
 
-#: src/bz-preferences-dialog.c:33
+#: src/bz-preferences-dialog.c:34
 msgid "Pride Colors"
 msgstr "Warna Kebanggaan"
 
-#: src/bz-preferences-dialog.c:34
+#: src/bz-preferences-dialog.c:35
 msgid "Lesbian Pride Colors"
 msgstr "Warna Bangga Lesbian"
 
-#: src/bz-preferences-dialog.c:35
+#: src/bz-preferences-dialog.c:36
 msgid "Male Homosexual Pride Colors"
 msgstr "Warna Bangga Homoseksual Pria"
 
-#: src/bz-preferences-dialog.c:36
+#: src/bz-preferences-dialog.c:37
 msgid "Transgender Pride Colors"
 msgstr "Warna Bangga Transgender"
 
-#: src/bz-preferences-dialog.c:37
+#: src/bz-preferences-dialog.c:38
 msgid "Nonbinary Pride Colors"
 msgstr "Warna Bangga Nonbiner"
 
-#: src/bz-preferences-dialog.c:38
+#: src/bz-preferences-dialog.c:39
 msgid "Bisexual Pride Colors"
 msgstr "Warna Bangga Biseksual"
 
-#: src/bz-preferences-dialog.c:39
+#: src/bz-preferences-dialog.c:40
 msgid "Asexual Pride Colors"
 msgstr "Warna Bangga Aseksual"
 
-#: src/bz-preferences-dialog.c:40
+#: src/bz-preferences-dialog.c:41
 msgid "Pansexual Pride Colors"
 msgstr "Warna Bangga Panseksual"
 
-#: src/bz-preferences-dialog.c:41
+#: src/bz-preferences-dialog.c:42
 msgid "Aromantic Pride Colors"
 msgstr "Warna Bangga Aromantik"
 
-#: src/bz-preferences-dialog.c:42
+#: src/bz-preferences-dialog.c:43
 msgid "Genderfluid Pride Colors"
 msgstr "Warna Bangga Fluiditas Gender "
 
-#: src/bz-preferences-dialog.c:43
+#: src/bz-preferences-dialog.c:44
 msgid "Polysexual Pride Colors"
 msgstr "Warna Bangga Poliseksual"
 
-#: src/bz-preferences-dialog.c:44
+#: src/bz-preferences-dialog.c:45
 msgid "Omnisexual Pride Colors"
 msgstr "Warna Bangga Omniseksual"
 
-#: src/bz-preferences-dialog.c:45
+#: src/bz-preferences-dialog.c:46
 msgid "Aroace Pride Colors"
 msgstr "Warna Bangga Aromantik-Aseksual"
 
-#: src/bz-preferences-dialog.c:46
+#: src/bz-preferences-dialog.c:47
 msgid "Agender Pride Colors"
 msgstr "Warna Bangga Agender"
 
-#: src/bz-preferences-dialog.c:47
+#: src/bz-preferences-dialog.c:48
 msgid "Genderqueer Pride Colors"
 msgstr "Warna Bangga Genderqueer"
 
-#: src/bz-preferences-dialog.c:48
+#: src/bz-preferences-dialog.c:49
 msgid "Intersex Pride Colors"
 msgstr "Warna Bangga Interseks"
 
-#: src/bz-preferences-dialog.c:49
+#: src/bz-preferences-dialog.c:50
 msgid "Demigender Pride Colors"
 msgstr "Warna Bangga Demigender"
 
-#: src/bz-preferences-dialog.c:50
+#: src/bz-preferences-dialog.c:51
 msgid "Biromantic Pride Colors"
 msgstr "Warna Bangga Biromantik"
 
-#: src/bz-preferences-dialog.c:51
+#: src/bz-preferences-dialog.c:52
 msgid "Disability Pride Colors"
 msgstr "Warna Bangga Disabilitas"
 
-#: src/bz-preferences-dialog.c:52
+#: src/bz-preferences-dialog.c:53
 msgid "Femboy Pride Colors"
 msgstr "Warna Bangga Waria"
 
-#: src/bz-preferences-dialog.c:53
+#: src/bz-preferences-dialog.c:54
 msgid "Neutrois Pride Colors"
 msgstr "Warna Bangga Netrois"
 
@@ -2317,320 +2235,9 @@ msgstr "Bongkar"
 msgid "Get"
 msgstr "Pasang"
 
-#: src/safety-calculator.c:87
-msgid "Unknown Permissions"
-msgstr "Izin Tidak Jelas"
-
-#: src/safety-calculator.c:88
-msgid "Permissions are missing for this app."
-msgstr "Izin aplikasi ini tidak diketahui"
-
-#: src/safety-calculator.c:101
-msgid "No Permissions"
-msgstr "Tidak Ada Izin"
-
-#: src/safety-calculator.c:102
-msgid "App is fully sandboxed"
-msgstr "Aplikasi ini sepenuhnya terisolasi"
-
-#: src/safety-calculator.c:108
-msgid "Network Access"
-msgstr "Akses Jaringan"
-
-#: src/safety-calculator.c:109
-msgid "Can access the internet"
-msgstr "Dapat mengakses internet"
-
-#: src/safety-calculator.c:111
-msgid "No Network Access"
-msgstr "Tidak Ada Akses Jaringan"
-
-#: src/safety-calculator.c:112
-msgid "Cannot access the internet"
-msgstr "Tidak dapat mengakses internet"
-
-#: src/safety-calculator.c:117
-msgid "User Device Access"
-msgstr "Akses Perangkat Pengguna"
-
-#: src/safety-calculator.c:118
-msgid "Can access devices such as webcams or gaming controllers"
-msgstr "Dapat mengakses perangkat seperti kamera atau pengontrol mainan"
-
-#: src/safety-calculator.c:120
-msgid "No User Device Access"
-msgstr "Tidak Ada Akses Perangkat Pengguna"
-
-#: src/safety-calculator.c:121
-msgid "Cannot access devices such as webcams or gaming controllers"
-msgstr "Tidak dapat mengakses perangkat seperti kamera atau pengontrol mainan"
-
-#: src/safety-calculator.c:126
-msgid "Input Device Access"
-msgstr "Akses Perangkat Masukan"
-
-#: src/safety-calculator.c:127
-msgid "Can access input devices"
-msgstr "Dapat mengakses perangkat masukan"
-
-#: src/safety-calculator.c:133
-msgid "Microphone Access and Audio Playback"
-msgstr "Akses Mikrofon dan Pemutaran Suara"
-
-#: src/safety-calculator.c:134
-msgid "Can listen using microphones and play audio without asking permission"
-msgstr "Dapat mengakses mikrofon dan memutar suara tanpa permintaan izin"
-
-#: src/safety-calculator.c:140
-msgid "System Device Access"
-msgstr "Akses Perangkat Sistem"
-
-#: src/safety-calculator.c:141
-msgid "Can access system devices which require elevated permissions"
-msgstr "Dapat mengakses perangkat sistem yang membutuhkan izin lebih lanjut"
-
-#: src/safety-calculator.c:147
-msgid "Screen Contents Access"
-msgstr "Akses Konten Layar"
-
-#: src/safety-calculator.c:148
-msgid "Can access the contents of the screen or other windows"
-msgstr "Dapat mengakses konten dari layar, termasuk jendela aplikasi lain"
-
-#: src/safety-calculator.c:154
-msgid "Legacy Windowing System"
-msgstr "Sistem Jendela Lawas"
-
-#: src/safety-calculator.c:155
-msgid "Always uses a legacy windowing system (X11)"
-msgstr "Selalu menggunakan sistem jendela lawas X11"
-
-#: src/safety-calculator.c:161 src/bz-safety-dialog.blp:31
+#: src/bz-safety-dialog.blp:31 src/safety-calculator.c:161
 msgid "Arbitrary Permissions"
 msgstr "Izin Sewenang-wenang"
-
-#: src/safety-calculator.c:162
-msgid "Can acquire arbitrary permissions"
-msgstr "Dapat memperoleh izin sewenang-wenang"
-
-#: src/safety-calculator.c:168
-msgid "User Settings"
-msgstr "Akses Konfigurasi Pengguna"
-
-#: src/safety-calculator.c:169
-msgid "Can access and change user settings"
-msgstr "Dapat mengakses dan mengubah konfigurasi pengguna"
-
-#: src/safety-calculator.c:175
-msgid "Full File System Read/Write Access"
-msgstr "Akses Baca/Tulis Penuh pada Sistem Berkas"
-
-#: src/safety-calculator.c:176
-msgid "Can read and write all data on the file system"
-msgstr ""
-"Memiliki akses baca dan tulis untuk semua data pada sistem perangkat ini"
-
-#: src/safety-calculator.c:183
-msgid "Home Folder Read/Write Access"
-msgstr "Akses Baca/Tulis Direktori Rumah"
-
-#: src/safety-calculator.c:184
-msgid "Can read and write all data in your home directory"
-msgstr ""
-"Memiliki akses baca dan tulis untuk semua data pada direktori Rumah "
-"perangkat ini"
-
-#: src/safety-calculator.c:191
-msgid "Full File System Read Access"
-msgstr "Akses Baca Penuh dalam Sistem Berkas"
-
-#: src/safety-calculator.c:192
-msgid "Can read all data on the file system"
-msgstr "Memiliki akses baca untuk semua data pada sistem perangkat ini"
-
-#: src/safety-calculator.c:200
-msgid "Home Folder Read Access"
-msgstr "Akses Baca Direktori Rumah"
-
-#: src/safety-calculator.c:201
-msgid "Can read all data in your home directory"
-msgstr ""
-"Memiliki akses baca untuk semua data pada direktori Rumah perangkat ini"
-
-#: src/safety-calculator.c:209
-msgid "Download Folder Read/Write Access"
-msgstr "Akses Baca/Tulis Folder Unduhan"
-
-#: src/safety-calculator.c:210
-msgid "Can read and write all data in your downloads directory"
-msgstr ""
-"Memiliki akses baca dan tulis untuk semua data pada direktori Unduhan "
-"perangkat ini"
-
-#: src/safety-calculator.c:220
-msgid "Download Folder Read Access"
-msgstr "Akses Baca Folder Unduhan"
-
-#: src/safety-calculator.c:221
-msgid "Can read all data in your downloads directory"
-msgstr "Memiliki akses baca untuk semua data di direktori Unduhan Anda"
-
-#: src/safety-calculator.c:242
-msgid "Can read and write all data in the directory"
-msgstr "Memiliki akses baca dan tulis untuk semua data pada direktori ini"
-
-#: src/safety-calculator.c:266
-msgid "Can read all data in the directory"
-msgstr "Memiliki akses baca untuk semua data pada direktori ini"
-
-#: src/safety-calculator.c:281
-msgid "No File System Access"
-msgstr "Tidak Ada Akses Sistem Berkas"
-
-#: src/safety-calculator.c:282
-msgid "Cannot access the file system at all"
-msgstr "Tidak dapat mengakses sistem berkas sama sekali"
-
-#: src/safety-calculator.c:289
-msgid "Uses System Services"
-msgstr "Menggunakan Layanan Sistem"
-
-#: src/safety-calculator.c:290
-msgid "Can request data from non-portal system services"
-msgstr "Dapat meminta data dari layanan sistem di luar portal XDG"
-
-#: src/safety-calculator.c:296
-msgid "Uses Session Services"
-msgstr "Menggunakan Layanan Sesi"
-
-#: src/safety-calculator.c:297
-msgid "Can request data from non-portal session services"
-msgstr "Dapat meminta data dari layanan sesi di luar portal XDG"
-
-#: src/safety-calculator.c:345
-msgid "No Service Access"
-msgstr "Tidak Ada Akses Layanan"
-
-#: src/safety-calculator.c:346
-msgid "Cannot access non-portal session or system services at all"
-msgstr "Tidak dapat mengakses layanan sistem atau sesi non-portal sama sekali"
-
-#: src/safety-calculator.c:354
-msgid "Verified App Developer"
-msgstr "Pengembang Terverifikasi"
-
-#: src/safety-calculator.c:355
-msgid "The developer of this app has been verified to be who they say they are"
-msgstr "Pengembang aplikasi ini sudah terverifikasi oleh Flathub"
-
-#: src/safety-calculator.c:364
-msgid "Proprietary Code"
-msgstr "Kode Proprietari"
-
-#: src/safety-calculator.c:365
-msgid ""
-"The source code is not public, so it cannot be independently audited and "
-"might be unsafe"
-msgstr ""
-"Kode sumber aplikasi ini tidak bersifat publik, sehingga aplikasi ini tidak "
-"dapat diaudit secara independen dan mungkin tidak aman"
-
-#: src/safety-calculator.c:375
-msgid "Auditable Code"
-msgstr "Kode Dapat Diaudit"
-
-#: src/safety-calculator.c:376
-msgid ""
-"The source code is public and can be independently audited, which makes the "
-"app more likely to be safe"
-msgstr ""
-"Kode sumber aplikasi ini bersifat publik dan dapat diaudit secara "
-"independen, sehingga kemungkinan besar aplikasi ini aman"
-
-#: src/safety-calculator.c:516
-#, c-format
-msgid "Use the %s System Service"
-msgstr "Menggunakan Layanan Sistem %s"
-
-#: src/safety-calculator.c:520
-#, c-format
-msgid "Use the %s Session Service"
-msgstr "Menggunakan Layanan Sesi %s"
-
-#: src/safety-calculator.c:524
-#, c-format
-msgid "Use the %s Service"
-msgstr "Menggunakan Layanan %s"
-
-#: src/safety-calculator.c:534
-msgid "Can see the non-portal service"
-msgstr "Dapat melihat layanan di luar portal XDG"
-
-#: src/safety-calculator.c:536
-msgid "Can talk to the non-portal service"
-msgstr "Dapat berkomunikasi dengan layanan di luar portal XDG"
-
-#: src/safety-calculator.c:538
-msgid "Can own the non-portal service"
-msgstr "Dapat memiliki layanan di luar portal XDG"
-
-#: src/safety-calculator.c:553
-msgid "Global Menu Integration"
-msgstr "Integrasi Menu Global"
-
-#: src/safety-calculator.c:554
-msgid "Can display its menus in a global menu bar"
-msgstr "Dapat menampilkan opsi aplikasi pada bilah menu global"
-
-#: src/safety-calculator.c:559
-msgid "KDE Settings Integration"
-msgstr "Integrasi Pengaturan KDE"
-
-#: src/safety-calculator.c:560
-msgid "Can detect when KDE desktop settings change"
-msgstr "Dapat mendeteksi ketika terdapat perubahan konfigurasi desktop KDE"
-
-#: src/safety-calculator.c:565
-msgid "KDE Global Settings"
-msgstr "Pengaturan Global KDE"
-
-#: src/safety-calculator.c:566
-msgid "Can read KDE desktop preferences like fonts and colors"
-msgstr "Dapat membaca preferensi desktop KDE, seperti font dan tema warna"
-
-#: src/safety-calculator.c:571
-msgid "Secret Storage Service"
-msgstr "Layanan Penyimpanan Sandi"
-
-#: src/safety-calculator.c:572
-msgid "Can store and retrieve its own passwords using the system keyring"
-msgstr ""
-"Dapat menyimpan dan mengambil kata sandi menggunakan penyimpanan kunci sistem"
-
-#: src/safety-calculator.c:577
-msgid "Desktop Notifications Service"
-msgstr "Layanan Notifikasi Desktop"
-
-#: src/safety-calculator.c:578
-msgid "Can send desktop notifications"
-msgstr "Dapat mengirim notifikasi desktop"
-
-#: src/safety-calculator.c:584
-msgid "System Tray Integration"
-msgstr "Integrasi Baki Sistem"
-
-#: src/safety-calculator.c:585
-msgid "Can display an icon in the system tray"
-msgstr "Dapat menampilkan ikon pada baki sistem"
-
-#: src/safety-calculator.c:590
-msgid "KDE Connect Integration"
-msgstr "Integrasi KDE Connect"
-
-#: src/safety-calculator.c:591
-msgid "Can interact with devices paired via KDE Connect"
-msgstr ""
-"Dapat berinteraksi dengan perangkat yang terkoneksi melalui KDE Connect"
 
 #: src/bz-safety-dialog.blp:48
 msgid ""
@@ -2655,6 +2262,11 @@ msgstr ""
 #: src/bz-safety-dialog.blp:52
 msgid "View Other Permissions"
 msgstr "Lihat Izin Lainnya"
+
+#. TRANSLATORS: short app safety rating label
+#: src/bz-safety-dialog.blp:79 src/context-tile-callbacks.c:402
+msgid "Safe"
+msgstr "Aman"
 
 #: src/bz-safety-dialog.blp:112
 msgid "App ID"
@@ -2751,7 +2363,11 @@ msgstr "Tangkapan Layar %u %s"
 msgid "Screenshot %u"
 msgstr "Tangkapan Layar %u"
 
-#: src/bz-search-filter-popover.blp:18 src/bz-search-page.blp:83
+#: src/bz-search-bar.blp:55
+msgid "Clear Search"
+msgstr "Bersihkan Pencarian"
+
+#: src/bz-search-filter-popover.blp:18 src/bz-search-page.blp:66
 msgid "Filters"
 msgstr "Saring"
 
@@ -2779,38 +2395,42 @@ msgstr "_Ramah Telepon"
 msgid "Categories"
 msgstr "Kategori"
 
-#: src/bz-search-page.blp:58
+#: src/bz-search-page.blp:45
 msgid "Search Apps, Games, Software"
 msgstr "Cari Aplikasi dan Permainan"
 
-#: src/bz-search-page.blp:70
+#: src/bz-search-page.blp:52
 msgid "Search Filters"
 msgstr "Saringan Pencarian"
 
-#: src/bz-search-page.blp:100
-msgid "Clear Search"
-msgstr "Bersihkan Pencarian"
-
-#: src/bz-search-page.blp:209
+#: src/bz-search-page.blp:170
 msgid "Browse Categories"
 msgstr "Jelajahi Kategori"
 
-#: src/bz-search-page.blp:245
+#: src/bz-search-page.blp:206
 msgid "Categories Unavailable"
 msgstr "Kategori Tidak Tersedia"
 
-#: src/bz-search-page.blp:246
+#: src/bz-search-page.blp:207
 msgid "Search for apps using the search bar above."
 msgstr "Cari aplikasi menggunakan bilah pencarian di atas. "
 
-#: src/bz-search-page.blp:364
+#: src/bz-search-page.blp:325
 msgid "No Applications Found"
 msgstr "Tidak Ada Aplikasi Tersedia"
 
-#: src/bz-search-page.c:248
+#: src/bz-search-page.c:249
 #, c-format
 msgid "No results found for \"%s\" in Flathub"
 msgstr "Tidak ada hasil untuk \"%s\" di Flathub"
+
+#. Translators: Search suggestion: the english text will be used for the
+#. search regardless of what you put here, so don't worry about the string
+#. yielding poor search results. Focus on correctness and friendliness,
+#. etc
+#: src/bz-search-pill-list.c:67
+msgid "Browser"
+msgstr "Peramban"
 
 #. Translators: Search suggestion: the english text will be used for the
 #. search regardless of what you put here, so don't worry about the string
@@ -2943,19 +2563,22 @@ msgstr "Berkas Manifes"
 msgid "Copy Link"
 msgstr "Salin Tautan"
 
-#: src/bz-stats-dialog.blp:27
+#. TRANSLATORS: page in the statistics dialog
+#: src/bz-stats-dialog.blp:28
 msgid "Timeline"
 msgstr "Linimasa"
 
-#: src/bz-stats-dialog.blp:46
+#. TRANSLATORS: label prefix shown in graph tooltips, for example: "Installs: 42"
+#: src/bz-stats-dialog.blp:48
 msgid "Installs:"
 msgstr "Jumlah Pemasangan:"
 
-#: src/bz-stats-dialog.blp:55
+#. TRANSLATORS: page in the statistics dialog
+#: src/bz-stats-dialog.blp:58
 msgid "World"
 msgstr "Dunia"
 
-#: src/bz-stats-dialog.blp:69
+#: src/bz-stats-dialog.blp:72
 msgid "Since 4/15/2024"
 msgstr "Sejak 15/4/2024"
 
@@ -3150,15 +2773,15 @@ msgstr "Dibatalkan"
 msgid "Error"
 msgstr "Terjadi Kesalahan"
 
-#: src/bz-transaction-tile.blp:312
+#: src/bz-transaction-tile.blp:313
 msgid "Cancel Transaction"
 msgstr "Batalkan Proses"
 
-#: src/bz-transaction-tile.blp:322
+#: src/bz-transaction-tile.blp:323
 msgid "Show Details"
 msgstr "Lihat Rincian"
 
-#: src/bz-transaction-tile.blp:437
+#: src/bz-transaction-tile.blp:438
 msgid "Show Error Info"
 msgstr "Tampilkan Info Galat"
 
@@ -3189,22 +2812,33 @@ msgstr[0] "%u Tempokerja Baru"
 msgid "Manage Leftover User Data"
 msgstr "Kelola Sisa Data Pengguna"
 
+#: src/bz-user-data-page.blp:32
+msgid "No Leftover User Data Found"
+msgstr "Tidak Ditemukan Data Pengguna"
+
 #: src/bz-user-data-page.blp:33
-msgid "No User Data Found"
-msgstr "Data Pengguna Tidak Ditemukan"
+msgid "Personal data left behind by apps that were removed will show up here"
+msgstr ""
+"Sisa data personal dari aplikasi yang telah dihapus akan muncul di sini"
 
-#: src/bz-user-data-page.blp:38
-msgid "User Data"
-msgstr "Data Pengguna"
+#: src/bz-user-data-page.c:229
+#, c-format
+msgid "Trashed User Data for %u App"
+msgid_plural "Trashed User Data for %u Apps"
+msgstr[0] "Data Terhapus dari %u Aplikasi"
 
-#: src/bz-user-data-tile.blp:74
-msgid "Trash User Data"
-msgstr "Hapus Data Pengguna"
-
-#: src/bz-user-data-tile.c:150
+#: src/bz-user-data-page.c:233
 #, c-format
 msgid "Trashed User Data for %s"
 msgstr "Data aplikasi %s telah dihapus."
+
+#: src/bz-user-data-tile.blp:92
+msgid "Open User Data Folder"
+msgstr "Buka Direktori Data Pengguna"
+
+#: src/bz-user-data-tile.blp:103
+msgid "Trash User Data"
+msgstr "Hapus Data Pengguna"
 
 #: src/bz-window.blp:72
 msgid "Refreshing"
@@ -3217,6 +2851,11 @@ msgstr "Pilihan"
 #: src/bz-window.blp:102
 msgid "Explore"
 msgstr "Jelajah"
+
+#. Translators: .
+#: src/bz-window.blp:114
+msgid "Library"
+msgstr "Pustaka"
 
 #: src/bz-window.blp:129
 msgid "Search"
@@ -3280,20 +2919,20 @@ msgid "Log Out"
 msgstr "Keluar"
 
 #. Translators: %s is the title of the current page
-#: src/bz-window.c:389
+#: src/bz-window.c:390
 #, c-format
 msgid "Bazaar — %s"
 msgstr "Bazaar — %s"
 
-#: src/bz-window.c:609 src/bz-window.c:647
+#: src/bz-window.c:635 src/bz-window.c:673
 msgid "Failed to launch application"
 msgstr "Gagal menjalankan aplikasi"
 
-#: src/bz-window.c:860
+#: src/bz-window.c:925
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr "Anda tidak dapat menghapus Bazaar dari dalam Bazaar."
 
-#: src/bz-window.c:1166 src/bz-window.c:1200
+#: src/bz-window.c:1238 src/bz-window.c:1272
 msgid "Can't do that right now!"
 msgstr "Tunggu hingga Bazaar selesai memuat"
 
@@ -3302,6 +2941,433 @@ msgstr "Tunggu hingga Bazaar selesai memuat"
 msgid "Install"
 msgid_plural "Installs"
 msgstr[0] "Pemasangan"
+
+#: src/context-tile-callbacks.c:68
+msgid "---"
+msgstr "---"
+
+#. Translators: M is the suffix for millions
+#: src/context-tile-callbacks.c:75
+#, c-format
+msgid "%.*fM"
+msgstr "%.*fjt"
+
+#. Translators: K is the suffix for thousands
+#: src/context-tile-callbacks.c:82
+#, c-format
+msgid "%.*fK"
+msgstr "%.*frb"
+
+#: src/context-tile-callbacks.c:92
+#, c-format
+msgid "%d downloads in the last month"
+msgstr "%d unduhan dalam sebulan terakhir"
+
+#. TRANSLATORS: %s is a formatted file size, for example: "128 MB"
+#: src/context-tile-callbacks.c:133
+#, c-format
+msgid "+%s Runtime"
+msgstr "+%s Tempokerja (Runtime)"
+
+#: src/context-tile-callbacks.c:136
+msgid "Download"
+msgstr "Ukuran Unduh"
+
+#: src/context-tile-callbacks.c:156
+msgid "Size information unavailable"
+msgstr "Info ukuran apl tidak tersedia"
+
+#: src/context-tile-callbacks.c:159
+#, c-format
+msgid "Download size of %s"
+msgstr "Ukuran unduhan %s"
+
+#: src/context-tile-callbacks.c:192
+msgid "All Ages"
+msgstr "Semua Usia"
+
+#: src/context-tile-callbacks.c:204
+msgid "Age rating information unavailable"
+msgstr "Info panduan usia tidak tersedia"
+
+#: src/context-tile-callbacks.c:209
+msgid "Suitable for all ages"
+msgstr "Cocok untuk semua usia"
+
+#: src/context-tile-callbacks.c:211
+#, c-format
+msgid "Suitable for ages %d and up"
+msgstr "Cocok untuk usia %d ke atas"
+
+#: src/context-tile-callbacks.c:244 src/context-tile-callbacks.c:249
+#: src/context-tile-callbacks.c:277 src/context-tile-callbacks.c:286
+msgid "Unknown"
+msgstr "Tidak Diketahui"
+
+#: src/context-tile-callbacks.c:254
+#, c-format
+msgid "Free software licensed under %s"
+msgstr "Aplikasi bebas di bawah lisensi %s"
+
+#: src/context-tile-callbacks.c:259
+msgid "Free software"
+msgstr "Aplikasi bebas"
+
+#: src/context-tile-callbacks.c:262
+msgid "Proprietary Software"
+msgstr "Aplikasi dengan hak cipta khusus"
+
+#: src/context-tile-callbacks.c:265
+#, c-format
+msgid "Special License: %s"
+msgstr "Lisensi Khusus: %s"
+
+#. TRANSLATORS: You can omit the "software" part if your translation makes it obvious we're talking about "libre" and not "gratis"
+#: src/context-tile-callbacks.c:283
+msgid "Free Software"
+msgstr "Aplikasi Bebas"
+
+#: src/context-tile-callbacks.c:311
+msgid "Adaptive"
+msgstr "Adaptif"
+
+#: src/context-tile-callbacks.c:311
+msgid "Desktop Only"
+msgstr "Hanya Desktop"
+
+#: src/context-tile-callbacks.c:317
+msgid "Works on desktop, tablets, and phones"
+msgstr "Bekerja di desktop, tablet dan ponsel"
+
+#: src/context-tile-callbacks.c:318
+msgid "May not work on mobile devices"
+msgstr "Mungkin tidak bekerja optimal di ponsel"
+
+#. TRANSLATORS: short app safety rating label
+#: src/context-tile-callbacks.c:405 src/context-tile-callbacks.c:408
+msgid "Low Risk"
+msgstr "Risiko Rendah"
+
+#. TRANSLATORS: short app safety rating label
+#: src/context-tile-callbacks.c:411
+msgid "Medium Risk"
+msgstr "Risiko Sedang"
+
+#. TRANSLATORS: short app safety rating label
+#: src/context-tile-callbacks.c:414
+msgid "High Risk"
+msgstr "Risiko Tinggi"
+
+#: src/safety-calculator.c:87
+msgid "Unknown Permissions"
+msgstr "Izin Tidak Jelas"
+
+#: src/safety-calculator.c:88
+msgid "Permissions are missing for this app."
+msgstr "Izin aplikasi ini tidak diketahui"
+
+#: src/safety-calculator.c:101
+msgid "No Permissions"
+msgstr "Tidak Ada Izin"
+
+#: src/safety-calculator.c:102
+msgid "App is fully sandboxed"
+msgstr "Aplikasi ini sepenuhnya terisolasi"
+
+#: src/safety-calculator.c:108
+msgid "Network Access"
+msgstr "Akses Jaringan"
+
+#: src/safety-calculator.c:109
+msgid "Can access the internet"
+msgstr "Dapat mengakses internet"
+
+#: src/safety-calculator.c:111
+msgid "No Network Access"
+msgstr "Tidak Ada Akses Jaringan"
+
+#: src/safety-calculator.c:112
+msgid "Cannot access the internet"
+msgstr "Tidak dapat mengakses internet"
+
+#: src/safety-calculator.c:117
+msgid "User Device Access"
+msgstr "Akses Perangkat Pengguna"
+
+#: src/safety-calculator.c:118
+msgid "Can access devices such as webcams or gaming controllers"
+msgstr "Dapat mengakses perangkat seperti kamera atau pengontrol mainan"
+
+#: src/safety-calculator.c:120
+msgid "No User Device Access"
+msgstr "Tidak Ada Akses Perangkat Pengguna"
+
+#: src/safety-calculator.c:121
+msgid "Cannot access devices such as webcams or gaming controllers"
+msgstr "Tidak dapat mengakses perangkat seperti kamera atau pengontrol mainan"
+
+#: src/safety-calculator.c:126
+msgid "Input Device Access"
+msgstr "Akses Perangkat Masukan"
+
+#: src/safety-calculator.c:127
+msgid "Can access input devices"
+msgstr "Dapat mengakses perangkat masukan"
+
+#: src/safety-calculator.c:133
+msgid "Microphone Access and Audio Playback"
+msgstr "Akses Mikrofon dan Pemutaran Suara"
+
+#: src/safety-calculator.c:134
+msgid "Can listen using microphones and play audio without asking permission"
+msgstr "Dapat mengakses mikrofon dan memutar suara tanpa permintaan izin"
+
+#: src/safety-calculator.c:140
+msgid "System Device Access"
+msgstr "Akses Perangkat Sistem"
+
+#: src/safety-calculator.c:141
+msgid "Can access system devices which require elevated permissions"
+msgstr "Dapat mengakses perangkat sistem yang membutuhkan izin lebih lanjut"
+
+#: src/safety-calculator.c:147
+msgid "Screen Contents Access"
+msgstr "Akses Konten Layar"
+
+#: src/safety-calculator.c:148
+msgid "Can access the contents of the screen or other windows"
+msgstr "Dapat mengakses konten dari layar, termasuk jendela aplikasi lain"
+
+#: src/safety-calculator.c:154
+msgid "Legacy Windowing System"
+msgstr "Sistem Jendela Lawas"
+
+#: src/safety-calculator.c:155
+msgid "Always uses a legacy windowing system (X11)"
+msgstr "Selalu menggunakan sistem jendela lawas X11"
+
+#: src/safety-calculator.c:162
+msgid "Can acquire arbitrary permissions"
+msgstr "Dapat memperoleh izin sewenang-wenang"
+
+#: src/safety-calculator.c:168
+msgid "User Settings"
+msgstr "Akses Konfigurasi Pengguna"
+
+#: src/safety-calculator.c:169
+msgid "Can access and change user settings"
+msgstr "Dapat mengakses dan mengubah konfigurasi pengguna"
+
+#: src/safety-calculator.c:175
+msgid "Full File System Read/Write Access"
+msgstr "Akses Baca/Tulis Penuh pada Sistem Berkas"
+
+#: src/safety-calculator.c:176
+msgid "Can read and write all data on the file system"
+msgstr ""
+"Memiliki akses baca dan tulis untuk semua data pada sistem perangkat ini"
+
+#: src/safety-calculator.c:183
+msgid "Home Folder Read/Write Access"
+msgstr "Akses Baca/Tulis Direktori Rumah"
+
+#: src/safety-calculator.c:184
+msgid "Can read and write all data in your home directory"
+msgstr ""
+"Memiliki akses baca dan tulis untuk semua data pada direktori Rumah "
+"perangkat ini"
+
+#: src/safety-calculator.c:191
+msgid "Full File System Read Access"
+msgstr "Akses Baca Penuh dalam Sistem Berkas"
+
+#: src/safety-calculator.c:192
+msgid "Can read all data on the file system"
+msgstr "Memiliki akses baca untuk semua data pada sistem perangkat ini"
+
+#: src/safety-calculator.c:200
+msgid "Home Folder Read Access"
+msgstr "Akses Baca Direktori Rumah"
+
+#: src/safety-calculator.c:201
+msgid "Can read all data in your home directory"
+msgstr ""
+"Memiliki akses baca untuk semua data pada direktori Rumah perangkat ini"
+
+#: src/safety-calculator.c:209
+msgid "Download Folder Read/Write Access"
+msgstr "Akses Baca/Tulis Direktori Unduhan"
+
+#: src/safety-calculator.c:210
+msgid "Can read and write all data in your downloads directory"
+msgstr ""
+"Memiliki akses baca dan tulis untuk semua data pada direktori Unduhan "
+"perangkat ini"
+
+#: src/safety-calculator.c:220
+msgid "Download Folder Read Access"
+msgstr "Akses Baca Direktori Unduhan"
+
+#: src/safety-calculator.c:221
+msgid "Can read all data in your downloads directory"
+msgstr "Memiliki akses baca untuk semua data di direktori Unduhan Anda"
+
+#: src/safety-calculator.c:242
+msgid "Can read and write all data in the directory"
+msgstr "Memiliki akses baca dan tulis untuk semua data pada direktori ini"
+
+#: src/safety-calculator.c:266
+msgid "Can read all data in the directory"
+msgstr "Memiliki akses baca untuk semua data pada direktori ini"
+
+#: src/safety-calculator.c:281
+msgid "No File System Access"
+msgstr "Tidak Ada Akses Sistem Berkas"
+
+#: src/safety-calculator.c:282
+msgid "Cannot access the file system at all"
+msgstr "Tidak dapat mengakses sistem berkas sama sekali"
+
+#: src/safety-calculator.c:289
+msgid "Uses System Services"
+msgstr "Menggunakan Layanan Sistem"
+
+#: src/safety-calculator.c:290
+msgid "Can request data from non-portal system services"
+msgstr "Dapat meminta data dari layanan sistem di luar portal XDG"
+
+#: src/safety-calculator.c:296
+msgid "Uses Session Services"
+msgstr "Menggunakan Layanan Sesi"
+
+#: src/safety-calculator.c:297
+msgid "Can request data from non-portal session services"
+msgstr "Dapat meminta data dari layanan sesi di luar portal XDG"
+
+#: src/safety-calculator.c:345
+msgid "No Service Access"
+msgstr "Tidak Ada Akses Layanan"
+
+#: src/safety-calculator.c:346
+msgid "Cannot access non-portal session or system services at all"
+msgstr "Tidak dapat mengakses layanan sistem atau sesi non-portal sama sekali"
+
+#: src/safety-calculator.c:354
+msgid "Verified App Developer"
+msgstr "Pengembang Terverifikasi"
+
+#: src/safety-calculator.c:355
+msgid "The developer of this app has been verified to be who they say they are"
+msgstr "Pengembang aplikasi ini sudah terverifikasi oleh Flathub"
+
+#: src/safety-calculator.c:364
+msgid "Proprietary Code"
+msgstr "Kode Proprietari"
+
+#: src/safety-calculator.c:365
+msgid ""
+"The source code is not public, so it cannot be independently audited and "
+"might be unsafe"
+msgstr ""
+"Kode sumber aplikasi ini tidak bersifat publik, sehingga aplikasi ini tidak "
+"dapat diaudit secara independen dan mungkin tidak aman"
+
+#: src/safety-calculator.c:375
+msgid "Auditable Code"
+msgstr "Kode Dapat Diaudit"
+
+#: src/safety-calculator.c:376
+msgid ""
+"The source code is public and can be independently audited, which makes the "
+"app more likely to be safe"
+msgstr ""
+"Kode sumber aplikasi ini bersifat publik dan dapat diaudit secara "
+"independen, sehingga kemungkinan besar aplikasi ini aman"
+
+#: src/safety-calculator.c:516
+#, c-format
+msgid "Use the %s System Service"
+msgstr "Menggunakan Layanan Sistem %s"
+
+#: src/safety-calculator.c:520
+#, c-format
+msgid "Use the %s Session Service"
+msgstr "Menggunakan Layanan Sesi %s"
+
+#: src/safety-calculator.c:524
+#, c-format
+msgid "Use the %s Service"
+msgstr "Menggunakan Layanan %s"
+
+#: src/safety-calculator.c:534
+msgid "Can see the non-portal service"
+msgstr "Dapat melihat layanan di luar portal XDG"
+
+#: src/safety-calculator.c:536
+msgid "Can talk to the non-portal service"
+msgstr "Dapat berkomunikasi dengan layanan di luar portal XDG"
+
+#: src/safety-calculator.c:538
+msgid "Can own the non-portal service"
+msgstr "Dapat memiliki layanan di luar portal XDG"
+
+#: src/safety-calculator.c:553
+msgid "Global Menu Integration"
+msgstr "Integrasi Menu Global"
+
+#: src/safety-calculator.c:554
+msgid "Can display its menus in a global menu bar"
+msgstr "Dapat menampilkan opsi aplikasi pada bilah menu global"
+
+#: src/safety-calculator.c:559
+msgid "KDE Settings Integration"
+msgstr "Integrasi Pengaturan KDE"
+
+#: src/safety-calculator.c:560
+msgid "Can detect when KDE desktop settings change"
+msgstr "Dapat mendeteksi ketika terdapat perubahan konfigurasi desktop KDE"
+
+#: src/safety-calculator.c:565
+msgid "KDE Global Settings"
+msgstr "Pengaturan Global KDE"
+
+#: src/safety-calculator.c:566
+msgid "Can read KDE desktop preferences like fonts and colors"
+msgstr "Dapat membaca preferensi desktop KDE, seperti font dan tema warna"
+
+#: src/safety-calculator.c:571
+msgid "Secret Storage Service"
+msgstr "Layanan Penyimpanan Sandi"
+
+#: src/safety-calculator.c:572
+msgid "Can store and retrieve its own passwords using the system keyring"
+msgstr ""
+"Dapat menyimpan dan mengambil kata sandi menggunakan penyimpanan kunci sistem"
+
+#: src/safety-calculator.c:577
+msgid "Desktop Notifications Service"
+msgstr "Layanan Notifikasi Desktop"
+
+#: src/safety-calculator.c:578
+msgid "Can send desktop notifications"
+msgstr "Dapat mengirim notifikasi desktop"
+
+#: src/safety-calculator.c:584
+msgid "System Tray Integration"
+msgstr "Integrasi Baki Sistem"
+
+#: src/safety-calculator.c:585
+msgid "Can display an icon in the system tray"
+msgstr "Dapat menampilkan ikon pada baki sistem"
+
+#: src/safety-calculator.c:590
+msgid "KDE Connect Integration"
+msgstr "Integrasi KDE Connect"
+
+#: src/safety-calculator.c:591
+msgid "Can interact with devices paired via KDE Connect"
+msgstr ""
+"Dapat berinteraksi dengan perangkat yang terkoneksi melalui KDE Connect"
 
 #: src/shortcuts-dialog.blp:5
 msgctxt "shortcut window"
@@ -3357,6 +3423,54 @@ msgstr "Tutup Jendela"
 msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "Keluar dari Bazaar"
+
+#: src/update-worker.c:358
+#, c-format
+msgid "%u App Updated"
+msgid_plural "%u Apps Updated"
+msgstr[0] "%u Apl Diperbarui"
+
+#: src/update-worker.c:361
+#, c-format
+msgid "%s has been updated."
+msgstr "%s berhasil diperbarui."
+
+#: src/update-worker.c:364
+#, c-format
+msgid "%s and %s have been updated."
+msgstr "%s dan %s berhasil diperbarui."
+
+#: src/update-worker.c:368
+#, c-format
+msgid "Includes %s, %s and %s."
+msgstr "Termasuk %s, %s dan %s."
+
+#~ msgid "Empty"
+#~ msgstr "Kosong"
+
+#~ msgid "Loading"
+#~ msgstr "Memuat"
+
+#~ msgid "Flathub Unavailable"
+#~ msgstr "Flathub Tidak Tersedia"
+
+#~ msgid "Content"
+#~ msgstr "Konten"
+
+#~ msgid "Clear search"
+#~ msgstr "Bersihkan pencarian"
+
+#~ msgid "Select Metainfo File"
+#~ msgstr "Pilih Berkas Metainfo"
+
+#~ msgid "Metainfo Files"
+#~ msgstr "Berkas Metainfo"
+
+#~ msgid "Preview"
+#~ msgstr "Pratinjau"
+
+#~ msgid "User Data"
+#~ msgstr "Data Pengguna"
 
 #~ msgid "Adam Masciola"
 #~ msgstr "Adam Masciola"
@@ -3629,9 +3743,6 @@ msgstr "Keluar dari Bazaar"
 #~ msgstr ""
 #~ "Fitur ini sedang dinonaktifkan. Silahkan unduh dan pasang Flatseal untuk "
 #~ "mengatur perizinan aplikasi. "
-
-#~ msgid "Entry Inspector"
-#~ msgstr "Periksa Masukan"
 
 #~ msgid "Serialize"
 #~ msgstr "Serialisasikan"
