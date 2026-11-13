@@ -24,114 +24,114 @@
 #define BAZAAR_MODULE "search-index-writer"
 
 #include "bz-entry-group.h"
+#include "env.h"
 #include "search-index-write.h"
 
 #define INDEX_MAGIC         "BZSI"
 #define INDEX_VERSION       1
 #define DESCRIPTION_MAX_LEN 200
+#define WRITE_DELAY_SECONDS 3
 
-static gboolean    write_string (GDataOutputStream *out, const char *str, gsize max_len, GError **error);
+static DexFuture  *write_index_fiber (GListModel *groups, const char *out_path, DexFuture *wait_for);
+static void        put_uint32 (GByteArray *buf, guint32 value);
+static void        put_string (GByteArray *buf, const char *str, gsize max_len);
 static gboolean    entry_group_is_eligible (BzEntryGroup *group);
 static const char *entry_group_icon_path (BzEntryGroup *group);
 
-gboolean
+DexFuture *
 bz_write_search_index (GListModel *groups,
                        const char *out_path,
-                       GError    **error)
+                       DexFuture  *wait_for)
 {
-  g_autofree char *tmp_path          = NULL;
-  g_autoptr (GFile) tmp_file         = NULL;
-  g_autoptr (GFile) final_file       = NULL;
-  g_autoptr (GOutputStream) base_out = NULL;
-  g_autoptr (GDataOutputStream) out  = NULL;
-  guint    n_groups                  = 0;
-  guint32  count                     = 0;
-  gboolean result                    = FALSE;
+  dex_return_error_if_fail (G_IS_LIST_MODEL (groups));
+  dex_return_error_if_fail (out_path != NULL);
+  dex_return_error_if_fail (DEX_IS_FUTURE (wait_for));
 
-  g_return_val_if_fail (G_IS_LIST_MODEL (groups), FALSE);
-  g_return_val_if_fail (out_path != NULL, FALSE);
+  return dex_scheduler_spawnv (
+      dex_scheduler_get_default (),
+      bz_get_dex_stack_size (),
+      G_CALLBACK (write_index_fiber),
+      3,
+      G_TYPE_LIST_MODEL, groups,
+      G_TYPE_STRING, out_path,
+      DEX_TYPE_FUTURE, wait_for);
+}
 
-  tmp_path = g_strdup_printf ("%s.tmp", out_path);
-  tmp_file = g_file_new_for_path (tmp_path);
+static DexFuture *
+write_index_fiber (GListModel *groups,
+                   const char *out_path,
+                   DexFuture  *wait_for)
+{
+  g_autoptr (GError) local_error = NULL;
+  g_autoptr (GByteArray) buf     = NULL;
+  g_autoptr (GBytes) bytes       = NULL;
+  g_autoptr (GFile) out_file     = NULL;
+  guint   n_groups               = 0;
+  guint32 count                  = 0;
 
-  base_out = G_OUTPUT_STREAM (g_file_replace (
-      tmp_file, NULL, FALSE,
-      G_FILE_CREATE_REPLACE_DESTINATION, NULL, error));
-  if (base_out == NULL)
-    return FALSE;
+  dex_await (dex_ref (wait_for), NULL);
+  dex_await (dex_timeout_new_seconds (WRITE_DELAY_SECONDS), NULL);
 
-  out = g_data_output_stream_new (base_out);
-  g_data_output_stream_set_byte_order (out, G_DATA_STREAM_BYTE_ORDER_LITTLE_ENDIAN);
-
-  if (!g_output_stream_write_all (G_OUTPUT_STREAM (out), INDEX_MAGIC, 4, NULL, NULL, error))
-    return FALSE;
-  if (!g_data_output_stream_put_uint32 (out, INDEX_VERSION, NULL, error))
-    return FALSE;
+  buf = g_byte_array_new ();
+  g_byte_array_append (buf, (const guint8 *) INDEX_MAGIC, 4);
+  put_uint32 (buf, INDEX_VERSION);
+  put_uint32 (buf, 0);
 
   n_groups = g_list_model_get_n_items (groups);
   for (guint i = 0; i < n_groups; i++)
     {
       g_autoptr (BzEntryGroup) group = g_list_model_get_item (groups, i);
-      if (entry_group_is_eligible (group))
-        count++;
-    }
-
-  if (!g_data_output_stream_put_uint32 (out, count, NULL, error))
-    return FALSE;
-
-  for (guint i = 0; i < n_groups; i++)
-    {
-      g_autoptr (BzEntryGroup) group = g_list_model_get_item (groups, i);
-      const char *icon_path          = NULL;
 
       if (!entry_group_is_eligible (group))
         continue;
 
-      icon_path = entry_group_icon_path (group);
-
-      if (!write_string (out, bz_entry_group_get_id (group), 0, error) ||
-          !write_string (out, bz_entry_group_get_title (group), 0, error) ||
-          !write_string (out, bz_entry_group_get_developer (group), 0, error) ||
-          !write_string (out, bz_entry_group_get_description (group), DESCRIPTION_MAX_LEN, error) ||
-          !write_string (out, bz_entry_group_get_search_tokens (group), 0, error) ||
-          !write_string (out, icon_path, 0, error))
-        return FALSE;
+      put_string (buf, bz_entry_group_get_id (group), 0);
+      put_string (buf, bz_entry_group_get_title (group), 0);
+      put_string (buf, bz_entry_group_get_developer (group), 0);
+      put_string (buf, bz_entry_group_get_description (group), DESCRIPTION_MAX_LEN);
+      put_string (buf, bz_entry_group_get_search_tokens (group), 0);
+      put_string (buf, entry_group_icon_path (group), 0);
+      count++;
     }
 
-  if (!g_output_stream_close (G_OUTPUT_STREAM (out), NULL, error))
-    return FALSE;
+  count = GUINT32_TO_LE (count);
+  memcpy (buf->data + 8, &count, sizeof (count));
 
-  final_file = g_file_new_for_path (out_path);
-  result     = g_file_move (
-      tmp_file, final_file,
-      G_FILE_COPY_OVERWRITE,
-      NULL, NULL, NULL, error);
+  bytes    = g_byte_array_free_to_bytes (g_steal_pointer (&buf));
+  out_file = g_file_new_for_path (out_path);
+  if (!dex_await (
+          dex_file_replace_contents_bytes (
+              out_file, bytes, NULL, FALSE,
+              G_FILE_CREATE_REPLACE_DESTINATION),
+          &local_error))
+    {
+      g_warning ("Failed to write search index to %s: %s", out_path, local_error->message);
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
 
-  return result;
+  return dex_future_new_true ();
 }
 
-static gboolean
-write_string (GDataOutputStream *out,
-              const char        *str,
-              gsize              max_len,
-              GError           **error)
+static void
+put_uint32 (GByteArray *buf,
+            guint32     value)
 {
-  gsize len = 0;
+  value = GUINT32_TO_LE (value);
+  g_byte_array_append (buf, (const guint8 *) &value, sizeof (value));
+}
 
-  if (str != NULL)
-    {
-      len = strlen (str);
-      if (max_len > 0 && len > max_len)
-        len = max_len;
-    }
+static void
+put_string (GByteArray *buf,
+            const char *str,
+            gsize       max_len)
+{
+  gsize len = str != NULL ? strlen (str) : 0;
 
-  if (!g_data_output_stream_put_uint32 (out, (guint32) len, NULL, error))
-    return FALSE;
+  if (max_len > 0)
+    len = MIN (len, max_len);
 
-  if (len > 0)
-    return g_output_stream_write_all (G_OUTPUT_STREAM (out), str, len, NULL, NULL, error);
-
-  return TRUE;
+  put_uint32 (buf, len);
+  g_byte_array_append (buf, (const guint8 *) str, len);
 }
 
 static gboolean

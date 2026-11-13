@@ -94,6 +94,7 @@ struct _BzApplication
   DexFuture               *sync;
   gboolean                 sync_again;
   DexPromise              *first_window_opened;
+  DexFuture               *search_index_write;
   DexPromise              *ready_to_open_files;
   GHashTable              *eol_runtimes;
   GHashTable              *ids_to_groups;
@@ -432,6 +433,7 @@ bz_application_dispose (GObject *object)
   dex_clear (&self->notif_watch);
   dex_clear (&self->ready_to_open_files);
   dex_clear (&self->sync);
+  dex_clear (&self->search_index_write);
   g_clear_pointer (&self->syncing_remotes, g_strfreev);
   g_clear_pointer (&self->synced_remotes, g_hash_table_unref);
   g_clear_handle_id (&self->periodic_timeout_source, g_source_remove);
@@ -1766,9 +1768,8 @@ cache_groups_fiber (BzWeakRef *wr)
 static void
 write_search_index (BzApplication *self)
 {
-  g_autoptr (GError) local_error = NULL;
-  g_autofree char *module_dir    = NULL;
-  g_autofree char *index_path    = NULL;
+  g_autofree char *module_dir = NULL;
+  g_autofree char *index_path = NULL;
 
   if (g_list_model_get_n_items (G_LIST_MODEL (self->groups)) == 0)
     return;
@@ -1776,8 +1777,11 @@ write_search_index (BzApplication *self)
   module_dir = bz_dup_module_dir ();
   index_path = g_build_filename (module_dir, "search-index", NULL);
 
-  if (!bz_write_search_index (G_LIST_MODEL (self->group_filter_model), index_path, &local_error))
-    g_warning ("Failed to write search index to %s: %s", index_path, local_error->message);
+  dex_clear (&self->search_index_write);
+  self->search_index_write = bz_write_search_index (
+      G_LIST_MODEL (self->group_filter_model),
+      index_path,
+      DEX_FUTURE (self->first_window_opened));
 }
 
 static DexFuture *

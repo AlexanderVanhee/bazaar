@@ -21,6 +21,7 @@
 #pragma once
 
 #include <gio/gio.h>
+#include <libdex.h>
 
 G_BEGIN_DECLS
 
@@ -42,9 +43,9 @@ G_BEGIN_DECLS
  *
  */
 
-gboolean
+DexFuture *
 bz_write_search_index (GListModel *groups,
                        const char *out_path,
-                       GError    **error);
+                       DexFuture  *wait_for);
 
 G_END_DECLS
