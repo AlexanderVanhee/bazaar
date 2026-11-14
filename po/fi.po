@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-10-02 10:53+0000\n"
-"PO-Revision-Date: 2026-10-03 12:33+0300\n"
+"POT-Creation-Date: 2026-11-12 02:28+0000\n"
+"PO-Revision-Date: 2026-11-14 14:54+0200\n"
 "Last-Translator: Jiri Grönroos <jiri.gronroos+l10n@iki.fi>\n"
 "Language-Team: Finnish <Finnish>\n"
 "Language: fi\n"
@@ -16,11 +16,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.9\n"
+"X-Generator: Poedit 3.10\n"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: data/io.github.kolunmi.Bazaar.desktop.in:3 data/io.github.kolunmi.Bazaar.metainfo.xml.in:8 src/bz-window.blp:55
-#: src/bz-window.blp:211 src/bz-window.c:437 src/bz-window.c:438
+#: src/bz-window.blp:192 src/bz-window.c:435 src/bz-window.c:436
 msgid "Bazaar"
 msgstr "Bazaar"
 
@@ -68,7 +68,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Etsi sovelluksia suoraan Gnomen yleisnäkymästä"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:755
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
 msgid "The Bazaar Contributors"
 msgstr "Bazaar-avustajat"
 
@@ -92,7 +92,7 @@ msgstr "Haku"
 msgid "Category page"
 msgstr "Luokat"
 
-#: src/bz-addon-tile.blp:63 src/bz-installed-tile.blp:54 src/bz-rich-app-tile.blp:143
+#: src/bz-addon-tile.blp:62 src/bz-installed-tile.blp:53 src/bz-rich-app-tile.blp:142
 msgid "Stopped Receiving Updates"
 msgstr "Lopetti päivitysten vastaanottamisen"
 
@@ -102,7 +102,7 @@ msgid "Uninstall"
 msgstr "Poista asennus"
 
 #: src/bz-addon-tile.c:170 src/bz-bundle-install-dialog.blp:148 src/bz-bundle-install-dialog.blp:162
-#: src/bz-favorites-tile.c:157 src/bz-install-controls.wdgt:29
+#: src/bz-favorites-tile.c:157 src/bz-install-controls.blp:49
 msgctxt "Install Controls"
 msgid "Install"
 msgstr "Asenna"
@@ -111,7 +111,7 @@ msgstr "Asenna"
 msgid "Add-on"
 msgstr "Lisäosa"
 
-#: src/bz-addons-dialog.blp:15 src/bz-addons-dialog.blp:22 src/bz-addons-dialog.blp:71 src/bz-installed-tile.blp:94
+#: src/bz-addons-dialog.blp:15 src/bz-addons-dialog.blp:22 src/bz-addons-dialog.blp:71 src/bz-installed-tile.blp:93
 msgid "Manage Add-Ons"
 msgstr "Hallitse lisäosia"
 
@@ -127,20 +127,20 @@ msgstr "Suodattimen nykyiset asetukset piilottavat kaikki tunnetut lisäosat. S�
 msgid "Add-on Page"
 msgstr "Lisäosasivu"
 
-#: src/bz-addons-dialog.blp:172 src/bz-full-view.blp:267 src/context-tile-callbacks.c:142
+#: src/bz-addons-dialog.blp:172 src/bz-full-view.blp:266 src/context-tile-callbacks.c:142
 msgid "Download"
 msgstr "Lataus"
 
 #. Translators: As in 'The app is installed'.
-#: src/bz-addons-dialog.blp:187 src/bz-app-tile.c:356 src/bz-full-view.blp:282 src/bz-releases-list.c:204
+#: src/bz-addons-dialog.blp:187 src/bz-app-tile.c:361 src/bz-full-view.blp:281 src/bz-releases-list.c:203
 msgid "Installed"
 msgstr "Asennettu"
 
-#: src/bz-addons-dialog.blp:221 src/bz-full-view.blp:406
+#: src/bz-addons-dialog.blp:221 src/bz-full-view.blp:405
 msgid "Downloads/Month"
 msgstr "Latauksia kuukaudessa"
 
-#: src/bz-addons-dialog.blp:247 src/bz-full-view.blp:441
+#: src/bz-addons-dialog.blp:247 src/bz-full-view.blp:438
 msgid "Stopped Receiving Core Updates"
 msgstr "Lopetti keskeisimpien päivitysten vastaanottamisen"
 
@@ -150,24 +150,24 @@ msgstr ""
 "Tämä lisäosa käyttää suorituksenaikaista versiota, joka ei enää saa päivityksiä tai tietoturvakorjauksia. Sen käyttö "
 "voi muuttua vaaralliseksi."
 
-#: src/bz-addons-dialog.blp:346 src/bz-full-view.blp:602
+#: src/bz-addons-dialog.blp:344 src/bz-full-view.blp:599
 msgid "Other Sources"
 msgstr "Muut lähteet"
 
-#: src/bz-addons-dialog.c:351
+#: src/bz-addons-dialog.c:331
 #, c-format
 msgid "Add-on for %s"
 msgstr "Lisäosa sovellukselle %s"
 
-#: src/bz-addons-dialog.c:365 src/bz-full-view.c:612
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:608
 msgid "Show Less"
 msgstr "Näytä vähemmän"
 
-#: src/bz-addons-dialog.c:365 src/bz-full-view.c:612 src/bz-section-view.blp:72
+#: src/bz-addons-dialog.c:345 src/bz-full-view.c:608 src/bz-section-view.blp:72
 msgid "Show More"
 msgstr "Näytä enemmän"
 
-#: src/bz-addons-dialog.c:415
+#: src/bz-addons-dialog.c:395
 msgid "Download Stats"
 msgstr "Lataustilastot"
 
@@ -715,7 +715,7 @@ msgstr "Asennetun suoritusaikaisen koko"
 msgid "Runtime Download Size"
 msgstr "Suoritusaikaisen latauksen koko"
 
-#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:185 src/context-tile-callbacks.c:104
+#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:183 src/context-tile-callbacks.c:104
 #: src/context-tile-callbacks.c:401 src/context-tile-callbacks.c:423
 msgid "N/A"
 msgstr "-"
@@ -724,64 +724,32 @@ msgstr "-"
 msgid "Storage"
 msgstr "Tallennustila"
 
-#: src/bz-app-tile.blp:55 src/bz-developer-badge.c:98 src/bz-rich-app-tile.blp:107 src/bz-rich-app-tile.c:444
+#: src/bz-app-tile.blp:55 src/bz-developer-badge.c:98 src/bz-rich-app-tile.blp:106 src/bz-rich-app-tile.c:448
 msgid "Verified"
 msgstr "Vahvistettu"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:758
+#: src/bz-application.c:895
 msgid "translator-credits"
 msgstr "Jiri Grönroos"
 
-#: src/bz-application.c:768
+#: src/bz-application.c:905
 msgid "Special Thanks"
 msgstr "Erikoiskiitokset"
 
-#: src/bz-application.c:826
+#: src/bz-application.c:975
 msgid "Logged Out Successfully!"
 msgstr "Kirjauduttu ulos!"
 
-#: src/bz-application.c:1058
-msgid "Notice for Ubuntu Users"
-msgstr "Huomio Ubuntu-käyttäjille"
-
-#: src/bz-application.c:1061
-msgid ""
-"Ubuntu 25.10 and newer have changed default security rules in a way that makes it <b>impossible to install apps</b> "
-"from the Flatpak version of Bazaar. For the time being, please use the apt package instead. Install it with\n"
-"\n"
-"<tt>sudo apt install bazaar</tt>\n"
-"\n"
-"You can then remove this Flatpak version with\n"
-"\n"
-"<tt>flatpak uninstall io.github.kolunmi.Bazaar</tt>"
-msgstr ""
-
-#: src/bz-application.c:1069
-msgid "Continue Anyway"
-msgstr "Jatka silti"
-
-#: src/bz-application.c:1085
+#: src/bz-application.c:1148
 msgid "Performing setup…"
 msgstr "Suoritetaan määritystä…"
 
-#: src/bz-application.c:1184
-msgid "Set Up System Flathub?"
-msgstr "Määritetäänkö järjestelmän Flathub?"
-
-#: src/bz-application.c:1187
-msgid ""
-"The system Flathub remote is not set up. Bazaar requires Flathub to be configured on the system Flatpak installation "
-"to browse and install applications.\n"
-"\n"
-"You can still use Bazaar to browse and remove already installed apps."
-msgstr ""
-
-#: src/bz-application.c:1194
+#: src/bz-application.c:1190
 msgid "Set Up Flathub?"
 msgstr "Määritetäänkö Flathub?"
 
-#: src/bz-application.c:1197
+#: src/bz-application.c:1193
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and install applications in Bazaar if its "
 "unavailable.\n"
@@ -793,63 +761,71 @@ msgstr ""
 "\n"
 "Voit silti käyttää Bazaaria selataksesi ja poistaaksesi aiemmin asennettuja sovelluksia."
 
-#: src/bz-application.c:1203
+#: src/bz-application.c:1198
 msgid "Later"
 msgstr "Myöhemmin"
 
-#: src/bz-application.c:1204
+#: src/bz-application.c:1199
 msgid "Set Up Flathub"
 msgstr "Määritä Flathub"
 
-#: src/bz-application.c:1724
+#: src/bz-application.c:1826
 msgid "A backend error occurred"
 msgstr "Tapahtui taustaosan virhe"
 
-#: src/bz-application.c:1931 src/bz-application.c:4271
+#: src/bz-application.c:2033 src/bz-application.c:4484
 msgid "Refreshing…"
 msgstr "Virkistetään…"
 
-#: src/bz-application.c:2090
+#: src/bz-application.c:2199
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Ladataan %d sovellusta…"
 
-#: src/bz-application.c:2149 src/bz-application.c:2226
+#: src/bz-application.c:2260 src/bz-application.c:2337
 msgid "Failed to open file"
 msgstr "Tiedoston avaaminen epäonnistui"
 
-#: src/bz-application.c:2240
+#: src/bz-application.c:2351
 msgid "Failed to load metainfo"
 msgstr "Metatietojen lataaminen epäonnistui"
 
-#: src/bz-application.c:2363
+#: src/bz-application.c:2477
 msgid "An initialization error occurred"
 msgstr "Alustuksessa tapahtui virhe"
 
-#: src/bz-application.c:2771
+#: src/bz-application.c:2918
 msgid "Checking for updates…"
 msgstr "Tarkistetaan päivityksiä…"
 
-#: src/bz-application.c:2846
+#: src/bz-application.c:3033
 msgid "Failed to check for updates"
 msgstr "Päivitysten tarkamistanen epäonnistui"
 
-#: src/bz-application.c:4048
+#: src/bz-application.c:4253
 msgid "Could not find app"
 msgstr "Sovellusta ei löytynyt"
 
-#: src/bz-application.c:4268
+#: src/bz-application.c:4479
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
 msgstr[0] "Ladataan %d sovellus…"
 msgstr[1] "Ladataan %d sovellusta…"
 
-#: src/bz-application.c:4273
+#: src/bz-application.c:4486
 msgid "Writing to cache…"
 msgstr "Kirjoitetaan välimuistiin…"
 
-#: src/bz-apps-page.blp:97 src/bz-full-view.c:216
+#: src/bz-application.c:4520
+msgid "Removing remote…"
+msgstr "Poistetaan etätietovarastoa…"
+
+#: src/bz-application.c:4537
+msgid "Could not remove remote"
+msgstr "Etätietovaraston poistaminen epäonnistui"
+
+#: src/bz-apps-page.blp:97 src/bz-full-view.c:214
 msgid "Show All"
 msgstr "Näytä kaikki"
 
@@ -867,39 +843,40 @@ msgstr "%d sovellusta"
 msgid "Failed to Load Article"
 msgstr "Artikkelin lataaminen epäonnistui"
 
-#: src/bz-bulk-install-dialog.c:87
+#: src/bz-bulk-install-dialog.c:88
 msgid "All apps are already installed"
 msgstr "Kaikki sovellukset on jo asennettu"
 
-#: src/bz-bulk-install-dialog.c:89
+#: src/bz-bulk-install-dialog.c:90
 msgid "_OK"
 msgstr "_OK"
 
-#: src/bz-bulk-install-dialog.c:105
+#: src/bz-bulk-install-dialog.c:106
 #, c-format
 msgid "Install %u App?"
 msgid_plural "Install %u Apps?"
 msgstr[0] "Asennetaanko %u sovellus?"
 msgstr[1] "Asennetaanko %u sovellusta?"
 
-#: src/bz-bulk-install-dialog.c:113
+#: src/bz-bulk-install-dialog.c:114
 msgid "The following will be installed. Additional shared components may also be installed"
 msgstr "Seuraavat asennetaan. Jaettuja lisäkomponentteja saatetaan asentaa lisäksi"
 
-#: src/bz-bulk-install-dialog.c:114
+#: src/bz-bulk-install-dialog.c:115
 #, c-format
 msgid "%d addons will be installed."
 msgstr "%d lisäosaa asennetaan."
 
-#: src/bz-bulk-install-dialog.c:115
+#: src/bz-bulk-install-dialog.c:116
 msgid "Additionally, addons will be installed."
 msgstr "Lisäksi lisäosia asennetaan."
 
-#: src/bz-bulk-install-dialog.c:116 src/bz-transaction-dialog.c:200 src/bz-transaction-dialog.c:245
+#: src/bz-bulk-install-dialog.c:117 src/bz-remotes-dialog.vala:179 src/bz-transaction-dialog.c:199
+#: src/bz-transaction-dialog.c:244
 msgid "_Cancel"
 msgstr "_Peru"
 
-#: src/bz-bulk-install-dialog.c:117
+#: src/bz-bulk-install-dialog.c:118
 msgid "_Install All"
 msgstr "_Asenna kaikki"
 
@@ -927,8 +904,8 @@ msgid "Successfully Installed!"
 msgstr "Asennus onnistui!"
 
 #. TRANSLATORS: Button to launch an installed app
-#: src/bz-bundle-install-dialog.blp:440 src/bz-bundle-install-dialog.blp:526 src/bz-rich-app-tile.blp:200
-#: src/bz-transaction-tile.blp:300
+#: src/bz-bundle-install-dialog.blp:440 src/bz-bundle-install-dialog.blp:526 src/bz-rich-app-tile.blp:199
+#: src/bz-transaction-tile.blp:328
 msgid "Open"
 msgstr "Avaa"
 
@@ -944,16 +921,16 @@ msgstr "On jo asennettu"
 msgid "Installation Failed"
 msgstr "Asennus epäonnistui"
 
-#: src/bz-bundle-install-dialog.c:168
+#: src/bz-bundle-install-dialog.c:166
 msgid "Unknown install size"
 msgstr "Tuntematon asennuksen koko"
 
-#: src/bz-bundle-install-dialog.c:171
+#: src/bz-bundle-install-dialog.c:169
 #, c-format
 msgid "About %s to install"
-msgstr ""
+msgstr "Noin %s asennetavaa"
 
-#: src/bz-bundle-install-dialog.c:214
+#: src/bz-bundle-install-dialog.c:212
 msgid "No special permissions"
 msgstr "Ei erikoisoikeuksia"
 
@@ -965,7 +942,7 @@ msgstr "Aseta sovelma"
 msgid "Choose where to add this applet."
 msgstr "Valitse mihin tämä sovelma lisätään."
 
-#: src/bz-cosmic-place-applet-dialog.vala:29 src/bz-entry-group-util.c:80 src/bz-rich-app-tile.blp:232
+#: src/bz-cosmic-place-applet-dialog.vala:29 src/bz-entry-group-util.c:80 src/bz-rich-app-tile.blp:231
 msgid "Cancel"
 msgstr "Peru"
 
@@ -992,6 +969,23 @@ msgstr "Selaa Flathubia"
 #: src/bz-curated-view.blp:49
 msgid "Offline"
 msgstr ""
+
+#. TRANSLATORS: accessible description of the installs graph, like "14 May to 31 Oct, highest on 30 Oct with 4,600"
+#: src/bz-data-graph.vala:44
+#, c-format
+msgid "%s to %s, highest on %s with %s"
+msgstr ""
+
+#. Translators: K is the suffix for thousands
+#: src/bz-data-graph.vala:243 src/context-tile-callbacks.c:82
+#, c-format
+msgid "%.*fK"
+msgstr ""
+
+#. TRANSLATORS: label prefix shown in graph tooltips, for example: "Installs: 42"
+#: src/bz-data-graph.vala:481
+msgid "Installs:"
+msgstr "Asennuksia:"
 
 #: src/bz-developer-badge.c:94 src/bz-developer-badge.c:98
 msgid "Not Verified"
@@ -1025,6 +1019,23 @@ msgstr ""
 #, c-format
 msgid "The ownership of the %s app ID has been verified."
 msgstr "Sovellustunnisteen %s omistajuus on vahvistettu."
+
+#. Translators: A row of the install statistics, for example: Fedora, 28%
+#: src/bz-distro-chart.vala:40
+#, c-format
+msgid "%s, %s"
+msgstr "%s, %s"
+
+#. Translators: Shown for values smaller than 1 percent
+#: src/bz-distro-chart.vala:161
+msgid "<1%"
+msgstr "<1%"
+
+#. Translators: A percentage, for example: 42%
+#: src/bz-distro-chart.vala:163
+#, c-format
+msgid "%.0f%%"
+msgstr "%.0f% %"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: src/bz-donations-dialog.blp:8
@@ -1068,7 +1079,7 @@ msgstr "Valitse asennus"
 msgid "You have multiple versions of this app installed. Which one would you like to proceed with?"
 msgstr "Tästä sovelluksesta on asennettu useita versioita. Minkä version osalta edetään?"
 
-#: src/bz-error-dialog.blp:36 src/bz-safety-dialog.blp:100 src/error.c:69 src/error.c:88 src/update-worker.c:473
+#: src/bz-error-dialog.blp:36 src/bz-safety-dialog.blp:100 src/error.c:69 src/error.c:88 src/update-worker.c:495
 msgid "Details"
 msgstr "Yksityiskohdat"
 
@@ -1077,7 +1088,7 @@ msgstr "Yksityiskohdat"
 msgid "Copy"
 msgstr "Kopioi"
 
-#: src/bz-error-dialog.c:56 src/bz-screenshot-page.vala:346 src/bz-share-list.c:364
+#: src/bz-error-dialog.c:56 src/bz-screenshot-page.vala:532 src/bz-share-list.vala:58
 msgid "Copied!"
 msgstr "Kopioitu!"
 
@@ -1097,7 +1108,7 @@ msgstr "Kirjaudu Flathubiin hallinnoidaksesi suosikkejasi"
 msgid "Log In"
 msgstr "Kirjaudu sisään"
 
-#: src/bz-favorites-page.blp:5 src/bz-window.blp:350
+#: src/bz-favorites-page.blp:5 src/bz-window.blp:327
 msgid "Favorites"
 msgstr "Suosikit"
 
@@ -1113,11 +1124,11 @@ msgstr "Ei suosikkeja"
 msgid "Applications you mark as favorite will appear here"
 msgstr "Suosikeiksi merkitsemäsi sovellukset näkyvät täällä"
 
-#: src/bz-favorites-tile.blp:58
+#: src/bz-favorites-tile.blp:57
 msgid "Support This Application"
 msgstr "Tue tätä sovellusta"
 
-#: src/bz-favorites-tile.blp:105
+#: src/bz-favorites-tile.blp:104
 msgid "Remove From Favorites"
 msgstr "Poista suosikeista"
 
@@ -1125,11 +1136,11 @@ msgstr "Poista suosikeista"
 msgid "Failed to remove favorite"
 msgstr "Suosikin poistaminen epäonnistui"
 
-#: src/bz-featured-carousel.blp:32
+#: src/bz-featured-carousel.blp:33
 msgid "Previous"
 msgstr "Edellinen"
 
-#: src/bz-featured-carousel.blp:55
+#: src/bz-featured-carousel.blp:57
 msgid "Next"
 msgstr "Seuraava"
 
@@ -1349,7 +1360,7 @@ msgstr "Lisää järjestelmäsovelluksia"
 msgid "Utilities"
 msgstr "Apuohjelmat"
 
-#: src/bz-flathub-category.c:143 src/bz-flathub-page.blp:436
+#: src/bz-flathub-category.c:143 src/bz-flathub-page.blp:434
 msgid "Tools"
 msgstr "Työkalut"
 
@@ -1365,7 +1376,7 @@ msgstr "Nousussa"
 msgid "More Trending"
 msgstr "Lisää nousussa olevia"
 
-#: src/bz-flathub-category.c:145 src/bz-flathub-page.blp:112 src/bz-flathub-page.blp:171
+#: src/bz-flathub-category.c:145 src/bz-flathub-page.blp:112 src/bz-flathub-page.blp:173
 msgid "Popular"
 msgstr "Suositut"
 
@@ -1373,7 +1384,7 @@ msgstr "Suositut"
 msgid "More Popular"
 msgstr "Lisää suosittuja"
 
-#: src/bz-flathub-category.c:146 src/bz-flathub-page.blp:160
+#: src/bz-flathub-category.c:146 src/bz-flathub-page.blp:161
 msgid "Recently Added"
 msgstr "Äskettäin lisätty"
 
@@ -1433,15 +1444,15 @@ msgstr "COSMIC™:ille"
 msgid "More COSMIC Apps"
 msgstr "Lisää COSMIC-sovelluksia"
 
-#: src/bz-flathub-category.c:152 src/bz-flathub-page.blp:418
+#: src/bz-flathub-category.c:152 src/bz-flathub-page.blp:416
 msgid "Games"
 msgstr "Pelit"
 
-#: src/bz-flathub-category.c:152 src/bz-flathub-page.blp:475
+#: src/bz-flathub-category.c:152 src/bz-flathub-page.blp:461
 msgid "More Games"
 msgstr "Lisää pelejä"
 
-#: src/bz-flathub-category.c:153 src/bz-flathub-page.blp:424
+#: src/bz-flathub-category.c:153 src/bz-flathub-page.blp:422
 msgid "Emulators"
 msgstr "Emulaattorit"
 
@@ -1449,7 +1460,7 @@ msgstr "Emulaattorit"
 msgid "More Emulators"
 msgstr "Lisää emulaattoreita"
 
-#: src/bz-flathub-category.c:154 src/bz-flathub-page.blp:430
+#: src/bz-flathub-category.c:154 src/bz-flathub-page.blp:428
 msgid "Launchers"
 msgstr "Käynnistimet"
 
@@ -1593,77 +1604,77 @@ msgstr "Etsi sovelluksia"
 msgid "Reconnect"
 msgstr "Yhdistä uudelleen"
 
-#: src/bz-flathub-page.blp:204
+#: src/bz-flathub-page.blp:207
 msgid "App of the Day"
 msgstr "Päivän sovellus"
 
-#: src/bz-flathub-page.blp:267
+#: src/bz-flathub-page.blp:272
 msgid "On the Go"
 msgstr "Matkassa"
 
-#: src/bz-flathub-page.blp:279
+#: src/bz-flathub-page.blp:284
 msgid "Apps for your Linux phones and tablets"
 msgstr "Sovelluksia Linux-puhelimille ja -tableteille"
 
-#: src/bz-flathub-page.blp:290 src/bz-flathub-page.blp:322
+#: src/bz-flathub-page.blp:295 src/bz-flathub-page.blp:318
 msgid "More Mobile Apps"
 msgstr "Lisää mobiilisovelluksia"
 
-#: src/bz-flathub-page.blp:380
+#: src/bz-flathub-page.blp:378
 msgid "We​ ♥​ Games"
 msgstr "Me ♥​ pelejä"
 
-#: src/bz-flathub-page.blp:393
+#: src/bz-flathub-page.blp:391
 msgid "Games and apps to run your favorite titles"
 msgstr "Pelejä ja sovelluksia suosikkipeliesi pelaamiseen"
 
-#: src/bz-full-view.blp:93
+#: src/bz-full-view.blp:94
 msgid "This is a local preview, some details may differ from the published listing"
 msgstr ""
 
-#: src/bz-full-view.blp:96
+#: src/bz-full-view.blp:97
 msgid "Preview Store Appearance"
 msgstr ""
 
-#: src/bz-full-view.blp:222
+#: src/bz-full-view.blp:223
 msgid "_Support"
 msgstr "_Tue"
 
-#: src/bz-full-view.blp:455
+#: src/bz-full-view.blp:452
 msgid "This app uses a runtime that no longer receives updates or security fixes. It may become unsafe to use."
 msgstr ""
 "Tämä sovellus käyttää suorituksenaikaista versiota, joka ei enää saa päivityksiä tai tietoturvakorjauksia. Sen käyttö "
 "voi muuttua vaaralliseksi."
 
-#: src/bz-full-view.blp:533
+#: src/bz-full-view.blp:530
 msgid "Trash Data"
 msgstr "Siirrä data roskakoriin"
 
-#: src/bz-full-view.blp:630
+#: src/bz-full-view.blp:627
 msgid "Add-ons"
 msgstr "Lisäosat"
 
-#: src/bz-full-view.blp:665
+#: src/bz-full-view.blp:662
 msgid "More Add-Ons"
 msgstr "Lisää lisäosia"
 
-#: src/bz-full-view.blp:676
+#: src/bz-full-view.blp:673
 msgid "Links"
 msgstr "Linkit"
 
-#: src/bz-full-view.blp:707
+#: src/bz-full-view.blp:704
 msgid "Similar Apps"
 msgstr "Samankaltaiset sovellukset"
 
-#: src/bz-full-view.c:183
+#: src/bz-full-view.c:181
 msgid "No URL"
 msgstr "Ei URL-osoitetta"
 
-#: src/bz-full-view.c:201
+#: src/bz-full-view.c:199
 msgid "This app has a FLOSS license, meaning the source code can be audited for safety."
 msgstr "Tällä sovelluksella on FLOSS-lisenssi, eli lähdekoodi on auditoitavissa turvallisuuden takaamiseksi."
 
-#: src/bz-full-view.c:202
+#: src/bz-full-view.c:200
 msgid ""
 "This app has a proprietary license, meaning the source code is developed privately and cannot be audited by an "
 "independent third party."
@@ -1671,37 +1682,37 @@ msgstr ""
 "Tällä sovelluksella on omisteinen lisenssi. Se tarkoittaa, että lähdekoodia kehitetään yksityisesti, eikä sitä voi "
 "auditoida itsenäinen kolmas osapuoli."
 
-#: src/bz-full-view.c:209
+#: src/bz-full-view.c:207
 msgid "Other Apps From This Developer"
 msgstr "Muut tämän kehittäjän sovellukset"
 
-#: src/bz-full-view.c:210
+#: src/bz-full-view.c:208
 #, c-format
 msgid "Other Apps From %s"
 msgstr "Muut kehittäjän %s sovellukset"
 
-#: src/bz-full-view.c:225
+#: src/bz-full-view.c:223
 #, c-format
 msgid "%s is not installed, but it still has <b>%s</b> of data present."
 msgstr "%s ei ole asennettu, mutta siitä on vielä <b>%s</b> dataa jäljellä."
 
-#: src/bz-full-view.c:308
+#: src/bz-full-view.c:305
 #, c-format
 msgid "Apps by %s"
 msgstr "Kehittäjän %s sovellukset"
 
-#: src/bz-full-view.c:310
+#: src/bz-full-view.c:307
 msgid "Apps by This Developer"
 msgstr "Kehittäjän sovellukset"
 
-#: src/bz-full-view.c:312
+#: src/bz-full-view.c:309
 #, c-format
 msgid "%d Application"
 msgid_plural "%d Applications"
 msgstr[0] "%d sovellus"
 msgstr[1] "%d sovellusta"
 
-#: src/bz-full-view.c:467 src/bz-user-data-tile.c:160
+#: src/bz-full-view.c:463 src/bz-user-data-tile.c:160
 msgid "Failed to Remove User Data"
 msgstr "Käyttäjädatan poistaminen epäonnistui"
 
@@ -1799,51 +1810,48 @@ msgstr "%s toimii parhaiten tietynlaisella laitteistolla"
 msgid "%s works on most devices"
 msgstr "%s toimii useimmilla laitteilla"
 
-#: src/bz-inspector.blp:22
-msgid "Inspector Menu"
-msgstr "Tarkistinvalikko"
-
-#: src/bz-install-controls.blp:58
-msgid "_Open"
-msgstr "_Avaa"
-
-#: src/bz-install-controls.blp:72 src/bz-install-controls.blp:126
-msgid "Uninstall Application"
-msgstr "Poista sovelluksen asennus"
-
-#: src/bz-install-controls.blp:82 src/bz-transaction-dialog.c:201
-msgid "_Remove"
-msgstr "_Poista"
-
-#: src/bz-install-controls.blp:114 src/bz-updates-card.vala:178 src/bz-updates-card.vala:201
-msgid "Update"
-msgstr "Päivitä"
-
-#: src/bz-install-controls.blp:136 src/bz-installed-tile.blp:107
-msgid "Remove"
-msgstr "Poista"
-
-#: src/bz-install-controls.c:672
-#, c-format
-msgid "Install %s from %s"
-msgstr "Asenna %s lähteestä %s"
-
-#: src/bz-install-controls.c:674
-#, c-format
-msgid "Install %s"
-msgstr "Asenna %s"
-
-#: src/bz-install-controls.wdgt:32
+#: src/bz-install-controls.blp:57
 msgctxt "Install Controls"
 msgid "Cancel"
 msgstr "Peru"
 
-#: src/bz-install-controls.wdgt:35
+#: src/bz-install-controls.blp:65
 msgctxt "Install Controls"
 msgid "Cancelling"
 msgstr "Perutaan"
 
-#: src/bz-installed-tile.blp:78
+#: src/bz-install-controls.blp:94
+msgid "_Open"
+msgstr "_Avaa"
+
+#: src/bz-install-controls.blp:107 src/bz-install-controls.blp:160
+msgid "Uninstall Application"
+msgstr "Poista sovelluksen asennus"
+
+#: src/bz-install-controls.blp:117 src/bz-remotes-dialog.blp:123 src/bz-remotes-dialog.vala:180
+#: src/bz-transaction-dialog.c:200
+msgid "_Remove"
+msgstr "_Poista"
+
+#: src/bz-install-controls.blp:148 src/bz-updates-card.vala:178 src/bz-updates-card.vala:201
+msgid "Update"
+msgstr "Päivitä"
+
+#: src/bz-install-controls.blp:170 src/bz-installed-tile.blp:106
+msgid "Remove"
+msgstr "Poista"
+
+#: src/bz-install-controls.vala:306
+#, c-format
+msgid "Install %s from %s"
+msgstr "Asenna %s lähteestä %s"
+
+#: src/bz-install-controls.vala:306
+#, c-format
+msgid "Install %s"
+msgstr "Asenna %s"
+
+#: src/bz-installed-tile.blp:77
 msgid "Donate"
 msgstr "Lahjoita"
 
@@ -1879,42 +1887,42 @@ msgstr "Tyhjennä valmistuneet tehtävät"
 msgid "Sort Options"
 msgstr "Järjestysvalinnat"
 
-#: src/bz-library-page.blp:293
+#: src/bz-library-page.blp:298
 msgid "Sort By"
 msgstr "Järjestä"
 
-#: src/bz-library-page.blp:307
+#: src/bz-library-page.blp:312
 msgid "Name"
 msgstr "Nimi"
 
-#: src/bz-library-page.blp:313
+#: src/bz-library-page.blp:318
 msgid "Size"
 msgstr "Koko"
 
-#: src/bz-library-page.c:181
+#: src/bz-library-page.c:184
 #, c-format
 msgid "No matches found for \"%s\" in the list of installed apps"
 msgstr "Asennettujen sovellusten luettelosta ei löytynyt mitään haulla \"%s\""
 
-#: src/bz-library-page.c:194 src/bz-updates-card.vala:51
+#: src/bz-library-page.c:197 src/bz-updates-card.vala:51
 #, c-format
 msgid "%u Available Update"
 msgid_plural "%u Available Updates"
 msgstr[0] "%u päivitys saatavilla"
 msgstr[1] "%u päivitystä saatavilla"
 
-#: src/bz-library-page.c:204
+#: src/bz-library-page.c:207
 #, c-format
 msgid "%u Installed App"
 msgid_plural "%u Installed Apps"
 msgstr[0] "%u asennettu sovellus"
 msgstr[1] "%u asennettua sovellusta"
 
-#: src/bz-library-page.c:629 src/bz-search-page.c:820
+#: src/bz-library-page.c:664 src/bz-search-page.c:858
 msgid "No applications found"
 msgstr "Sovelluksia ei löytynyt"
 
-#: src/bz-library-page.c:629 src/bz-search-page.c:822
+#: src/bz-library-page.c:664 src/bz-search-page.c:861
 #, c-format
 msgid "One application found"
 msgid_plural "%u applications found"
@@ -2059,20 +2067,20 @@ msgid_plural "This update requires the following additional permissions"
 msgstr[0] "Tämä päivitys vaatii uuden oikeuden"
 msgstr[1] "Tämä päivitys vaatii uusia oikeuksia"
 
-#: src/bz-other-sources-list.vala:52
+#: src/bz-other-sources-list.vala:54
 msgid "User"
 msgstr "Käyttäjä"
 
-#: src/bz-other-sources-list.vala:55
+#: src/bz-other-sources-list.vala:57
 msgid "Beta"
 msgstr "Beeta"
 
-#: src/bz-other-sources-list.vala:58
+#: src/bz-other-sources-list.vala:60
 msgid "End-Of-Life"
 msgstr "Käyttöikä loppu"
 
 #. Translators: As in, "1 Install" / "100 Installs"
-#: src/bz-other-sources-list.vala:76 src/bz-world-map.c:604
+#: src/bz-other-sources-list.vala:78 src/bz-world-map.vala:203
 msgid "Install"
 msgid_plural "Installs"
 msgstr[0] "asennus"
@@ -2086,7 +2094,7 @@ msgstr "Asetukset"
 msgid "Network connection is metered — automatic store data refresh is paused"
 msgstr "Verkkoyhteys on käytön mukaan laskutettava — automaattinen kauppadatan virkistäminen on keskeytetty"
 
-#: src/bz-preferences-dialog.blp:26 src/bz-window.blp:244 src/bz-window.blp:255
+#: src/bz-preferences-dialog.blp:26 src/bz-window.blp:225 src/bz-window.blp:236
 msgid "Refresh Manually"
 msgstr "Virkistä manuaalisesti"
 
@@ -2163,96 +2171,96 @@ msgstr "Piilota sovellukset, jotka eivät enää saa tukea kehittäjiltään"
 msgid "Progress Bar Theme"
 msgstr "Edistymispalkin teema"
 
-#: src/bz-preferences-dialog.c:42
+#: src/bz-preferences-dialog.c:43
 msgid "Accent Color"
 msgstr "Korostusväri"
 
-#: src/bz-preferences-dialog.c:43
+#: src/bz-preferences-dialog.c:44
 msgid "Pride Colors"
 msgstr "Pride-värit"
 
-#: src/bz-preferences-dialog.c:44
+#: src/bz-preferences-dialog.c:45
 msgid "Lesbian Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:45
+#: src/bz-preferences-dialog.c:46
 msgid "Male Homosexual Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:46
+#: src/bz-preferences-dialog.c:47
 msgid "Transgender Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:47
+#: src/bz-preferences-dialog.c:48
 msgid "Nonbinary Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:48
+#: src/bz-preferences-dialog.c:49
 msgid "Bisexual Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:49
+#: src/bz-preferences-dialog.c:50
 msgid "Asexual Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:50
+#: src/bz-preferences-dialog.c:51
 msgid "Pansexual Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:51
+#: src/bz-preferences-dialog.c:52
 msgid "Aromantic Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:52
+#: src/bz-preferences-dialog.c:53
 msgid "Genderfluid Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:53
+#: src/bz-preferences-dialog.c:54
 msgid "Polysexual Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:54
+#: src/bz-preferences-dialog.c:55
 msgid "Omnisexual Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:55
+#: src/bz-preferences-dialog.c:56
 msgid "Aroace Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:56
+#: src/bz-preferences-dialog.c:57
 msgid "Agender Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:57
+#: src/bz-preferences-dialog.c:58
 msgid "Genderqueer Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:58
+#: src/bz-preferences-dialog.c:59
 msgid "Intersex Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:59
+#: src/bz-preferences-dialog.c:60
 msgid "Demigender Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:60
+#: src/bz-preferences-dialog.c:61
 msgid "Biromantic Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:61
+#: src/bz-preferences-dialog.c:62
 msgid "Disability Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:62
+#: src/bz-preferences-dialog.c:63
 msgid "Femboy Pride Colors"
 msgstr ""
 
-#: src/bz-preferences-dialog.c:63
+#: src/bz-preferences-dialog.c:64
 msgid "Neutrois Pride Colors"
 msgstr ""
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-preferences-dialog.c:286
+#: src/bz-preferences-dialog.c:287
 msgid "Bazaar needs to run in the background to check for app updates"
 msgstr "Bazaar tulee olla käynnissä taustalla, jotta se voi tarkistaa sovellusten päivitykset"
 
@@ -2261,17 +2269,17 @@ msgid "Version History"
 msgstr "Versiohistoria"
 
 #. Translators: something happened less than a day ago
-#: src/bz-releases-list.c:120
+#: src/bz-releases-list.c:119
 msgid "Today"
 msgstr "Tänään"
 
 #. Translators: something happened more than a day ago but less than 2 days ago
-#: src/bz-releases-list.c:123
+#: src/bz-releases-list.c:122
 msgid "Yesterday"
 msgstr "Eilen"
 
 #. Translators: something happened days ago
-#: src/bz-releases-list.c:126
+#: src/bz-releases-list.c:125
 #, c-format
 msgid "%d day ago"
 msgid_plural "%d days ago"
@@ -2279,7 +2287,7 @@ msgstr[0] "%d päivä sitten"
 msgstr[1] "%d päivää sitten"
 
 #. Translators: something happened weeks ago
-#: src/bz-releases-list.c:129
+#: src/bz-releases-list.c:128
 #, c-format
 msgid "%d week ago"
 msgid_plural "%d weeks ago"
@@ -2287,7 +2295,7 @@ msgstr[0] "%d viikko sitten"
 msgstr[1] "%d viikkoa sitten"
 
 #. Translators: something happened months ago
-#: src/bz-releases-list.c:132
+#: src/bz-releases-list.c:131
 #, c-format
 msgid "%d month ago"
 msgid_plural "%d months ago"
@@ -2295,7 +2303,7 @@ msgstr[0] "%d kuukausi sitten"
 msgstr[1] "%d kuukautta sitten"
 
 #. Translators: something happened years ago
-#: src/bz-releases-list.c:135
+#: src/bz-releases-list.c:134
 #, c-format
 msgid "%d year ago"
 msgid_plural "%d years ago"
@@ -2304,20 +2312,20 @@ msgstr[1] "%d vuotta sitten"
 
 #. TRANSLATORS: This is the date string with: day number, month name, year.
 #. i.e. "22 March 2026"
-#: src/bz-releases-list.c:153
+#: src/bz-releases-list.c:152
 msgid "%e %B %Y"
 msgstr "%e. %Bta %Y"
 
-#: src/bz-releases-list.c:194
+#: src/bz-releases-list.c:193
 #, c-format
 msgid "Version %s"
 msgstr "Versio %s"
 
-#: src/bz-releases-list.c:249
+#: src/bz-releases-list.c:248
 msgid "No details for this release"
 msgstr "Tästä julkaisusta ei ole saatavilla lisätietoja"
 
-#: src/bz-releases-list.c:262
+#: src/bz-releases-list.c:261
 msgid "Get More Information"
 msgstr "Lisätietoja"
 
@@ -2325,20 +2333,95 @@ msgstr "Lisätietoja"
 msgid "_Version History"
 msgstr "_Versiohistoria"
 
-#: src/bz-rich-app-tile.blp:218
+#: src/bz-remotes-dialog.blp:5 src/bz-remotes-dialog.blp:24
+msgid "Remotes"
+msgstr "Etätietovarastot"
+
+#: src/bz-remotes-dialog.blp:49
+msgid "System Installation"
+msgstr "Järjestelmäasennus"
+
+#: src/bz-remotes-dialog.blp:50
+msgid "Available to all users on this computer"
+msgstr "Saatavilla kaikille tietokoneen käyttäjille"
+
+#: src/bz-remotes-dialog.blp:55
+msgid "User Installation"
+msgstr "Käyttäjäasennus"
+
+#: src/bz-remotes-dialog.blp:56
+msgid "Only available to you"
+msgstr "Saatavilla vain sinulle"
+
+#: src/bz-remotes-dialog.blp:65
+msgid "Remove Remote"
+msgstr "Poista etätietovarasto"
+
+#: src/bz-remotes-dialog.vala:31
+#, c-format
+#| msgid "Remove %s?"
+msgid "Remove %s"
+msgstr "Poista %s"
+
+#: src/bz-remotes-dialog.vala:42
+msgid "Unused"
+msgstr "Käyttämätön"
+
+#: src/bz-remotes-dialog.vala:42
+#, c-format
+#| msgid "%s Installed"
+msgid "%u app installed"
+msgid_plural "%u apps installed"
+msgstr[0] "%u sovellus asennettu"
+msgstr[1] "%u sovellusta asennettu"
+
+#: src/bz-remotes-dialog.vala:174 src/bz-remotes-dialog.vala:193
+#, c-format
+#| msgid "Remove %s?"
+msgid "Remove “%s”?"
+msgstr "Poistetaanko “%s”?"
+
+#: src/bz-remotes-dialog.vala:176
+msgid "You will no longer be able to install apps from this user remote."
+msgstr ""
+
+#: src/bz-remotes-dialog.vala:177
+msgid "You will no longer be able to install apps from this system remote."
+msgstr ""
+
+#: src/bz-remotes-dialog.vala:194
+#, c-format
+msgid "%u App to Remove"
+msgid_plural "%u Apps to Remove"
+msgstr[0] "%u sovellus poistettavaksi"
+msgstr[1] "%u sovellusta poistettavaksi"
+
+#: src/bz-remotes-dialog.vala:197
+msgid "The app below was installed from this remote and will be removed from your account along with it."
+msgid_plural "These apps were installed from this remote and will be removed from your account along with it."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/bz-remotes-dialog.vala:201
+msgid "The app below was installed from this remote and will be removed for all users along with it."
+msgid_plural "These apps were installed from this remote and will be removed for all users along with it."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/bz-rich-app-tile.blp:217
 msgid "Uninstall"
 msgstr "Poista asennus"
 
 #. Translators: If you can't find a short enough translation, use "/" to use an icon instead.
-#: src/bz-rich-app-tile.c:384
+#: src/bz-rich-app-tile.c:386
 msgid "Get"
 msgstr "Hanki"
 
-#: src/bz-safety-dialog.blp:32 src/bz-safety-dialog.c:322 src/safety-calculator.c:158
+#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:237 src/safety-calculator.c:158
 msgid "Arbitrary Permissions"
 msgstr "Mielivaltaiset oikeudet"
 
-#: src/bz-safety-dialog.blp:49
+#: src/bz-safety-dialog.blp:47
 msgid ""
 "This app has a permission that indirectly allows it to grant itself <b>any other permission it wants</b>, bypassing "
 "the Flatpak sandbox.\n"
@@ -2356,7 +2439,7 @@ msgstr ""
 "\n"
 "Muiden käyttöoikeuksien tarkastelu saattaa antaa vihjeitä, mitä sovellus todennäköisesti on aikeissa tehdä."
 
-#: src/bz-safety-dialog.blp:53
+#: src/bz-safety-dialog.blp:51
 msgid "View Other Permissions"
 msgstr "Näytä muut oikeudet"
 
@@ -2381,31 +2464,31 @@ msgstr ""
 "Tämä sovellus käyttää vanhentunutta ohjelmistokehityspakettia (SDK), ja se saattaa sisältää ohjelmistovirheitä tai "
 "tietoturvaongelmia, joita ei korjata."
 
-#: src/bz-safety-dialog.c:308 src/bz-safety-dialog.c:341
+#: src/bz-safety-dialog.c:228 src/bz-safety-dialog.c:256
 msgid "Safety"
 msgstr "Turvallisuus"
 
-#: src/bz-safety-dialog.c:401
+#: src/bz-safety-dialog.c:316
 #, c-format
 msgid "%s is Safe"
 msgstr "%s on turvallinen"
 
-#: src/bz-safety-dialog.c:406
+#: src/bz-safety-dialog.c:321
 #, c-format
 msgid "%s has no Unsafe Permissions"
 msgstr "%s ei sisällä turvattomia oikeuksia"
 
-#: src/bz-safety-dialog.c:411
+#: src/bz-safety-dialog.c:326
 #, c-format
 msgid "%s is Probably Safe"
 msgstr "%s on luultavasti turvallinen"
 
-#: src/bz-safety-dialog.c:416
+#: src/bz-safety-dialog.c:331
 #, c-format
 msgid "%s is Possibly Unsafe"
 msgstr "%s on mahdollisesti turvaton"
 
-#: src/bz-safety-dialog.c:421
+#: src/bz-safety-dialog.c:336
 #, c-format
 msgid "%s is Unsafe"
 msgstr "%s on turvaton"
@@ -2418,49 +2501,52 @@ msgstr "Takaisin"
 msgid "Previous Screenshot"
 msgstr "Edellinen kuvakaappaus"
 
-#: src/bz-screenshot-page.blp:111
+#: src/bz-screenshot-page.blp:112
 msgid "Next Screenshot"
 msgstr "Seuraava kuvakaappaus"
 
-#: src/bz-screenshot-page.blp:127
+#: src/bz-screenshot-page.blp:129
 msgid "Copy Image"
 msgstr "Kopioi kuva"
 
-#: src/bz-screenshot-page.blp:188
+#: src/bz-screenshot-page.blp:190
 msgid "Reset View"
 msgstr "Palauta oletuskokoon"
 
-#: src/bz-screenshot-page.blp:199
+#: src/bz-screenshot-page.blp:201
 msgid "Zoom Out"
 msgstr "Loitonna"
 
-#: src/bz-screenshot-page.blp:209
+#: src/bz-screenshot-page.blp:211
 msgid "Zoom In"
 msgstr "Lähennä"
+
+#: src/bz-runtime-updates-entry.vala:30 src/bz-updates-card.vala:199
+#, c-format
+msgid "%u Runtime Update"
+msgid_plural "%u Runtime Updates"
+msgstr[0] "%u suoritusaikaisen päivitys"
+msgstr[1] "%u suoritusaikaisen päivitystä"
 
 #: src/bz-screenshots-carousel.blp:6
 msgid "Screenshots Carousel"
 msgstr "Kuvakaappausten karuselli"
 
-#: src/bz-screenshots-carousel.blp:104
+#: src/bz-screenshots-carousel.blp:108
 msgid "No Screenshots"
 msgstr "Ei kuvakaappauksia"
 
-#: src/bz-screenshots-carousel.blp:128
-msgid "Open Screenshot Viewer"
-msgstr "Avaa kuvakaappausnäkymä"
-
-#: src/bz-screenshots-carousel.c:309
+#: src/bz-screenshots-carousel.c:304
 #, c-format
 msgid "Screenshot %u %s"
 msgstr "Kuvakaappaus %u %s"
 
-#: src/bz-screenshots-carousel.c:311
+#: src/bz-screenshots-carousel.c:306
 #, c-format
 msgid "Screenshot %u"
 msgstr "Kuvakaappaus %u"
 
-#: src/bz-search-bar.blp:47 src/bz-search-bar.blp:57
+#: src/bz-search-bar.blp:41 src/bz-search-bar.blp:51
 msgid "Clear Search"
 msgstr "Tyhjennä haku"
 
@@ -2516,7 +2602,7 @@ msgstr "Etsi sovelluksia yllä olevan haun avulla."
 msgid "No Applications Found"
 msgstr "Sovelluksia ei löytynyt"
 
-#: src/bz-search-page.c:253
+#: src/bz-search-page.c:269
 #, c-format
 msgid "No results found for \"%s\" in Flathub"
 msgstr "Ei tuloksia haulla \"%s\" Flathubista"
@@ -2601,100 +2687,114 @@ msgstr "Torrent"
 msgid "Emulator"
 msgstr "Emulaattori"
 
-#: src/bz-share-list.c:58
+#: src/bz-share-list.vala:53
+msgid "Copy Link"
+msgstr "Kopioi linkki"
+
+#: src/bz-share-list.vala:101
 msgctxt "Project URL Type"
 msgid "Flathub Page"
 msgstr "Flathub-sivu"
 
-#: src/bz-share-list.c:59
+#: src/bz-share-list.vala:102
 msgctxt "Project URL Type"
 msgid "Project Website"
 msgstr "Projektin sivusto"
 
-#: src/bz-share-list.c:60
+#: src/bz-share-list.vala:103
 msgctxt "Project URL Type"
 msgid "Issue Tracker"
 msgstr "Vianseurantajärjestelmä"
 
-#: src/bz-share-list.c:61
+#: src/bz-share-list.vala:104
 msgctxt "Project URL Type"
 msgid "FAQ"
 msgstr "UKK"
 
-#: src/bz-share-list.c:62
+#: src/bz-share-list.vala:105
 msgctxt "Project URL Type"
 msgid "Help"
 msgstr "Ohje"
 
-#: src/bz-share-list.c:63
+#: src/bz-share-list.vala:106
 msgctxt "Project URL Type"
 msgid "Donate"
 msgstr "Lahjoita"
 
-#: src/bz-share-list.c:64
+#: src/bz-share-list.vala:107
 msgctxt "Project URL Type"
 msgid "Translate"
 msgstr "Käännä"
 
-#: src/bz-share-list.c:65
+#: src/bz-share-list.vala:108
 msgctxt "Project URL Type"
 msgid "Contact"
 msgstr "Yhteys"
 
-#: src/bz-share-list.c:66
+#: src/bz-share-list.vala:109
 msgctxt "Project URL Type"
 msgid "Source Code"
 msgstr "Lähdekoodi"
 
-#: src/bz-share-list.c:67
+#: src/bz-share-list.vala:110
 msgctxt "Project URL Type"
 msgid "Contribute"
 msgstr "Osallistu"
 
-#: src/bz-share-list.c:68
+#: src/bz-share-list.vala:111
 msgctxt "Project URL Type"
 msgid "Manifest"
 msgstr "Manifesti"
 
-#: src/bz-share-list.c:326
-msgid "Copy Link"
-msgstr "Kopioi linkki"
-
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:28
+#: src/bz-stats-dialog.blp:30
 msgid "Timeline"
 msgstr "Aikajana"
 
-#. TRANSLATORS: label prefix shown in graph tooltips, for example: "Installs: 42"
-#: src/bz-stats-dialog.blp:48
-msgid "Installs:"
-msgstr "Asennuksia:"
+#. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
+#: src/bz-stats-dialog.blp:49
+msgid "Total"
+msgstr "Yhteensä"
+
+#. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
+#: src/bz-stats-dialog.blp:80
+msgid "This Week"
+msgstr "Tällä viikolla"
+
+#: src/bz-stats-dialog.blp:117
+msgid "Installs per day"
+msgstr "Asennuksia per päivä"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:58
+#: src/bz-stats-dialog.blp:126
 msgid "World"
 msgstr "Maailma"
 
-#: src/bz-stats-dialog.blp:72
+#: src/bz-stats-dialog.blp:139
+msgid "Installs per country"
+msgstr "Asennuksia per maa"
+
+#: src/bz-stats-dialog.blp:144
 msgid "Since 4/15/2024"
 msgstr "15.4.2024 alkaen"
 
-#. Translators: M is the suffix for millions
-#: src/bz-stats-dialog.c:126
-#, c-format
-msgid "%.2fM Total Installs"
-msgstr "%.2fM asennusta yhteensä"
+#: src/bz-stats-dialog.blp:157
+msgid "Distros"
+msgstr "Jakelut"
 
-#. Translators: K is the suffix for thousands
-#: src/bz-stats-dialog.c:129
-#, c-format
-msgid "%.2fK Total Installs"
-msgstr "%.2fK asennusta yhteensä"
+#: src/bz-stats-dialog.blp:183
+msgid "Installs per distro"
+msgstr "Asennuksia per jakelu"
 
-#: src/bz-stats-dialog.c:131
+#: src/bz-stats-dialog.vala:106
+msgid "Last 30 days"
+msgstr "Viimeiset 30 päivää"
+
+#. Translators: Shown below the install statistics, for example: Last 30 days, 42% of installs don't yet report a distro
+#: src/bz-stats-dialog.vala:108
 #, c-format
-msgid "%'d Total Installs"
-msgstr "%'d asennusta yhteensä"
+msgid "Last 30 days, %.0f%% of installs don't yet report a distro"
+msgstr "Viimeiset 30 päivää, %.0f% % asennuksista ei vielä ilmoita jakeluaan"
 
 #: src/bz-subcategory-list.c:77
 msgid "No Results Found"
@@ -2704,47 +2804,47 @@ msgstr "Tuloksia ei löytynyt"
 msgid "Search failed"
 msgstr "Haku epäonnistui"
 
-#: src/bz-transaction-dialog.c:118 src/context-tile-callbacks.c:251 src/context-tile-callbacks.c:256
+#: src/bz-transaction-dialog.c:117 src/context-tile-callbacks.c:251 src/context-tile-callbacks.c:256
 #: src/context-tile-callbacks.c:284 src/context-tile-callbacks.c:293
 msgid "Unknown"
 msgstr "Tuntematon"
 
-#: src/bz-transaction-dialog.c:148
+#: src/bz-transaction-dialog.c:147
 msgid "Keep User Data"
 msgstr "Säilytä käyttäjädata"
 
-#: src/bz-transaction-dialog.c:149
+#: src/bz-transaction-dialog.c:148
 msgid "Allow restoring personal settings &amp; content"
 msgstr "Salli henkilökohtaisten asetusten ja sisällön palauttaminen"
 
-#: src/bz-transaction-dialog.c:158
+#: src/bz-transaction-dialog.c:157
 msgid "Delete All Data"
 msgstr "Poista kaikki data"
 
-#: src/bz-transaction-dialog.c:159
+#: src/bz-transaction-dialog.c:158
 msgid "Permanently erase user data to save space"
 msgstr "Poista käyttäjädata pysyvästi tallennustilan säästämiseksi"
 
-#: src/bz-transaction-dialog.c:189
+#: src/bz-transaction-dialog.c:188
 #, c-format
 msgid "Remove %s?"
 msgstr "Poistetaanko %s?"
 
-#: src/bz-transaction-dialog.c:192
+#: src/bz-transaction-dialog.c:191
 msgid "Select which version to remove."
 msgstr "Valitse poistettava versio."
 
-#: src/bz-transaction-dialog.c:194
+#: src/bz-transaction-dialog.c:193
 #, c-format
 msgid "It will not be possible to use %s after it is uninstalled."
 msgstr "Sovellusta %s ei voi käyttää, kun se on poistettu."
 
-#: src/bz-transaction-dialog.c:217
+#: src/bz-transaction-dialog.c:216
 #, c-format
 msgid "“%s” is High Risk"
 msgstr "“%s” on korkeariskinen"
 
-#: src/bz-transaction-dialog.c:221
+#: src/bz-transaction-dialog.c:220
 msgid ""
 "This app has full access to your system, including all <b>your files, browser history, saved passwords</b>, and more. "
 "It also has access to the internet, meaning it could send your data to outside parties.\n"
@@ -2758,7 +2858,7 @@ msgstr ""
 "Koska tämä sovellus on omisteinen eli suljettu luonteeltaan, sitä ei voi auditoida sen osalta, mitä sovellus tekee "
 "näillä oikeuksilla."
 
-#: src/bz-transaction-dialog.c:230
+#: src/bz-transaction-dialog.c:229
 msgid ""
 "This app uses the legacy X11 windowing system, which allows it to <b>record all keystrokes, capture screenshots, and "
 "monitor other applications</b>. It also has access to the internet, meaning it could send your data to outside "
@@ -2767,15 +2867,15 @@ msgid ""
 "Because the app is proprietary, it can not be audited for what it does with these permissions."
 msgstr ""
 
-#: src/bz-transaction-dialog.c:246
+#: src/bz-transaction-dialog.c:245
 msgid "_Install Anyway"
 msgstr "_Asenna silti"
 
-#: src/bz-transaction-dialog.c:298 src/bz-transaction-dialog.c:326
+#: src/bz-transaction-dialog.c:297 src/bz-transaction-dialog.c:325
 msgid "Failed to load transaction dialog"
 msgstr "Transaktioikkunan lataaminen epäonnistui"
 
-#: src/bz-transaction-manager.c:796
+#: src/bz-transaction-manager.c:835
 #, c-format
 msgid "Finished in %.02f seconds"
 msgstr "Valmistui %.02f sekunnissa"
@@ -2792,27 +2892,31 @@ msgstr "Suoritusaikainen"
 msgid "In Queue"
 msgstr "Jonossa"
 
-#: src/bz-transaction-tile.blp:207
+#: src/bz-transaction-tile.blp:211
+msgid "Finishing Up"
+msgstr "Viimeistellään"
+
+#: src/bz-transaction-tile.blp:235
 msgid "Done"
 msgstr "Valmis"
 
-#: src/bz-transaction-tile.blp:231
+#: src/bz-transaction-tile.blp:259
 msgid "Cancelled"
 msgstr "Peruttu"
 
-#: src/bz-transaction-tile.blp:255
+#: src/bz-transaction-tile.blp:283
 msgid "Error"
 msgstr "Virhe"
 
-#: src/bz-transaction-tile.blp:313
+#: src/bz-transaction-tile.blp:341
 msgid "Cancel Transaction"
 msgstr "Peru transaktio"
 
-#: src/bz-transaction-tile.blp:323
+#: src/bz-transaction-tile.blp:351
 msgid "Show Details"
 msgstr "Näytä tiedot"
 
-#: src/bz-transaction-tile.blp:436
+#: src/bz-transaction-tile.blp:464
 msgid "Show Error Info"
 msgstr "Näytä virheen tiedot"
 
@@ -2825,7 +2929,7 @@ msgstr "%s vapautettu"
 msgid "Transaction Error"
 msgstr "Transaktiovirhe"
 
-#: src/bz-transaction.c:344
+#: src/bz-transaction.c:345
 msgid "Pending"
 msgstr "Odottaa"
 
@@ -2849,13 +2953,6 @@ msgstr "_Päivitä kaikki"
 msgid "This update requests new permissions"
 msgstr "Tämä päivitys pyytää uusia oikeuksia"
 
-#: src/bz-updates-card.vala:199
-#, c-format
-msgid "%u Runtime Update"
-msgid_plural "%u Runtime Updates"
-msgstr[0] "%u suoritusaikaisen päivitys"
-msgstr[1] "%u suoritusaikaisen päivitystä"
-
 #: src/bz-user-data-page.blp:5
 msgid "Manage Leftover User Data"
 msgstr "Hallitse ylijäämäistä käyttäjädataa"
@@ -2868,14 +2965,14 @@ msgstr "Ylijäämäistä käyttäjädataa ei löytynyt"
 msgid "Personal data left behind by apps that were removed will show up here"
 msgstr "Henkilökohtainen data, joka on jäänyt jäljelle poistetuista sovelluksista, näkyy täällä"
 
-#: src/bz-user-data-page.c:229
+#: src/bz-user-data-page.c:230
 #, c-format
 msgid "Trashed User Data for %u App"
 msgid_plural "Trashed User Data for %u Apps"
 msgstr[0] "%u sovelluksen käyttäjädata siirretty roskakoriin"
 msgstr[1] "%u sovelluksen käyttäjädata siirretty roskakoriin"
 
-#: src/bz-user-data-page.c:233
+#: src/bz-user-data-page.c:234
 #, c-format
 msgid "Trashed User Data for %s"
 msgstr ""
@@ -2888,109 +2985,128 @@ msgstr "Avaa käyttäjän datakansio"
 msgid "Trash User Data"
 msgstr "Siirrä käyttäjädata roskakoriin"
 
-#: src/bz-window.blp:80
+#: src/bz-window.blp:79
 msgid "Refreshing"
 msgstr "Virkistetään"
 
-#: src/bz-window.blp:98
+#: src/bz-window.blp:97
 msgid "Curated"
 msgstr "Valikoitu"
 
-#: src/bz-window.blp:110
+#: src/bz-window.blp:109
 msgid "Explore"
 msgstr "Tutki"
 
 #. Translators: .
-#: src/bz-window.blp:122
+#: src/bz-window.blp:121
 msgid "Library"
 msgstr "Kirjasto"
 
-#: src/bz-window.blp:137
+#: src/bz-window.blp:136
 msgid "Search"
 msgstr "Haku"
 
-#: src/bz-window.blp:223
+#: src/bz-window.blp:204
 msgid "Main Menu"
 msgstr "Päävalikko"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:235
+#: src/bz-window.blp:216
 msgid "You are running a new version of Bazaar!"
 msgstr "Käytössäsi on uusi Bazaar-versio!"
 
-#: src/bz-window.blp:236
+#: src/bz-window.blp:217
 msgid "See What's New"
 msgstr "Katso mitä uutta se sisältää"
 
-#: src/bz-window.blp:243
+#: src/bz-window.blp:224
 msgid "You have a network connection but are viewing a cached version of Flathub"
 msgstr "Verkkoyhteys on käytettävissä, mutta katselet välimuistissa olevaa versiota Flathubista"
 
-#: src/bz-window.blp:254
+#: src/bz-window.blp:235
 msgid "Network connection is metered — automatic refreshes disabled"
 msgstr "Verkkoyhteyttä laskutetaan käytön mukaan — automaattiset virkistykset pois käytöstä"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:291
+#: src/bz-window.blp:272
 msgid "_Donate to Bazaar"
 msgstr "_Lahjoita Bazaarille"
 
-#: src/bz-window.blp:297
+#: src/bz-window.blp:278
 msgid "_Refresh"
 msgstr "_Virkistä"
 
-#: src/bz-window.blp:301
+#: src/bz-window.blp:282
 msgid "_Login With Flathub"
 msgstr "_Kirjaudu Flathubiin"
 
-#: src/bz-window.blp:307
+#: src/bz-window.blp:288
 msgid "_Manage Leftover User Data"
 msgstr "_Hallitse ylijäämäistä käyttäjädataa"
 
-#: src/bz-window.blp:313
+#: src/bz-window.blp:293
+msgid "Manage R_emotes"
+msgstr "Hallitse _etätietovarastoja"
+
+#: src/bz-window.blp:300
 msgid "_Preferences"
 msgstr "_Asetukset"
 
-#: src/bz-window.blp:318
+#: src/bz-window.blp:305
 msgid "_Keyboard Shortcuts"
 msgstr "_Pikanäppäimet"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:324
+#: src/bz-window.blp:311
 msgid "_About Bazaar"
 msgstr "_Tietoja - Bazaar"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.blp:331
+#: src/bz-window.blp:318
 msgid "_Quit Bazaar"
 msgstr "_Lopeta Bazaar"
 
-#: src/bz-window.blp:357
+#: src/bz-window.blp:334
 msgid "Log Out"
 msgstr "Kirjaudu ulos"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating. %s is the title of the current page.
-#: src/bz-window.c:440
+#: src/bz-window.c:438
 #, c-format
 msgid "Bazaar — %s"
 msgstr "Bazaar — %s"
 
-#: src/bz-window.c:720 src/bz-window.c:769
+#: src/bz-window.c:726 src/bz-window.c:775
 msgid "Failed to launch application"
 msgstr "Sovelluksen käynnistäminen epäonnistui"
 
-#: src/bz-window.c:848
+#: src/bz-window.c:854
 msgid "Could not open link"
 msgstr "Linkkiä ei voitu avata"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: src/bz-window.c:1057
+#: src/bz-window.c:1074
 msgid "You can't remove Bazaar from Bazaar!"
 msgstr "Et voi poistaa Bazaaria Bazaarista!"
 
-#: src/bz-window.c:1441 src/bz-window.c:1475
+#: src/bz-window.c:1463 src/bz-window.c:1497
 msgid "Can't do that right now!"
 msgstr "Ei onnistu juuri nyt!"
+
+#: src/bz-world-map.vala:51
+#, c-format
+#| msgid "%s Installed"
+msgid "%s, %'u install"
+msgid_plural "%s, %'u installs"
+msgstr[0] "%s, %'u asennus"
+msgstr[1] "%s, %'u asennusta"
+
+#. Translators: accessible description of the world map, like. "Most installs from Germany, 1,200 installs, France, 800 installs"
+#: src/bz-world-map.vala:55
+#, fuzzy, c-format
+#| msgid "Install %s from %s"
+msgid "Most installs from %s"
+msgstr "Asenna %s lähteestä %s"
 
 #: src/context-tile-callbacks.c:68
 msgid "---"
@@ -3001,12 +3117,6 @@ msgstr "---"
 #, c-format
 msgid "%.*fM"
 msgstr "%.*f milj."
-
-#. Translators: K is the suffix for thousands
-#: src/context-tile-callbacks.c:82
-#, c-format
-msgid "%.*fK"
-msgstr ""
 
 #: src/context-tile-callbacks.c:92
 #, c-format
@@ -3454,6 +3564,12 @@ msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "Lopeta Bazaar"
 
+#. Translators: The other Linux distributions, in the install statistics
+#: src/stats-types.vala:59
+msgctxt "Distribution"
+msgid "Other"
+msgstr "Muut"
+
 #: src/transaction-notification.c:133
 #, c-format
 msgid "%s Installed"
@@ -3463,35 +3579,62 @@ msgstr "%s asennettu"
 msgid "The app is ready to be used"
 msgstr "Sovellus on valmis käytettäväksi"
 
-#: src/update-worker.c:266
+#: src/update-worker.c:278
 msgid "Updates Are Out of Date"
 msgstr "Päivitykset eivät ole ajan tasalla"
 
-#: src/update-worker.c:267
+#: src/update-worker.c:279
 msgid "Please check for available updates"
 msgstr "Tarkista saatavilla olevat ohjelmistopäivitykset"
 
-#: src/update-worker.c:513
+#: src/update-worker.c:535
 #, c-format
 msgid "%u App Updated"
 msgid_plural "%u Apps Updated"
 msgstr[0] "%u sovellus päivitetty"
 msgstr[1] "%u sovellusta päivitetty"
 
-#: src/update-worker.c:516
+#: src/update-worker.c:538
 #, c-format
 msgid "%s has been updated."
 msgstr "%s on päivitetty."
 
-#: src/update-worker.c:519
+#: src/update-worker.c:541
 #, c-format
 msgid "%s and %s have been updated."
 msgstr "%s ja %s on päviitetty."
 
-#: src/update-worker.c:523
+#: src/update-worker.c:545
 #, c-format
 msgid "Includes %s, %s and %s."
 msgstr "Mukaan lukien %s, %s ja %s."
+
+#~ msgid "Notice for Ubuntu Users"
+#~ msgstr "Huomio Ubuntu-käyttäjille"
+
+#~ msgid "Continue Anyway"
+#~ msgstr "Jatka silti"
+
+#~ msgid "Set Up System Flathub?"
+#~ msgstr "Määritetäänkö järjestelmän Flathub?"
+
+#~ msgid "Inspector Menu"
+#~ msgstr "Tarkistinvalikko"
+
+#~ msgid "Open Screenshot Viewer"
+#~ msgstr "Avaa kuvakaappausnäkymä"
+
+#, c-format
+#~ msgid "%.2fM Total Installs"
+#~ msgstr "%.2fM asennusta yhteensä"
+
+#, c-format
+#~ msgid "%.2fK Total Installs"
+#~ msgstr "%.2fK asennusta yhteensä"
+
+#, c-format
+#~ msgid "%'d Total Installs"
+#~ msgstr "%'d asennusta yhteensä"
 
 #~ msgid "Ubuntu Troubles!"
 #~ msgstr "Ubuntu-ongelmia!"
