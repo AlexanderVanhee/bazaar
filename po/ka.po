@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-10 18:26+0000\n"
-"PO-Revision-Date: 2026-11-11 12:31+0100\n"
+"POT-Creation-Date: 2026-11-12 02:28+0000\n"
+"PO-Revision-Date: 2026-11-14 07:18+0100\n"
 "Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
 "Language-Team: Georgian <ka@li.org>\n"
 "Language: ka\n"
@@ -1023,6 +1023,23 @@ msgstr "%1$s აპის ID-ის მფლობელობა გადა�
 #, c-format
 msgid "The ownership of the %s app ID has been verified."
 msgstr "%s app ID-ის მფლობელობა გადამოწმებულია."
+
+#. Translators: A row of the install statistics, for example: Fedora, 28%
+#: src/bz-distro-chart.vala:40
+#, c-format
+msgid "%s, %s"
+msgstr "%s, %s"
+
+#. Translators: Shown for values smaller than 1 percent
+#: src/bz-distro-chart.vala:161
+msgid "<1%"
+msgstr "<1%"
+
+#. Translators: A percentage, for example: 42%
+#: src/bz-distro-chart.vala:163
+#, c-format
+msgid "%.0f%%"
+msgstr "%.0f%%"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
 #: src/bz-donations-dialog.blp:8
@@ -2737,36 +2754,54 @@ msgid "Manifest"
 msgstr "მანიფესტი"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:28
+#: src/bz-stats-dialog.blp:30
 msgid "Timeline"
 msgstr "დროის ხაზი"
 
 #. TRANSLATORS: total number of installs of an app, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:47
+#: src/bz-stats-dialog.blp:49
 msgid "Total"
 msgstr "სულ"
 
 #. TRANSLATORS: installs in the last 7 days, shown in the statistics dialog
-#: src/bz-stats-dialog.blp:78
+#: src/bz-stats-dialog.blp:80
 msgid "This Week"
 msgstr "ამ კვირაში"
 
-#: src/bz-stats-dialog.blp:115
+#: src/bz-stats-dialog.blp:117
 msgid "Installs per day"
 msgstr "დაყენება დღეში"
 
 #. TRANSLATORS: page in the statistics dialog
-#: src/bz-stats-dialog.blp:124
+#: src/bz-stats-dialog.blp:126
 msgid "World"
 msgstr "სამყარო"
 
-#: src/bz-stats-dialog.blp:137
+#: src/bz-stats-dialog.blp:139
 msgid "Installs per country"
 msgstr "დაყენება ქვეყნის მიხედვით"
 
-#: src/bz-stats-dialog.blp:142
+#: src/bz-stats-dialog.blp:144
 msgid "Since 4/15/2024"
 msgstr "4/15/20240-დან"
+
+#: src/bz-stats-dialog.blp:157
+msgid "Distros"
+msgstr "დისტრიბუტივები"
+
+#: src/bz-stats-dialog.blp:183
+msgid "Installs per distro"
+msgstr "დაყენება დისტროზე"
+
+#: src/bz-stats-dialog.vala:106
+msgid "Last 30 days"
+msgstr "ბოლო 30 დღე"
+
+#. Translators: Shown below the install statistics, for example: Last 30 days, 42% of installs don't yet report a distro
+#: src/bz-stats-dialog.vala:108
+#, c-format
+msgid "Last 30 days, %.0f%% of installs don't yet report a distro"
+msgstr "ბოლო 30 დღე. %.0f%% დაყენებას ჯერ დისტრიბუტივის შესახებ ანგარიში არ აქვს"
 
 #: src/bz-subcategory-list.c:77
 msgid "No Results Found"
@@ -3541,6 +3576,12 @@ msgstr "ფანჯრის დახურვა"
 msgctxt "shortcut window"
 msgid "Quit Bazaar"
 msgstr "გასვლა Bazaar-დან"
+
+#. Translators: The other Linux distributions, in the install statistics
+#: src/stats-types.vala:59
+msgctxt "Distribution"
+msgid "Other"
+msgstr "სხვა"
 
 #: src/transaction-notification.c:133
 #, c-format
