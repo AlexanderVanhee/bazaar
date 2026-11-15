@@ -94,6 +94,7 @@ struct _BzApplication
   DexFuture               *sync;
   gboolean                 sync_again;
   DexPromise              *first_window_opened;
+  DexFuture               *search_index_write;
   DexPromise              *ready_to_open_files;
   GHashTable              *eol_runtimes;
   GHashTable              *ids_to_groups;
@@ -214,6 +215,9 @@ cache_flathub_fiber (BzWeakRef *wr);
 
 static DexFuture *
 cache_groups_fiber (BzWeakRef *wr);
+
+static void
+write_search_index (BzApplication *self);
 
 static DexFuture *
 respond_to_flatpak_fiber (BzWeakRef             *wr,
@@ -429,6 +433,7 @@ bz_application_dispose (GObject *object)
   dex_clear (&self->notif_watch);
   dex_clear (&self->ready_to_open_files);
   dex_clear (&self->sync);
+  dex_clear (&self->search_index_write);
   g_clear_pointer (&self->syncing_remotes, g_strfreev);
   g_clear_pointer (&self->synced_remotes, g_hash_table_unref);
   g_clear_handle_id (&self->periodic_timeout_source, g_source_remove);
@@ -1518,6 +1523,7 @@ enumerate_disk_groups_fiber (BzWeakRef *wr,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_LESS_STRICT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_LESS_STRICT);
+  write_search_index (self);
 
   dex_future_disown (dex_scheduler_spawn (
       dex_scheduler_get_default (),
@@ -1717,9 +1723,6 @@ cache_groups_fiber (BzWeakRef *wr)
   g_autoptr (GVariant) variant        = NULL;
   g_autoptr (GBytes) bytes            = NULL;
   guint n_groups                      = 0;
-  g_autoptr (GError) index_error      = NULL;
-  g_autofree char *module_dir         = NULL;
-  g_autofree char *index_path         = NULL;
 
   bz_weak_get_or_return_reject (self, &wr->ref);
 
@@ -1757,13 +1760,28 @@ cache_groups_fiber (BzWeakRef *wr)
   if (!result)
     g_warning ("Failed to cache groups to %s: %s", groups_cache, local_error->message);
 
+  write_search_index (self);
+
+  return dex_future_new_true ();
+}
+
+static void
+write_search_index (BzApplication *self)
+{
+  g_autofree char *module_dir = NULL;
+  g_autofree char *index_path = NULL;
+
+  if (g_list_model_get_n_items (G_LIST_MODEL (self->groups)) == 0)
+    return;
+
   module_dir = bz_dup_module_dir ();
   index_path = g_build_filename (module_dir, "search-index", NULL);
 
-  if (!bz_write_search_index (G_LIST_MODEL (self->groups), index_path, &index_error))
-    g_warning ("Failed to write search index to %s: %s", index_path, index_error->message);
-
-  return dex_future_new_true ();
+  dex_clear (&self->search_index_write);
+  self->search_index_write = bz_write_search_index (
+      G_LIST_MODEL (self->group_filter_model),
+      index_path,
+      DEX_FUTURE (self->first_window_opened));
 }
 
 static DexFuture *
@@ -3158,6 +3176,7 @@ disable_blocklists_changed (BzApplication *self,
 {
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 }
 
 static void
@@ -3185,6 +3204,7 @@ show_hide_app_setting_changed (BzApplication *self,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 
   g_object_thaw_notify (G_OBJECT (self->state));
 }
@@ -3491,6 +3511,7 @@ blocklists_changed (BzApplication *self,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 }
 
 static void
@@ -3518,6 +3539,7 @@ txt_blocklists_changed (BzApplication *self,
 
   gtk_filter_changed (GTK_FILTER (self->group_filter), GTK_FILTER_CHANGE_DIFFERENT);
   gtk_filter_changed (GTK_FILTER (self->appid_filter), GTK_FILTER_CHANGE_DIFFERENT);
+  write_search_index (self);
 }
 
 static void
