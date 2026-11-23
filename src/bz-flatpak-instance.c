@@ -2026,7 +2026,6 @@ bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
   g_autoptr (GKeyFile) new_keyfile      = NULL;
   g_autoptr (BzAppPermissions) old_perm = NULL;
   g_autoptr (BzAppPermissions) new_perm = NULL;
-  BzAppPermissions *delta               = NULL;
   g_autoptr (GError) perm_error         = NULL;
 
   if (commit_out != NULL)
@@ -2086,9 +2085,7 @@ bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
       return bz_app_permissions_diff (old_perm, new_perm);
     }
 
-  delta = bz_app_permissions_new ();
-  bz_app_permissions_seal (delta);
-  return delta;
+  return NULL;
 }
 
 static DexFuture *
@@ -2143,6 +2140,7 @@ retrieve_updates_fiber (GatherRefsData *data)
       FlatpakInstalledRef *iref             = NULL;
       FlatpakInstallation *installation     = NULL;
       g_autofree char     *unique_id        = NULL;
+      BzAppPermissions    *permissions      = NULL;
 
       if (i < n_sys_refs)
         {
@@ -2162,8 +2160,15 @@ retrieve_updates_fiber (GatherRefsData *data)
 
       unique_id = bz_flatpak_ref_format_unique (FLATPAK_REF (iref), user);
 
-      g_hash_table_replace (ids, g_steal_pointer (&unique_id),
-                            bz_flatpak_ref_dup_additional_permissions (installation, iref, NULL, cancellable));
+      permissions = bz_flatpak_ref_dup_additional_permissions (installation, iref, NULL, cancellable);
+      if (permissions == NULL)
+        SEND_AND_RETURN_ERROR (
+            self, TRUE,
+            BZ_FLATPAK_ERROR_REMOTE_SYNCHRONIZATION_FAILURE,
+            "Failed to verify permissions for update of %s",
+            flatpak_ref_get_name (FLATPAK_REF (iref)));
+
+      g_hash_table_replace (ids, g_steal_pointer (&unique_id), permissions);
     }
 
   return dex_future_new_take_boxed (
