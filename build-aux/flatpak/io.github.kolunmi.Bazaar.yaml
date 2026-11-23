@@ -3,8 +3,6 @@ runtime: org.gnome.Platform
 runtime-version: '51'
 sdk: org.gnome.Sdk
 command: bazaar-daemon
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm22
 tags:
   - nightly
 desktop-file-name-suffix: ' (Nightly)'
@@ -39,9 +37,6 @@ cleanup:
 modules:
   - name: bazaar
     buildsystem: meson
-    build-options:
-      append-path: /usr/lib/sdk/llvm22/bin
-      prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
     config-opts:
       - -Ddevelopment=true
       - -Dsandboxed_libflatpak=true
