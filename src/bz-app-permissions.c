@@ -52,7 +52,13 @@ G_DEFINE_FLAGS_TYPE (
     G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_AUDIO_DEVICES, "audio-devices"),
     G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_INPUT_DEVICES, "input-devices"),
     G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_SYSTEM_DEVICES, "system-devices"),
-    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_SCREEN, "screen"))
+    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_SCREEN, "screen"),
+    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_DEVEL, "devel"),
+    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_BLUETOOTH, "bluetooth"),
+    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_CANBUS, "canbus"),
+    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_SSH_AUTH, "ssh-auth"),
+    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_PRINTING, "printing"),
+    G_DEFINE_ENUM_VALUE (BZ_APP_PERMISSIONS_FLAGS_SMART_CARDS, "smart-cards"))
 
 G_DEFINE_ENUM_TYPE (
     BzFilesystemPathType,
@@ -661,31 +667,83 @@ bz_app_permissions_new_from_metadata (GKeyFile *keyfile,
   app_id      = g_key_file_get_value (keyfile, "Application", "name", NULL);
 
   strv = g_key_file_get_string_list (keyfile, "Context", "sockets", NULL, NULL);
-  if (strv != NULL && g_strv_contains ((const gchar *const *) strv, "system-bus"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_SYSTEM_BUS | BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
-  if (strv != NULL && g_strv_contains ((const gchar *const *) strv, "session-bus"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_SESSION_BUS | BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
-  if (strv != NULL &&
-      !g_strv_contains ((const gchar *const *) strv, "fallback-x11") &&
-      g_strv_contains ((const gchar *const *) strv, "x11"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_X11;
-  if (strv != NULL && g_strv_contains ((const gchar *const *) strv, "fallback-x11") &&
-      !g_strv_contains ((const gchar *const *) strv, "wayland"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_X11;
-  if (strv != NULL && g_strv_contains ((const gchar *const *) strv, "pulseaudio"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_AUDIO_DEVICES;
-  if (strv != NULL && g_strv_contains ((const char *const *) strv, "gpg-agent"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
+  for (size_t i = 0; strv != NULL && strv[i] != NULL; i++)
+    {
+      if (g_str_equal (strv[i], "system-bus"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_SYSTEM_BUS | BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
+      else if (g_str_equal (strv[i], "session-bus"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_SESSION_BUS | BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
+      else if (g_str_equal (strv[i], "x11") &&
+               !g_strv_contains ((const gchar *const *) strv, "fallback-x11"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_X11;
+      else if (g_str_equal (strv[i], "fallback-x11") &&
+               !g_strv_contains ((const gchar *const *) strv, "wayland"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_X11;
+      else if (g_str_equal (strv[i], "x11") ||
+               g_str_equal (strv[i], "fallback-x11") ||
+               g_str_equal (strv[i], "wayland"))
+        ;
+      else if (g_str_equal (strv[i], "inherit-wayland-socket"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
+      else if (g_str_equal (strv[i], "pulseaudio"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_AUDIO_DEVICES;
+      else if (g_str_equal (strv[i], "gpg-agent"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
+      else if (g_str_equal (strv[i], "cups"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_PRINTING;
+      else if (g_str_equal (strv[i], "pcsc"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_SMART_CARDS;
+      else if (g_str_equal (strv[i], "ssh-auth"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_SSH_AUTH;
+      else
+        {
+          g_debug ("Unrecognised Context.sockets value ‘%s’ for app %s", strv[i], app_id);
+          flags |= BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
+        }
+    }
   g_strfreev (strv);
 
   strv = g_key_file_get_string_list (keyfile, "Context", "devices", NULL, NULL);
-  if (strv != NULL && g_strv_contains ((const gchar *const *) strv, "all"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_DEVICES;
-  if (strv != NULL && g_strv_contains ((const gchar *const *) strv, "input"))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_INPUT_DEVICES;
-  if (strv != NULL && (g_strv_contains ((const gchar *const *) strv, "shm") ||
-                       g_strv_contains ((const gchar *const *) strv, "kvm")))
-    flags |= BZ_APP_PERMISSIONS_FLAGS_SYSTEM_DEVICES;
+  for (size_t i = 0; strv != NULL && strv[i] != NULL; i++)
+    {
+      if (g_str_equal (strv[i], "all") ||
+          g_str_equal (strv[i], "usb"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_DEVICES;
+      else if (g_str_equal (strv[i], "input"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_INPUT_DEVICES;
+      else if (g_str_equal (strv[i], "shm") ||
+               g_str_equal (strv[i], "kvm"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_SYSTEM_DEVICES;
+      else if (g_str_equal (strv[i], "dri") ||
+               strv[i][0] == '!')
+        ;
+      else
+        {
+          g_debug ("Unrecognised Context.devices value ‘%s’ for app %s", strv[i], app_id);
+          flags |= BZ_APP_PERMISSIONS_FLAGS_SYSTEM_DEVICES;
+        }
+    }
+  g_strfreev (strv);
+
+  strv = g_key_file_get_string_list (keyfile, "Context", "features", NULL, NULL);
+  for (size_t i = 0; strv != NULL && strv[i] != NULL; i++)
+    {
+      if (g_str_equal (strv[i], "devel"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_DEVEL;
+      else if (g_str_equal (strv[i], "bluetooth"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_BLUETOOTH;
+      else if (g_str_equal (strv[i], "canbus"))
+        flags |= BZ_APP_PERMISSIONS_FLAGS_CANBUS;
+      else if (g_str_equal (strv[i], "multiarch") ||
+               g_str_equal (strv[i], "per-app-dev-shm") ||
+               strv[i][0] == '!')
+        ;
+      else
+        {
+          g_debug ("Unrecognised Context.features value ‘%s’ for app %s", strv[i], app_id);
+          flags |= BZ_APP_PERMISSIONS_FLAGS_ESCAPE_SANDBOX;
+        }
+    }
   g_strfreev (strv);
 
   strv = g_key_file_get_string_list (keyfile, "Context", "shared", NULL, NULL);
