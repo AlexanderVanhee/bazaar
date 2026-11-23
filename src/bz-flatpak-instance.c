@@ -26,7 +26,6 @@
 
 #include "config.h"
 
-#include "bz-app-permissions.h"
 #include <bzvala.h>
 #include "bz-backend.h"
 #include "bz-flatpak-private.h"

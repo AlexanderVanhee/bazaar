@@ -23,9 +23,9 @@
 #include <appstream.h>
 #include <flatpak.h>
 
-#include "bz-app-permissions.h"
 #include "bz-flatpak-entry.h"
 #include "bz-flatpak-instance.h"
+#include <bzvala.h>
 
 G_BEGIN_DECLS
 

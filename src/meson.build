@@ -61,7 +61,6 @@ bz_sources = files(
   'bz-addons-dialog.c',
   'bz-age-rating-dialog.c',
   'bz-all-apps-page.c',
-  'bz-app-permissions.c',
   'bz-app-size-dialog.c',
   'bz-app-tile.c',
   'bz-application-map-factory.c',
@@ -309,6 +308,7 @@ vala_deps = [
 vala_sources = files(
   'bz.vapi',
 
+  'bz-app-permissions.vala',
   'bz-cosmic-place-applet-dialog.vala',
   'bz-data-graph.vala',
   'bz-stats-dialog.vala',

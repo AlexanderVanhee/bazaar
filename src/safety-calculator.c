@@ -23,7 +23,6 @@
 
 #include <glib/gi18n.h>
 
-#include "bz-app-permissions.h"
 #include "bz-context-row.h"
 #include <bzvala.h>
 #include "safety-calculator.h"
@@ -56,8 +55,7 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
   BzAppPermissionsFlags     perm_flags      = BZ_APP_PERMISSIONS_FLAGS_NONE;
   const GPtrArray          *filesystem_read = NULL;
   const GPtrArray          *filesystem_full = NULL;
-  const BzBusPolicy *const *bus_policies    = NULL;
-  size_t                    n_bus_policies  = 0;
+  const GPtrArray          *bus_policies    = NULL;
   gboolean                  has_system_tray = FALSE;
   BzImportance              fs_importance   = BZ_IMPORTANCE_WARNING;
   guint                     i               = 0;
@@ -85,7 +83,7 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
 
   filesystem_read = bz_app_permissions_get_filesystem_read (permissions);
   filesystem_full = bz_app_permissions_get_filesystem_full (permissions);
-  bus_policies    = bz_app_permissions_get_bus_policies (permissions, &n_bus_policies);
+  bus_policies    = bz_app_permissions_get_bus_policies (permissions);
 
   if (include_no_access_rows)
     add_row_if_permission (store,
@@ -260,9 +258,9 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
                          _ ("Can read all data in your downloads directory"),
                          NULL, NULL, NULL);
 
-  for (i = 0; filesystem_full != NULL && i < filesystem_full->len; i++)
+  for (i = 0; i < filesystem_full->len; i++)
     {
-      const BzFilesystemPath *path     = g_ptr_array_index (filesystem_full, i);
+      BzFilesystemPath       *path     = g_ptr_array_index (filesystem_full, i);
       g_autofree char        *fs_title = bz_filesystem_path_to_display_string (path);
       const char             *fs_icon  = bz_filesystem_path_to_icon_name (path);
 
@@ -270,7 +268,7 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
         continue;
 
       if ((perm_flags & BZ_APP_PERMISSIONS_FLAGS_HOME_FULL) &&
-          path->type == BZ_FILESYSTEM_PATH_HOME_SUBDIR)
+          path->type == BZ_FILESYSTEM_PATH_TYPE_HOME_SUBDIR)
         continue;
 
       add_row_if_permission (store, TRUE, fs_importance, fs_icon, fs_title,
@@ -278,9 +276,9 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
                              NULL, NULL, NULL);
     }
 
-  for (i = 0; filesystem_read != NULL && i < filesystem_read->len; i++)
+  for (i = 0; i < filesystem_read->len; i++)
     {
-      const BzFilesystemPath *path     = g_ptr_array_index (filesystem_read, i);
+      BzFilesystemPath       *path     = g_ptr_array_index (filesystem_read, i);
       g_autofree char        *fs_title = bz_filesystem_path_to_display_string (path);
       const char             *fs_icon  = bz_filesystem_path_to_icon_name (path);
 
@@ -290,7 +288,7 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
       if ((perm_flags & (BZ_APP_PERMISSIONS_FLAGS_FILESYSTEM_READ |
                          BZ_APP_PERMISSIONS_FLAGS_HOME_FULL |
                          BZ_APP_PERMISSIONS_FLAGS_HOME_READ)) &&
-          path->type == BZ_FILESYSTEM_PATH_HOME_SUBDIR)
+          path->type == BZ_FILESYSTEM_PATH_TYPE_HOME_SUBDIR)
         continue;
 
       add_row_if_permission (store, TRUE, fs_importance, fs_icon, fs_title,
@@ -307,7 +305,7 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
                                            BZ_APP_PERMISSIONS_FLAGS_HOME_READ |
                                            BZ_APP_PERMISSIONS_FLAGS_DOWNLOADS_FULL |
                                            BZ_APP_PERMISSIONS_FLAGS_DOWNLOADS_READ)) &&
-                               filesystem_read == NULL && filesystem_full == NULL,
+                               filesystem_read->len == 0 && filesystem_full->len == 0,
                            BZ_IMPORTANCE_UNIMPORTANT,
                            "folder-symbolic",
                            _ ("No File System Access"),
@@ -329,9 +327,9 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
                          _ ("Can request data from non-portal session services"),
                          NULL, NULL, NULL);
 
-  for (i = 0; i < n_bus_policies; i++)
+  for (i = 0; i < bus_policies->len; i++)
     {
-      const BzBusPolicy *policy           = bus_policies[i];
+      const BzBusPolicy *policy           = g_ptr_array_index (bus_policies, i);
       const char        *well_known_title = NULL;
       const char        *well_known_desc  = NULL;
       g_autofree char   *bus_title        = NULL;
@@ -368,7 +366,7 @@ bz_safety_calculator_analyze_permissions (BzAppPermissions *permissions,
                            !(perm_flags & (BZ_APP_PERMISSIONS_FLAGS_SYSTEM_BUS |
                                            BZ_APP_PERMISSIONS_FLAGS_SESSION_BUS |
                                            BZ_APP_PERMISSIONS_FLAGS_BUS_POLICY_OTHER)) &&
-                               n_bus_policies == 0,
+                               bus_policies->len == 0,
                            BZ_IMPORTANCE_UNIMPORTANT,
                            "emblem-system-symbolic",
                            _ ("No Service Access"),

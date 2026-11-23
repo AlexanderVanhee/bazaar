@@ -22,7 +22,6 @@
 
 #include <glib/gi18n.h>
 
-#include "bz-app-permissions.h"
 #include "bz-context-row.h"
 #include "bz-entry.h"
 #include "bz-lozenge.h"

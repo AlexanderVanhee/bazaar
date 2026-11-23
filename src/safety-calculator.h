@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "bz-app-permissions.h"
 #include "bz-context-row.h"
 #include "bz-entry.h"
+#include <bzvala.h>
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
