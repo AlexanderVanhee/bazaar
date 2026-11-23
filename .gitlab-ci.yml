@@ -9,7 +9,7 @@ include:
   image: "quay.io/gnome_infrastructure/gnome-runtime-images:gnome-51"
   variables:
     FLATPAK_MODULE: "bazaar"
-    MANIFEST_PATH: "build-aux/flatpak/io.github.kolunmi.Bazaar.json"
+    MANIFEST_PATH: "build-aux/flatpak/io.github.kolunmi.Bazaar.yaml"
     APP_ID: "io.github.kolunmi.Bazaar"
     RUNTIME_REPO: "https://dl.flathub.org/repo/flathub.flatpakrepo"
 
