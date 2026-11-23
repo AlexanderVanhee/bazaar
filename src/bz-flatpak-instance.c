@@ -2015,17 +2015,22 @@ should_skip_extension_ref (FlatpakInstalledRef *iref)
 BzAppPermissions *
 bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
                                            FlatpakInstalledRef *iref,
+                                           char               **commit_out,
                                            GCancellable        *cancellable)
 {
   const char *origin                    = NULL;
   g_autoptr (GBytes) old_bytes          = NULL;
   g_autoptr (GKeyFile) old_keyfile      = NULL;
-  g_autoptr (GBytes) new_bytes          = NULL;
+  g_autoptr (FlatpakRemoteRef) rref     = NULL;
+  GBytes *new_bytes                     = NULL;
   g_autoptr (GKeyFile) new_keyfile      = NULL;
   g_autoptr (BzAppPermissions) old_perm = NULL;
   g_autoptr (BzAppPermissions) new_perm = NULL;
   BzAppPermissions *delta               = NULL;
   g_autoptr (GError) perm_error         = NULL;
+
+  if (commit_out != NULL)
+    *commit_out = NULL;
 
   old_bytes = flatpak_installed_ref_load_metadata (iref, cancellable, &perm_error);
   if (old_bytes != NULL)
@@ -2044,8 +2049,15 @@ bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
   origin = flatpak_installed_ref_get_origin (iref);
   if (old_keyfile != NULL && origin != NULL)
     {
-      new_bytes = flatpak_installation_fetch_remote_metadata_sync (
-          installation, origin, FLATPAK_REF (iref), cancellable, &perm_error);
+      rref = flatpak_installation_fetch_remote_ref_sync_full (
+          installation, origin,
+          flatpak_ref_get_kind (FLATPAK_REF (iref)),
+          flatpak_ref_get_name (FLATPAK_REF (iref)),
+          flatpak_ref_get_arch (FLATPAK_REF (iref)),
+          flatpak_ref_get_branch (FLATPAK_REF (iref)),
+          FLATPAK_QUERY_FLAGS_NONE, cancellable, &perm_error);
+      if (rref != NULL)
+        new_bytes = flatpak_remote_ref_get_metadata (rref);
       if (new_bytes != NULL)
         {
           new_keyfile = g_key_file_new ();
@@ -2055,7 +2067,8 @@ bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
       else
         {
           g_debug ("Failed to fetch remote metadata for '%s' from '%s': %s",
-                   flatpak_ref_get_name (FLATPAK_REF (iref)), origin, perm_error->message);
+                   flatpak_ref_get_name (FLATPAK_REF (iref)), origin,
+                   perm_error != NULL ? perm_error->message : "no metadata in remote ref");
         }
     }
   g_clear_error (&perm_error);
@@ -2067,7 +2080,11 @@ bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
     }
 
   if (old_perm != NULL && new_perm != NULL)
-    return bz_app_permissions_diff (old_perm, new_perm);
+    {
+      if (commit_out != NULL)
+        *commit_out = g_strdup (flatpak_ref_get_commit (FLATPAK_REF (rref)));
+      return bz_app_permissions_diff (old_perm, new_perm);
+    }
 
   delta = bz_app_permissions_new ();
   bz_app_permissions_seal (delta);
@@ -2146,7 +2163,7 @@ retrieve_updates_fiber (GatherRefsData *data)
       unique_id = bz_flatpak_ref_format_unique (FLATPAK_REF (iref), user);
 
       g_hash_table_replace (ids, g_steal_pointer (&unique_id),
-                            bz_flatpak_ref_dup_additional_permissions (installation, iref, cancellable));
+                            bz_flatpak_ref_dup_additional_permissions (installation, iref, NULL, cancellable));
     }
 
   return dex_future_new_take_boxed (
