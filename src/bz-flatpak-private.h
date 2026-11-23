@@ -57,6 +57,7 @@ bz_flatpak_ref_format_unique (FlatpakRef *ref,
 BzAppPermissions *
 bz_flatpak_ref_dup_additional_permissions (FlatpakInstallation *installation,
                                            FlatpakInstalledRef *iref,
+                                           char               **commit_out,
                                            GCancellable        *cancellable);
 
 BzFlatpakEntry *
