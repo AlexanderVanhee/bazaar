@@ -26,7 +26,6 @@
 #include <glib/gi18n.h>
 #include <xmlb.h>
 
-#include "bz-app-permissions.h"
 #include "bz-application-map-factory.h"
 #include "bz-application.h"
 #include "bz-appstream-parser.h"

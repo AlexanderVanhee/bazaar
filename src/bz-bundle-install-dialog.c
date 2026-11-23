@@ -20,7 +20,6 @@
 
 #include <glib/gi18n.h>
 
-#include "bz-app-permissions.h"
 #include "bz-app-size-dialog.h"
 #include "bz-application-map-factory.h"
 #include "bz-application.h"

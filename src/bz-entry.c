@@ -25,7 +25,6 @@
 
 #include <json-glib/json-glib.h>
 
-#include "bz-app-permissions.h"
 #include "bz-async-texture.h"
 #include "bz-category-flags.h"
 #include <bzvala.h>
@@ -1725,10 +1724,7 @@ bz_entry_real_deserialize (BzSerializable *serializable,
   if (priv->permissions == NULL)
     priv->permissions = bz_app_permissions_new ();
 
-  if (!bz_app_permissions_deserialize (priv->permissions, import, error))
-    {
-      g_warning ("Failed to deserialize app permissions");
-    }
+  bz_app_permissions_deserialize (priv->permissions, import);
 
   return TRUE;
 }

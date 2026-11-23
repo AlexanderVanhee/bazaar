@@ -43,15 +43,6 @@ public extern class Bz.AllAppsPage : GLib.Object {
     protected AllAppsPage ();
 }
 
-[CCode (cheader_filename = "bz-app-permissions.h", type_id = "bz_app_permissions_get_type ()")]
-public extern class Bz.AppPermissions : GLib.Object {
-    [CCode (has_construct_function = false)]
-    protected AppPermissions ();
-
-    [CCode (cname = "bz_app_permissions_is_empty")]
-    public bool is_empty ();
-}
-
 [CCode (cheader_filename = "bz-app-size-dialog.h", type_id = "bz_app_size_dialog_get_type ()")]
 public extern class Bz.AppSizeDialog : GLib.Object {
     [CCode (has_construct_function = false)]
