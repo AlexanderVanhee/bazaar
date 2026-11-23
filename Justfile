@@ -1,7 +1,7 @@
 # These are just convenience scripts, NOT a build system!
 
 appid := env("BAZAAR_APPID", "io.github.kolunmi.Bazaar")
-manifest := "./build-aux/flatpak/" + appid + ".json"
+manifest := "./build-aux/flatpak/" + appid + ".yaml"
 branch := env("BAZAAR_BRANCH", "master")
 just := just_executable()
 
