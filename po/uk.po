@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-12 02:28+0000\n"
-"PO-Revision-Date: 2026-11-14 22:03+0200\n"
+"POT-Creation-Date: 2026-11-23 18:56+0000\n"
+"PO-Revision-Date: 2026-11-24 20:50+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -75,7 +75,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "Шукайте застосунки безпосередньо з оболонки GNOME"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:897
 msgid "The Bazaar Contributors"
 msgstr "Внесники Базару"
 
@@ -574,129 +574,129 @@ msgstr "%s пасує %s"
 msgid "%s • %s"
 msgstr "%s • %s"
 
-#: src/bz-app-permissions.c:175
+#: src/bz-app-permissions.vala:54
 #, c-format
 msgid "System folder %s"
 msgstr "Системна тека %s"
 
-#: src/bz-app-permissions.c:177
+#: src/bz-app-permissions.vala:56
 #, c-format
 msgid "Home subfolder %s"
 msgstr "Домашня підтека %s"
 
-#: src/bz-app-permissions.c:179
+#: src/bz-app-permissions.vala:58
 msgid "Host system folders"
 msgstr "Системні теки пристрою"
 
-#: src/bz-app-permissions.c:181
+#: src/bz-app-permissions.vala:60
 msgid "Host system configuration from /etc"
 msgstr "Системні налаштування пристрою з /etc"
 
-#: src/bz-app-permissions.c:184
+#: src/bz-app-permissions.vala:62
+msgid "Desktop folder"
+msgstr "Тека стільниці"
+
+#: src/bz-app-permissions.vala:62
 #, c-format
 msgid "Desktop subfolder %s"
 msgstr "Підтека стільниці %s"
 
-#: src/bz-app-permissions.c:185
-msgid "Desktop folder"
-msgstr "Тека стільниці"
+#: src/bz-app-permissions.vala:64
+msgid "Documents folder"
+msgstr "Тека з документами"
 
-#: src/bz-app-permissions.c:188
+#: src/bz-app-permissions.vala:64
 #, c-format
 msgid "Documents subfolder %s"
 msgstr "Підтека з документами %s"
 
-#: src/bz-app-permissions.c:189
-msgid "Documents folder"
-msgstr "Тека з документами"
+#: src/bz-app-permissions.vala:66
+msgid "Music folder"
+msgstr "Тека з музикою"
 
-#: src/bz-app-permissions.c:192
+#: src/bz-app-permissions.vala:66
 #, c-format
 msgid "Music subfolder %s"
 msgstr "Підтека з музикою %s"
 
-#: src/bz-app-permissions.c:193
-msgid "Music folder"
-msgstr "Тека з музикою"
+#: src/bz-app-permissions.vala:68
+msgid "Pictures folder"
+msgstr "Тека зображень"
 
-#: src/bz-app-permissions.c:196
+#: src/bz-app-permissions.vala:68
 #, c-format
 msgid "Pictures subfolder %s"
 msgstr "Підтека зображень %s"
 
-#: src/bz-app-permissions.c:197
-msgid "Pictures folder"
-msgstr "Тека зображень"
+#: src/bz-app-permissions.vala:70
+msgid "Public Share folder"
+msgstr "Прилюдна тека"
 
-#: src/bz-app-permissions.c:200
+#: src/bz-app-permissions.vala:70
 #, c-format
 msgid "Public Share subfolder %s"
 msgstr "Прилюдна підтека %s"
 
-#: src/bz-app-permissions.c:201
-msgid "Public Share folder"
-msgstr "Прилюдна тека"
+#: src/bz-app-permissions.vala:72
+msgid "Videos folder"
+msgstr "Тека відео"
 
-#: src/bz-app-permissions.c:204
+#: src/bz-app-permissions.vala:72
 #, c-format
 msgid "Videos subfolder %s"
 msgstr "Підтека відео %s"
 
-#: src/bz-app-permissions.c:205
-msgid "Videos folder"
-msgstr "Тека відео"
+#: src/bz-app-permissions.vala:74
+msgid "Templates folder"
+msgstr "Тека шаблонів"
 
-#: src/bz-app-permissions.c:208
+#: src/bz-app-permissions.vala:74
 #, c-format
 msgid "Templates subfolder %s"
 msgstr "Підтека шаблонів %s"
 
-#: src/bz-app-permissions.c:209
-msgid "Templates folder"
-msgstr "Тека шаблонів"
+#: src/bz-app-permissions.vala:76
+msgid "User cache folder"
+msgstr "Тека користувацького кешу"
 
-#: src/bz-app-permissions.c:212
+#: src/bz-app-permissions.vala:76
 #, c-format
 msgid "User cache subfolder %s"
 msgstr "Підтека користувацького кешу %s"
 
-#: src/bz-app-permissions.c:213
-msgid "User cache folder"
-msgstr "Тека користувацького кешу"
+#: src/bz-app-permissions.vala:78
+msgid "User configuration folder"
+msgstr "Тека налаштувань користувача"
 
-#: src/bz-app-permissions.c:216
+#: src/bz-app-permissions.vala:78
 #, c-format
 msgid "User configuration subfolder %s"
 msgstr "Підтека налаштувань користувача %s"
 
-#: src/bz-app-permissions.c:217
-msgid "User configuration folder"
-msgstr "Тека налаштувань користувача"
+#: src/bz-app-permissions.vala:80
+msgid "User data folder"
+msgstr "Тека даних користувача"
 
-#: src/bz-app-permissions.c:220
+#: src/bz-app-permissions.vala:80
 #, c-format
 msgid "User data subfolder %s"
 msgstr "Підтека даних користувача %s"
 
-#: src/bz-app-permissions.c:221
-msgid "User data folder"
-msgstr "Тека даних користувача"
+#: src/bz-app-permissions.vala:82
+msgid "User runtime folder"
+msgstr "Тека середовища виконання користувача"
 
-#: src/bz-app-permissions.c:224
+#: src/bz-app-permissions.vala:82
 #, c-format
 msgid "User runtime subfolder %s"
 msgstr "Підтека середовища виконання користувача %s"
 
-#: src/bz-app-permissions.c:225
-msgid "User runtime folder"
-msgstr "Тека середовища виконання користувача"
-
-#: src/bz-app-permissions.c:227
+#: src/bz-app-permissions.vala:84
 #, c-format
 msgid "Filesystem access to %s"
 msgstr "Доступ до %s у файловій системі"
 
-#: src/bz-app-permissions.c:229
+#: src/bz-app-permissions.vala:86
 msgid "Unknown filesystem path"
 msgstr "Невідомий шлях"
 
@@ -748,7 +748,7 @@ msgstr "Розмір встановленого середовища викон�
 msgid "Runtime Download Size"
 msgstr "Розмір середовища виконання до завантаження"
 
-#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:183
+#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:182
 #: src/context-tile-callbacks.c:104 src/context-tile-callbacks.c:401
 #: src/context-tile-callbacks.c:423
 msgid "N/A"
@@ -764,27 +764,27 @@ msgid "Verified"
 msgstr "Підтверджено"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:895
+#: src/bz-application.c:900
 msgid "translator-credits"
 msgstr "faoquad <faoquad@noreply.codeberg.org>, 2025"
 
-#: src/bz-application.c:905
+#: src/bz-application.c:910
 msgid "Special Thanks"
 msgstr "Особливі подяки"
 
-#: src/bz-application.c:975
+#: src/bz-application.c:980
 msgid "Logged Out Successfully!"
 msgstr "Ви вийшли з Flathub"
 
-#: src/bz-application.c:1148
+#: src/bz-application.c:1153
 msgid "Performing setup…"
 msgstr "Налаштовуємо…"
 
-#: src/bz-application.c:1190
+#: src/bz-application.c:1195
 msgid "Set Up Flathub?"
 msgstr "Налаштувати Flathub?"
 
-#: src/bz-application.c:1193
+#: src/bz-application.c:1198
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -795,52 +795,52 @@ msgstr ""
 "застосунки в Базарі. Проте, Ви зможете користати Базар для огляду та "
 "керування вже встановленими застосунками."
 
-#: src/bz-application.c:1198
+#: src/bz-application.c:1203
 msgid "Later"
 msgstr "Пізніше"
 
-#: src/bz-application.c:1199
+#: src/bz-application.c:1204
 msgid "Set Up Flathub"
 msgstr "Налаштувати Flathub"
 
-#: src/bz-application.c:1826
+#: src/bz-application.c:1844
 msgid "A backend error occurred"
 msgstr "Виникла помилка на боці серверу"
 
-#: src/bz-application.c:2033 src/bz-application.c:4484
+#: src/bz-application.c:2051 src/bz-application.c:4506
 msgid "Refreshing…"
 msgstr "Освіжаємо…"
 
-#: src/bz-application.c:2199
+#: src/bz-application.c:2217
 #, c-format
 msgid "Loading %d apps…"
 msgstr "Провантажуємо %d застосунків…"
 
-#: src/bz-application.c:2260 src/bz-application.c:2337
+#: src/bz-application.c:2278 src/bz-application.c:2355
 msgid "Failed to open file"
 msgstr "Не вдалося відкрити файл"
 
-#: src/bz-application.c:2351
+#: src/bz-application.c:2369
 msgid "Failed to load metainfo"
 msgstr "Не вдалося завантажити метадані"
 
-#: src/bz-application.c:2477
+#: src/bz-application.c:2495
 msgid "An initialization error occurred"
 msgstr "Виникла помилка ініціалізації"
 
-#: src/bz-application.c:2918
+#: src/bz-application.c:2936
 msgid "Checking for updates…"
 msgstr "Шукаємо оновлення…"
 
-#: src/bz-application.c:3033
+#: src/bz-application.c:3051
 msgid "Failed to check for updates"
 msgstr "Помилка пошуку оновлень"
 
-#: src/bz-application.c:4253
+#: src/bz-application.c:4275
 msgid "Could not find app"
 msgstr "Не вдалося знайти застосунок"
 
-#: src/bz-application.c:4479
+#: src/bz-application.c:4501
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
@@ -849,16 +849,15 @@ msgstr[1] "Завантажуємо %d застосунки…"
 msgstr[2] "Завантажуємо %d застосунків…"
 msgstr[3] "Завантажуємо %d застосунок…"
 
-#: src/bz-application.c:4486
+#: src/bz-application.c:4508
 msgid "Writing to cache…"
 msgstr "Кешуємо…"
 
-#: src/bz-application.c:4520
+#: src/bz-application.c:4542
 msgid "Removing remote…"
 msgstr "Вилучення віддаленого сховища…"
 
-#: src/bz-application.c:4537
-#| msgid "Failed to remove favorite"
+#: src/bz-application.c:4559
 msgid "Could not remove remote"
 msgstr "Не вдалося вилучити віддалене сховище"
 
@@ -965,16 +964,16 @@ msgstr "Вже встановлені"
 msgid "Installation Failed"
 msgstr "Помилка встановлення"
 
-#: src/bz-bundle-install-dialog.c:166
+#: src/bz-bundle-install-dialog.c:165
 msgid "Unknown install size"
 msgstr "Невідомий розмір встановлення"
 
-#: src/bz-bundle-install-dialog.c:169
+#: src/bz-bundle-install-dialog.c:168
 #, c-format
 msgid "About %s to install"
 msgstr "Близько %s до встановлення"
 
-#: src/bz-bundle-install-dialog.c:212
+#: src/bz-bundle-install-dialog.c:211
 msgid "No special permissions"
 msgstr "Без особливих дозволів"
 
@@ -1149,7 +1148,7 @@ msgstr ""
 "бажаєте продовжити?"
 
 #: src/bz-error-dialog.blp:36 src/bz-safety-dialog.blp:100 src/error.c:69
-#: src/error.c:88 src/update-worker.c:495
+#: src/error.c:88 src/update-worker.c:502
 msgid "Details"
 msgstr "Докладніше"
 
@@ -2473,13 +2472,10 @@ msgid "_Version History"
 msgstr "_Історія версій"
 
 #: src/bz-remotes-dialog.blp:5 src/bz-remotes-dialog.blp:24
-#| msgctxt "shortcut window"
-#| msgid "Remotes"
 msgid "Remotes"
 msgstr "Віддалені сховища"
 
 #: src/bz-remotes-dialog.blp:49
-#| msgid "Bundle Installation"
 msgid "System Installation"
 msgstr "Загальносистемне встановлення"
 
@@ -2488,7 +2484,6 @@ msgid "Available to all users on this computer"
 msgstr "Доступне усім користувачам цього комп'ютера"
 
 #: src/bz-remotes-dialog.blp:55
-#| msgid "Bundle Installation"
 msgid "User Installation"
 msgstr "Встановлення для користувача"
 
@@ -2497,13 +2492,11 @@ msgid "Only available to you"
 msgstr "Доступне лише вам"
 
 #: src/bz-remotes-dialog.blp:65
-#| msgid "Remove From Favorites"
 msgid "Remove Remote"
 msgstr "Вилучити віддалене сховище"
 
 #: src/bz-remotes-dialog.vala:31
 #, c-format
-#| msgid "Remove %s?"
 msgid "Remove %s"
 msgstr "Вилучити %s"
 
@@ -2513,7 +2506,6 @@ msgstr "Не використано"
 
 #: src/bz-remotes-dialog.vala:42
 #, c-format
-#| msgid "%s Installed"
 msgid "%u app installed"
 msgid_plural "%u apps installed"
 msgstr[0] "Встановлено %u програму"
@@ -2523,26 +2515,23 @@ msgstr[3] "Встановлено %u програму"
 
 #: src/bz-remotes-dialog.vala:174 src/bz-remotes-dialog.vala:193
 #, c-format
-#| msgid "Remove %s?"
 msgid "Remove “%s”?"
 msgstr "Вилучити «%s»?"
 
 #: src/bz-remotes-dialog.vala:176
 msgid "You will no longer be able to install apps from this user remote."
 msgstr ""
-"Ви більше не зможете встановлювати програми з цього віддаленого сховища корис"
-"тувача."
+"Ви більше не зможете встановлювати програми з цього віддаленого сховища "
+"користувача."
 
 #: src/bz-remotes-dialog.vala:177
 msgid "You will no longer be able to install apps from this system remote."
 msgstr ""
-"Ви більше не зможете встановлювати програми з цього віддаленого сховища систе"
-"ми."
+"Ви більше не зможете встановлювати програми з цього віддаленого сховища "
+"системи."
 
 #: src/bz-remotes-dialog.vala:194
 #, c-format
-#| msgid "%u App Updated"
-#| msgid_plural "%u Apps Updated"
 msgid "%u App to Remove"
 msgid_plural "%u Apps to Remove"
 msgstr[0] "Буде вилучено %u програму"
@@ -2558,17 +2547,17 @@ msgid_plural ""
 "These apps were installed from this remote and will be removed from your "
 "account along with it."
 msgstr[0] ""
-"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
-" вилучено з вашого облікового запису разом із ним."
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх "
+"буде вилучено з вашого облікового запису разом із ним."
 msgstr[1] ""
-"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
-" вилучено з вашого облікового запису разом із ним."
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх "
+"буде вилучено з вашого облікового запису разом із ним."
 msgstr[2] ""
-"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
-" вилучено з вашого облікового запису разом із ним."
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх "
+"буде вилучено з вашого облікового запису разом із ним."
 msgstr[3] ""
-"Наведену нижче програму було встановлено з цього віддаленого сховища; її буде"
-" вилучено з вашого облікового запису разом із ним."
+"Наведену нижче програму було встановлено з цього віддаленого сховища; її "
+"буде вилучено з вашого облікового запису разом із ним."
 
 #: src/bz-remotes-dialog.vala:201
 msgid ""
@@ -2578,17 +2567,17 @@ msgid_plural ""
 "These apps were installed from this remote and will be removed for all users "
 "along with it."
 msgstr[0] ""
-"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
-" вилучено для всіх користувачів разом із ним."
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх "
+"буде вилучено для всіх користувачів разом із ним."
 msgstr[1] ""
-"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
-" вилучено для всіх користувачів разом із ним."
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх "
+"буде вилучено для всіх користувачів разом із ним."
 msgstr[2] ""
-"Наведені нижче програми було встановлено з цього віддаленого сховища; їх буде"
-" вилучено для всіх користувачів разом із ним."
+"Наведені нижче програми було встановлено з цього віддаленого сховища; їх "
+"буде вилучено для всіх користувачів разом із ним."
 msgstr[3] ""
-"Наведену нижче програму було встановлено з цього віддаленого сховища; її буде"
-" вилучено для всіх користувачів разом із ним."
+"Наведену нижче програму було встановлено з цього віддаленого сховища; її "
+"буде вилучено для всіх користувачів разом із ним."
 
 #: src/bz-rich-app-tile.blp:217
 msgid "Uninstall"
@@ -2600,8 +2589,8 @@ msgstr "Видалити"
 msgid "Get"
 msgstr "Завантажити"
 
-#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:237
-#: src/safety-calculator.c:158
+#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:236
+#: src/safety-calculator.c:191
 msgid "Arbitrary Permissions"
 msgstr "Власні дозволи"
 
@@ -2651,31 +2640,31 @@ msgstr ""
 "Цей застосунок користує застарілу версію середовища виконання (SDK) і може "
 "містити помилки та/або прогалини безпеки, котрі вже не будуть полагоджені."
 
-#: src/bz-safety-dialog.c:228 src/bz-safety-dialog.c:256
+#: src/bz-safety-dialog.c:227 src/bz-safety-dialog.c:255
 msgid "Safety"
 msgstr "Безпечність"
 
-#: src/bz-safety-dialog.c:316
+#: src/bz-safety-dialog.c:315
 #, c-format
 msgid "%s is Safe"
 msgstr "%s є безпечним"
 
-#: src/bz-safety-dialog.c:321
+#: src/bz-safety-dialog.c:320
 #, c-format
 msgid "%s has no Unsafe Permissions"
 msgstr "%s не має небезпечних дозволів"
 
-#: src/bz-safety-dialog.c:326
+#: src/bz-safety-dialog.c:325
 #, c-format
 msgid "%s is Probably Safe"
 msgstr "%s радше безпечний"
 
-#: src/bz-safety-dialog.c:331
+#: src/bz-safety-dialog.c:330
 #, c-format
 msgid "%s is Possibly Unsafe"
 msgstr "%s імовірно небезпечний"
 
-#: src/bz-safety-dialog.c:336
+#: src/bz-safety-dialog.c:335
 #, c-format
 msgid "%s is Unsafe"
 msgstr "%s є небезпечним"
@@ -2973,7 +2962,6 @@ msgid "Distros"
 msgstr "Дистрибутиви"
 
 #: src/bz-stats-dialog.blp:183
-#| msgid "Installs per day"
 msgid "Installs per distro"
 msgstr "Встановлень за дистрибутивами"
 
@@ -3252,8 +3240,6 @@ msgid "_Manage Leftover User Data"
 msgstr "_Керувати залишковими даними"
 
 #: src/bz-window.blp:293
-#| msgctxt "shortcut window"
-#| msgid "Sync Remotes"
 msgid "Manage R_emotes"
 msgstr "Керування _віддаленими сховищами"
 
@@ -3423,213 +3409,267 @@ msgstr "Помірний ризик"
 msgid "High Risk"
 msgstr "Високий ризик"
 
-#: src/safety-calculator.c:80
+#: src/safety-calculator.c:78
 msgid "Unknown Permissions"
 msgstr "Невідомі дозволи"
 
-#: src/safety-calculator.c:81
+#: src/safety-calculator.c:79
 msgid "Permissions are missing for this app."
 msgstr "Цей застосунок не має дозволів"
 
-#: src/safety-calculator.c:95
+#: src/safety-calculator.c:93
 msgid "No Permissions"
 msgstr "Немає дозволів"
 
-#: src/safety-calculator.c:96
+#: src/safety-calculator.c:94
 msgid "App is fully sandboxed"
 msgstr "Застосунок повністю закритий у пісочниці"
 
-#: src/safety-calculator.c:103
+#: src/safety-calculator.c:101
 msgid "Network Access"
 msgstr "Доступ до мережі"
 
-#: src/safety-calculator.c:104
+#: src/safety-calculator.c:102
 msgid "Can access the internet"
 msgstr "Може доступатися до мережі"
 
-#: src/safety-calculator.c:106
+#: src/safety-calculator.c:104
 msgid "No Network Access"
 msgstr "Без доступу до мережі"
 
-#: src/safety-calculator.c:107
+#: src/safety-calculator.c:105
 msgid "Cannot access the internet"
 msgstr "Не може доступатися до мережі"
 
-#: src/safety-calculator.c:114
+#: src/safety-calculator.c:112
 msgid "User Device Access"
 msgstr "Доступ до пристроїв"
 
-#: src/safety-calculator.c:115
+#: src/safety-calculator.c:113
 msgid "Can access devices such as webcams or gaming controllers"
 msgstr ""
 "Може доступатися до таких пристроїв, як вебкамера або ігрові контролери"
 
-#: src/safety-calculator.c:117
+#: src/safety-calculator.c:115
 msgid "No User Device Access"
 msgstr "Без доступу до пристроїв"
 
-#: src/safety-calculator.c:118
+#: src/safety-calculator.c:116
 msgid "Cannot access devices such as webcams or gaming controllers"
 msgstr ""
 "Не може доступатися до таких пристроїв, як вебкамера або ігрові контролери"
 
-#: src/safety-calculator.c:123
+#: src/safety-calculator.c:121
 msgid "Input Device Access"
 msgstr "Доступ до пристроїв уведення"
 
-#: src/safety-calculator.c:124
+#: src/safety-calculator.c:122
 msgid "Can access input devices"
 msgstr "Може доступатися до пристроїв уведення"
 
-#: src/safety-calculator.c:130
+#: src/safety-calculator.c:128
 msgid "Microphone Access and Audio Playback"
 msgstr "Доступ до мікрофону та відтворення звуку"
 
-#: src/safety-calculator.c:131
+#: src/safety-calculator.c:129
 msgid "Can listen using microphones and play audio without asking permission"
 msgstr ""
 "Може доступатися до мікрофону та програвати звуки без додаткових запитів"
 
-#: src/safety-calculator.c:137
+#: src/safety-calculator.c:135
 msgid "System Device Access"
 msgstr "Доступ до системних пристроїв"
 
-#: src/safety-calculator.c:138
+#: src/safety-calculator.c:136
 msgid "Can access system devices which require elevated permissions"
 msgstr ""
 "Може доступатися до системних пристроїв, котрі вимагають підвищених "
 "повноважень"
 
-#: src/safety-calculator.c:144
+#: src/safety-calculator.c:142
+#| msgid "No Service Access"
+msgid "Printer Access"
+msgstr "Доступ до принтерів"
+
+#: src/safety-calculator.c:143
+msgid "Can print and manage print jobs without asking"
+msgstr "Може друкувати і керувати завданнями з друку без запитів"
+
+#: src/safety-calculator.c:149
+#| msgid "Home Folder Read Access"
+msgid "Smart Card Access"
+msgstr "Доступ до карток пам'яті"
+
+#: src/safety-calculator.c:150
+msgid "Can use smart cards and security keys"
+msgstr "Може використовувати картки пам'яті і ключі захисту"
+
+#: src/safety-calculator.c:156
+#| msgid "Network Access"
+msgid "Bluetooth Access"
+msgstr "Доступ до Bluetooth"
+
+#: src/safety-calculator.c:157
+msgid "Can communicate with Bluetooth devices directly"
+msgstr "Може обмінюватися даними з пристроями Bluetooth безпосередньо"
+
+#: src/safety-calculator.c:163
+msgid "CAN Bus Access"
+msgstr "Доступ до CAN-шини"
+
+#: src/safety-calculator.c:164
+msgid "Can communicate with devices on a CAN bus network"
+msgstr "Може обмінюватися даними з пристроями у мережі CAN-шини"
+
+#: src/safety-calculator.c:170
+#| msgid "Developer Tools"
+msgid "Development Tools"
+msgstr "Інструменти для розробки"
+
+#: src/safety-calculator.c:171
+msgid "Can use debugging and profiling tools on processes in its sandbox"
+msgstr ""
+"Може використовувати діагностику та інструменти профілювання для процесів у й"
+"ого пісочниці"
+
+#: src/safety-calculator.c:177
 msgid "Screen Contents Access"
 msgstr "Доступ до вмісту екрану"
 
-#: src/safety-calculator.c:145
+#: src/safety-calculator.c:178
 msgid "Can access the contents of the screen or other windows"
 msgstr "Може доступатися до вмісту на екрані та інших вікон"
 
-#: src/safety-calculator.c:151
+#: src/safety-calculator.c:184
 msgid "Legacy Windowing System"
 msgstr "Застаріла система вікон"
 
-#: src/safety-calculator.c:152
+#: src/safety-calculator.c:185
 msgid "Always uses a legacy windowing system (X11)"
 msgstr "Завжди користує застарілу систему вікон (X11)"
 
-#: src/safety-calculator.c:159
+#: src/safety-calculator.c:192
 msgid "Can acquire arbitrary permissions"
 msgstr "Може набувати власних дозволів"
 
-#: src/safety-calculator.c:165
+#: src/safety-calculator.c:198
+msgid "SSH Key Access"
+msgstr "Доступ до ключів SSH"
+
+#: src/safety-calculator.c:199
+msgid "Can use your SSH keys to log into other computers"
+msgstr "Може використовувати ваші ключі SSH для входу до інших комп'ютерів"
+
+#: src/safety-calculator.c:205
 msgid "User Settings"
 msgstr "Налаштування користувача"
 
-#: src/safety-calculator.c:166
+#: src/safety-calculator.c:206
 msgid "Can access and change user settings"
 msgstr "Може доступатися до та правити користувацькі налаштування"
 
-#: src/safety-calculator.c:172
+#: src/safety-calculator.c:212
 msgid "Full File System Read/Write Access"
 msgstr "Повний доступ до читання та запису з/до файлової системи"
 
-#: src/safety-calculator.c:173
+#: src/safety-calculator.c:213
 msgid "Can read and write all data on the file system"
 msgstr "Може читати та записувати будь-яке місце у файловій системі"
 
-#: src/safety-calculator.c:180
+#: src/safety-calculator.c:220
 msgid "Home Folder Read/Write Access"
 msgstr "Доступ до читання та запису домашньої теки"
 
-#: src/safety-calculator.c:181
+#: src/safety-calculator.c:221
 msgid "Can read and write all data in your home directory"
 msgstr "Може читати та записувати будь-яке місце Вашої домашньої теки"
 
-#: src/safety-calculator.c:188
+#: src/safety-calculator.c:228
 msgid "Full File System Read Access"
 msgstr "Повний доступ до читання файлової системи"
 
-#: src/safety-calculator.c:189
+#: src/safety-calculator.c:229
 msgid "Can read all data on the file system"
 msgstr "Може читати будь-яке місце у файловій системі"
 
-#: src/safety-calculator.c:197
+#: src/safety-calculator.c:237
 msgid "Home Folder Read Access"
 msgstr "Доступ до читання домашньої теки"
 
-#: src/safety-calculator.c:198
+#: src/safety-calculator.c:238
 msgid "Can read all data in your home directory"
 msgstr "Може читати будь-яке місце Вашої домашньої теки"
 
-#: src/safety-calculator.c:206
+#: src/safety-calculator.c:246
 msgid "Download Folder Read/Write Access"
 msgstr "Доступ до читання та запису теки завантажень"
 
-#: src/safety-calculator.c:207
+#: src/safety-calculator.c:247
 msgid "Can read and write all data in your downloads directory"
 msgstr "Може читати та записувати до Вашої теки завантажень"
 
-#: src/safety-calculator.c:217
+#: src/safety-calculator.c:257
 msgid "Download Folder Read Access"
 msgstr "Доступ до читання теки завантажень"
 
-#: src/safety-calculator.c:218
+#: src/safety-calculator.c:258
 msgid "Can read all data in your downloads directory"
 msgstr "Може читати з Вашої теки завантажень"
 
-#: src/safety-calculator.c:235
+#: src/safety-calculator.c:275
 msgid "Can read and write all data in the directory"
 msgstr "Може читати та записувати будь-яке місце у теці"
 
-#: src/safety-calculator.c:255
+#: src/safety-calculator.c:295
 msgid "Can read all data in the directory"
 msgstr "Може читати будь-яке місце у теці"
 
-#: src/safety-calculator.c:271
+#: src/safety-calculator.c:311
 msgid "No File System Access"
 msgstr "Без доступу до файлової системи"
 
-#: src/safety-calculator.c:272
+#: src/safety-calculator.c:312
 msgid "Cannot access the file system at all"
 msgstr "Не може доступатися файлової системи"
 
-#: src/safety-calculator.c:279
+#: src/safety-calculator.c:319
 msgid "Uses System Services"
 msgstr "Користує системні сервіси"
 
-#: src/safety-calculator.c:280
+#: src/safety-calculator.c:320
 msgid "Can request data from non-portal system services"
 msgstr "Може запитувати дані від системних сервісів у обхід порталів"
 
-#: src/safety-calculator.c:286
+#: src/safety-calculator.c:326
 msgid "Uses Session Services"
 msgstr "Користує сесійні сервіси"
 
-#: src/safety-calculator.c:287
+#: src/safety-calculator.c:327
 msgid "Can request data from non-portal session services"
 msgstr "Може запитувати дані від сесійних сервісів у обхід порталів"
 
-#: src/safety-calculator.c:332
+#: src/safety-calculator.c:372
 msgid "No Service Access"
 msgstr "Без доступу до сервісів"
 
-#: src/safety-calculator.c:333
+#: src/safety-calculator.c:373
 msgid "Cannot access non-portal session or system services at all"
 msgstr "Не може запитувати дані в обхід порталів"
 
-#: src/safety-calculator.c:372
+#: src/safety-calculator.c:412
 msgid "Verified App Developer"
 msgstr "Підтверджені розробники"
 
-#: src/safety-calculator.c:373
+#: src/safety-calculator.c:413
 msgid ""
 "The developer of this app has been verified to be who they say they are"
 msgstr "Приналежність застосунку до заявлених розробників було підтверджено"
 
-#: src/safety-calculator.c:382
+#: src/safety-calculator.c:422
 msgid "Proprietary Code"
 msgstr "Власницький код"
 
-#: src/safety-calculator.c:383
+#: src/safety-calculator.c:423
 msgid ""
 "The source code is not public, so it cannot be independently audited and "
 "might be unsafe"
@@ -3637,11 +3677,11 @@ msgstr ""
 "Початковий код не оприлюднено, відтак не може бути перевіреним та може бути "
 "небезпечним"
 
-#: src/safety-calculator.c:393
+#: src/safety-calculator.c:433
 msgid "Auditable Code"
 msgstr "Доступний коду"
 
-#: src/safety-calculator.c:394
+#: src/safety-calculator.c:434
 msgid ""
 "The source code is public and can be independently audited, which makes the "
 "app more likely to be safe"
@@ -3649,88 +3689,88 @@ msgstr ""
 "Початковий код є оприлюдненим, що дозволяє перевірити його на безпечність та "
 "збільшує імовірність, що він є безпечним"
 
-#: src/safety-calculator.c:532
+#: src/safety-calculator.c:572
 #, c-format
 msgid "Use the %s System Service"
 msgstr "Користує системний сервіс %s"
 
-#: src/safety-calculator.c:536
+#: src/safety-calculator.c:576
 #, c-format
 msgid "Use the %s Session Service"
 msgstr "Користує сесійний сервіс %s"
 
-#: src/safety-calculator.c:540
+#: src/safety-calculator.c:580
 #, c-format
 msgid "Use the %s Service"
 msgstr "Користує сервіс %s"
 
-#: src/safety-calculator.c:550
+#: src/safety-calculator.c:590
 msgid "Can see the non-portal service"
 msgstr "Може бачити сервіс у обхід порталу"
 
-#: src/safety-calculator.c:552
+#: src/safety-calculator.c:592
 msgid "Can talk to the non-portal service"
 msgstr "Може звʼязуватися із сервісом поза порталом"
 
-#: src/safety-calculator.c:554
+#: src/safety-calculator.c:594
 msgid "Can own the non-portal service"
 msgstr "Може володіти сервісом поза порталом"
 
-#: src/safety-calculator.c:569
+#: src/safety-calculator.c:609
 msgid "Global Menu Integration"
 msgstr "Сумісність із глобальним меню"
 
-#: src/safety-calculator.c:570
+#: src/safety-calculator.c:610
 msgid "Can display its menus in a global menu bar"
 msgstr "Може показувати власні меню на глобальній панелі"
 
-#: src/safety-calculator.c:575
+#: src/safety-calculator.c:615
 msgid "KDE Settings Integration"
 msgstr "Сумісність із налаштуваннями KDE"
 
-#: src/safety-calculator.c:576
+#: src/safety-calculator.c:616
 msgid "Can detect when KDE desktop settings change"
 msgstr "Може бачити зміни у налаштуваннях стільниці KDE"
 
-#: src/safety-calculator.c:581
+#: src/safety-calculator.c:621
 msgid "KDE Global Settings"
 msgstr "Загальні налаштування KDE"
 
-#: src/safety-calculator.c:582
+#: src/safety-calculator.c:622
 msgid "Can read KDE desktop preferences like fonts and colors"
 msgstr "Може читати деякі налаштування стільниці KDE, як-от шрифти та кольори"
 
-#: src/safety-calculator.c:587
+#: src/safety-calculator.c:627
 msgid "Secret Storage Service"
 msgstr "Сервіс таємного сховку"
 
-#: src/safety-calculator.c:588
+#: src/safety-calculator.c:628
 msgid "Can store and retrieve its own passwords using the system keyring"
 msgstr ""
 "Може зберігати та отримувати власні паролі з допомогою системної звʼязки "
 "ключів"
 
-#: src/safety-calculator.c:593
+#: src/safety-calculator.c:633
 msgid "Desktop Notifications Service"
 msgstr "Сповіщення"
 
-#: src/safety-calculator.c:594
+#: src/safety-calculator.c:634
 msgid "Can send desktop notifications"
 msgstr "Може надсилати стільничні сповіщення"
 
-#: src/safety-calculator.c:600
+#: src/safety-calculator.c:640
 msgid "System Tray Integration"
 msgstr "Сумісність із системним лотком"
 
-#: src/safety-calculator.c:601
+#: src/safety-calculator.c:641
 msgid "Can display an icon in the system tray"
 msgstr "Може показувати іконку в системному лотку"
 
-#: src/safety-calculator.c:606
+#: src/safety-calculator.c:646
 msgid "KDE Connect Integration"
 msgstr "Сумісність із KDE Connect"
 
-#: src/safety-calculator.c:607
+#: src/safety-calculator.c:647
 msgid "Can interact with devices paired via KDE Connect"
 msgstr "Може взаємодіяти з пристроями, зʼєднаними через KDE Connect"
 
@@ -3790,7 +3830,7 @@ msgid "Quit Bazaar"
 msgstr "Вийти з Базару"
 
 #. Translators: The other Linux distributions, in the install statistics
-#: src/stats-types.vala:59
+#: src/stats-types.vala:63
 msgctxt "Distribution"
 msgid "Other"
 msgstr "Інший"
@@ -3812,7 +3852,7 @@ msgstr "Оновлення втратило актуальність"
 msgid "Please check for available updates"
 msgstr "Будь ласка, виконайте пошук доступних оновлень"
 
-#: src/update-worker.c:535
+#: src/update-worker.c:542
 #, c-format
 msgid "%u App Updated"
 msgid_plural "%u Apps Updated"
@@ -3821,17 +3861,17 @@ msgstr[1] "Оновлено %u програми"
 msgstr[2] "Оновлено %u програм"
 msgstr[3] "Оновлено %u програму"
 
-#: src/update-worker.c:538
+#: src/update-worker.c:545
 #, c-format
 msgid "%s has been updated."
 msgstr "Оновлено %s."
 
-#: src/update-worker.c:541
+#: src/update-worker.c:548
 #, c-format
 msgid "%s and %s have been updated."
 msgstr "Було оновлено %s і %s."
 
-#: src/update-worker.c:545
+#: src/update-worker.c:552
 #, c-format
 msgid "Includes %s, %s and %s."
 msgstr "Включає %s, %s і %s."
