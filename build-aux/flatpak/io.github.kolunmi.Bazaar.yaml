@@ -223,6 +223,9 @@ modules:
                 x-checker-data:
                   type: pypi
                   name: babel
+                  # FIXME: build implodes on newer versions
+                  versions:
+                    <: '2.19'
 
           - name: polkit
             buildsystem: meson
