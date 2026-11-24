@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-12 02:28+0000\n"
-"PO-Revision-Date: 2026-11-14 07:18+0100\n"
+"POT-Creation-Date: 2026-11-23 18:56+0000\n"
+"PO-Revision-Date: 2026-11-24 08:26+0100\n"
 "Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
 "Language-Team: Georgian <ka@li.org>\n"
 "Language: ka\n"
@@ -69,7 +69,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "მოძებნეთ აპები პირდაპირ GNOME Shell-დან"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:897
 msgid "The Bazaar Contributors"
 msgstr "Bazaar-ის მოხალისეები"
 
@@ -544,129 +544,129 @@ msgstr "%s %s-ს შეეფერება"
 msgid "%s • %s"
 msgstr "%s • %s"
 
-#: src/bz-app-permissions.c:175
+#: src/bz-app-permissions.vala:54
 #, c-format
 msgid "System folder %s"
 msgstr "სისტემური საქაღალდე %s"
 
-#: src/bz-app-permissions.c:177
+#: src/bz-app-permissions.vala:56
 #, c-format
 msgid "Home subfolder %s"
 msgstr "საწყისი ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:179
+#: src/bz-app-permissions.vala:58
 msgid "Host system folders"
 msgstr "ჰოსტი სისტემის საქაღალდეები"
 
-#: src/bz-app-permissions.c:181
+#: src/bz-app-permissions.vala:60
 msgid "Host system configuration from /etc"
 msgstr "ჰოსტი სისტემის კონფიგურაცია /etc-დან"
 
-#: src/bz-app-permissions.c:184
+#: src/bz-app-permissions.vala:62
+msgid "Desktop folder"
+msgstr "სამუშაო მაგიდის საქაღალდე"
+
+#: src/bz-app-permissions.vala:62
 #, c-format
 msgid "Desktop subfolder %s"
 msgstr "სამუშაო მაგიდის ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:185
-msgid "Desktop folder"
-msgstr "სამუშაო მაგიდის საქაღალდე"
+#: src/bz-app-permissions.vala:64
+msgid "Documents folder"
+msgstr "დოკუმენტების საქაღალდე"
 
-#: src/bz-app-permissions.c:188
+#: src/bz-app-permissions.vala:64
 #, c-format
 msgid "Documents subfolder %s"
 msgstr "დოკუმენტების ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:189
-msgid "Documents folder"
-msgstr "დოკუმენტების საქაღალდე"
+#: src/bz-app-permissions.vala:66
+msgid "Music folder"
+msgstr "მუსიკის საქაღალდე"
 
-#: src/bz-app-permissions.c:192
+#: src/bz-app-permissions.vala:66
 #, c-format
 msgid "Music subfolder %s"
 msgstr "მუსიკის საქაღალდე: %s"
 
-#: src/bz-app-permissions.c:193
-msgid "Music folder"
-msgstr "მუსიკის საქაღალდე"
+#: src/bz-app-permissions.vala:68
+msgid "Pictures folder"
+msgstr "სურთების საქაღალდე"
 
-#: src/bz-app-permissions.c:196
+#: src/bz-app-permissions.vala:68
 #, c-format
 msgid "Pictures subfolder %s"
 msgstr "სურათების ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:197
-msgid "Pictures folder"
-msgstr "სურთების საქაღალდე"
+#: src/bz-app-permissions.vala:70
+msgid "Public Share folder"
+msgstr "საჯარო გაზიარების საქაღალდე"
 
-#: src/bz-app-permissions.c:200
+#: src/bz-app-permissions.vala:70
 #, c-format
 msgid "Public Share subfolder %s"
 msgstr "საჯარო გაზიარების ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:201
-msgid "Public Share folder"
-msgstr "საჯარო გაზიარების საქაღალდე"
+#: src/bz-app-permissions.vala:72
+msgid "Videos folder"
+msgstr "ვიდეოების საქაღალდე"
 
-#: src/bz-app-permissions.c:204
+#: src/bz-app-permissions.vala:72
 #, c-format
 msgid "Videos subfolder %s"
 msgstr "ვიდეოების ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:205
-msgid "Videos folder"
-msgstr "ვიდეოების საქაღალდე"
+#: src/bz-app-permissions.vala:74
+msgid "Templates folder"
+msgstr "შაბლონების საქაღალდე"
 
-#: src/bz-app-permissions.c:208
+#: src/bz-app-permissions.vala:74
 #, c-format
 msgid "Templates subfolder %s"
 msgstr "შაბლონების ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:209
-msgid "Templates folder"
-msgstr "შაბლონების საქაღალდე"
+#: src/bz-app-permissions.vala:76
+msgid "User cache folder"
+msgstr "მომხმარებლის ქეშის საქაღალდე"
 
-#: src/bz-app-permissions.c:212
+#: src/bz-app-permissions.vala:76
 #, c-format
 msgid "User cache subfolder %s"
 msgstr "მომხმარებლის ქეშის ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:213
-msgid "User cache folder"
-msgstr "მომხმარებლის ქეშის საქაღალდე"
+#: src/bz-app-permissions.vala:78
+msgid "User configuration folder"
+msgstr "მომხმარებლის კონფიგურაციის საქაღალდე"
 
-#: src/bz-app-permissions.c:216
+#: src/bz-app-permissions.vala:78
 #, c-format
 msgid "User configuration subfolder %s"
 msgstr "მომხმარებლის კონფიგურაციის ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:217
-msgid "User configuration folder"
-msgstr "მომხმარებლის კონფიგურაციის საქაღალდე"
+#: src/bz-app-permissions.vala:80
+msgid "User data folder"
+msgstr "მომხმარებლის მონაცემების საქაღალდე"
 
-#: src/bz-app-permissions.c:220
+#: src/bz-app-permissions.vala:80
 #, c-format
 msgid "User data subfolder %s"
 msgstr "მომხმარებლის მონაცემების ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:221
-msgid "User data folder"
-msgstr "მომხმარებლის მონაცემების საქაღალდე"
+#: src/bz-app-permissions.vala:82
+msgid "User runtime folder"
+msgstr "მომხმარებლის პროგრამების მონაცემების საქაღალდე"
 
-#: src/bz-app-permissions.c:224
+#: src/bz-app-permissions.vala:82
 #, c-format
 msgid "User runtime subfolder %s"
 msgstr "მომხმარებლის გაშვების გარემოს ქვესაქაღალდე %s"
 
-#: src/bz-app-permissions.c:225
-msgid "User runtime folder"
-msgstr "მომხმარებლის პროგრამების მონაცემების საქაღალდე"
-
-#: src/bz-app-permissions.c:227
+#: src/bz-app-permissions.vala:84
 #, c-format
 msgid "Filesystem access to %s"
 msgstr "ფაილური სისტემის წვდომა %s-ზე"
 
-#: src/bz-app-permissions.c:229
+#: src/bz-app-permissions.vala:86
 msgid "Unknown filesystem path"
 msgstr "უცნობი ფაილური სისტემის ბილიკი"
 
@@ -718,7 +718,7 @@ msgstr "დაყენებული გაშვების გარემ�
 msgid "Runtime Download Size"
 msgstr "გაშვების გარემოს გადმოსაწერი ზომა"
 
-#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:183 src/context-tile-callbacks.c:104
+#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:182 src/context-tile-callbacks.c:104
 #: src/context-tile-callbacks.c:401 src/context-tile-callbacks.c:423
 msgid "N/A"
 msgstr "ა/მ"
@@ -732,27 +732,27 @@ msgid "Verified"
 msgstr "დამოწმებულია"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:895
+#: src/bz-application.c:900
 msgid "translator-credits"
 msgstr "ეკატერინე პაპავა"
 
-#: src/bz-application.c:905
+#: src/bz-application.c:910
 msgid "Special Thanks"
 msgstr "განსაკუთრებული მადლობა"
 
-#: src/bz-application.c:975
+#: src/bz-application.c:980
 msgid "Logged Out Successfully!"
 msgstr "გასვლა წარმატებულია!"
 
-#: src/bz-application.c:1148
+#: src/bz-application.c:1153
 msgid "Performing setup…"
 msgstr "მორგების შესრულება…"
 
-#: src/bz-application.c:1190
+#: src/bz-application.c:1195
 msgid "Set Up Flathub?"
 msgstr "გნებავთ Flathub-ის მორგება?"
 
-#: src/bz-application.c:1193
+#: src/bz-application.c:1198
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and install applications in Bazaar if "
 "its unavailable.\n"
@@ -764,67 +764,67 @@ msgstr ""
 "\n"
 "Bazaar-ის გამოყენება ჯერ კიდევ შეგიძლიათ უკვე დაყენებული აპების დასათვალიერებლად და წასაშლელად."
 
-#: src/bz-application.c:1198
+#: src/bz-application.c:1203
 msgid "Later"
 msgstr "მოგვიანებით"
 
-#: src/bz-application.c:1199
+#: src/bz-application.c:1204
 msgid "Set Up Flathub"
 msgstr "Flathub-ის მორგება"
 
-#: src/bz-application.c:1826
+#: src/bz-application.c:1844
 msgid "A backend error occurred"
 msgstr "აღმოჩენილია უკანაბოლოს შეცდომა"
 
-#: src/bz-application.c:2033 src/bz-application.c:4484
+#: src/bz-application.c:2051 src/bz-application.c:4506
 msgid "Refreshing…"
 msgstr "განახლება…"
 
-#: src/bz-application.c:2199
+#: src/bz-application.c:2217
 #, c-format
 msgid "Loading %d apps…"
 msgstr "%d აპის ჩატვირთვა…"
 
-#: src/bz-application.c:2260 src/bz-application.c:2337
+#: src/bz-application.c:2278 src/bz-application.c:2355
 msgid "Failed to open file"
 msgstr "ფაილის გახსნის შეცდომა"
 
-#: src/bz-application.c:2351
+#: src/bz-application.c:2369
 msgid "Failed to load metainfo"
 msgstr "მეტაინფორმაციის ჩატვირთვა ჩავარდა"
 
-#: src/bz-application.c:2477
+#: src/bz-application.c:2495
 msgid "An initialization error occurred"
 msgstr "აღმოჩენილია ინიციალიზაციის შეცდომა"
 
-#: src/bz-application.c:2918
+#: src/bz-application.c:2936
 msgid "Checking for updates…"
 msgstr "განახლებების შემოწმება…"
 
-#: src/bz-application.c:3033
+#: src/bz-application.c:3051
 msgid "Failed to check for updates"
 msgstr "განახლებების შემოწმება ჩავარდა"
 
-#: src/bz-application.c:4253
+#: src/bz-application.c:4275
 msgid "Could not find app"
 msgstr "აპის პოვნა ვერ შეუძლებელია"
 
-#: src/bz-application.c:4479
+#: src/bz-application.c:4501
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
 msgstr[0] "%d აპის ჩატვირთვა…"
 msgstr[1] "%d აპის ჩატვირთვა…"
 
-#: src/bz-application.c:4486
+#: src/bz-application.c:4508
 msgid "Writing to cache…"
 msgstr "კეშში ჩაწერა…"
 
-#: src/bz-application.c:4520
+#: src/bz-application.c:4542
 msgid "Removing remote…"
 msgstr "დაშორებულის წაშლა…"
 
-#: src/bz-application.c:4537
+#: src/bz-application.c:4559
 msgid "Could not remove remote"
 msgstr "დაშორებულის წაშლის შეცდომა"
 
@@ -925,16 +925,16 @@ msgstr "უკვე დაყენებულია"
 msgid "Installation Failed"
 msgstr "დაყენების შეცდომა"
 
-#: src/bz-bundle-install-dialog.c:166
+#: src/bz-bundle-install-dialog.c:165
 msgid "Unknown install size"
 msgstr "უცნობი დაყენების ზომა"
 
-#: src/bz-bundle-install-dialog.c:169
+#: src/bz-bundle-install-dialog.c:168
 #, c-format
 msgid "About %s to install"
 msgstr "დასაყენებლად საჭიროა დაახლ %s"
 
-#: src/bz-bundle-install-dialog.c:212
+#: src/bz-bundle-install-dialog.c:211
 msgid "No special permissions"
 msgstr "სპეციალური წვდომების გარეშე"
 
@@ -1085,7 +1085,7 @@ msgid "You have multiple versions of this app installed. Which one would you lik
 msgstr "გაქვთ ამ აპის ერზე მეტი ვერსია დაყენებული. რომელზე გნებავთ მუშაობა?"
 
 #: src/bz-error-dialog.blp:36 src/bz-safety-dialog.blp:100 src/error.c:69 src/error.c:88
-#: src/update-worker.c:495
+#: src/update-worker.c:502
 msgid "Details"
 msgstr "დეტალები"
 
@@ -2424,7 +2424,7 @@ msgstr "წაშლა"
 msgid "Get"
 msgstr "გადმოწერა"
 
-#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:237 src/safety-calculator.c:158
+#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:236 src/safety-calculator.c:191
 msgid "Arbitrary Permissions"
 msgstr "ჩვეულებრივი წვდომები"
 
@@ -2471,31 +2471,31 @@ msgstr ""
 "ეს აპი პროგრამული პლატფორმის (SDK) მოძველებულ ვერსიას იყენებს და შეიძლება, შეცდომებს და უსაფრთხოების "
 "მოწყვლადობებს შეიცავდეს, რომლებიც აღარ გასწორდება."
 
-#: src/bz-safety-dialog.c:228 src/bz-safety-dialog.c:256
+#: src/bz-safety-dialog.c:227 src/bz-safety-dialog.c:255
 msgid "Safety"
 msgstr "უსაფრთხოება"
 
-#: src/bz-safety-dialog.c:316
+#: src/bz-safety-dialog.c:315
 #, c-format
 msgid "%s is Safe"
 msgstr "%s უსაფრთხოა"
 
-#: src/bz-safety-dialog.c:321
+#: src/bz-safety-dialog.c:320
 #, c-format
 msgid "%s has no Unsafe Permissions"
 msgstr "%s-ის წვდომები სახიფათოა"
 
-#: src/bz-safety-dialog.c:326
+#: src/bz-safety-dialog.c:325
 #, c-format
 msgid "%s is Probably Safe"
 msgstr "%s ალბათ უსაფრთხოა"
 
-#: src/bz-safety-dialog.c:331
+#: src/bz-safety-dialog.c:330
 #, c-format
 msgid "%s is Possibly Unsafe"
 msgstr "%s ალბათ სახიფათოა"
 
-#: src/bz-safety-dialog.c:336
+#: src/bz-safety-dialog.c:335
 #, c-format
 msgid "%s is Unsafe"
 msgstr "%s სახიფათოა"
@@ -3225,300 +3225,348 @@ msgstr "საშუალო რისკი"
 msgid "High Risk"
 msgstr "მაღალი რისკი"
 
-#: src/safety-calculator.c:80
+#: src/safety-calculator.c:78
 msgid "Unknown Permissions"
 msgstr "საქაღალდის უფლებების შეცვლის გაუქმება"
 
-#: src/safety-calculator.c:81
+#: src/safety-calculator.c:79
 msgid "Permissions are missing for this app."
 msgstr "ამ აპისთვის უფლებები აკლია."
 
-#: src/safety-calculator.c:95
+#: src/safety-calculator.c:93
 msgid "No Permissions"
 msgstr "წვდომების გარეშე"
 
-#: src/safety-calculator.c:96
+#: src/safety-calculator.c:94
 msgid "App is fully sandboxed"
 msgstr "აპი მთლიანად შემოსაზღვრულია"
 
-#: src/safety-calculator.c:103
+#: src/safety-calculator.c:101
 msgid "Network Access"
 msgstr "ქსელური წვდომა"
 
-#: src/safety-calculator.c:104
+#: src/safety-calculator.c:102
 msgid "Can access the internet"
 msgstr "წვდომა ინტერნეტთან"
 
-#: src/safety-calculator.c:106
+#: src/safety-calculator.c:104
 msgid "No Network Access"
 msgstr "ქსელთან წვდომის გარეშე"
 
-#: src/safety-calculator.c:107
+#: src/safety-calculator.c:105
 msgid "Cannot access the internet"
 msgstr "არ აქვს ინტერნეტთან წვდომა"
 
-#: src/safety-calculator.c:114
+#: src/safety-calculator.c:112
 msgid "User Device Access"
 msgstr "მომხმარებლის მოწყობილობასთან წვდომა"
 
-#: src/safety-calculator.c:115
+#: src/safety-calculator.c:113
 msgid "Can access devices such as webcams or gaming controllers"
 msgstr "აქვს ისეთ მოწყობილობებთან წვდომა, როგორიცაა ვებკამერა ან ჯოისტიკი"
 
-#: src/safety-calculator.c:117
+#: src/safety-calculator.c:115
 msgid "No User Device Access"
 msgstr "მომხმარებლის მოწყობილობებთან წვდომის გარეშე"
 
-#: src/safety-calculator.c:118
+#: src/safety-calculator.c:116
 msgid "Cannot access devices such as webcams or gaming controllers"
 msgstr "არ აქვს ისეთ მოწყობილობებთან წვდომა, როგორიცაა ვებკამერა ან ჯოისტიკი"
 
-#: src/safety-calculator.c:123
+#: src/safety-calculator.c:121
 msgid "Input Device Access"
 msgstr "შეყვანის მოწყობილობასთან წვდომა"
 
-#: src/safety-calculator.c:124
+#: src/safety-calculator.c:122
 msgid "Can access input devices"
 msgstr "აქვს წვდომა შეყვანის მოწყობილობებთან"
 
-#: src/safety-calculator.c:130
+#: src/safety-calculator.c:128
 msgid "Microphone Access and Audio Playback"
 msgstr "მიკროფონთან წვდომა და ხმის დაკვრა"
 
-#: src/safety-calculator.c:131
+#: src/safety-calculator.c:129
 msgid "Can listen using microphones and play audio without asking permission"
 msgstr "შეუძლია მოსმენა მიკროფონით და ხმის დაკვრა, ნებართვის კითხვის გარეშე"
 
-#: src/safety-calculator.c:137
+#: src/safety-calculator.c:135
 msgid "System Device Access"
 msgstr "სისტემურ მოწყობილობასთან წვდომა"
 
-#: src/safety-calculator.c:138
+#: src/safety-calculator.c:136
 msgid "Can access system devices which require elevated permissions"
 msgstr "აქვს წვდომა სისტემურ მოწყობილობებთან, რომლებსაც დამატებითი წვდომები ესაჭიროება"
 
-#: src/safety-calculator.c:144
+#: src/safety-calculator.c:142
+msgid "Printer Access"
+msgstr "პრინტერთან წვდომა"
+
+#: src/safety-calculator.c:143
+msgid "Can print and manage print jobs without asking"
+msgstr "შეუძლია, დაბეჭდოს და მართოს ბეჭდვის დავალებები კითხვის გარეშე"
+
+#: src/safety-calculator.c:149
+msgid "Smart Card Access"
+msgstr "ჭკვიანი ბარათით წვდომა"
+
+#: src/safety-calculator.c:150
+msgid "Can use smart cards and security keys"
+msgstr "შეუძლია ჭკვიანი ბარათებისა და უსაფრთხოების გასაღებების გამოყენება"
+
+#: src/safety-calculator.c:156
+msgid "Bluetooth Access"
+msgstr "Bluetooth-თან წვდომა"
+
+#: src/safety-calculator.c:157
+msgid "Can communicate with Bluetooth devices directly"
+msgstr "შეუძლია ბლუთუზის მოწყობილობებთან პირდაპირი კომუნიკაცია"
+
+#: src/safety-calculator.c:163
+msgid "CAN Bus Access"
+msgstr "წვდომა CAN სალტესთან"
+
+#: src/safety-calculator.c:164
+msgid "Can communicate with devices on a CAN bus network"
+msgstr "შეუძლია CAN სალტის ქსელში მოწყობილობებთან კომუნიკაცია"
+
+#: src/safety-calculator.c:170
+msgid "Development Tools"
+msgstr "პროგრამისტის ხელსაწყოები"
+
+#: src/safety-calculator.c:171
+msgid "Can use debugging and profiling tools on processes in its sandbox"
+msgstr "შეუძლია გამართვისა და პროფილირების ხელსაწყოების გამოყენება მის სენდბოქსში არსებულ პროცესებზე"
+
+#: src/safety-calculator.c:177
 msgid "Screen Contents Access"
 msgstr "წვდომა ეკრანის შემცველობასთან"
 
-#: src/safety-calculator.c:145
+#: src/safety-calculator.c:178
 msgid "Can access the contents of the screen or other windows"
 msgstr "ეკრანის ან სხვა ფანჯრების შემცველობასთან წვდომა აკრძალულია"
 
-#: src/safety-calculator.c:151
+#: src/safety-calculator.c:184
 msgid "Legacy Windowing System"
 msgstr "მოძველებული ფანჯრული სისტემა"
 
-#: src/safety-calculator.c:152
+#: src/safety-calculator.c:185
 msgid "Always uses a legacy windowing system (X11)"
 msgstr "ყოველთვის მოძველებული ფანჯრული სისტემის (X11) გამოყენება"
 
-#: src/safety-calculator.c:159
+#: src/safety-calculator.c:192
 msgid "Can acquire arbitrary permissions"
 msgstr "შეუძლია ჩვეულებრივი წვდომების მიღება"
 
-#: src/safety-calculator.c:165
+#: src/safety-calculator.c:198
+msgid "SSH Key Access"
+msgstr "წვდომა SSH-ის გასაღებებთან"
+
+#: src/safety-calculator.c:199
+msgid "Can use your SSH keys to log into other computers"
+msgstr "შეუძლია თქვენი SSH გასაღებების გამოყენება სხვა კომპიუტერებში შესასვლელად"
+
+#: src/safety-calculator.c:205
 msgid "User Settings"
 msgstr "მომხმარებლის მორგება"
 
-#: src/safety-calculator.c:166
+#: src/safety-calculator.c:206
 msgid "Can access and change user settings"
 msgstr "შეუძლია წვდომა ჰქონდეს და შეცვალოს მომხმარებლის პარამეტრები"
 
-#: src/safety-calculator.c:172
+#: src/safety-calculator.c:212
 msgid "Full File System Read/Write Access"
 msgstr "სრული ფაილური სისტემის ჩაწერა/წაკითხვის წვდომა"
 
-#: src/safety-calculator.c:173
+#: src/safety-calculator.c:213
 msgid "Can read and write all data on the file system"
 msgstr "შეუძლია ფაილური სისტემიდან წაკთხვა და მასზე ჩაწერა"
 
-#: src/safety-calculator.c:180
+#: src/safety-calculator.c:220
 msgid "Home Folder Read/Write Access"
 msgstr "საწყისი საქაღალდის ჩაწერა/წაკითხვის წვდომა"
 
-#: src/safety-calculator.c:181
+#: src/safety-calculator.c:221
 msgid "Can read and write all data in your home directory"
 msgstr "შეუძლია ჩაწეროს თქვენს საწყის საქაღალდეში"
 
-#: src/safety-calculator.c:188
+#: src/safety-calculator.c:228
 msgid "Full File System Read Access"
 msgstr "სრული ფაილური სისტემის კითხვის შეცდომა"
 
-#: src/safety-calculator.c:189
+#: src/safety-calculator.c:229
 msgid "Can read all data on the file system"
 msgstr "შეუძლია ფაილური სისტემიდან წაკთხვა"
 
-#: src/safety-calculator.c:197
+#: src/safety-calculator.c:237
 msgid "Home Folder Read Access"
 msgstr "საწყისი საქაღალდის წაკითხვის წვდომა"
 
-#: src/safety-calculator.c:198
+#: src/safety-calculator.c:238
 msgid "Can read all data in your home directory"
 msgstr "შეუძლია წაიკითხოს თქვენი საწყისი საქალდიდან"
 
-#: src/safety-calculator.c:206
+#: src/safety-calculator.c:246
 msgid "Download Folder Read/Write Access"
 msgstr "გადმოწერის საქაღალდის ჩაწერა/წაკითხვის წვდომა"
 
-#: src/safety-calculator.c:207
+#: src/safety-calculator.c:247
 msgid "Can read and write all data in your downloads directory"
 msgstr "შეუძლია ჩაწეროს და წაიკითხოს თქვენი გადმოწერის საქაღალდიდან"
 
-#: src/safety-calculator.c:217
+#: src/safety-calculator.c:257
 msgid "Download Folder Read Access"
 msgstr "გადმოწერის საქაღალდის წაკითხვის წვდომა"
 
-#: src/safety-calculator.c:218
+#: src/safety-calculator.c:258
 msgid "Can read all data in your downloads directory"
 msgstr "შეუძლია წაიკითხოს თქვენი გადმოწერის საქაღალდიდან"
 
-#: src/safety-calculator.c:235
+#: src/safety-calculator.c:275
 msgid "Can read and write all data in the directory"
 msgstr "შეუძლია საქაღალდეში მონაცემები ჩაწეროს და წაიკითხოს"
 
-#: src/safety-calculator.c:255
+#: src/safety-calculator.c:295
 msgid "Can read all data in the directory"
 msgstr "შეუძლია წაიკითხოს ყველა მონაცემები საქაღალდიდან"
 
-#: src/safety-calculator.c:271
+#: src/safety-calculator.c:311
 msgid "No File System Access"
 msgstr "ფაილურ სისტემასთან წვდომის გარეშე"
 
-#: src/safety-calculator.c:272
+#: src/safety-calculator.c:312
 msgid "Cannot access the file system at all"
 msgstr "ფაილურ სისტემასთან წვდომა საერთოდ არ მაქვს"
 
-#: src/safety-calculator.c:279
+#: src/safety-calculator.c:319
 msgid "Uses System Services"
 msgstr "იყენებს სისტემურ სერვისებს"
 
-#: src/safety-calculator.c:280
+#: src/safety-calculator.c:320
 msgid "Can request data from non-portal system services"
 msgstr "შეუძლია მონაცემების გამოთხოვა არა-პორტალის სისტემური რესურსებიდან"
 
-#: src/safety-calculator.c:286
+#: src/safety-calculator.c:326
 msgid "Uses Session Services"
 msgstr "იყენებს სესიის სერვისებს"
 
-#: src/safety-calculator.c:287
+#: src/safety-calculator.c:327
 msgid "Can request data from non-portal session services"
 msgstr "შეუძლია მონაცემების გამოთხოვა არა-პორტალის სესიის რესურსებიდან"
 
-#: src/safety-calculator.c:332
+#: src/safety-calculator.c:372
 msgid "No Service Access"
 msgstr "სერვისთან წვდომის გარეშე"
 
-#: src/safety-calculator.c:333
+#: src/safety-calculator.c:373
 msgid "Cannot access non-portal session or system services at all"
 msgstr "საერთოდ არ აქვს წვდომა არა-პორტალის სესიებთან, ან სისტემურ სერვისებთან"
 
-#: src/safety-calculator.c:372
+#: src/safety-calculator.c:412
 msgid "Verified App Developer"
 msgstr "დამოწმებული აპლიკაციის ავტორი"
 
-#: src/safety-calculator.c:373
+#: src/safety-calculator.c:413
 msgid "The developer of this app has been verified to be who they say they are"
 msgstr "ამ პროგრამისტმა დაამტკიცა, რომ ისაა, ვისადაც თავი მოაქვს"
 
-#: src/safety-calculator.c:382
+#: src/safety-calculator.c:422
 msgid "Proprietary Code"
 msgstr "დახურული კოდი"
 
-#: src/safety-calculator.c:383
+#: src/safety-calculator.c:423
 msgid "The source code is not public, so it cannot be independently audited and might be unsafe"
 msgstr "პროგრამის კოდი საჯარო არაა, ასე რომ, მას დამოუკიდებლად ვერ გადახედავთ, ამიტომ ის უსაფრთხო არაა"
 
-#: src/safety-calculator.c:393
+#: src/safety-calculator.c:433
 msgid "Auditable Code"
 msgstr "აუდიტირებადი კოდი"
 
-#: src/safety-calculator.c:394
+#: src/safety-calculator.c:434
 msgid "The source code is public and can be independently audited, which makes the app more likely to be safe"
 msgstr ""
 "საწყისი კოდი საჯაროა და შეიძლება, დამოუკიდებელი აუდიტი ჩაუტარდეს, რაც აპს უფრო დიდ შანსს აძლევს, უსაფრთხო "
 "იყოს"
 
-#: src/safety-calculator.c:532
+#: src/safety-calculator.c:572
 #, c-format
 msgid "Use the %s System Service"
 msgstr "%s სისტემური სერვისების გამოყენება"
 
-#: src/safety-calculator.c:536
+#: src/safety-calculator.c:576
 #, c-format
 msgid "Use the %s Session Service"
 msgstr "%s სესიის სერვისის გამოყენება"
 
-#: src/safety-calculator.c:540
+#: src/safety-calculator.c:580
 #, c-format
 msgid "Use the %s Service"
 msgstr "%s სერვისის გამოყენება"
 
-#: src/safety-calculator.c:550
+#: src/safety-calculator.c:590
 msgid "Can see the non-portal service"
 msgstr "შეუძლია არა-პორტალის სერვისის დანახვა"
 
-#: src/safety-calculator.c:552
+#: src/safety-calculator.c:592
 msgid "Can talk to the non-portal service"
 msgstr "შეუძლია არა-პორტალის სერვისთან ლაპარაკი"
 
-#: src/safety-calculator.c:554
+#: src/safety-calculator.c:594
 msgid "Can own the non-portal service"
 msgstr "შეუძლია არა-პორტალის სერვისის ფლობა"
 
-#: src/safety-calculator.c:569
+#: src/safety-calculator.c:609
 msgid "Global Menu Integration"
 msgstr "გლობალური მენიუს ინტეგრაცია"
 
-#: src/safety-calculator.c:570
+#: src/safety-calculator.c:610
 msgid "Can display its menus in a global menu bar"
 msgstr "შეუძლია მისი მენიუების გლობალური მენიუს პანელზე ჩვენება"
 
-#: src/safety-calculator.c:575
+#: src/safety-calculator.c:615
 msgid "KDE Settings Integration"
 msgstr "KDE-ის პარამეტრების ინტეგრაცია"
 
-#: src/safety-calculator.c:576
+#: src/safety-calculator.c:616
 msgid "Can detect when KDE desktop settings change"
 msgstr "შეუძლია KDE-ის სამუშაო მაგიდის პარამეტრების ცვლილების დადგენა"
 
-#: src/safety-calculator.c:581
+#: src/safety-calculator.c:621
 msgid "KDE Global Settings"
 msgstr "KDE-ის გლობალური პარამეტრები"
 
-#: src/safety-calculator.c:582
+#: src/safety-calculator.c:622
 msgid "Can read KDE desktop preferences like fonts and colors"
 msgstr "შეუძლია KDE-ის სამსაო მაგიდის ისეთი პარამეტრები, როგორიცაა ფონტები და ფერები"
 
-#: src/safety-calculator.c:587
+#: src/safety-calculator.c:627
 msgid "Secret Storage Service"
 msgstr "საიდუმლოებების საცავის სერვისი"
 
-#: src/safety-calculator.c:588
+#: src/safety-calculator.c:628
 msgid "Can store and retrieve its own passwords using the system keyring"
 msgstr "შეუძლია მისი საკუთარი პაროლების დამახსოვრება და მიღება სისტემური ბრელოკიდან"
 
-#: src/safety-calculator.c:593
+#: src/safety-calculator.c:633
 msgid "Desktop Notifications Service"
 msgstr "სამუშაო მაგიდის გაფრთხილებების სერვისი"
 
-#: src/safety-calculator.c:594
+#: src/safety-calculator.c:634
 msgid "Can send desktop notifications"
 msgstr "შეუძლია კომპიუტერზე გაფრთხილების გაგზავნა"
 
-#: src/safety-calculator.c:600
+#: src/safety-calculator.c:640
 msgid "System Tray Integration"
 msgstr "სისტემის კუთხეში ხატულის მორგება"
 
-#: src/safety-calculator.c:601
+#: src/safety-calculator.c:641
 msgid "Can display an icon in the system tray"
 msgstr "შეუძლია ხატულას ჩვენება სისტემურ საათთან"
 
-#: src/safety-calculator.c:606
+#: src/safety-calculator.c:646
 msgid "KDE Connect Integration"
 msgstr "KDE Connect-თან ინტეგრაცია"
 
-#: src/safety-calculator.c:607
+#: src/safety-calculator.c:647
 msgid "Can interact with devices paired via KDE Connect"
 msgstr "შეუძლია KDE Connect-ით დაწყვილებულ მოწყობილობებთან ურთიერთქმედება"
 
@@ -3578,7 +3626,7 @@ msgid "Quit Bazaar"
 msgstr "გასვლა Bazaar-დან"
 
 #. Translators: The other Linux distributions, in the install statistics
-#: src/stats-types.vala:59
+#: src/stats-types.vala:63
 msgctxt "Distribution"
 msgid "Other"
 msgstr "სხვა"
@@ -3600,24 +3648,24 @@ msgstr "განახლებები მოძველებულია"
 msgid "Please check for available updates"
 msgstr "ხელმისაწვდომი განახლებების შემოწმება"
 
-#: src/update-worker.c:535
+#: src/update-worker.c:542
 #, c-format
 msgid "%u App Updated"
 msgid_plural "%u Apps Updated"
 msgstr[0] "%u აპი განახლდა"
 msgstr[1] "%u აპი განახლდა"
 
-#: src/update-worker.c:538
+#: src/update-worker.c:545
 #, c-format
 msgid "%s has been updated."
 msgstr "%s განახლდა."
 
-#: src/update-worker.c:541
+#: src/update-worker.c:548
 #, c-format
 msgid "%s and %s have been updated."
 msgstr "%s და %s განახლდა."
 
-#: src/update-worker.c:545
+#: src/update-worker.c:552
 #, c-format
 msgid "Includes %s, %s and %s."
 msgstr "შეიცავს %s-ს, %s-ს და %s-ს."
