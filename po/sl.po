@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: bazaar main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
 "POT-Creation-Date: 2026-11-23 18:56+0000\n"
-"PO-Revision-Date: 2026-11-24 08:27+0100\n"
+"PO-Revision-Date: 2026-11-25 20:28+0100\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl\n"
@@ -3485,12 +3485,10 @@ msgid "Can communicate with Bluetooth devices directly"
 msgstr "Lahko neposredno komunicira z napravami Bluetooth"
 
 #: src/safety-calculator.c:163
-#, fuzzy
 msgid "CAN Bus Access"
 msgstr "Dostop do vodila CAN"
 
 #: src/safety-calculator.c:164
-#, fuzzy
 msgid "Can communicate with devices on a CAN bus network"
 msgstr "Lahko komunicira z napravami v omrežju vodila CAN"
 
