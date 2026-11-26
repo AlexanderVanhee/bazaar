@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bazaar\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/World/bazaar/-/work_items\n"
-"POT-Creation-Date: 2026-11-12 02:28+0000\n"
-"PO-Revision-Date: 2026-11-13 08:50+0800\n"
+"POT-Creation-Date: 2026-11-23 18:56+0000\n"
+"PO-Revision-Date: 2026-11-24 08:57+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
@@ -73,7 +73,7 @@ msgid "Search apps directly from GNOME Shell"
 msgstr "直接从 GNOME Shell 搜索应用"
 
 #. Translators: Please treat "Bazaar" as a brand name and avoid translating.
-#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:892
+#: data/io.github.kolunmi.Bazaar.metainfo.xml.in:34 src/bz-application.c:897
 msgid "The Bazaar Contributors"
 msgstr "Bazaar 贡献者"
 
@@ -558,129 +558,129 @@ msgstr "%s 适合 %s"
 msgid "%s • %s"
 msgstr "%s • %s"
 
-#: src/bz-app-permissions.c:175
+#: src/bz-app-permissions.vala:54
 #, c-format
 msgid "System folder %s"
 msgstr "系统文件夹 %s"
 
-#: src/bz-app-permissions.c:177
+#: src/bz-app-permissions.vala:56
 #, c-format
 msgid "Home subfolder %s"
 msgstr "主目录子文件夹 %s"
 
-#: src/bz-app-permissions.c:179
+#: src/bz-app-permissions.vala:58
 msgid "Host system folders"
 msgstr "主机系统文件夹"
 
-#: src/bz-app-permissions.c:181
+#: src/bz-app-permissions.vala:60
 msgid "Host system configuration from /etc"
 msgstr "来自 /etc 的主机系统配置"
 
-#: src/bz-app-permissions.c:184
+#: src/bz-app-permissions.vala:62
+msgid "Desktop folder"
+msgstr "桌面文件夹"
+
+#: src/bz-app-permissions.vala:62
 #, c-format
 msgid "Desktop subfolder %s"
 msgstr "桌面子文件夹 %s"
 
-#: src/bz-app-permissions.c:185
-msgid "Desktop folder"
-msgstr "桌面文件夹"
+#: src/bz-app-permissions.vala:64
+msgid "Documents folder"
+msgstr "文档文件夹"
 
-#: src/bz-app-permissions.c:188
+#: src/bz-app-permissions.vala:64
 #, c-format
 msgid "Documents subfolder %s"
 msgstr "文档子文件夹 %s"
 
-#: src/bz-app-permissions.c:189
-msgid "Documents folder"
-msgstr "文档文件夹"
+#: src/bz-app-permissions.vala:66
+msgid "Music folder"
+msgstr "音乐文件夹"
 
-#: src/bz-app-permissions.c:192
+#: src/bz-app-permissions.vala:66
 #, c-format
 msgid "Music subfolder %s"
 msgstr "音乐子文件夹 %s"
 
-#: src/bz-app-permissions.c:193
-msgid "Music folder"
-msgstr "音乐文件夹"
+#: src/bz-app-permissions.vala:68
+msgid "Pictures folder"
+msgstr "图片文件夹"
 
-#: src/bz-app-permissions.c:196
+#: src/bz-app-permissions.vala:68
 #, c-format
 msgid "Pictures subfolder %s"
 msgstr "图片子文件夹 %s"
 
-#: src/bz-app-permissions.c:197
-msgid "Pictures folder"
-msgstr "图片文件夹"
+#: src/bz-app-permissions.vala:70
+msgid "Public Share folder"
+msgstr "共享文件夹"
 
-#: src/bz-app-permissions.c:200
+#: src/bz-app-permissions.vala:70
 #, c-format
 msgid "Public Share subfolder %s"
 msgstr "共享子文件夹 %s"
 
-#: src/bz-app-permissions.c:201
-msgid "Public Share folder"
-msgstr "共享文件夹"
+#: src/bz-app-permissions.vala:72
+msgid "Videos folder"
+msgstr "视频文件夹"
 
-#: src/bz-app-permissions.c:204
+#: src/bz-app-permissions.vala:72
 #, c-format
 msgid "Videos subfolder %s"
 msgstr "视频子文件夹 %s"
 
-#: src/bz-app-permissions.c:205
-msgid "Videos folder"
-msgstr "视频文件夹"
+#: src/bz-app-permissions.vala:74
+msgid "Templates folder"
+msgstr "模板文件夹"
 
-#: src/bz-app-permissions.c:208
+#: src/bz-app-permissions.vala:74
 #, c-format
 msgid "Templates subfolder %s"
 msgstr "模板子文件夹 %s"
 
-#: src/bz-app-permissions.c:209
-msgid "Templates folder"
-msgstr "模板文件夹"
+#: src/bz-app-permissions.vala:76
+msgid "User cache folder"
+msgstr "用户缓存文件夹"
 
-#: src/bz-app-permissions.c:212
+#: src/bz-app-permissions.vala:76
 #, c-format
 msgid "User cache subfolder %s"
 msgstr "用户缓存子文件夹 %s"
 
-#: src/bz-app-permissions.c:213
-msgid "User cache folder"
-msgstr "用户缓存文件夹"
+#: src/bz-app-permissions.vala:78
+msgid "User configuration folder"
+msgstr "用户配置文件夹"
 
-#: src/bz-app-permissions.c:216
+#: src/bz-app-permissions.vala:78
 #, c-format
 msgid "User configuration subfolder %s"
 msgstr "用户配置子文件夹 %s"
 
-#: src/bz-app-permissions.c:217
-msgid "User configuration folder"
-msgstr "用户配置文件夹"
+#: src/bz-app-permissions.vala:80
+msgid "User data folder"
+msgstr "用户数据文件夹"
 
-#: src/bz-app-permissions.c:220
+#: src/bz-app-permissions.vala:80
 #, c-format
 msgid "User data subfolder %s"
 msgstr "用户数据子文件夹 %s"
 
-#: src/bz-app-permissions.c:221
-msgid "User data folder"
-msgstr "用户数据文件夹"
+#: src/bz-app-permissions.vala:82
+msgid "User runtime folder"
+msgstr "用户运行时文件夹"
 
-#: src/bz-app-permissions.c:224
+#: src/bz-app-permissions.vala:82
 #, c-format
 msgid "User runtime subfolder %s"
 msgstr "用户运行时子文件夹 %s"
 
-#: src/bz-app-permissions.c:225
-msgid "User runtime folder"
-msgstr "用户运行时文件夹"
-
-#: src/bz-app-permissions.c:227
+#: src/bz-app-permissions.vala:84
 #, c-format
 msgid "Filesystem access to %s"
 msgstr "对 %s 的文件系统访问"
 
-#: src/bz-app-permissions.c:229
+#: src/bz-app-permissions.vala:86
 msgid "Unknown filesystem path"
 msgstr "未知文件系统路径"
 
@@ -732,7 +732,7 @@ msgstr "已安装运行时大小"
 msgid "Runtime Download Size"
 msgstr "运行时下载大小"
 
-#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:183
+#: src/bz-app-size-dialog.c:111 src/bz-bundle-install-dialog.c:182
 #: src/context-tile-callbacks.c:104 src/context-tile-callbacks.c:401
 #: src/context-tile-callbacks.c:423
 msgid "N/A"
@@ -748,29 +748,29 @@ msgid "Verified"
 msgstr "已验证"
 
 #. Translators: Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
-#: src/bz-application.c:895
+#: src/bz-application.c:900
 msgid "translator-credits"
 msgstr ""
 "Shinsei <shinsei@anche.no>, 2025\n"
 "lumingzh <lumingzh@qq.com>, 2026"
 
-#: src/bz-application.c:905
+#: src/bz-application.c:910
 msgid "Special Thanks"
 msgstr "特别感谢"
 
-#: src/bz-application.c:975
+#: src/bz-application.c:980
 msgid "Logged Out Successfully!"
 msgstr "成功登出！"
 
-#: src/bz-application.c:1148
+#: src/bz-application.c:1153
 msgid "Performing setup…"
 msgstr "正在执行部署…"
 
-#: src/bz-application.c:1190
+#: src/bz-application.c:1195
 msgid "Set Up Flathub?"
 msgstr "部署 Flathub 吗？"
 
-#: src/bz-application.c:1193
+#: src/bz-application.c:1198
 msgid ""
 "Flathub is not set up on this system. You will not be able to browse and "
 "install applications in Bazaar if its unavailable.\n"
@@ -782,66 +782,66 @@ msgstr ""
 "\n"
 "您仍可使用 Bazaar 浏览和移除已安装的应用。"
 
-#: src/bz-application.c:1198
+#: src/bz-application.c:1203
 msgid "Later"
 msgstr "稍后"
 
-#: src/bz-application.c:1199
+#: src/bz-application.c:1204
 msgid "Set Up Flathub"
 msgstr "部署 Flathub"
 
-#: src/bz-application.c:1826
+#: src/bz-application.c:1844
 msgid "A backend error occurred"
 msgstr "发生后端错误"
 
-#: src/bz-application.c:2033 src/bz-application.c:4484
+#: src/bz-application.c:2051 src/bz-application.c:4506
 msgid "Refreshing…"
 msgstr "正在刷新…"
 
-#: src/bz-application.c:2199
+#: src/bz-application.c:2217
 #, c-format
 msgid "Loading %d apps…"
 msgstr "正在加载 %d 应用…"
 
-#: src/bz-application.c:2260 src/bz-application.c:2337
+#: src/bz-application.c:2278 src/bz-application.c:2355
 msgid "Failed to open file"
 msgstr "打开文件失败"
 
-#: src/bz-application.c:2351
+#: src/bz-application.c:2369
 msgid "Failed to load metainfo"
 msgstr "加载元信息失败"
 
-#: src/bz-application.c:2477
+#: src/bz-application.c:2495
 msgid "An initialization error occurred"
 msgstr "发生初始化错误"
 
-#: src/bz-application.c:2918
+#: src/bz-application.c:2936
 msgid "Checking for updates…"
 msgstr "正在检查更新…"
 
-#: src/bz-application.c:3033
+#: src/bz-application.c:3051
 msgid "Failed to check for updates"
 msgstr "检查更新失败"
 
-#: src/bz-application.c:4253
+#: src/bz-application.c:4275
 msgid "Could not find app"
 msgstr "无法找到应用"
 
-#: src/bz-application.c:4479
+#: src/bz-application.c:4501
 #, c-format
 msgid "Loading %d app…"
 msgid_plural "Loading %d apps…"
 msgstr[0] "正在加载 %d 个应用…"
 
-#: src/bz-application.c:4486
+#: src/bz-application.c:4508
 msgid "Writing to cache…"
 msgstr "正在写入缓存…"
 
-#: src/bz-application.c:4520
+#: src/bz-application.c:4542
 msgid "Removing remote…"
 msgstr "正在移除远程仓库…"
 
-#: src/bz-application.c:4537
+#: src/bz-application.c:4559
 msgid "Could not remove remote"
 msgstr "无法移除远程仓库"
 
@@ -943,16 +943,16 @@ msgstr "已经安装"
 msgid "Installation Failed"
 msgstr "安装失败"
 
-#: src/bz-bundle-install-dialog.c:166
+#: src/bz-bundle-install-dialog.c:165
 msgid "Unknown install size"
 msgstr "未知安装大小"
 
-#: src/bz-bundle-install-dialog.c:169
+#: src/bz-bundle-install-dialog.c:168
 #, c-format
 msgid "About %s to install"
 msgstr "关于 %s 的安装"
 
-#: src/bz-bundle-install-dialog.c:212
+#: src/bz-bundle-install-dialog.c:211
 msgid "No special permissions"
 msgstr "无特殊权限"
 
@@ -1116,7 +1116,7 @@ msgid ""
 msgstr "您已安装此应用的多个版本。您希望用哪一个继续？"
 
 #: src/bz-error-dialog.blp:36 src/bz-safety-dialog.blp:100 src/error.c:69
-#: src/error.c:88 src/update-worker.c:495
+#: src/error.c:88 src/update-worker.c:502
 msgid "Details"
 msgstr "详情"
 
@@ -2457,8 +2457,8 @@ msgstr "卸载"
 msgid "Get"
 msgstr "获取"
 
-#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:237
-#: src/safety-calculator.c:158
+#: src/bz-safety-dialog.blp:30 src/bz-safety-dialog.c:236
+#: src/safety-calculator.c:191
 msgid "Arbitrary Permissions"
 msgstr "任意权限"
 
@@ -2504,31 +2504,31 @@ msgid ""
 msgstr ""
 "此应用使用了过时的软件平台（SDK）版本，可能包含不会修复的缺陷或安全漏洞。"
 
-#: src/bz-safety-dialog.c:228 src/bz-safety-dialog.c:256
+#: src/bz-safety-dialog.c:227 src/bz-safety-dialog.c:255
 msgid "Safety"
 msgstr "安全性"
 
-#: src/bz-safety-dialog.c:316
+#: src/bz-safety-dialog.c:315
 #, c-format
 msgid "%s is Safe"
 msgstr "%s 是安全的"
 
-#: src/bz-safety-dialog.c:321
+#: src/bz-safety-dialog.c:320
 #, c-format
 msgid "%s has no Unsafe Permissions"
 msgstr "%s 没有不安全权限"
 
-#: src/bz-safety-dialog.c:326
+#: src/bz-safety-dialog.c:325
 #, c-format
 msgid "%s is Probably Safe"
 msgstr "%s 可能安全"
 
-#: src/bz-safety-dialog.c:331
+#: src/bz-safety-dialog.c:330
 #, c-format
 msgid "%s is Possibly Unsafe"
 msgstr "%s 可能不安全"
 
-#: src/bz-safety-dialog.c:336
+#: src/bz-safety-dialog.c:335
 #, c-format
 msgid "%s is Unsafe"
 msgstr "%s 是不安全的"
@@ -3258,302 +3258,350 @@ msgstr "中风险"
 msgid "High Risk"
 msgstr "高风险"
 
-#: src/safety-calculator.c:80
+#: src/safety-calculator.c:78
 msgid "Unknown Permissions"
 msgstr "未知权限"
 
-#: src/safety-calculator.c:81
+#: src/safety-calculator.c:79
 msgid "Permissions are missing for this app."
 msgstr "此应用缺少权限信息。"
 
-#: src/safety-calculator.c:95
+#: src/safety-calculator.c:93
 msgid "No Permissions"
 msgstr "无需权限"
 
-#: src/safety-calculator.c:96
+#: src/safety-calculator.c:94
 msgid "App is fully sandboxed"
 msgstr "应用已完全沙盒化"
 
-#: src/safety-calculator.c:103
+#: src/safety-calculator.c:101
 msgid "Network Access"
 msgstr "网络访问"
 
-#: src/safety-calculator.c:104
+#: src/safety-calculator.c:102
 msgid "Can access the internet"
 msgstr "可以访问互联网"
 
-#: src/safety-calculator.c:106
+#: src/safety-calculator.c:104
 msgid "No Network Access"
 msgstr "无网络访问"
 
-#: src/safety-calculator.c:107
+#: src/safety-calculator.c:105
 msgid "Cannot access the internet"
 msgstr "不能访问互联网"
 
-#: src/safety-calculator.c:114
+#: src/safety-calculator.c:112
 msgid "User Device Access"
 msgstr "用户设备访问"
 
-#: src/safety-calculator.c:115
+#: src/safety-calculator.c:113
 msgid "Can access devices such as webcams or gaming controllers"
 msgstr "可以访问网络摄像头或游戏控制器等设备"
 
-#: src/safety-calculator.c:117
+#: src/safety-calculator.c:115
 msgid "No User Device Access"
 msgstr "无用户设备访问"
 
-#: src/safety-calculator.c:118
+#: src/safety-calculator.c:116
 msgid "Cannot access devices such as webcams or gaming controllers"
 msgstr "不能访问网络摄像头或游戏控制器等设备"
 
-#: src/safety-calculator.c:123
+#: src/safety-calculator.c:121
 msgid "Input Device Access"
 msgstr "输入设备访问"
 
-#: src/safety-calculator.c:124
+#: src/safety-calculator.c:122
 msgid "Can access input devices"
 msgstr "可以访问输入设备"
 
-#: src/safety-calculator.c:130
+#: src/safety-calculator.c:128
 msgid "Microphone Access and Audio Playback"
 msgstr "麦克风访问和音频播放"
 
-#: src/safety-calculator.c:131
+#: src/safety-calculator.c:129
 msgid "Can listen using microphones and play audio without asking permission"
 msgstr "无需请求权限即可监听麦克风和播放音频"
 
-#: src/safety-calculator.c:137
+#: src/safety-calculator.c:135
 msgid "System Device Access"
 msgstr "系统设备访问"
 
-#: src/safety-calculator.c:138
+#: src/safety-calculator.c:136
 msgid "Can access system devices which require elevated permissions"
 msgstr "可以访问需要提升权限的系统设备"
 
-#: src/safety-calculator.c:144
+#: src/safety-calculator.c:142
+msgid "Printer Access"
+msgstr "打印机访问"
+
+#: src/safety-calculator.c:143
+msgid "Can print and manage print jobs without asking"
+msgstr "可以不经询问打印和管理打印任务"
+
+#: src/safety-calculator.c:149
+msgid "Smart Card Access"
+msgstr "智能卡访问"
+
+#: src/safety-calculator.c:150
+msgid "Can use smart cards and security keys"
+msgstr "可以使用智能卡和安全密钥"
+
+#: src/safety-calculator.c:156
+msgid "Bluetooth Access"
+msgstr "蓝牙访问"
+
+#: src/safety-calculator.c:157
+msgid "Can communicate with Bluetooth devices directly"
+msgstr "可以直接与蓝牙设备通信"
+
+#: src/safety-calculator.c:163
+msgid "CAN Bus Access"
+msgstr "CAN 总线访问"
+
+#: src/safety-calculator.c:164
+msgid "Can communicate with devices on a CAN bus network"
+msgstr "可以与 CAN 总线网络上的设备通信"
+
+#: src/safety-calculator.c:170
+msgid "Development Tools"
+msgstr "开发工具"
+
+#: src/safety-calculator.c:171
+msgid "Can use debugging and profiling tools on processes in its sandbox"
+msgstr "可以在其沙盒内对进程使用调试和性能分析工具"
+
+#: src/safety-calculator.c:177
 msgid "Screen Contents Access"
 msgstr "屏幕内容访问"
 
-#: src/safety-calculator.c:145
+#: src/safety-calculator.c:178
 msgid "Can access the contents of the screen or other windows"
 msgstr "可以访问屏幕或其他窗口的内容"
 
-#: src/safety-calculator.c:151
+#: src/safety-calculator.c:184
 msgid "Legacy Windowing System"
 msgstr "过时窗口系统"
 
-#: src/safety-calculator.c:152
+#: src/safety-calculator.c:185
 msgid "Always uses a legacy windowing system (X11)"
 msgstr "总是使用过时的窗口系统（X11）"
 
-#: src/safety-calculator.c:159
+#: src/safety-calculator.c:192
 msgid "Can acquire arbitrary permissions"
 msgstr "可获取任意权限"
 
-#: src/safety-calculator.c:165
+#: src/safety-calculator.c:198
+msgid "SSH Key Access"
+msgstr "SSH 密钥访问"
+
+#: src/safety-calculator.c:199
+msgid "Can use your SSH keys to log into other computers"
+msgstr "可以使用您的 SSH 密钥登录其他计算机"
+
+#: src/safety-calculator.c:205
 msgid "User Settings"
 msgstr "用户设置"
 
-#: src/safety-calculator.c:166
+#: src/safety-calculator.c:206
 msgid "Can access and change user settings"
 msgstr "可访问和更改用户设置"
 
-#: src/safety-calculator.c:172
+#: src/safety-calculator.c:212
 msgid "Full File System Read/Write Access"
 msgstr "完全的文件系统读写权限"
 
-#: src/safety-calculator.c:173
+#: src/safety-calculator.c:213
 msgid "Can read and write all data on the file system"
 msgstr "可以读写文件系统上的所有数据"
 
-#: src/safety-calculator.c:180
+#: src/safety-calculator.c:220
 msgid "Home Folder Read/Write Access"
 msgstr "主目录读写权限"
 
-#: src/safety-calculator.c:181
+#: src/safety-calculator.c:221
 msgid "Can read and write all data in your home directory"
 msgstr "可以读写您的用户主目录中的所有数据"
 
-#: src/safety-calculator.c:188
+#: src/safety-calculator.c:228
 msgid "Full File System Read Access"
 msgstr "完全的文件系统读取权限"
 
-#: src/safety-calculator.c:189
+#: src/safety-calculator.c:229
 msgid "Can read all data on the file system"
 msgstr "可以读取文件系统上的所有数据"
 
-#: src/safety-calculator.c:197
+#: src/safety-calculator.c:237
 msgid "Home Folder Read Access"
 msgstr "主目录读取权限"
 
-#: src/safety-calculator.c:198
+#: src/safety-calculator.c:238
 msgid "Can read all data in your home directory"
 msgstr "可以读取您的用户主目录中的所有数据"
 
-#: src/safety-calculator.c:206
+#: src/safety-calculator.c:246
 msgid "Download Folder Read/Write Access"
 msgstr "下载文件夹读写权限"
 
-#: src/safety-calculator.c:207
+#: src/safety-calculator.c:247
 msgid "Can read and write all data in your downloads directory"
 msgstr "可以读写您的下载文件夹中的所有数据"
 
-#: src/safety-calculator.c:217
+#: src/safety-calculator.c:257
 msgid "Download Folder Read Access"
 msgstr "下载文件夹读取权限"
 
-#: src/safety-calculator.c:218
+#: src/safety-calculator.c:258
 msgid "Can read all data in your downloads directory"
 msgstr "可以读取您的下载文件夹中的所有数据"
 
-#: src/safety-calculator.c:235
+#: src/safety-calculator.c:275
 msgid "Can read and write all data in the directory"
 msgstr "可以读写目录中的所有数据"
 
-#: src/safety-calculator.c:255
+#: src/safety-calculator.c:295
 msgid "Can read all data in the directory"
 msgstr "可以读取目录中的所有数据"
 
-#: src/safety-calculator.c:271
+#: src/safety-calculator.c:311
 msgid "No File System Access"
 msgstr "无文件系统访问"
 
-#: src/safety-calculator.c:272
+#: src/safety-calculator.c:312
 msgid "Cannot access the file system at all"
 msgstr "完全无法访问文件系统"
 
-#: src/safety-calculator.c:279
+#: src/safety-calculator.c:319
 msgid "Uses System Services"
 msgstr "使用系统服务"
 
-#: src/safety-calculator.c:280
+#: src/safety-calculator.c:320
 msgid "Can request data from non-portal system services"
 msgstr "可以从非门户系统服务请求数据"
 
-#: src/safety-calculator.c:286
+#: src/safety-calculator.c:326
 msgid "Uses Session Services"
 msgstr "使用会话服务"
 
-#: src/safety-calculator.c:287
+#: src/safety-calculator.c:327
 msgid "Can request data from non-portal session services"
 msgstr "可以从非门户会话服务请求数据"
 
-#: src/safety-calculator.c:332
+#: src/safety-calculator.c:372
 msgid "No Service Access"
 msgstr "无服务访问"
 
-#: src/safety-calculator.c:333
+#: src/safety-calculator.c:373
 msgid "Cannot access non-portal session or system services at all"
 msgstr "完全无法访问非门户会话或系统服务"
 
-#: src/safety-calculator.c:372
+#: src/safety-calculator.c:412
 msgid "Verified App Developer"
 msgstr "应用开发者已验证"
 
-#: src/safety-calculator.c:373
+#: src/safety-calculator.c:413
 msgid "The developer of this app has been verified to be who they say they are"
 msgstr "此应用的开发者已经被验证为他们所声称的人"
 
-#: src/safety-calculator.c:382
+#: src/safety-calculator.c:422
 msgid "Proprietary Code"
 msgstr "专有代码"
 
-#: src/safety-calculator.c:383
+#: src/safety-calculator.c:423
 msgid ""
 "The source code is not public, so it cannot be independently audited and "
 "might be unsafe"
 msgstr "源代码不是公开的，所以它不能被独立地审计且可能不安全"
 
-#: src/safety-calculator.c:393
+#: src/safety-calculator.c:433
 msgid "Auditable Code"
 msgstr "可审计代码"
 
-#: src/safety-calculator.c:394
+#: src/safety-calculator.c:434
 msgid ""
 "The source code is public and can be independently audited, which makes the "
 "app more likely to be safe"
 msgstr "源代码是公开的且可以被独立地审计，这使得应用可以更安全"
 
-#: src/safety-calculator.c:532
+#: src/safety-calculator.c:572
 #, c-format
 msgid "Use the %s System Service"
 msgstr "使用 %s 系统服务"
 
-#: src/safety-calculator.c:536
+#: src/safety-calculator.c:576
 #, c-format
 msgid "Use the %s Session Service"
 msgstr "使用 %s 会话服务"
 
-#: src/safety-calculator.c:540
+#: src/safety-calculator.c:580
 #, c-format
 msgid "Use the %s Service"
 msgstr "使用 %s 服务"
 
-#: src/safety-calculator.c:550
+#: src/safety-calculator.c:590
 msgid "Can see the non-portal service"
 msgstr "可以查看非门户服务"
 
-#: src/safety-calculator.c:552
+#: src/safety-calculator.c:592
 msgid "Can talk to the non-portal service"
 msgstr "可以沟通非门户服务"
 
-#: src/safety-calculator.c:554
+#: src/safety-calculator.c:594
 msgid "Can own the non-portal service"
 msgstr "可以拥有非门户服务"
 
-#: src/safety-calculator.c:569
+#: src/safety-calculator.c:609
 msgid "Global Menu Integration"
 msgstr "全局菜单集成"
 
-#: src/safety-calculator.c:570
+#: src/safety-calculator.c:610
 msgid "Can display its menus in a global menu bar"
 msgstr "可在全局菜单栏中显示其菜单"
 
-#: src/safety-calculator.c:575
+#: src/safety-calculator.c:615
 msgid "KDE Settings Integration"
 msgstr "KDE 设置集成"
 
-#: src/safety-calculator.c:576
+#: src/safety-calculator.c:616
 msgid "Can detect when KDE desktop settings change"
 msgstr "可检测 KDE 桌面设置何时发生更改"
 
-#: src/safety-calculator.c:581
+#: src/safety-calculator.c:621
 msgid "KDE Global Settings"
 msgstr "KDE 全局设置"
 
-#: src/safety-calculator.c:582
+#: src/safety-calculator.c:622
 msgid "Can read KDE desktop preferences like fonts and colors"
 msgstr "可读取如字体和配色等 KDE 桌面首选项"
 
-#: src/safety-calculator.c:587
+#: src/safety-calculator.c:627
 msgid "Secret Storage Service"
 msgstr "保密存储服务"
 
-#: src/safety-calculator.c:588
+#: src/safety-calculator.c:628
 msgid "Can store and retrieve its own passwords using the system keyring"
 msgstr "可使用系统密钥串存储和获取自身密码"
 
-#: src/safety-calculator.c:593
+#: src/safety-calculator.c:633
 msgid "Desktop Notifications Service"
 msgstr "桌面通知服务"
 
-#: src/safety-calculator.c:594
+#: src/safety-calculator.c:634
 msgid "Can send desktop notifications"
 msgstr "可以发送桌面通知"
 
-#: src/safety-calculator.c:600
+#: src/safety-calculator.c:640
 msgid "System Tray Integration"
 msgstr "系统托盘集成"
 
-#: src/safety-calculator.c:601
+#: src/safety-calculator.c:641
 msgid "Can display an icon in the system tray"
 msgstr "可在系统托盘中显示图标"
 
-#: src/safety-calculator.c:606
+#: src/safety-calculator.c:646
 msgid "KDE Connect Integration"
 msgstr "KDE Connect 集成"
 
-#: src/safety-calculator.c:607
+#: src/safety-calculator.c:647
 msgid "Can interact with devices paired via KDE Connect"
 msgstr "可与通过 KDE Connect 配对的设备进行交互"
 
@@ -3613,7 +3661,7 @@ msgid "Quit Bazaar"
 msgstr "退出 Bazaar"
 
 #. Translators: The other Linux distributions, in the install statistics
-#: src/stats-types.vala:59
+#: src/stats-types.vala:63
 msgctxt "Distribution"
 msgid "Other"
 msgstr "其他"
@@ -3635,23 +3683,23 @@ msgstr "更新已过时"
 msgid "Please check for available updates"
 msgstr "请检查可用的更新"
 
-#: src/update-worker.c:535
+#: src/update-worker.c:542
 #, c-format
 msgid "%u App Updated"
 msgid_plural "%u Apps Updated"
 msgstr[0] "已更新 %u 款应用"
 
-#: src/update-worker.c:538
+#: src/update-worker.c:545
 #, c-format
 msgid "%s has been updated."
 msgstr "%s 已经更新。"
 
-#: src/update-worker.c:541
+#: src/update-worker.c:548
 #, c-format
 msgid "%s and %s have been updated."
 msgstr "%s 和 %s 已经更新。"
 
-#: src/update-worker.c:545
+#: src/update-worker.c:552
 #, c-format
 msgid "Includes %s, %s and %s."
 msgstr "包括 %s、%s 和 %s。"
